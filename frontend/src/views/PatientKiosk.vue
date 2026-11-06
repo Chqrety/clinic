@@ -2,7 +2,11 @@
 import { ref, onMounted } from 'vue'
 import { api, type QueueItem } from '../api/client'
 import { useClinicStore } from '../stores/clinic'
-import { QrCode, Banknote, CheckCircle2, Clock, Sparkles, RefreshCw, ArrowRight } from 'lucide-vue-next'
+import { QrCode, Banknote, CheckCircle2, Clock, Sparkles, RefreshCw, ArrowRight, ArrowLeft } from 'lucide-vue-next'
+
+const emit = defineEmits<{
+  (e: 'navigate', view: 'landing' | 'kiosk' | 'login'): void
+}>()
 
 const store = useClinicStore()
 
@@ -85,7 +89,20 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen pt-24 pb-16 px-4 flex justify-center items-start">
+  <div class="min-h-screen py-10 px-4 flex flex-col justify-center items-center">
+    <!-- Top Back to Home Button -->
+    <div class="w-full max-w-md mb-4 flex justify-between items-center">
+      <button
+        @click="emit('navigate', 'landing')"
+        class="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-950 transition-colors"
+      >
+        <ArrowLeft class="w-3.5 h-3.5" /> Kembali ke Beranda
+      </button>
+      <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">
+        Kiosk Pasien
+      </span>
+    </div>
+
     <div class="w-full max-w-md">
 
       <!-- View: Active Ticket -->

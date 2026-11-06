@@ -76,79 +76,65 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen pt-24 pb-16 px-4 max-w-7xl mx-auto">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+  <div class="py-8 px-6 sm:px-10 max-w-7xl mx-auto">
+    <!-- Header (Editorial & Clean) -->
+    <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 mb-6 pb-6 border-b border-black/10">
       <div>
-        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-zinc-950 text-white mb-2 shadow-sm">
-          Gudang & Inventori Apotek
-        </span>
         <h1 class="text-3xl font-extrabold text-zinc-950 tracking-tight">
-          Monitoring Stok, Batch & Expired Date
+          Gudang & Inventori Farmasi
         </h1>
-        <p class="text-sm text-zinc-500 mt-1">
-          Formula: <code class="px-1.5 py-0.5 rounded bg-stone-200/60 font-mono text-zinc-900">Stok Tersedia = Stok Fisik - Stok Reserved</code>. Prioritas kadaluarsa (FEFO).
+        <p class="text-xs text-zinc-500 mt-1">
+          Formula: <code class="px-1.5 py-0.5 rounded bg-stone-200/60 font-mono text-zinc-900">Tersedia = Fisik - Reserved</code>. Prioritas pengeluaran berdasarkan kadaluarsa (FEFO).
         </p>
       </div>
+
       <button
         @click="fetchDrugs"
         :disabled="loading"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-black/10 hover:border-black/20 text-xs font-bold text-zinc-800 shadow-sm transition-all active:scale-95 disabled:opacity-50 self-start sm:self-auto"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-black/10 hover:border-black/20 text-xs font-bold text-zinc-800 shadow-sm transition-all active:scale-95 disabled:opacity-50 self-start sm:self-auto"
       >
         <RefreshCw :class="['w-3.5 h-3.5', loading && 'animate-spin']" />
-        Segarkan Stok
+        Segarkan Data
       </button>
     </div>
 
-    <!-- Alert Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-      <div class="bg-rose-50/70 border border-rose-200 rounded-3xl p-5 flex items-center justify-between">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-rose-700">Mendekati Kadaluarsa (&lt; 3 Bulan)</div>
-          <div class="text-3xl font-extrabold text-rose-900 mt-1">
-            {{ drugs.filter(d => d.has_expiring).length }} Jenis Obat
-          </div>
-        </div>
-        <div class="w-10 h-10 rounded-2xl bg-rose-200/50 flex items-center justify-center text-rose-800">
-          <AlertCircle class="w-5 h-5" />
-        </div>
+    <!-- Single-line Typographic Metric Strip (Anti-Card Hell) -->
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-2 py-3 px-4 rounded-2xl bg-white border border-black/5 text-xs mb-8">
+      <div class="flex items-center gap-2">
+        <span class="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">Master Obat:</span>
+        <strong class="font-extrabold text-zinc-950 text-sm">{{ drugs.length }} Jenis</strong>
       </div>
-
-      <div class="bg-amber-50/70 border border-amber-200 rounded-3xl p-5 flex items-center justify-between">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-amber-700">Peringatan Stok Menipis</div>
-          <div class="text-3xl font-extrabold text-amber-900 mt-1">
-            {{ drugs.filter(d => d.is_low_stock).length }} Jenis Obat
-          </div>
-        </div>
-        <div class="w-10 h-10 rounded-2xl bg-amber-200/50 flex items-center justify-center text-amber-800">
-          <AlertTriangle class="w-5 h-5" />
-        </div>
+      <span class="text-zinc-200">•</span>
+      <div class="flex items-center gap-2">
+        <span class="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">Total Fisik:</span>
+        <strong class="font-extrabold text-zinc-950 text-sm">{{ drugs.reduce((acc, d) => acc + d.physical_stock, 0) }} Unit</strong>
       </div>
-
-      <div class="bg-white border border-black/5 rounded-3xl p-5 flex items-center justify-between shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-zinc-400">Total Master Obat</div>
-          <div class="text-3xl font-extrabold text-zinc-950 mt-1">{{ drugs.length }} Item</div>
-        </div>
-        <div class="w-10 h-10 rounded-2xl bg-stone-100 flex items-center justify-center text-zinc-800">
-          <Package class="w-5 h-5" />
-        </div>
+      <span class="text-zinc-200">•</span>
+      <div class="flex items-center gap-2 text-rose-700">
+        <AlertCircle class="w-3.5 h-3.5" />
+        <span class="font-bold uppercase tracking-wider text-[10px]">ED &lt; 3 Bulan:</span>
+        <strong class="font-extrabold text-sm">{{ drugs.filter(d => d.has_expiring).length }} Jenis</strong>
+      </div>
+      <span class="text-zinc-200">•</span>
+      <div class="flex items-center gap-2 text-amber-700">
+        <AlertTriangle class="w-3.5 h-3.5" />
+        <span class="font-bold uppercase tracking-wider text-[10px]">Stok Menipis:</span>
+        <strong class="font-extrabold text-sm">{{ drugs.filter(d => d.is_low_stock).length }} Jenis</strong>
       </div>
     </div>
 
-    <!-- Main Table -->
-    <div class="bg-white rounded-3xl p-6 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+    <!-- Main Table (Clean Scandinavian Minimal) -->
+    <div class="bg-white rounded-3xl p-6 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-sm">
           <thead>
             <tr class="border-b border-zinc-100 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
               <th class="pb-3 pl-2">Nama Obat</th>
-              <th class="pb-3">Kategori & KFA</th>
-              <th class="pb-3 text-center">Stok Fisik</th>
-              <th class="pb-3 text-center">Stok Dipesan (Reserved)</th>
-              <th class="pb-3 text-center">Stok Tersedia</th>
-              <th class="pb-3">Status Peringatan</th>
+              <th class="pb-3">Kategori / KFA</th>
+              <th class="pb-3 text-center">Fisik</th>
+              <th class="pb-3 text-center">Reserved</th>
+              <th class="pb-3 text-center">Tersedia</th>
+              <th class="pb-3">Status</th>
               <th class="pb-3 text-right pr-2">Aksi</th>
             </tr>
           </thead>
@@ -156,7 +142,7 @@ onMounted(() => {
             <tr
               v-for="d in drugs"
               :key="d.id"
-              class="hover:bg-stone-50/60 transition-colors"
+              class="hover:bg-stone-50/70 transition-colors"
             >
               <td class="py-4 pl-2 font-bold text-zinc-950">
                 {{ d.name }}
@@ -165,11 +151,11 @@ onMounted(() => {
                 <div class="text-xs font-semibold text-zinc-800">{{ d.category }}</div>
                 <div class="text-[11px] font-mono text-zinc-400">KFA: {{ d.kfa_code }}</div>
               </td>
-              <td class="py-4 text-center font-bold text-zinc-900">
-                {{ d.physical_stock }} {{ d.unit }}
+              <td class="py-4 text-center font-bold text-zinc-800">
+                {{ d.physical_stock }}
               </td>
               <td class="py-4 text-center font-bold text-amber-600">
-                {{ d.reserved_stock }} {{ d.unit }}
+                {{ d.reserved_stock }}
               </td>
               <td class="py-4 text-center font-extrabold text-base text-zinc-950">
                 <span :class="d.is_low_stock ? 'text-rose-600' : 'text-emerald-700'">
@@ -181,13 +167,13 @@ onMounted(() => {
                 <div class="flex flex-col gap-1 items-start">
                   <span
                     v-if="d.has_expiring"
-                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200"
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200"
                   >
                     ⚠ ED &lt; 3 Bulan
                   </span>
                   <span
                     v-if="d.is_low_stock"
-                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
                   >
                     Stok Menipis
                   </span>
@@ -202,13 +188,13 @@ onMounted(() => {
               <td class="py-4 text-right pr-2 space-x-2 whitespace-nowrap">
                 <button
                   @click="viewDetail(d)"
-                  class="px-3 py-1.5 rounded-full border border-black/10 hover:border-black/20 text-xs font-bold text-zinc-800 transition-all active:scale-95"
+                  class="px-3.5 py-1.5 rounded-full border border-black/10 hover:border-black/20 text-xs font-bold text-zinc-800 transition-all active:scale-95"
                 >
                   Detail Batch
                 </button>
                 <button
                   @click="openRestock(d)"
-                  class="px-3.5 py-1.5 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold transition-all active:scale-95"
+                  class="px-4 py-1.5 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold transition-all active:scale-95"
                 >
                   + Restock
                 </button>
@@ -220,11 +206,11 @@ onMounted(() => {
     </div>
 
     <!-- Batch Detail Drawer / Section -->
-    <div v-if="selectedDrug && selectedDrug.batches" class="mt-8 bg-white rounded-3xl p-6 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+    <div v-if="selectedDrug && selectedDrug.batches" class="mt-8 bg-white rounded-3xl p-6 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="text-lg font-bold text-zinc-950">
-            Rincian Batch Obat: {{ selectedDrug.name }}
+          <h2 class="text-base font-bold text-zinc-950">
+            Rincian Batch: {{ selectedDrug.name }}
           </h2>
           <p class="text-xs text-zinc-500">Urutan FEFO (Batch yang mendekati expired berada di atas).</p>
         </div>
@@ -232,7 +218,7 @@ onMounted(() => {
           @click="selectedDrug = null"
           class="text-xs font-bold text-zinc-400 hover:text-zinc-900"
         >
-          Tutup Rincian
+          Tutup Rincian ×
         </button>
       </div>
 
@@ -242,7 +228,7 @@ onMounted(() => {
           :key="b.id"
           :class="[
             'p-4 rounded-2xl border transition-all',
-            b.is_expiring_soon ? 'border-rose-200 bg-rose-50/50' : 'border-black/5 bg-[#F9F9F7]'
+            b.is_expiring_soon ? 'border-rose-200 bg-rose-50/40' : 'border-black/5 bg-[#F9F9F7]'
           ]"
         >
           <div class="flex items-center justify-between mb-1">
@@ -328,7 +314,7 @@ onMounted(() => {
             <button
               type="submit"
               :disabled="submittingRestock"
-              class="px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-500 text-zinc-950 text-xs font-extrabold transition-all shadow-sm active:scale-95 disabled:opacity-50"
+              class="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-500 text-zinc-950 text-xs font-extrabold transition-all shadow-sm active:scale-95 disabled:opacity-50"
             >
               {{ submittingRestock ? 'Menyimpan...' : 'Simpan Masuk Gudang' }}
             </button>

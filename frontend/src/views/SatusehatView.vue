@@ -48,17 +48,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen pt-24 pb-16 px-4 max-w-6xl mx-auto">
+  <div class="py-8 px-6 sm:px-10 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 mb-6 pb-6 border-b border-black/10">
       <div>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white mb-2 shadow-sm">
-          <ShieldCheck class="w-3.5 h-3.5" /> Standar Kemenkes RI
-        </span>
         <h1 class="text-3xl font-extrabold text-zinc-950 tracking-tight">
           Integrasi SATUSEHAT (FHIR R4 Ready)
         </h1>
-        <p class="text-sm text-zinc-500 mt-1">
+        <p class="text-xs text-zinc-500 mt-1">
           Klinik terstandarisasi untuk regulasi interoperabilitas rekam medis Kemenkes RI.
         </p>
       </div>
