@@ -1,0 +1,25 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Backend
+backend/clinic.db
+backend/clinic.db-journal
+backend/clinic.db-wal
+backend/clinic.db-shm
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+
+# Logs & temp
+*.log
+.DS_Store
+.vscode/
+.idea/
