@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { api, type Invoice } from '../api/client'
-import { Receipt, Printer, Eye, Building2, UserCheck, Percent } from 'lucide-vue-next'
+import { useClinicStore } from '../stores/clinic'
+import { Receipt, Printer, Eye, Building2, UserCheck, Percent, RefreshCw, CheckCircle2 } from 'lucide-vue-next'
 
+const store = useClinicStore()
 const invoices = ref<Invoice[]>([])
 const selectedInvoice = ref<Invoice | null>(null)
 const viewMode = ref<'patient' | 'internal'>('patient')
@@ -12,7 +14,14 @@ async function fetchInvoices() {
   loading.value = true
   try {
     invoices.value = await api.getInvoices()
-    if (invoices.value.length > 0 && !selectedInvoice.value) {
+    if (store.selectedInvoiceQueueId) {
+      const match = invoices.value.find(i => i.queue_id === store.selectedInvoiceQueueId)
+      if (match) {
+        selectedInvoice.value = match
+      } else if (invoices.value.length > 0 && !selectedInvoice.value) {
+        selectedInvoice.value = invoices.value[0]
+      }
+    } else if (invoices.value.length > 0 && !selectedInvoice.value) {
       selectedInvoice.value = invoices.value[0]
     }
   } catch (e) {
@@ -21,6 +30,16 @@ async function fetchInvoices() {
     loading.value = false
   }
 }
+
+watch(
+  () => store.selectedInvoiceQueueId,
+  (newQId) => {
+    if (newQId && invoices.value.length > 0) {
+      const match = invoices.value.find(i => i.queue_id === newQId)
+      if (match) selectedInvoice.value = match
+    }
+  }
+)
 
 function printReceipt() {
   window.print()
@@ -43,6 +62,34 @@ onMounted(() => {
           Pasien menerima 1 invoice sederhana. Klinik memegang audit internal (Jasa Medis, Margin Klinik & Pajak).
         </p>
       </div>
+
+      <button
+        @click="fetchInvoices"
+        :disabled="loading"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-black/10 hover:border-black/20 text-xs font-bold text-zinc-800 shadow-sm transition-all active:scale-95 disabled:opacity-50 self-start sm:self-auto"
+      >
+        <RefreshCw :class="['w-3.5 h-3.5', loading && 'animate-spin']" />
+        Segarkan Invoice
+      </button>
+    </div>
+
+    <!-- Active Navigation Banner from Pharmacy -->
+    <div
+      v-if="store.selectedInvoiceQueueId && selectedInvoice?.queue_id === store.selectedInvoiceQueueId"
+      class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/70 flex items-center justify-between gap-3 text-xs"
+    >
+      <div class="flex items-center gap-2">
+        <CheckCircle2 class="w-4 h-4 text-amber-700 flex-shrink-0" />
+        <span class="text-amber-950 font-bold">
+          Menampilkan invoice dari penyerahan obat Apotek: <strong>{{ selectedInvoice.patient_name }}</strong> ({{ selectedInvoice.invoice_number }})
+        </span>
+      </div>
+      <button
+        @click="store.setSelectedInvoiceQueue(null)"
+        class="text-amber-800 hover:text-amber-950 text-[11px] font-bold underline"
+      >
+        Tutup Tanda
+      </button>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">

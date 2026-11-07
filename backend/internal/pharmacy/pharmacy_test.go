@@ -3,6 +3,7 @@ package pharmacy_test
 import (
 	"testing"
 
+	"clinic-api/internal/billing"
 	"clinic-api/internal/consultation"
 	"clinic-api/internal/pharmacy"
 	"clinic-api/internal/queue"
@@ -102,5 +103,28 @@ func TestCorePharmacyAndStockLifecycle(t *testing.T) {
 	}
 	if finalPct.PhysicalStock != (pct.PhysicalStock - requestQty) {
 		t.Errorf("expected physical_stock = %d, got %d", pct.PhysicalStock-requestQty, finalPct.PhysicalStock)
+	}
+
+	// 8. Verify Billing: Invoice automatically created and matches 1 consolidated invoice rule
+	billingSvc := billing.NewService(db)
+	invList, err := billingSvc.GetInvoices()
+	if err != nil {
+		t.Fatalf("failed to get invoices: %v", err)
+	}
+	if len(invList) == 0 {
+		t.Fatalf("expected at least 1 invoice after pharmacy dispense, got 0")
+	}
+
+	inv := invList[0]
+	if inv.QueueID != qItem.ID {
+		t.Errorf("expected invoice queueID %d, got %d", qItem.ID, inv.QueueID)
+	}
+	expectedMedFee := pct.SellPrice * requestQty
+	if inv.MedicationFee != expectedMedFee {
+		t.Errorf("expected medication fee %d, got %d", expectedMedFee, inv.MedicationFee)
+	}
+	expectedTotal := 35000 + 50000 + expectedMedFee
+	if inv.TotalAmount != expectedTotal {
+		t.Errorf("expected total invoice %d, got %d", expectedTotal, inv.TotalAmount)
 	}
 }

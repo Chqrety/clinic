@@ -2,12 +2,17 @@
 import { ref, onMounted } from 'vue'
 import { api, type Prescription } from '../api/client'
 import { useClinicStore } from '../stores/clinic'
-import { Pill, CheckCircle2, RefreshCw } from 'lucide-vue-next'
+import { Pill, CheckCircle2, RefreshCw, Receipt, ArrowRight } from 'lucide-vue-next'
 
 const store = useClinicStore()
 const prescriptions = ref<Prescription[]>([])
 const loading = ref(false)
 const processingId = ref<number | null>(null)
+
+function goToBilling(queueId: number) {
+  store.setSelectedInvoiceQueue(queueId)
+  store.setRole('billing')
+}
 
 async function fetchPrescriptions() {
   loading.value = true
@@ -156,8 +161,23 @@ onMounted(() => {
             </button>
           </div>
 
-          <div v-else-if="rx.status === 'DISPENSED'" class="text-xs font-bold text-emerald-700 flex items-center gap-1">
-            <CheckCircle2 class="w-4 h-4" /> Obat telah diserahkan, stok fisik apotek terpotong
+          <div v-else-if="rx.status === 'DISPENSED'" class="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/60">
+            <div class="flex items-center gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <div>
+                <span class="text-xs font-extrabold text-emerald-950 block">Obat Diserahkan • Pelayanan Medis Selesai</span>
+                <span class="text-[11px] text-emerald-700 block">Stok fisik apotek terpotong. Invoice digital pasien telah terbit di Billing.</span>
+              </div>
+            </div>
+
+            <button
+              @click="goToBilling(rx.queue_id)"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-extrabold transition-all active:scale-95 shadow-sm whitespace-nowrap self-start sm:self-auto"
+            >
+              <Receipt class="w-3.5 h-3.5 text-amber-400" />
+              <span>Lihat Invoice di Billing</span>
+              <ArrowRight class="w-3.5 h-3.5 text-zinc-400" />
+            </button>
           </div>
         </div>
       </div>

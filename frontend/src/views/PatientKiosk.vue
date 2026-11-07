@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { api, type QueueItem } from '../api/client'
+import { api, type QueueItem, type Invoice } from '../api/client'
 import { useClinicStore } from '../stores/clinic'
-import { QrCode, Banknote, RefreshCw, ArrowRight, ArrowLeft, Check, ShieldCheck } from 'lucide-vue-next'
+import { QrCode, Banknote, RefreshCw, ArrowRight, ArrowLeft, Check, ShieldCheck, Receipt, Printer, X } from 'lucide-vue-next'
 
 const emit = defineEmits<{
   (e: 'navigate', view: 'landing' | 'kiosk' | 'login'): void
@@ -21,6 +21,21 @@ const errorMsg = ref('')
 const activeTicket = ref<QueueItem | null>(store.activePatientQueue)
 const aheadCount = ref(0)
 const activeCallingNum = ref('A-001')
+const patientInvoice = ref<Invoice | null>(null)
+const showInvoiceModal = ref(false)
+
+async function viewPatientInvoice() {
+  if (!activeTicket.value) return
+  loading.value = true
+  try {
+    patientInvoice.value = await api.getInvoiceByQueue(activeTicket.value.id)
+    showInvoiceModal.value = true
+  } catch (err: any) {
+    alert(err.message || 'Invoice belum tersedia')
+  } finally {
+    loading.value = false
+  }
+}
 
 async function checkAheadQueues(myNum: string) {
   try {
@@ -146,22 +161,37 @@ onMounted(() => {
             <!-- Status Indicator Pill -->
             <div
               class="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold mt-1"
-              :class="activeTicket.payment_status === 'PAID'
-                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/60'
-                : 'bg-stone-100 text-zinc-700 border border-zinc-200'"
+              :class="[
+                activeTicket.queue_status === 'COMPLETED'
+                  ? 'bg-blue-50 text-blue-800 border border-blue-200/60'
+                  : (activeTicket.payment_status === 'PAID'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/60'
+                      : 'bg-stone-100 text-zinc-700 border border-zinc-200')
+              ]"
             >
               <span
                 class="w-2 h-2 rounded-full flex-shrink-0"
-                :class="activeTicket.payment_status === 'PAID' ? 'bg-emerald-600 animate-pulse' : 'bg-zinc-400'"
+                :class="[
+                  activeTicket.queue_status === 'COMPLETED'
+                    ? 'bg-blue-600'
+                    : (activeTicket.payment_status === 'PAID' ? 'bg-emerald-600 animate-pulse' : 'bg-zinc-400')
+                ]"
               ></span>
               <span class="truncate">
-                {{ activeTicket.payment_status === 'PAID' ? 'Antrian Aktif Terjadwal' : 'Menunggu Kasir' }}
+                {{
+                  activeTicket.queue_status === 'COMPLETED'
+                    ? 'Pelayanan Medis Selesai'
+                    : (activeTicket.payment_status === 'PAID' ? 'Antrian Aktif Terjadwal' : 'Menunggu Kasir')
+                }}
               </span>
             </div>
 
             <!-- Wait Notice -->
             <p class="text-xs text-zinc-600 mt-3 font-medium leading-relaxed px-2">
-              <span v-if="activeTicket.payment_status === 'PENDING'">
+              <span v-if="activeTicket.queue_status === 'COMPLETED'" class="text-zinc-950 font-bold">
+                Pemeriksaan dokter dan penyerahan obat di apotek telah selesai. Terima kasih atas kunjungan Anda.
+              </span>
+              <span v-else-if="activeTicket.payment_status === 'PENDING'">
                 Silakan lakukan pembayaran di kasir loket untuk mengaktifkan giliran panggilan dokter.
               </span>
               <span v-else-if="aheadCount > 0">
@@ -201,6 +231,18 @@ onMounted(() => {
               </span>
               <span class="font-mono font-bold text-zinc-900">{{ activeTicket.patient_ihs }}</span>
             </div>
+          </div>
+
+          <!-- Action for Completed Queue: Digital Invoice Pass -->
+          <div v-if="activeTicket.queue_status === 'COMPLETED'" class="pt-4 border-t border-zinc-100">
+            <button
+              @click="viewPatientInvoice"
+              :disabled="loading"
+              class="w-full py-3 rounded-full text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white transition-all active:scale-95 shadow-sm flex items-center justify-center gap-2"
+            >
+              <Receipt class="w-3.5 h-3.5" />
+              <span>Lihat Salinan Invoice Digital Pasien</span>
+            </button>
           </div>
         </div>
 
@@ -407,5 +449,73 @@ onMounted(() => {
       </div>
 
     </main>
+
+    <!-- Digital Invoice Modal for Patient -->
+    <div
+      v-if="showInvoiceModal && patientInvoice"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <!-- Receipt Header -->
+        <div class="flex items-start justify-between pb-4 border-b border-dashed border-zinc-200">
+          <div>
+            <span class="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 block">Salinan Resmi</span>
+            <h3 class="text-base font-extrabold text-zinc-950 mt-0.5">KLINIK SEHAT MODERN</h3>
+            <p class="text-[11px] text-zinc-500">Jl. Kesehatan No. 88 — Telepon: (021) 555-0199</p>
+          </div>
+          <button
+            @click="showInvoiceModal = false"
+            class="p-2 rounded-full hover:bg-stone-100 text-zinc-400 hover:text-zinc-950 transition-colors"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Receipt Meta -->
+        <div class="grid grid-cols-2 text-xs gap-y-1 text-zinc-600">
+          <div>No. Invoice: <strong class="text-zinc-900 font-mono">{{ patientInvoice.invoice_number }}</strong></div>
+          <div class="text-right">Tgl: {{ new Date(patientInvoice.created_at).toLocaleDateString('id-ID') }}</div>
+          <div>Pasien: <strong class="text-zinc-900">{{ patientInvoice.patient_name }}</strong></div>
+          <div class="text-right">NIK: {{ patientInvoice.patient_nik }}</div>
+        </div>
+
+        <!-- Line Items -->
+        <div class="border-t border-b border-zinc-100 py-3 space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-zinc-600">Biaya Administrasi & Pendaftaran</span>
+            <span class="font-bold text-zinc-900">Rp {{ patientInvoice.registration_fee.toLocaleString('id-ID') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-600">Jasa Konsultasi Dokter Umum</span>
+            <span class="font-bold text-zinc-900">Rp {{ patientInvoice.consultation_fee.toLocaleString('id-ID') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-600">Total Biaya Resep & Obat</span>
+            <span class="font-bold text-zinc-900">Rp {{ patientInvoice.medication_fee.toLocaleString('id-ID') }}</span>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="flex justify-between items-baseline pt-1">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-zinc-500 block">Total Tagihan Lunas</span>
+            <span class="text-[11px] text-emerald-700 font-bold">Via {{ patientInvoice.payment_method }} (Sudah Lunas)</span>
+          </div>
+          <span class="text-2xl font-black text-zinc-950">
+            Rp {{ patientInvoice.total_amount.toLocaleString('id-ID') }}
+          </span>
+        </div>
+
+        <!-- Close / Print -->
+        <div class="pt-2 flex gap-2">
+          <button
+            @click="showInvoiceModal = false"
+            class="flex-1 py-3 rounded-full text-xs font-bold bg-zinc-950 hover:bg-zinc-800 text-white transition-all active:scale-95"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

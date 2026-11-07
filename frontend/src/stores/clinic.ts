@@ -8,6 +8,7 @@ export const useClinicStore = defineStore('clinic', () => {
   const currentRole = ref<RoleType>('patient')
   const activePatientQueue = ref<QueueItem | null>(null)
   const selectedDoctorQueueId = ref<number | null>(null)
+  const selectedInvoiceQueueId = ref<number | null>(null)
   const soundEnabled = ref(true)
 
   function setRole(role: RoleType) {
@@ -20,6 +21,10 @@ export const useClinicStore = defineStore('clinic', () => {
 
   function setSelectedDoctorQueue(queueId: number | null) {
     selectedDoctorQueueId.value = queueId
+  }
+
+  function setSelectedInvoiceQueue(queueId: number | null) {
+    selectedInvoiceQueueId.value = queueId
   }
 
   function playChime() {
@@ -46,10 +51,12 @@ export const useClinicStore = defineStore('clinic', () => {
     currentRole,
     activePatientQueue,
     selectedDoctorQueueId,
+    selectedInvoiceQueueId,
     soundEnabled,
     setRole,
     setActivePatientQueue,
     setSelectedDoctorQueue,
+    setSelectedInvoiceQueue,
     playChime,
   }
 })

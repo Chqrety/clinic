@@ -52,6 +52,26 @@ func (s *Service) HandleGetByQueue(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) GetInvoices() ([]domain.Invoice, error) {
+	// Auto-generate invoice for any completed queue missing from invoices table
+	cRows, err := s.db.Query(`
+		SELECT q.id FROM queues q
+		WHERE q.queue_status = 'COMPLETED'
+		  AND q.id NOT IN (SELECT queue_id FROM invoices)
+	`)
+	if err == nil {
+		var qIDs []int64
+		for cRows.Next() {
+			var qid int64
+			if err := cRows.Scan(&qid); err == nil {
+				qIDs = append(qIDs, qid)
+			}
+		}
+		cRows.Close()
+		for _, qid := range qIDs {
+			_, _ = s.GetOrCreateInvoice(qid)
+		}
+	}
+
 	query := `
 		SELECT i.id, i.queue_id, i.invoice_number, pat.name, pat.nik,
 		       i.registration_fee, i.consultation_fee, i.medication_fee, i.total_amount,
@@ -104,6 +124,23 @@ func (s *Service) GetOrCreateInvoice(queueID int64) (*domain.Invoice, error) {
 	)
 
 	if err == nil {
+		// Update medication fee if prescription was dispensed after invoice init
+		var currentMedFee int
+		_ = s.db.QueryRow(`
+			SELECT coalesce(sum(pi.subtotal), 0)
+			FROM prescription_items pi
+			JOIN prescriptions p ON pi.prescription_id = p.id
+			JOIN consultations c ON p.consultation_id = c.id
+			WHERE c.queue_id = ? AND p.status != 'CANCELLED'
+		`, queueID).Scan(&currentMedFee)
+
+		if currentMedFee != inv.MedicationFee {
+			inv.MedicationFee = currentMedFee
+			inv.TotalAmount = inv.RegistrationFee + inv.ConsultationFee + currentMedFee
+			_, _ = s.db.Exec(`UPDATE invoices SET medication_fee = ?, total_amount = ? WHERE id = ?`,
+				inv.MedicationFee, inv.TotalAmount, inv.ID)
+		}
+
 		inv.DoctorShare = int(float64(inv.ConsultationFee) * 0.70)
 		inv.TaxShare = int(float64(inv.TotalAmount) * 0.11)
 		inv.ClinicShare = inv.TotalAmount - inv.DoctorShare - inv.TaxShare

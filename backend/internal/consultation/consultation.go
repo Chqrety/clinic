@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"clinic-api/internal/domain"
 
@@ -271,8 +272,12 @@ func (s *Service) SaveConsultation(req SaveConsultationRequest) (*domain.Consult
 		}
 	}
 
-	// Update queue status to IN_EXAM or COMPLETED
-	_, _ = tx.Exec("UPDATE queues SET queue_status = 'IN_EXAM' WHERE id = ?", req.QueueID)
+	// Update queue status: if prescription exists, wait in pharmacy; else complete consultation
+	if len(req.Prescription) > 0 {
+		_, _ = tx.Exec("UPDATE queues SET queue_status = 'IN_EXAM' WHERE id = ?", req.QueueID)
+	} else {
+		_, _ = tx.Exec("UPDATE queues SET queue_status = 'COMPLETED' WHERE id = ?", req.QueueID)
+	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
@@ -380,6 +385,45 @@ func (s *Service) DispensePrescription(rxID int64) error {
 
 	if queueID > 0 {
 		_, _ = tx.Exec("UPDATE queues SET queue_status = 'COMPLETED' WHERE id = ?", queueID)
+
+		// Auto-generate or update invoice in billing
+		var hasInv int
+		_ = tx.QueryRow("SELECT count(*) FROM invoices WHERE queue_id = ?", queueID).Scan(&hasInv)
+
+		var medFee int
+		_ = tx.QueryRow(`
+			SELECT coalesce(sum(pi.subtotal), 0)
+			FROM prescription_items pi
+			JOIN prescriptions p ON pi.prescription_id = p.id
+			JOIN consultations c ON p.consultation_id = c.id
+			WHERE c.queue_id = ? AND p.status != 'CANCELLED'
+		`, queueID).Scan(&medFee)
+
+		regFee := 35000
+		consultFee := 50000
+
+		if hasInv == 0 {
+			var patName, patNIK, payMethod string
+			_ = tx.QueryRow(`
+				SELECT p.name, p.nik, q.payment_method
+				FROM queues q
+				JOIN patients p ON q.patient_id = p.id
+				WHERE q.id = ?
+			`, queueID).Scan(&patName, &patNIK, &payMethod)
+
+			total := regFee + consultFee + medFee
+			invNumber := fmt.Sprintf("INV-%s-%04d", time.Now().Format("20060102"), queueID)
+			_, _ = tx.Exec(`
+				INSERT INTO invoices (queue_id, invoice_number, registration_fee, consultation_fee, medication_fee, total_amount, payment_method, payment_status)
+				VALUES (?, ?, ?, ?, ?, ?, ?, 'PAID')
+			`, queueID, invNumber, regFee, consultFee, medFee, total, payMethod)
+		} else {
+			_, _ = tx.Exec(`
+				UPDATE invoices
+				SET medication_fee = ?, total_amount = registration_fee + consultation_fee + ?
+				WHERE queue_id = ?
+			`, medFee, medFee, queueID)
+		}
 	}
 
 	return tx.Commit()
