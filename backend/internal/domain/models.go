@@ -98,17 +98,19 @@ type Prescription struct {
 }
 
 type Invoice struct {
-	ID              int64     `json:"id"`
-	QueueID         int64     `json:"queue_id"`
-	InvoiceNumber   string    `json:"invoice_number"`
-	PatientName     string    `json:"patient_name"`
-	PatientNIK      string    `json:"patient_nik"`
-	RegistrationFee int       `json:"registration_fee"`
-	ConsultationFee int       `json:"consultation_fee"`
-	MedicationFee   int       `json:"medication_fee"`
-	TotalAmount     int       `json:"total_amount"`
-	PaymentMethod   string    `json:"payment_method"`
-	PaymentStatus   string    `json:"payment_status"`
+	ID              int64              `json:"id"`
+	QueueID         int64              `json:"queue_id"`
+	InvoiceNumber   string             `json:"invoice_number"`
+	InvoiceType     string             `json:"invoice_type"` // "REGISTRATION" | "PHARMACY"
+	PatientName     string             `json:"patient_name"`
+	PatientNIK      string             `json:"patient_nik"`
+	RegistrationFee int                `json:"registration_fee"`
+	ConsultationFee int                `json:"consultation_fee"`
+	MedicationFee   int                `json:"medication_fee"`
+	TotalAmount     int                `json:"total_amount"`
+	PaymentMethod   string             `json:"payment_method"`
+	PaymentStatus   string             `json:"payment_status"`
+	Items           []PrescriptionItem `json:"items,omitempty"`
 	// Internal Breakdown (Audit / Klinik)
 	DoctorShare int       `json:"doctor_share"` // 70% jasa konsultasi
 	ClinicShare int       `json:"clinic_share"` // Registrasi + 30% konsultasi + margin obat

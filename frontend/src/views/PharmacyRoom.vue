@@ -166,7 +166,7 @@ onMounted(() => {
               <CheckCircle2 class="w-4 h-4 text-emerald-600 flex-shrink-0" />
               <div>
                 <span class="text-xs font-extrabold text-emerald-950 block">Obat Diserahkan • Pelayanan Medis Selesai</span>
-                <span class="text-[11px] text-emerald-700 block">Stok fisik apotek terpotong. Invoice digital pasien telah terbit di Billing.</span>
+                <span class="text-[11px] text-emerald-700 block">Stok fisik terpotong. Invoice resep obat resmi telah terbit di Billing.</span>
               </div>
             </div>
 
@@ -175,7 +175,7 @@ onMounted(() => {
               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-extrabold transition-all active:scale-95 shadow-sm whitespace-nowrap self-start sm:self-auto"
             >
               <Receipt class="w-3.5 h-3.5 text-amber-400" />
-              <span>Lihat Invoice di Billing</span>
+              <span>Lihat Invoice Obat di Billing</span>
               <ArrowRight class="w-3.5 h-3.5 text-zinc-400" />
             </button>
           </div>

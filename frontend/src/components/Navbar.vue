@@ -31,7 +31,7 @@ const emit = defineEmits<{
       <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-zinc-600">
         <a href="#keunggulan" class="hover:text-zinc-950 transition-colors">Alur Pelayanan</a>
         <a href="#live-queue" class="hover:text-zinc-950 transition-colors">Antrian Live</a>
-        <a href="#satusehat" class="hover:text-zinc-950 transition-colors">SATUSEHAT</a>
+        <a href="#lokasi" class="hover:text-zinc-950 transition-colors">Lokasi & Kontak</a>
       </nav>
 
       <div class="flex items-center gap-2.5">

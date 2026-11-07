@@ -386,9 +386,9 @@ func (s *Service) DispensePrescription(rxID int64) error {
 	if queueID > 0 {
 		_, _ = tx.Exec("UPDATE queues SET queue_status = 'COMPLETED' WHERE id = ?", queueID)
 
-		// Auto-generate or update invoice in billing
-		var hasInv int
-		_ = tx.QueryRow("SELECT count(*) FROM invoices WHERE queue_id = ?", queueID).Scan(&hasInv)
+		// Auto-generate PHARMACY invoice
+		var hasPharmInv int
+		_ = tx.QueryRow("SELECT count(*) FROM invoices WHERE queue_id = ? AND invoice_type = 'PHARMACY'", queueID).Scan(&hasPharmInv)
 
 		var medFee int
 		_ = tx.QueryRow(`
@@ -399,10 +399,7 @@ func (s *Service) DispensePrescription(rxID int64) error {
 			WHERE c.queue_id = ? AND p.status != 'CANCELLED'
 		`, queueID).Scan(&medFee)
 
-		regFee := 35000
-		consultFee := 50000
-
-		if hasInv == 0 {
+		if medFee > 0 && hasPharmInv == 0 {
 			var patName, patNIK, payMethod string
 			_ = tx.QueryRow(`
 				SELECT p.name, p.nik, q.payment_method
@@ -411,18 +408,11 @@ func (s *Service) DispensePrescription(rxID int64) error {
 				WHERE q.id = ?
 			`, queueID).Scan(&patName, &patNIK, &payMethod)
 
-			total := regFee + consultFee + medFee
-			invNumber := fmt.Sprintf("INV-%s-%04d", time.Now().Format("20060102"), queueID)
+			invNumber := fmt.Sprintf("INV-FAR-%s-%04d", time.Now().Format("20060102"), queueID)
 			_, _ = tx.Exec(`
-				INSERT INTO invoices (queue_id, invoice_number, registration_fee, consultation_fee, medication_fee, total_amount, payment_method, payment_status)
-				VALUES (?, ?, ?, ?, ?, ?, ?, 'PAID')
-			`, queueID, invNumber, regFee, consultFee, medFee, total, payMethod)
-		} else {
-			_, _ = tx.Exec(`
-				UPDATE invoices
-				SET medication_fee = ?, total_amount = registration_fee + consultation_fee + ?
-				WHERE queue_id = ?
-			`, medFee, medFee, queueID)
+				INSERT INTO invoices (queue_id, invoice_number, invoice_type, registration_fee, consultation_fee, medication_fee, total_amount, payment_method, payment_status)
+				VALUES (?, ?, 'PHARMACY', 0, 0, ?, ?, ?, 'PAID')
+			`, queueID, invNumber, medFee, medFee, payMethod)
 		}
 	}
 

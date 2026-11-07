@@ -19,7 +19,12 @@ func InitDB(dbPath string) (*sql.DB, error) {
 		}
 	}
 
-	db, err := sql.Open("sqlite", dbPath+"?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)")
+	dsn := dbPath + "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)"
+	if dbPath == ":memory:" {
+		dsn = "file:memdb1?mode=memory&cache=shared&_pragma=foreign_keys(1)"
+	}
+
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open sqlite db: %w", err)
 	}
@@ -119,6 +124,7 @@ func migrateSchema(db *sql.DB) error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		queue_id INTEGER NOT NULL REFERENCES queues(id),
 		invoice_number TEXT NOT NULL UNIQUE,
+		invoice_type TEXT NOT NULL DEFAULT 'REGISTRATION',
 		registration_fee INTEGER DEFAULT 0,
 		consultation_fee INTEGER DEFAULT 0,
 		medication_fee INTEGER DEFAULT 0,
@@ -138,8 +144,14 @@ func migrateSchema(db *sql.DB) error {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 	`
-	_, err := db.Exec(schema)
-	return err
+	if _, err := db.Exec(schema); err != nil {
+		return err
+	}
+
+	// Non-destructive column addition for existing db
+	_, _ = db.Exec("ALTER TABLE invoices ADD COLUMN invoice_type TEXT NOT NULL DEFAULT 'REGISTRATION'")
+
+	return nil
 }
 
 func seedInitialData(db *sql.DB) error {

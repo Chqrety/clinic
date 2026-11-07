@@ -3,8 +3,10 @@ package pharmacy
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain"
@@ -22,6 +24,7 @@ func NewService(db *sql.DB) *Service {
 
 func RegisterRoutes(r chi.Router, s *Service) {
 	r.Get("/drugs", s.HandleGetDrugs)
+	r.Post("/drugs", s.HandleCreateDrug)
 	r.Get("/drugs/{id}", s.HandleGetDrugDetail)
 	r.Post("/drugs/{id}/restock", s.HandleRestock)
 }
@@ -49,6 +52,66 @@ func (s *Service) HandleGetDrugDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSON(w, http.StatusOK, domain.ApiResponse{Success: true, Data: drug})
+}
+
+type CreateDrugRequest struct {
+	Name          string `json:"name"`
+	KFACode       string `json:"kfa_code"`
+	Unit          string `json:"unit"`
+	Category      string `json:"category"`
+	MinStockAlert int    `json:"min_stock_alert"`
+	SellPrice     int    `json:"sell_price"`
+}
+
+func (s *Service) HandleCreateDrug(w http.ResponseWriter, r *http.Request) {
+	var req CreateDrugRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		sendError(w, http.StatusBadRequest, "Format JSON tidak valid")
+		return
+	}
+
+	req.Name = strings.TrimSpace(req.Name)
+	req.Unit = strings.TrimSpace(req.Unit)
+	req.Category = strings.TrimSpace(req.Category)
+	if req.Name == "" || req.Unit == "" || req.Category == "" {
+		sendError(w, http.StatusBadRequest, "Nama obat, satuan unit, dan kategori wajib diisi")
+		return
+	}
+	if req.MinStockAlert <= 0 {
+		req.MinStockAlert = 10
+	}
+	if req.SellPrice < 0 {
+		req.SellPrice = 0
+	}
+	if req.KFACode == "" {
+		req.KFACode = fmt.Sprintf("KFA-%d", time.Now().Unix()%1000000)
+	}
+
+	res, err := s.db.Exec(`
+		INSERT INTO drugs (name, kfa_code, unit, category, min_stock_alert, sell_price)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, req.Name, req.KFACode, req.Unit, req.Category, req.MinStockAlert, req.SellPrice)
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, "Gagal menyimpan jenis obat baru: "+err.Error())
+		return
+	}
+
+	newID, _ := res.LastInsertId()
+	created, err := s.GetDrugDetail(newID)
+	if err != nil {
+		sendJSON(w, http.StatusCreated, domain.ApiResponse{
+			Success: true,
+			Message: "Jenis obat baru berhasil ditambahkan",
+			Data:    map[string]any{"id": newID},
+		})
+		return
+	}
+
+	sendJSON(w, http.StatusCreated, domain.ApiResponse{
+		Success: true,
+		Message: "Jenis obat baru berhasil ditambahkan",
+		Data:    created,
+	})
 }
 
 type RestockRequest struct {

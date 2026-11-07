@@ -105,26 +105,74 @@ func TestCorePharmacyAndStockLifecycle(t *testing.T) {
 		t.Errorf("expected physical_stock = %d, got %d", pct.PhysicalStock-requestQty, finalPct.PhysicalStock)
 	}
 
-	// 8. Verify Billing: Invoice automatically created and matches 1 consolidated invoice rule
+	// 8. Verify Billing: Invoices separated into Registration and Pharmacy transactions
 	billingSvc := billing.NewService(db)
 	invList, err := billingSvc.GetInvoices()
 	if err != nil {
 		t.Fatalf("failed to get invoices: %v", err)
 	}
-	if len(invList) == 0 {
-		t.Fatalf("expected at least 1 invoice after pharmacy dispense, got 0")
+	if len(invList) < 2 {
+		t.Fatalf("expected at least 2 separated invoices (REGISTRATION & PHARMACY), got %d", len(invList))
 	}
 
-	inv := invList[0]
-	if inv.QueueID != qItem.ID {
-		t.Errorf("expected invoice queueID %d, got %d", qItem.ID, inv.QueueID)
-	}
+	var hasPharm, hasReg bool
 	expectedMedFee := pct.SellPrice * requestQty
-	if inv.MedicationFee != expectedMedFee {
-		t.Errorf("expected medication fee %d, got %d", expectedMedFee, inv.MedicationFee)
+	for _, inv := range invList {
+		if inv.QueueID == qItem.ID {
+			if inv.InvoiceType == "PHARMACY" {
+				hasPharm = true
+				if inv.MedicationFee != expectedMedFee || inv.TotalAmount != expectedMedFee {
+					t.Errorf("expected pharmacy total %d, got %d", expectedMedFee, inv.TotalAmount)
+				}
+				if len(inv.Items) == 0 {
+					t.Errorf("expected pharmacy invoice to contain drug items")
+				}
+			} else if inv.InvoiceType == "REGISTRATION" {
+				hasReg = true
+				if inv.RegistrationFee != 35000 || inv.TotalAmount != 35000 {
+					t.Errorf("expected registration total 35000, got %d", inv.TotalAmount)
+				}
+			}
+		}
 	}
-	expectedTotal := 35000 + 50000 + expectedMedFee
-	if inv.TotalAmount != expectedTotal {
-		t.Errorf("expected total invoice %d, got %d", expectedTotal, inv.TotalAmount)
+	if !hasPharm || !hasReg {
+		t.Errorf("expected both PHARMACY (%v) and REGISTRATION (%v) invoices for queue", hasPharm, hasReg)
+	}
+}
+
+func TestCreateDrugAndRestock(t *testing.T) {
+	db, err := database.InitDB(":memory:")
+	if err != nil {
+		t.Fatalf("failed to init db: %v", err)
+	}
+	defer db.Close()
+
+	pharmSvc := pharmacy.NewService(db)
+
+	res, err := db.Exec(`
+		INSERT INTO drugs (name, kfa_code, unit, category, min_stock_alert, sell_price)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, "Vitamin C 500mg", "93009999", "Tablet", "Vitamin & Suplemen", 15, 2500)
+	if err != nil {
+		t.Fatalf("failed to insert drug: %v", err)
+	}
+	dID, _ := res.LastInsertId()
+
+	err = pharmSvc.Restock(dID, pharmacy.RestockRequest{
+		BatchNumber: "BCH-2026-VITC",
+		ExpiredDate: "2027-12-31",
+		Quantity:    100,
+		BuyPrice:    1200,
+	})
+	if err != nil {
+		t.Fatalf("failed to restock new drug: %v", err)
+	}
+
+	detail, err := pharmSvc.GetDrugDetail(dID)
+	if err != nil {
+		t.Fatalf("failed to get detail: %v", err)
+	}
+	if detail.Name != "Vitamin C 500mg" || detail.PhysicalStock != 100 || detail.AvailableStock != 100 {
+		t.Errorf("unexpected detail: %+v", detail)
 	}
 }

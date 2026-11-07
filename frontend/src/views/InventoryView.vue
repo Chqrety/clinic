@@ -17,6 +17,60 @@ const restockQty = ref(50)
 const restockBuyPrice = ref(1000)
 const submittingRestock = ref(false)
 
+// Create drug modal state
+const showCreateModal = ref(false)
+const newDrug = ref({
+  name: '',
+  category: 'Analgesik & Antipiretik',
+  kfa_code: '',
+  unit: 'Tablet',
+  min_stock_alert: 10,
+  sell_price: 5000,
+})
+const submittingCreate = ref(false)
+
+function openCreateDrug() {
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000)
+  newDrug.value = {
+    name: '',
+    category: 'Analgesik & Antipiretik',
+    kfa_code: `9300${randomSuffix}`,
+    unit: 'Tablet',
+    min_stock_alert: 10,
+    sell_price: 5000,
+  }
+  showCreateModal.value = true
+}
+
+async function submitCreateDrug() {
+  if (!newDrug.value.name.trim()) {
+    alert('Nama obat wajib diisi')
+    return
+  }
+  submittingCreate.value = true
+  try {
+    const created = await api.createDrug({
+      name: newDrug.value.name.trim(),
+      category: newDrug.value.category.trim(),
+      kfa_code: newDrug.value.kfa_code.trim(),
+      unit: newDrug.value.unit.trim(),
+      min_stock_alert: Number(newDrug.value.min_stock_alert) || 10,
+      sell_price: Number(newDrug.value.sell_price) || 0,
+    })
+    store.playChime()
+    showCreateModal.value = false
+    await fetchDrugs()
+    // Tawarkan langsung restock batch perdana jika diinginkan
+    if (created && created.id) {
+      openRestock(created)
+    }
+  } catch (err: any) {
+    alert(err.message || 'Gagal menambahkan jenis obat baru')
+  } finally {
+    submittingCreate.value = false
+  }
+}
+
 async function fetchDrugs() {
   loading.value = true
   try {
@@ -88,14 +142,24 @@ onMounted(() => {
         </p>
       </div>
 
-      <button
-        @click="fetchDrugs"
-        :disabled="loading"
-        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-black/10 hover:border-black/20 text-xs font-bold text-zinc-800 shadow-sm transition-all active:scale-95 disabled:opacity-50 self-start sm:self-auto"
-      >
-        <RefreshCw :class="['w-3.5 h-3.5', loading && 'animate-spin']" />
-        Segarkan Data
-      </button>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <button
+          @click="openCreateDrug"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-xs font-bold text-white shadow-sm transition-all active:scale-95"
+        >
+          <Plus class="w-3.5 h-3.5" />
+          Jenis Obat Baru
+        </button>
+
+        <button
+          @click="fetchDrugs"
+          :disabled="loading"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-black/10 hover:border-black/20 text-xs font-bold text-zinc-800 shadow-sm transition-all active:scale-95 disabled:opacity-50"
+        >
+          <RefreshCw :class="['w-3.5 h-3.5', loading && 'animate-spin']" />
+          Segarkan Data
+        </button>
+      </div>
     </div>
 
     <!-- Single-line Typographic Metric Strip (Anti-Card Hell) -->
@@ -317,6 +381,131 @@ onMounted(() => {
               class="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-500 text-zinc-950 text-xs font-extrabold transition-all shadow-sm active:scale-95 disabled:opacity-50"
             >
               {{ submittingRestock ? 'Menyimpan...' : 'Simpan Masuk Gudang' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Tambah Master Obat Baru -->
+    <div
+      v-if="showCreateModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+    >
+      <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-black/10">
+        <h3 class="text-lg font-black text-zinc-950">
+          Tambah Jenis Obat Baru
+        </h3>
+        <p class="text-xs text-zinc-500 mb-4">
+          Daftarkan master obat baru ke dalam katalog farmasi klinik.
+        </p>
+
+        <form @submit.prevent="submitCreateDrug" class="space-y-3.5">
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+              Nama Obat & Kekuatan Sediaan
+            </label>
+            <input
+              v-model="newDrug.name"
+              type="text"
+              placeholder="Contoh: Paracetamol 500mg"
+              required
+              class="w-full px-4 py-2.5 rounded-2xl bg-[#F9F9F7] border border-black/10 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+                Kategori
+              </label>
+              <select
+                v-model="newDrug.category"
+                class="w-full px-3 py-2.5 rounded-2xl bg-[#F9F9F7] border border-black/10 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors"
+              >
+                <option value="Analgesik & Antipiretik">Analgesik & Antipiretik</option>
+                <option value="Antibiotik">Antibiotik</option>
+                <option value="Antihistamin">Antihistamin</option>
+                <option value="Antasida & Gastro">Antasida & Gastro</option>
+                <option value="Vitamin & Suplemen">Vitamin & Suplemen</option>
+                <option value="Obat Batuk & Pilek">Obat Batuk & Pilek</option>
+                <option value="Antiinflamasi">Antiinflamasi</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+                Satuan Unit
+              </label>
+              <select
+                v-model="newDrug.unit"
+                class="w-full px-3 py-2.5 rounded-2xl bg-[#F9F9F7] border border-black/10 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors"
+              >
+                <option value="Tablet">Tablet</option>
+                <option value="Kapsul">Kapsul</option>
+                <option value="Botol / Sirup">Botol / Sirup</option>
+                <option value="Ampul">Ampul</option>
+                <option value="Tube / Salep">Tube / Salep</option>
+                <option value="Sachet">Sachet</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+                Harga Jual Pasien (Rp)
+              </label>
+              <input
+                v-model.number="newDrug.sell_price"
+                type="number"
+                min="0"
+                step="500"
+                required
+                class="w-full px-4 py-2.5 rounded-2xl bg-[#F9F9F7] border border-black/10 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+                Batas Minimum Stok
+              </label>
+              <input
+                v-model.number="newDrug.min_stock_alert"
+                type="number"
+                min="1"
+                required
+                class="w-full px-4 py-2.5 rounded-2xl bg-[#F9F9F7] border border-black/10 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
+              Kode KFA (Katalog Farmasi / SatuSehat)
+            </label>
+            <input
+              v-model="newDrug.kfa_code"
+              type="text"
+              placeholder="Contoh: 93001234"
+              class="w-full px-4 py-2.5 rounded-2xl bg-[#F9F9F7] border border-black/10 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors"
+            />
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-4 border-t border-black/5">
+            <button
+              type="button"
+              @click="showCreateModal = false"
+              class="px-4 py-2.5 rounded-full text-xs font-bold text-zinc-500 hover:text-zinc-900 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              :disabled="submittingCreate"
+              class="px-6 py-2.5 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-extrabold transition-all shadow-sm active:scale-95 disabled:opacity-50"
+            >
+              {{ submittingCreate ? 'Menyimpan...' : 'Simpan Master Obat' }}
             </button>
           </div>
         </form>

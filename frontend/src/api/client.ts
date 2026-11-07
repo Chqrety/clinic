@@ -88,6 +88,7 @@ export interface Invoice {
   id: number
   queue_id: number
   invoice_number: string
+  invoice_type: 'REGISTRATION' | 'PHARMACY'
   patient_name: string
   patient_nik: string
   registration_fee: number
@@ -96,6 +97,7 @@ export interface Invoice {
   total_amount: number
   payment_method: string
   payment_status: string
+  items?: PrescriptionItem[]
   doctor_share: number
   clinic_share: number
   tax_share: number
@@ -146,6 +148,14 @@ export const api = {
   // Pharmacy
   getDrugs: () => request<Drug[]>('/drugs'),
   getDrugDetail: (id: number) => request<Drug>(`/drugs/${id}`),
+  createDrug: (data: {
+    name: string
+    kfa_code: string
+    unit: string
+    category: string
+    min_stock_alert: number
+    sell_price: number
+  }) => request<Drug>('/drugs', { method: 'POST', body: JSON.stringify(data) }),
   restockDrug: (id: number, data: { batch_number: string; expired_date: string; quantity: number; buy_price: number }) =>
     request<void>(`/drugs/${id}/restock`, { method: 'POST', body: JSON.stringify(data) }),
 
@@ -165,7 +175,7 @@ export const api = {
 
   // Billing
   getInvoices: () => request<Invoice[]>('/invoices'),
-  getInvoiceByQueue: (queueId: number) => request<Invoice>(`/invoices/queue/${queueId}`),
+  getInvoiceByQueue: (queueId: number) => request<Invoice[]>(`/invoices/queue/${queueId}`),
 
   // SATUSEHAT
   getSatusehatStats: () => request<SatusehatStats>('/satusehat/stats'),
