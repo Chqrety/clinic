@@ -333,8 +333,8 @@ func (s *Service) GetAccountByID(ctx context.Context, id uuid.UUID) (*cashbank.C
 	return s.repo.GetAccountByID(ctx, id)
 }
 
-func (s *Service) ListAccounts(ctx context.Context, branchID *uuid.UUID, accType *cashbank.AccountType) ([]cashbank.CashBankAccount, error) {
-	return s.repo.ListAccounts(ctx, branchID, accType)
+func (s *Service) ListAccounts(ctx context.Context, filter cashbank.CashAccountFilter) ([]cashbank.CashBankAccount, int64, error) {
+	return s.repo.ListAccounts(ctx, filter)
 }
 
 func (s *Service) ListTransactions(ctx context.Context, filter cashbank.TransactionFilter) ([]cashbank.CashBankTransaction, int64, error) {

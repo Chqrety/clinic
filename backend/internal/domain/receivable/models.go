@@ -90,6 +90,9 @@ type Filter struct {
 	Status       *Status
 	StartDate    *time.Time
 	EndDate      *time.Time
+	Search       string
+	SortBy       string
+	SortOrder    string
 	Limit        int
 	Offset       int
 }

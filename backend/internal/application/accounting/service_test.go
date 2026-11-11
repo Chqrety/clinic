@@ -76,12 +76,12 @@ func (m *mockAccountRepo) GetByCode(ctx context.Context, code string) (*domain.A
 	return acc, nil
 }
 
-func (m *mockAccountRepo) List(ctx context.Context, filter domain.AccountFilter) ([]domain.Account, error) {
+func (m *mockAccountRepo) List(ctx context.Context, filter domain.AccountFilter) ([]domain.Account, int64, error) {
 	var list []domain.Account
 	for _, a := range m.accounts {
 		list = append(list, *a)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockAccountRepo) Create(ctx context.Context, acc *domain.Account) error {

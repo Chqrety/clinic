@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"clinic-api/internal/domain/cashbank"
 	"clinic-api/pkg/decimal"
@@ -100,12 +101,9 @@ func (r *PostgresCashBankRepo) GetAccountByCode(ctx context.Context, code string
 	return &acc, nil
 }
 
-func (r *PostgresCashBankRepo) ListAccounts(ctx context.Context, branchID *uuid.UUID, accType *cashbank.AccountType) ([]cashbank.CashBankAccount, error) {
+func (r *PostgresCashBankRepo) ListAccounts(ctx context.Context, filter cashbank.CashAccountFilter) ([]cashbank.CashBankAccount, int64, error) {
 	exec := GetExecutor(ctx, r.db)
-	query := `
-		SELECT cba.id, cba.branch_id, cba.account_id, a.code as account_code,
-		       cba.code, cba.name, cba.type, COALESCE(cba.bank_name, ''), COALESCE(cba.account_number, ''),
-		       cba.is_active, cba.created_at, cba.updated_at
+	baseQuery := `
 		FROM cash_bank_accounts cba
 		JOIN accounts a ON cba.account_id = a.id
 		WHERE cba.is_active = TRUE
@@ -113,22 +111,67 @@ func (r *PostgresCashBankRepo) ListAccounts(ctx context.Context, branchID *uuid.
 	var args []any
 	argIdx := 1
 
-	if branchID != nil {
-		query += fmt.Sprintf(" AND cba.branch_id = $%d", argIdx)
-		args = append(args, *branchID)
+	if filter.BranchID != nil {
+		baseQuery += fmt.Sprintf(" AND cba.branch_id = $%d", argIdx)
+		args = append(args, *filter.BranchID)
 		argIdx++
 	}
-	if accType != nil {
-		query += fmt.Sprintf(" AND cba.type = $%d", argIdx)
-		args = append(args, *accType)
+	if filter.Type != nil {
+		baseQuery += fmt.Sprintf(" AND cba.type = $%d", argIdx)
+		args = append(args, *filter.Type)
+		argIdx++
+	}
+	if filter.Search != "" {
+		pat := "%" + strings.ToLower(filter.Search) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(cba.code) LIKE $%d OR LOWER(cba.name) LIKE $%d OR LOWER(COALESCE(cba.bank_name, '')) LIKE $%d OR LOWER(COALESCE(cba.account_number, '')) LIKE $%d)", argIdx, argIdx, argIdx, argIdx)
+		args = append(args, pat)
 		argIdx++
 	}
 
-	query += " ORDER BY cba.code ASC"
+	var totalCount int64
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := exec.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		return nil, 0, fmt.Errorf("count cash bank accounts: %w", err)
+	}
+
+	sortCol := "cba.code"
+	sortOrder := "ASC"
+	if filter.SortBy != "" {
+		switch filter.SortBy {
+		case "code", "cba.code":
+			sortCol = "cba.code"
+		case "name", "cba.name":
+			sortCol = "cba.name"
+		case "type", "cba.type":
+			sortCol = "cba.type"
+		case "created_at", "cba.created_at":
+			sortCol = "cba.created_at"
+		}
+	}
+	if strings.ToUpper(filter.SortOrder) == "DESC" {
+		sortOrder = "DESC"
+	}
+
+	query := `
+		SELECT cba.id, cba.branch_id, cba.account_id, a.code as account_code,
+		       cba.code, cba.name, cba.type, COALESCE(cba.bank_name, ''), COALESCE(cba.account_number, ''),
+		       cba.is_active, cba.created_at, cba.updated_at
+	` + baseQuery + fmt.Sprintf(" ORDER BY %s %s, cba.id %s", sortCol, sortOrder, sortOrder)
+
+	if filter.Limit > 0 {
+		query += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+	if filter.Offset > 0 {
+		query += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+		argIdx++
+	}
 
 	rows, err := exec.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("list cash bank accounts: %w", err)
+		return nil, 0, fmt.Errorf("list cash bank accounts: %w", err)
 	}
 	defer rows.Close()
 
@@ -140,12 +183,12 @@ func (r *PostgresCashBankRepo) ListAccounts(ctx context.Context, branchID *uuid.
 			&acc.Code, &acc.Name, &acc.Type, &acc.BankName, &acc.AccountNumber,
 			&acc.IsActive, &acc.CreatedAt, &acc.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("scan cash bank account: %w", err)
+			return nil, 0, fmt.Errorf("scan cash bank account: %w", err)
 		}
 		list = append(list, acc)
 	}
 
-	return list, nil
+	return list, totalCount, nil
 }
 
 func (r *PostgresCashBankRepo) CreateTransaction(ctx context.Context, tx *cashbank.CashBankTransaction) error {
@@ -250,6 +293,12 @@ func (r *PostgresCashBankRepo) ListTransactions(ctx context.Context, filter cash
 		args = append(args, *filter.EndDate)
 		argIdx++
 	}
+	if filter.Search != "" {
+		pat := "%" + strings.ToLower(filter.Search) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(t.transaction_number) LIKE $%d OR LOWER(t.description) LIKE $%d OR LOWER(COALESCE(t.reference_no, '')) LIKE $%d)", argIdx, argIdx, argIdx)
+		args = append(args, pat)
+		argIdx++
+	}
 
 	var totalCount int64
 	countQuery := "SELECT COUNT(*) " + baseQuery
@@ -257,12 +306,30 @@ func (r *PostgresCashBankRepo) ListTransactions(ctx context.Context, filter cash
 		return nil, 0, fmt.Errorf("count cash bank transactions: %w", err)
 	}
 
+	sortCol := "t.transaction_date"
+	sortOrder := "DESC"
+	if filter.SortBy != "" {
+		switch filter.SortBy {
+		case "transaction_date", "t.transaction_date":
+			sortCol = "t.transaction_date"
+		case "transaction_number", "t.transaction_number":
+			sortCol = "t.transaction_number"
+		case "amount", "t.amount":
+			sortCol = "t.amount"
+		case "created_at", "t.created_at":
+			sortCol = "t.created_at"
+		}
+	}
+	if strings.ToUpper(filter.SortOrder) == "ASC" {
+		sortOrder = "ASC"
+	}
+
 	selectQuery := `
 		SELECT t.id, t.branch_id, t.cash_bank_account_id, cba.code as cba_code, cba.name as cba_name,
 		       t.transaction_number, t.transaction_type, t.amount, t.transaction_date,
 		       t.counterpart_account_id, ca.code as counterpart_code, ca.name as counterpart_name,
 		       t.description, COALESCE(t.reference_no, ''), t.journal_id, t.created_by, t.created_at
-	` + baseQuery + " ORDER BY t.transaction_date DESC, t.created_at DESC"
+	` + baseQuery + fmt.Sprintf(" ORDER BY %s %s, t.id %s", sortCol, sortOrder, sortOrder)
 
 	if filter.Limit > 0 {
 		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)

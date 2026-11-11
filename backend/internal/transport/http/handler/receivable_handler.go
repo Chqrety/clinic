@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	receivableApp "clinic-api/internal/application/receivable"
@@ -11,6 +10,7 @@ import (
 	"clinic-api/internal/domain/shared"
 	"clinic-api/internal/transport/http/dto"
 	"clinic-api/internal/transport/http/middleware"
+	"clinic-api/pkg/pagination"
 	"clinic-api/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -110,44 +110,61 @@ func (h *ReceivableHandler) HandleGetReceivableByID(w http.ResponseWriter, r *ht
 }
 
 func (h *ReceivableHandler) HandleListReceivables(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	filter := receivable.Filter{
-		Limit:  50,
-		Offset: 0,
+	ctx := r.Context()
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit: 20,
+		MaxLimit:     100,
+		AllowedSortColumns: map[string]string{
+			"due_date":           "due_date",
+			"issue_date":         "issue_date",
+			"created_at":         "created_at",
+			"receivable_number":  "receivable_number",
+			"customer_name":      "customer_name",
+			"total_amount":       "total_amount",
+			"outstanding_amount": "outstanding_amount",
+			"status":             "status",
+		},
+		DefaultSortBy:    "due_date",
+		DefaultSortOrder: "ASC",
+	})
+	if err != nil {
+		response.BadRequest(w, "Invalid pagination parameters", err.Error())
+		return
 	}
 
-	if bID, ok := middleware.GetBranchID(r.Context()); ok {
+	filter := receivable.Filter{
+		StartDate: pg.StartDate,
+		EndDate:   pg.EndDate,
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
+
+	if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
+	} else if bID, ok := middleware.GetBranchID(ctx); ok {
 		filter.BranchID = &bID
 	}
-	if l := q.Get("limit"); l != "" {
-		if val, err := strconv.Atoi(l); err == nil && val > 0 {
-			filter.Limit = val
-		}
-	}
-	if o := q.Get("offset"); o != "" {
-		if val, err := strconv.Atoi(o); err == nil && val >= 0 {
-			filter.Offset = val
-		}
-	}
+
+	q := r.URL.Query()
 	if s := q.Get("status"); s != "" {
 		status := receivable.Status(s)
 		filter.Status = &status
 	}
+	if ct := q.Get("customer_type"); ct != "" {
+		customerType := receivable.CustomerType(ct)
+		filter.CustomerType = &customerType
+	}
 
-	list, total, err := h.receivableSvc.ListReceivables(r.Context(), filter)
+	list, total, err := h.receivableSvc.ListReceivables(ctx, filter)
 	if err != nil {
 		response.InternalServerError(w, "Failed to list receivables: "+err.Error())
 		return
 	}
 
-	pagination := &response.PaginationMeta{
-		CurrentPage: (filter.Offset / filter.Limit) + 1,
-		PerPage:     filter.Limit,
-		TotalItems:  total,
-		TotalPages:  int((total + int64(filter.Limit) - 1) / int64(filter.Limit)),
-	}
-
-	response.OK(w, "Receivables retrieved successfully", list, pagination)
+	response.OK(w, "Receivables retrieved successfully", list, pg.ToMeta(total))
 }
 
 func (h *ReceivableHandler) HandleGetAgingReport(w http.ResponseWriter, r *http.Request) {

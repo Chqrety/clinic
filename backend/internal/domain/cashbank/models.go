@@ -60,12 +60,25 @@ type CashBankTransaction struct {
 	JournalID            *uuid.UUID      `json:"journal_id,omitempty"` // Audit trail drill-down link
 }
 
+type CashAccountFilter struct {
+	BranchID  *uuid.UUID
+	Type      *AccountType
+	Search    string
+	SortBy    string
+	SortOrder string
+	Limit     int
+	Offset    int
+}
+
 type TransactionFilter struct {
 	BranchID          *uuid.UUID
 	CashBankAccountID *uuid.UUID
 	TransactionType   *TransactionType
 	StartDate         *time.Time
 	EndDate           *time.Time
+	Search            string
+	SortBy            string
+	SortOrder         string
 	Limit             int
 	Offset            int
 }
@@ -74,7 +87,7 @@ type Repository interface {
 	CreateAccount(ctx context.Context, acc *CashBankAccount) error
 	GetAccountByID(ctx context.Context, id uuid.UUID) (*CashBankAccount, error)
 	GetAccountByCode(ctx context.Context, code string) (*CashBankAccount, error)
-	ListAccounts(ctx context.Context, branchID *uuid.UUID, accType *AccountType) ([]CashBankAccount, error)
+	ListAccounts(ctx context.Context, filter CashAccountFilter) ([]CashBankAccount, int64, error)
 	CreateTransaction(ctx context.Context, tx *CashBankTransaction) error
 	GetTransactionByID(ctx context.Context, id uuid.UUID) (*CashBankTransaction, error)
 	ListTransactions(ctx context.Context, filter TransactionFilter) ([]CashBankTransaction, int64, error)

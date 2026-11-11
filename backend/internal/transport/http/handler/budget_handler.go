@@ -6,8 +6,10 @@ import (
 	"strconv"
 
 	budgetApp "clinic-api/internal/application/budget"
+	"clinic-api/internal/domain/budget"
 	"clinic-api/internal/transport/http/dto"
 	"clinic-api/internal/transport/http/middleware"
+	"clinic-api/pkg/pagination"
 	"clinic-api/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -123,19 +125,58 @@ func (h *BudgetHandler) HandleGetBudgetByID(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *BudgetHandler) HandleListBudgets(w http.ResponseWriter, r *http.Request) {
-	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(r.Context()); ok && bID != uuid.Nil {
-		branchID = &bID
+	ctx := r.Context()
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit: 20,
+		MaxLimit:     100,
+		AllowedSortColumns: map[string]string{
+			"period_year": "period_year",
+			"name":        "name",
+			"status":      "status",
+			"created_at":  "created_at",
+		},
+		DefaultSortBy:    "period_year",
+		DefaultSortOrder: "DESC",
+	})
+	if err != nil {
+		response.BadRequest(w, "Invalid pagination parameters", err.Error())
+		return
 	}
 
-	year, _ := strconv.Atoi(r.URL.Query().Get("year"))
+	filter := budget.BudgetFilter{
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
 
-	list, err := h.svc.ListBudgets(r.Context(), branchID, year)
+	if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
+	} else if bID, ok := middleware.GetBranchID(ctx); ok && bID != uuid.Nil {
+		filter.BranchID = &bID
+	}
+
+	q := r.URL.Query()
+	if y, err := strconv.Atoi(q.Get("year")); err == nil && y > 0 {
+		filter.Year = y
+	}
+	if st := q.Get("status"); st != "" {
+		status := budget.BudgetStatus(st)
+		filter.Status = &status
+	}
+	if ccStr := q.Get("cost_center_id"); ccStr != "" {
+		if ccID, err := uuid.Parse(ccStr); err == nil {
+			filter.CostCenterID = &ccID
+		}
+	}
+
+	list, total, err := h.svc.ListBudgets(ctx, filter)
 	if err != nil {
 		response.InternalServerError(w, "Failed to list budgets: "+err.Error())
 		return
 	}
 
-	response.OK(w, "Budgets retrieved successfully", list, nil)
+	response.OK(w, "Budgets retrieved successfully", list, pg.ToMeta(total))
 }
 

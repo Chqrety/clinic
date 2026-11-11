@@ -54,6 +54,14 @@ func (m *mockPrepaidRepo) ListActivePrepaid(ctx context.Context, branchID *uuid.
 	return list, nil
 }
 
+func (m *mockPrepaidRepo) List(ctx context.Context, filter prepaid.PrepaidFilter) ([]prepaid.PrepaidExpense, int64, error) {
+	var list []prepaid.PrepaidExpense
+	for _, p := range m.items {
+		list = append(list, *p)
+	}
+	return list, int64(len(list)), nil
+}
+
 func (m *mockPrepaidRepo) RecordAmortization(ctx context.Context, a *prepaid.PrepaidAmortization, newRemaining decimal.Decimal, newStatus prepaid.PrepaidStatus) error {
 	m.amortizations[a.PrepaidExpenseID] = append(m.amortizations[a.PrepaidExpenseID], *a)
 	if p, ok := m.items[a.PrepaidExpenseID]; ok {
@@ -112,12 +120,12 @@ func (m *mockAccountRepo) GetByCode(ctx context.Context, code string) (*accounti
 	return nil, nil
 }
 
-func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, error) {
+func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, int64, error) {
 	var list []accountingDomain.Account
 	for _, a := range m.accounts {
 		list = append(list, *a)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockAccountRepo) Create(ctx context.Context, acc *accountingDomain.Account) error {

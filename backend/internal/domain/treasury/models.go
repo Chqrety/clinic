@@ -57,12 +57,26 @@ type CashierShift struct {
 	Denominations           []ShiftDenomination `json:"denominations,omitempty"`
 }
 
+type ShiftFilter struct {
+	BranchID        *uuid.UUID
+	CostCenterID    *uuid.UUID
+	CashAccountCode string
+	Status          *ShiftStatus
+	StartDate       *time.Time
+	EndDate         *time.Time
+	Search          string
+	SortBy          string
+	SortOrder       string
+	Limit           int
+	Offset          int
+}
+
 type Repository interface {
 	OpenShift(ctx context.Context, shift *CashierShift) error
 	GetActiveShift(ctx context.Context, branchID uuid.UUID, cashAccountCode string) (*CashierShift, error)
 	GetShiftByID(ctx context.Context, id uuid.UUID) (*CashierShift, error)
 	CloseShift(ctx context.Context, shift *CashierShift, denoms []ShiftDenomination) error
 	RecordDeposit(ctx context.Context, shiftID uuid.UUID, depositJournalID uuid.UUID) error
-	ListShifts(ctx context.Context, branchID *uuid.UUID, startDate, endDate *time.Time) ([]CashierShift, error)
+	ListShifts(ctx context.Context, filter ShiftFilter) ([]CashierShift, int64, error)
 }
 

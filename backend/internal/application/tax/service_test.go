@@ -34,15 +34,15 @@ func (m *mockTaxRepo) GetCumulativeDPP(ctx context.Context, branchID uuid.UUID, 
 	return decimal.Zero, nil
 }
 
-func (m *mockTaxRepo) ListWithholdings(ctx context.Context, branchID *uuid.UUID, year, month int, taxType *tax.TaxType) ([]tax.TaxWithholding, error) {
+func (m *mockTaxRepo) ListWithholdings(ctx context.Context, filter tax.TaxFilter) ([]tax.TaxWithholding, int64, error) {
 	var list []tax.TaxWithholding
 	for _, w := range m.withholdings {
-		if taxType != nil && w.TaxType != *taxType {
+		if filter.TaxType != nil && w.TaxType != *filter.TaxType {
 			continue
 		}
 		list = append(list, w)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockTaxRepo) MarkAsReported(ctx context.Context, id uuid.UUID) error {

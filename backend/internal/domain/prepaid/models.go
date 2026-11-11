@@ -55,10 +55,25 @@ type PrepaidAmortization struct {
 	CreatedAt        time.Time       `json:"created_at"`
 }
 
+type PrepaidFilter struct {
+	BranchID     *uuid.UUID
+	CostCenterID *uuid.UUID
+	Category     *PrepaidCategory
+	Status       *PrepaidStatus
+	StartDate    *time.Time
+	EndDate      *time.Time
+	Search       string
+	SortBy       string
+	SortOrder    string
+	Limit        int
+	Offset       int
+}
+
 type Repository interface {
 	CreatePrepaid(ctx context.Context, p *PrepaidExpense) error
 	GetPrepaidByID(ctx context.Context, id uuid.UUID) (*PrepaidExpense, error)
 	ListActivePrepaid(ctx context.Context, branchID *uuid.UUID) ([]PrepaidExpense, error)
+	List(ctx context.Context, filter PrepaidFilter) ([]PrepaidExpense, int64, error)
 	RecordAmortization(ctx context.Context, a *PrepaidAmortization, newRemaining decimal.Decimal, newStatus PrepaidStatus) error
 	GetAmortizationHistory(ctx context.Context, prepaidID uuid.UUID) ([]PrepaidAmortization, error)
 }

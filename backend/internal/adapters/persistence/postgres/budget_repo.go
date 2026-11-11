@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"clinic-api/internal/domain/budget"
 	"clinic-api/pkg/decimal"
@@ -150,18 +151,79 @@ func (r *PostgresBudgetRepo) UpdateBudgetStatus(ctx context.Context, id uuid.UUI
 	return nil
 }
 
-func (r *PostgresBudgetRepo) ListBudgets(ctx context.Context, branchID *uuid.UUID, year int) ([]budget.Budget, error) {
+func (r *PostgresBudgetRepo) ListBudgets(ctx context.Context, filter budget.BudgetFilter) ([]budget.Budget, int64, error) {
 	exec := GetExecutor(ctx, r.db)
-	query := `
+	baseQuery := `FROM budgets WHERE 1=1`
+	var args []any
+	argIdx := 1
+
+	if filter.BranchID != nil {
+		baseQuery += fmt.Sprintf(" AND branch_id = $%d", argIdx)
+		args = append(args, *filter.BranchID)
+		argIdx++
+	}
+	if filter.CostCenterID != nil {
+		baseQuery += fmt.Sprintf(" AND cost_center_id = $%d", argIdx)
+		args = append(args, *filter.CostCenterID)
+		argIdx++
+	}
+	if filter.Year > 0 {
+		baseQuery += fmt.Sprintf(" AND period_year = $%d", argIdx)
+		args = append(args, filter.Year)
+		argIdx++
+	}
+	if filter.Status != nil {
+		baseQuery += fmt.Sprintf(" AND status = $%d", argIdx)
+		args = append(args, string(*filter.Status))
+		argIdx++
+	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND LOWER(name) LIKE $%d", argIdx)
+		args = append(args, searchParam)
+		argIdx++
+	}
+
+	var totalCount int64
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := exec.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		return nil, 0, fmt.Errorf("count budgets: %w", err)
+	}
+
+	allowedSorts := map[string]string{
+		"period_year": "period_year",
+		"name":        "name",
+		"status":      "status",
+		"created_at":  "created_at",
+	}
+	sortCol := "period_year"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "DESC"
+	if strings.ToUpper(filter.SortOrder) == "ASC" {
+		sortDir = "ASC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, created_at DESC, id %s", sortCol, sortDir, sortDir)
+
+	selectQuery := `
 		SELECT id, branch_id, cost_center_id, period_year, name, status, created_at, updated_at
-		FROM budgets
-		WHERE ($1::uuid IS NULL OR branch_id = $1)
-		  AND ($2 = 0 OR period_year = $2)
-		ORDER BY period_year DESC, created_at DESC
-	`
-	rows, err := exec.QueryContext(ctx, query, branchID, year)
+	` + baseQuery + orderBy
+
+	if filter.Limit > 0 {
+		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+	if filter.Offset > 0 {
+		selectQuery += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+		argIdx++
+	}
+
+	rows, err := exec.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
-		return nil, fmt.Errorf("list budgets: %w", err)
+		return nil, 0, fmt.Errorf("list budgets: %w", err)
 	}
 	defer rows.Close()
 
@@ -173,11 +235,11 @@ func (r *PostgresBudgetRepo) ListBudgets(ctx context.Context, branchID *uuid.UUI
 			&b.CreatedAt, &b.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("scan budget: %w", err)
+			return nil, 0, fmt.Errorf("scan budget: %w", err)
 		}
 		list = append(list, b)
 	}
-	return list, nil
+	return list, totalCount, nil
 }
 
 func (r *PostgresBudgetRepo) GetActualAmounts(ctx context.Context, branchID *uuid.UUID, costCenterID *uuid.UUID, year, month int) (map[string]decimal.Decimal, error) {

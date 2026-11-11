@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	payableApp "clinic-api/internal/application/payable"
@@ -11,6 +10,7 @@ import (
 	"clinic-api/internal/domain/shared"
 	"clinic-api/internal/transport/http/dto"
 	"clinic-api/internal/transport/http/middleware"
+	"clinic-api/pkg/pagination"
 	"clinic-api/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -110,44 +110,61 @@ func (h *PayableHandler) HandleGetPayableByID(w http.ResponseWriter, r *http.Req
 }
 
 func (h *PayableHandler) HandleListPayables(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	filter := payable.Filter{
-		Limit:  50,
-		Offset: 0,
+	ctx := r.Context()
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit: 20,
+		MaxLimit:     100,
+		AllowedSortColumns: map[string]string{
+			"due_date":           "due_date",
+			"issue_date":         "issue_date",
+			"created_at":         "created_at",
+			"payable_number":     "payable_number",
+			"vendor_name":        "vendor_name",
+			"total_amount":       "total_amount",
+			"outstanding_amount": "outstanding_amount",
+			"status":             "status",
+		},
+		DefaultSortBy:    "due_date",
+		DefaultSortOrder: "ASC",
+	})
+	if err != nil {
+		response.BadRequest(w, "Invalid pagination parameters", err.Error())
+		return
 	}
 
-	if bID, ok := middleware.GetBranchID(r.Context()); ok {
+	filter := payable.Filter{
+		StartDate: pg.StartDate,
+		EndDate:   pg.EndDate,
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
+
+	if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
+	} else if bID, ok := middleware.GetBranchID(ctx); ok {
 		filter.BranchID = &bID
 	}
-	if l := q.Get("limit"); l != "" {
-		if val, err := strconv.Atoi(l); err == nil && val > 0 {
-			filter.Limit = val
-		}
-	}
-	if o := q.Get("offset"); o != "" {
-		if val, err := strconv.Atoi(o); err == nil && val >= 0 {
-			filter.Offset = val
-		}
-	}
+
+	q := r.URL.Query()
 	if s := q.Get("status"); s != "" {
 		status := payable.Status(s)
 		filter.Status = &status
 	}
+	if vt := q.Get("vendor_type"); vt != "" {
+		vendorType := payable.VendorType(vt)
+		filter.VendorType = &vendorType
+	}
 
-	list, total, err := h.payableSvc.ListPayables(r.Context(), filter)
+	list, total, err := h.payableSvc.ListPayables(ctx, filter)
 	if err != nil {
 		response.InternalServerError(w, "Failed to list payables: "+err.Error())
 		return
 	}
 
-	pagination := &response.PaginationMeta{
-		CurrentPage: (filter.Offset / filter.Limit) + 1,
-		PerPage:     filter.Limit,
-		TotalItems:  total,
-		TotalPages:  int((total + int64(filter.Limit) - 1) / int64(filter.Limit)),
-	}
-
-	response.OK(w, "Payables retrieved successfully", list, pagination)
+	response.OK(w, "Payables retrieved successfully", list, pg.ToMeta(total))
 }
 
 func (h *PayableHandler) HandleGetAgingReport(w http.ResponseWriter, r *http.Request) {

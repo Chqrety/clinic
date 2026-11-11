@@ -130,8 +130,10 @@ type SatusehatLog struct {
 
 // JSON API Response envelope
 type ApiResponse struct {
-	Success bool        `json:"success"`
-	Data    interface{} `json:"data,omitempty"`
-	Message string      `json:"message,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Success    bool        `json:"success"`
+	Data       interface{} `json:"data,omitempty"`
+	Message    string      `json:"message,omitempty"`
+	Error      string      `json:"error,omitempty"`
+	Meta       interface{} `json:"meta,omitempty"`
+	Pagination interface{} `json:"pagination,omitempty"`
 }

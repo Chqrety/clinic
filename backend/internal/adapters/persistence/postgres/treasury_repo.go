@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
+	"strings"
 
 	"clinic-api/internal/domain/treasury"
 	"clinic-api/pkg/decimal"
@@ -162,23 +162,96 @@ func (r *PostgresTreasuryRepo) RecordDeposit(ctx context.Context, shiftID uuid.U
 	return nil
 }
 
-func (r *PostgresTreasuryRepo) ListShifts(ctx context.Context, branchID *uuid.UUID, startDate, endDate *time.Time) ([]treasury.CashierShift, error) {
+func (r *PostgresTreasuryRepo) ListShifts(ctx context.Context, filter treasury.ShiftFilter) ([]treasury.CashierShift, int64, error) {
 	exec := GetExecutor(ctx, r.db)
-	query := `
+	baseQuery := `FROM cashier_shifts WHERE 1=1`
+	var args []any
+	argIdx := 1
+
+	if filter.BranchID != nil {
+		baseQuery += fmt.Sprintf(" AND branch_id = $%d", argIdx)
+		args = append(args, *filter.BranchID)
+		argIdx++
+	}
+	if filter.CostCenterID != nil {
+		baseQuery += fmt.Sprintf(" AND cost_center_id = $%d", argIdx)
+		args = append(args, *filter.CostCenterID)
+		argIdx++
+	}
+	if filter.CashAccountCode != "" {
+		baseQuery += fmt.Sprintf(" AND cash_account_code = $%d", argIdx)
+		args = append(args, filter.CashAccountCode)
+		argIdx++
+	}
+	if filter.Status != nil {
+		baseQuery += fmt.Sprintf(" AND status = $%d", argIdx)
+		args = append(args, *filter.Status)
+		argIdx++
+	}
+	if filter.StartDate != nil {
+		baseQuery += fmt.Sprintf(" AND start_time >= $%d", argIdx)
+		args = append(args, *filter.StartDate)
+		argIdx++
+	}
+	if filter.EndDate != nil {
+		baseQuery += fmt.Sprintf(" AND start_time <= $%d", argIdx)
+		args = append(args, *filter.EndDate)
+		argIdx++
+	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(cashier_name) LIKE $%d OR LOWER(cash_account_code) LIKE $%d OR LOWER(COALESCE(notes, '')) LIKE $%d)", argIdx, argIdx+1, argIdx+2)
+		args = append(args, searchParam, searchParam, searchParam)
+		argIdx += 3
+	}
+
+	var totalCount int64
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := exec.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		return nil, 0, fmt.Errorf("count cashier shifts: %w", err)
+	}
+
+	allowedSorts := map[string]string{
+		"start_time":   "start_time",
+		"end_time":     "end_time",
+		"cashier_name": "cashier_name",
+		"opening_cash": "opening_cash",
+		"actual_cash":  "actual_cash",
+		"status":       "status",
+		"created_at":   "created_at",
+	}
+	sortCol := "start_time"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "DESC"
+	if strings.ToUpper(filter.SortOrder) == "ASC" {
+		sortDir = "ASC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, id %s", sortCol, sortDir, sortDir)
+
+	selectQuery := `
 		SELECT id, branch_id, cost_center_id, cashier_user_id, cashier_name,
 		       cash_account_code, start_time, end_time, opening_cash, system_cash_in,
 		       system_cash_out, expected_cash, actual_cash, difference_amount,
 		       difference_type, reconciliation_journal_id, deposit_journal_id,
 		       status, notes, created_at, updated_at
-		FROM cashier_shifts
-		WHERE ($1::uuid IS NULL OR branch_id = $1)
-		  AND ($2::timestamptz IS NULL OR start_time >= $2)
-		  AND ($3::timestamptz IS NULL OR start_time <= $3)
-		ORDER BY start_time DESC
-	`
-	rows, err := exec.QueryContext(ctx, query, branchID, startDate, endDate)
+	` + baseQuery + orderBy
+
+	if filter.Limit > 0 {
+		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+	if filter.Offset > 0 {
+		selectQuery += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+		argIdx++
+	}
+
+	rows, err := exec.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
-		return nil, fmt.Errorf("list shifts: %w", err)
+		return nil, 0, fmt.Errorf("list shifts: %w", err)
 	}
 	defer rows.Close()
 
@@ -186,11 +259,11 @@ func (r *PostgresTreasuryRepo) ListShifts(ctx context.Context, branchID *uuid.UU
 	for rows.Next() {
 		shift, err := r.scanShiftRow(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		shifts = append(shifts, *shift)
 	}
-	return shifts, nil
+	return shifts, totalCount, nil
 }
 
 func (r *PostgresTreasuryRepo) scanShift(row *sql.Row) (*treasury.CashierShift, error) {

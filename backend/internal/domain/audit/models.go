@@ -35,8 +35,21 @@ type FinancialAuditLog struct {
 	CreatedAt     time.Time  `json:"created_at"`
 }
 
+type AuditFilter struct {
+	BranchID   *uuid.UUID
+	Action     *ActionType
+	EntityType string
+	StartDate  *time.Time
+	EndDate    *time.Time
+	Search     string
+	SortBy     string
+	SortOrder  string
+	Limit      int
+	Offset     int
+}
+
 type Repository interface {
 	Log(ctx context.Context, entry *FinancialAuditLog) error
-	ListLogs(ctx context.Context, branchID *uuid.UUID, action *ActionType, entityType string, limit, offset int) ([]FinancialAuditLog, int64, error)
+	ListLogs(ctx context.Context, filter AuditFilter) ([]FinancialAuditLog, int64, error)
 }
 

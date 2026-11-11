@@ -3,11 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	treasuryApp "clinic-api/internal/application/treasury"
+	"clinic-api/internal/domain/treasury"
 	"clinic-api/internal/transport/http/dto"
 	"clinic-api/internal/transport/http/middleware"
+	"clinic-api/pkg/pagination"
 	"clinic-api/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -164,29 +165,63 @@ func (h *TreasuryHandler) HandleGetShift(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *TreasuryHandler) HandleListShifts(w http.ResponseWriter, r *http.Request) {
-	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(r.Context()); ok && bID != uuid.Nil {
-		branchID = &bID
+	ctx := r.Context()
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit: 20,
+		MaxLimit:     100,
+		AllowedSortColumns: map[string]string{
+			"start_time":   "start_time",
+			"end_time":     "end_time",
+			"cashier_name": "cashier_name",
+			"opening_cash": "opening_cash",
+			"actual_cash":  "actual_cash",
+			"status":       "status",
+			"created_at":   "created_at",
+		},
+		DefaultSortBy:    "start_time",
+		DefaultSortOrder: "DESC",
+	})
+	if err != nil {
+		response.BadRequest(w, "Invalid pagination parameters", err.Error())
+		return
 	}
 
-	var startPtr, endPtr *time.Time
-	if s := r.URL.Query().Get("start_date"); s != "" {
-		if t, err := time.Parse("2006-01-02", s); err == nil {
-			startPtr = &t
-		}
+	filter := treasury.ShiftFilter{
+		StartDate: pg.StartDate,
+		EndDate:   pg.EndDate,
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
 	}
-	if e := r.URL.Query().Get("end_date"); e != "" {
-		if t, err := time.Parse("2006-01-02", e); err == nil {
-			endPtr = &t
+
+	if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
+	} else if bID, ok := middleware.GetBranchID(ctx); ok && bID != uuid.Nil {
+		filter.BranchID = &bID
+	}
+
+	q := r.URL.Query()
+	if s := q.Get("status"); s != "" {
+		st := treasury.ShiftStatus(s)
+		filter.Status = &st
+	}
+	if acc := q.Get("cash_account_code"); acc != "" {
+		filter.CashAccountCode = acc
+	}
+	if ccStr := q.Get("cost_center_id"); ccStr != "" {
+		if ccID, err := uuid.Parse(ccStr); err == nil {
+			filter.CostCenterID = &ccID
 		}
 	}
 
-	shifts, err := h.svc.ListShifts(r.Context(), branchID, startPtr, endPtr)
+	shifts, total, err := h.svc.ListShifts(ctx, filter)
 	if err != nil {
 		response.InternalServerError(w, "Failed to list shifts: "+err.Error())
 		return
 	}
 
-	response.OK(w, "Cashier shifts retrieved successfully", shifts, nil)
+	response.OK(w, "Cashier shifts retrieved successfully", shifts, pg.ToMeta(total))
 }
 

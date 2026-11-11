@@ -64,12 +64,12 @@ func (m *mockTreasuryRepo) RecordDeposit(ctx context.Context, shiftID uuid.UUID,
 	return nil
 }
 
-func (m *mockTreasuryRepo) ListShifts(ctx context.Context, branchID *uuid.UUID, startDate, endDate *time.Time) ([]treasury.CashierShift, error) {
+func (m *mockTreasuryRepo) ListShifts(ctx context.Context, filter treasury.ShiftFilter) ([]treasury.CashierShift, int64, error) {
 	var list []treasury.CashierShift
 	for _, s := range m.shifts {
 		list = append(list, *s)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 type mockAccountRepo struct {
@@ -118,12 +118,12 @@ func (m *mockAccountRepo) GetByCode(ctx context.Context, code string) (*accounti
 	return nil, nil
 }
 
-func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, error) {
+func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, int64, error) {
 	var list []accountingDomain.Account
 	for _, a := range m.accounts {
 		list = append(list, *a)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockAccountRepo) Create(ctx context.Context, acc *accountingDomain.Account) error {

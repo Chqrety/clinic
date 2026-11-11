@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"clinic-api/internal/transport/http/dto"
 	"clinic-api/internal/transport/http/middleware"
 	domain "clinic-api/internal/domain/accounting"
+	"clinic-api/pkg/pagination"
 	"clinic-api/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -44,7 +44,32 @@ func (h *AccountingHandler) RegisterRoutes(r chi.Router) {
 
 func (h *AccountingHandler) HandleListAccounts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var filter domain.AccountFilter
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit:     20,
+		MaxLimit:         100,
+		DefaultSortBy:    "code",
+		DefaultSortOrder: "ASC",
+		AllowedSortColumns: map[string]string{
+			"code":       "code",
+			"name":       "name",
+			"type":       "type",
+			"level":      "level",
+			"created_at": "created_at",
+		},
+		TieBreakerColumn: "id",
+	})
+	if err != nil {
+		response.BadRequest(w, err.Error(), nil)
+		return
+	}
+
+	filter := domain.AccountFilter{
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
 
 	if accType := r.URL.Query().Get("type"); accType != "" {
 		t := domain.AccountType(accType)
@@ -54,8 +79,12 @@ func (h *AccountingHandler) HandleListAccounts(w http.ResponseWriter, r *http.Re
 		active := activeStr == "true"
 		filter.IsActive = &active
 	}
+	if headerStr := r.URL.Query().Get("is_header"); headerStr != "" {
+		header := headerStr == "true"
+		filter.IsHeader = &header
+	}
 
-	accounts, err := h.service.GetAccounts(ctx, filter)
+	accounts, totalCount, err := h.service.GetAccounts(ctx, filter)
 	if err != nil {
 		response.InternalServerError(w, err.Error())
 		return
@@ -77,7 +106,8 @@ func (h *AccountingHandler) HandleListAccounts(w http.ResponseWriter, r *http.Re
 		})
 	}
 
-	response.OK(w, "Accounts retrieved successfully", resList, nil)
+	meta := pg.ToMeta(totalCount)
+	response.OK(w, "Accounts retrieved successfully", resList, meta)
 }
 
 func (h *AccountingHandler) HandleGetAccountByID(w http.ResponseWriter, r *http.Request) {
@@ -157,10 +187,38 @@ func (h *AccountingHandler) HandleCreateAccount(w http.ResponseWriter, r *http.R
 
 func (h *AccountingHandler) HandleListJournals(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var filter domain.JournalFilter
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit:     20,
+		MaxLimit:         100,
+		DefaultSortBy:    "transaction_date",
+		DefaultSortOrder: "DESC",
+		AllowedSortColumns: map[string]string{
+			"transaction_date": "transaction_date",
+			"journal_number":   "journal_number",
+			"created_at":       "created_at",
+			"total_debit":      "total_debit",
+		},
+		TieBreakerColumn: "id",
+	})
+	if err != nil {
+		response.BadRequest(w, err.Error(), nil)
+		return
+	}
+
+	filter := domain.JournalFilter{
+		StartDate: pg.StartDate,
+		EndDate:   pg.EndDate,
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
 
 	if branchID, ok := middleware.GetBranchID(ctx); ok {
 		filter.BranchID = &branchID
+	} else if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
 	}
 
 	if jType := r.URL.Query().Get("type"); jType != "" {
@@ -171,18 +229,6 @@ func (h *AccountingHandler) HandleListJournals(w http.ResponseWriter, r *http.Re
 		s := domain.JournalStatus(status)
 		filter.Status = &s
 	}
-
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit <= 0 {
-		limit = 20
-	}
-	filter.Limit = limit
-
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	if page <= 0 {
-		page = 1
-	}
-	filter.Offset = (page - 1) * limit
 
 	journals, totalCount, err := h.service.ListJournals(ctx, filter)
 	if err != nil {
@@ -195,14 +241,7 @@ func (h *AccountingHandler) HandleListJournals(w http.ResponseWriter, r *http.Re
 		resList = append(resList, toJournalResponse(&j))
 	}
 
-	totalPages := int((totalCount + int64(limit) - 1) / int64(limit))
-	meta := response.PaginationMeta{
-		CurrentPage: page,
-		PerPage:     limit,
-		TotalItems:  totalCount,
-		TotalPages:  totalPages,
-	}
-
+	meta := pg.ToMeta(totalCount)
 	response.OK(w, "Journals retrieved successfully", resList, meta)
 }
 

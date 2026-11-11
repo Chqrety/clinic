@@ -10,15 +10,20 @@ import (
 type AccountRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Account, error)
 	GetByCode(ctx context.Context, code string) (*Account, error)
-	List(ctx context.Context, filter AccountFilter) ([]Account, error)
+	List(ctx context.Context, filter AccountFilter) ([]Account, int64, error)
 	Create(ctx context.Context, acc *Account) error
 	Update(ctx context.Context, acc *Account) error
 }
 
 type AccountFilter struct {
-	Type     *AccountType
-	IsActive *bool
-	IsHeader *bool
+	Type      *AccountType
+	IsActive  *bool
+	IsHeader  *bool
+	Search    string
+	SortBy    string
+	SortOrder string
+	Limit     int
+	Offset    int
 }
 
 type JournalRepository interface {
@@ -36,6 +41,9 @@ type JournalFilter struct {
 	Status    *JournalStatus
 	StartDate *time.Time
 	EndDate   *time.Time
+	Search    string
+	SortBy    string
+	SortOrder string
 	Limit     int
 	Offset    int
 }

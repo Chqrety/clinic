@@ -12,17 +12,27 @@ import (
 type contextKey string
 
 const (
-	BranchIDKey contextKey = "branch_id"
-	UserIDKey   contextKey = "user_id"
-	RoleKey     contextKey = "user_role"
+	BranchIDKey    contextKey = "branch_id"
+	UserIDKey      contextKey = "user_id"
+	RoleKey        contextKey = "user_role"
+	UserSessionKey contextKey = "user_session"
 )
+
+// UserSession holds authenticated session details for branch & cost center scoping.
+type UserSession struct {
+	UserID               uuid.UUID
+	Role                 string
+	AllowedBranchIDs     []uuid.UUID
+	AllowedCostCenterIDs []uuid.UUID
+	IsSuperAdmin         bool
+}
 
 // BranchContext extracts and validates the X-Branch-ID header for multi-branch accounting isolation.
 func BranchContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		branchHeader := r.Header.Get("X-Branch-ID")
 		if branchHeader == "" {
-			// In development or if single-branch clinic, allow default fallback or require header
+			// In development or single-branch clinic, proceed with default context
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -31,6 +41,21 @@ func BranchContext(next http.Handler) http.Handler {
 		if err != nil {
 			response.BadRequest(w, "Invalid X-Branch-ID header format (UUID required)", nil)
 			return
+		}
+
+		// Enforce branch access authorization if user session is present in context
+		if sess, ok := GetUserSession(r.Context()); ok && !sess.IsSuperAdmin {
+			allowed := false
+			for _, b := range sess.AllowedBranchIDs {
+				if b == branchID {
+					allowed = true
+					break
+				}
+			}
+			if !allowed && len(sess.AllowedBranchIDs) > 0 {
+				response.Forbidden(w, "Access denied: you do not have permission to view or manage this branch")
+				return
+			}
 		}
 
 		ctx := context.WithValue(r.Context(), BranchIDKey, branchID)
@@ -44,3 +69,27 @@ func GetBranchID(ctx context.Context) (uuid.UUID, bool) {
 	return val, ok
 }
 
+// SetUserSession attaches an authenticated user session to context (e.g. from JWT middleware).
+func SetUserSession(ctx context.Context, session *UserSession) context.Context {
+	return context.WithValue(ctx, UserSessionKey, session)
+}
+
+// GetUserSession retrieves user session from context.
+func GetUserSession(ctx context.Context) (*UserSession, bool) {
+	val, ok := ctx.Value(UserSessionKey).(*UserSession)
+	return val, ok
+}
+
+// ValidateUnitAuthorization verifies if the current user is permitted to query the given cost center / unit.
+func ValidateUnitAuthorization(ctx context.Context, unitID uuid.UUID) bool {
+	sess, ok := GetUserSession(ctx)
+	if !ok || sess.IsSuperAdmin || len(sess.AllowedCostCenterIDs) == 0 {
+		return true // Allow if superadmin or no restrictive scope configured
+	}
+	for _, u := range sess.AllowedCostCenterIDs {
+		if u == unitID {
+			return true
+		}
+	}
+	return false
+}

@@ -9,6 +9,7 @@ import (
 	"clinic-api/internal/transport/http/dto"
 	"clinic-api/internal/transport/http/middleware"
 	domain "clinic-api/internal/domain/billing"
+	"clinic-api/pkg/pagination"
 	"clinic-api/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -175,11 +176,32 @@ func (h *BillingHandler) HandleGetByQueueID(w http.ResponseWriter, r *http.Reque
 
 func (h *BillingHandler) HandleListInvoices(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var filter domain.InvoiceFilter
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit: 20,
+		MaxLimit:     100,
+		AllowedSortColumns: map[string]string{
+			"created_at":     "created_at",
+			"invoice_number": "invoice_number",
+			"patient_name":   "patient_name",
+			"total_amount":   "total_amount",
+			"paid_amount":    "paid_amount",
+			"payment_status": "payment_status",
+		},
+		DefaultSortBy:    "created_at",
+		DefaultSortOrder: "DESC",
+	})
+	if err != nil {
+		response.BadRequest(w, "Invalid pagination parameters", err.Error())
+		return
+	}
 
-	if branchID, ok := middleware.GetBranchID(ctx); ok {
+	var filter domain.InvoiceFilter
+	if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
+	} else if branchID, ok := middleware.GetBranchID(ctx); ok {
 		filter.BranchID = &branchID
 	}
+
 	if status := r.URL.Query().Get("status"); status != "" {
 		st := domain.PaymentStatus(status)
 		filter.PaymentStatus = &st
@@ -189,17 +211,13 @@ func (h *BillingHandler) HandleListInvoices(w http.ResponseWriter, r *http.Reque
 		filter.InvoiceType = &t
 	}
 
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit <= 0 {
-		limit = 20
-	}
-	filter.Limit = limit
-
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	if page <= 0 {
-		page = 1
-	}
-	filter.Offset = (page - 1) * limit
+	filter.StartDate = pg.StartDate
+	filter.EndDate = pg.EndDate
+	filter.Search = pg.Search
+	filter.SortBy = pg.SortBy
+	filter.SortOrder = pg.SortOrder
+	filter.Limit = pg.Limit
+	filter.Offset = pg.Offset
 
 	invoices, totalCount, err := h.service.ListInvoices(ctx, filter)
 	if err != nil {
@@ -212,15 +230,7 @@ func (h *BillingHandler) HandleListInvoices(w http.ResponseWriter, r *http.Reque
 		resList = append(resList, toInvoiceResponse(&inv))
 	}
 
-	totalPages := int((totalCount + int64(limit) - 1) / int64(limit))
-	meta := response.PaginationMeta{
-		CurrentPage: page,
-		PerPage:     limit,
-		TotalItems:  totalCount,
-		TotalPages:  totalPages,
-	}
-
-	response.OK(w, "Invoices retrieved successfully", resList, meta)
+	response.OK(w, "Invoices retrieved successfully", resList, pg.ToMeta(totalCount))
 }
 
 func toInvoiceResponse(inv *domain.Invoice) dto.InvoiceResponse {

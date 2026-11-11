@@ -45,12 +45,12 @@ func (m *mockDoctorShareRepo) GetRule(ctx context.Context, branchID uuid.UUID, d
 	return nil, nil
 }
 
-func (m *mockDoctorShareRepo) ListRules(ctx context.Context, branchID *uuid.UUID) ([]doctorshare.DoctorShareRule, error) {
+func (m *mockDoctorShareRepo) ListRules(ctx context.Context, filter doctorshare.RuleFilter) ([]doctorshare.DoctorShareRule, int64, error) {
 	var list []doctorshare.DoctorShareRule
 	for _, r := range m.rules {
 		list = append(list, *r)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockDoctorShareRepo) CreateSettlement(ctx context.Context, s *doctorshare.DoctorFeeSettlement) error {
@@ -65,12 +65,12 @@ func (m *mockDoctorShareRepo) GetSettlementByID(ctx context.Context, id uuid.UUI
 	return nil, docApp.ErrSettlementNotFound
 }
 
-func (m *mockDoctorShareRepo) ListSettlements(ctx context.Context, branchID *uuid.UUID, year, month int) ([]doctorshare.DoctorFeeSettlement, error) {
+func (m *mockDoctorShareRepo) ListSettlements(ctx context.Context, filter doctorshare.SettlementFilter) ([]doctorshare.DoctorFeeSettlement, int64, error) {
 	var list []doctorshare.DoctorFeeSettlement
 	for _, s := range m.settlements {
 		list = append(list, *s)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockDoctorShareRepo) UpdateSettlementStatus(ctx context.Context, id uuid.UUID, status doctorshare.SettlementStatus, paidAt *time.Time, journalID *uuid.UUID) error {
@@ -104,8 +104,8 @@ func (m *mockTaxRepo) GetCumulativeDPP(ctx context.Context, branchID uuid.UUID, 
 	return decimal.Zero, nil
 }
 
-func (m *mockTaxRepo) ListWithholdings(ctx context.Context, branchID *uuid.UUID, year, month int, taxType *tax.TaxType) ([]tax.TaxWithholding, error) {
-	return m.withholdings, nil
+func (m *mockTaxRepo) ListWithholdings(ctx context.Context, filter tax.TaxFilter) ([]tax.TaxWithholding, int64, error) {
+	return m.withholdings, int64(len(m.withholdings)), nil
 }
 
 func (m *mockTaxRepo) MarkAsReported(ctx context.Context, id uuid.UUID) error {
@@ -157,12 +157,12 @@ func (m *mockAccountRepo) GetByCode(ctx context.Context, code string) (*accounti
 	return nil, nil
 }
 
-func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, error) {
+func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, int64, error) {
 	var list []accountingDomain.Account
 	for _, a := range m.accounts {
 		list = append(list, *a)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockAccountRepo) Create(ctx context.Context, acc *accountingDomain.Account) error {

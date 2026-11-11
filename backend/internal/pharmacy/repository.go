@@ -3,14 +3,25 @@ package pharmacy
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain"
 )
 
+type DrugFilter struct {
+	Search    string
+	Category  string
+	SortBy    string
+	SortOrder string
+	Limit     int
+	Offset    int
+}
+
 // Repository defines data access operations for pharmacy drugs and batch inventory.
 type Repository interface {
 	GetDrugs() ([]domain.Drug, error)
+	GetDrugsPaginated(filter DrugFilter) ([]domain.Drug, int64, error)
 	GetDrugDetail(drugID int64) (*domain.Drug, error)
 	CreateDrug(name, kfaCode, unit, category string, minStockAlert, sellPrice int) (int64, error)
 	FindBatchByNumber(drugID int64, batchNumber string) (int64, error)
@@ -68,6 +79,88 @@ func (r *sqlRepository) GetDrugs() ([]domain.Drug, error) {
 		drugs = append(drugs, d)
 	}
 	return drugs, nil
+}
+
+func (r *sqlRepository) GetDrugsPaginated(filter DrugFilter) ([]domain.Drug, int64, error) {
+	whereClause := "WHERE 1=1"
+	var args []any
+
+	if strings.TrimSpace(filter.Search) != "" {
+		whereClause += " AND (LOWER(d.name) LIKE ? OR LOWER(d.kfa_code) LIKE ?)"
+		s := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		args = append(args, s, s)
+	}
+	if filter.Category != "" {
+		whereClause += " AND d.category = ?"
+		args = append(args, filter.Category)
+	}
+
+	countQuery := "SELECT COUNT(*) FROM drugs d " + whereClause
+	var total int64
+	if err := r.db.QueryRow(countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("count drugs: %w", err)
+	}
+
+	allowedSorts := map[string]string{
+		"name":       "d.name",
+		"category":   "d.category",
+		"sell_price": "d.sell_price",
+		"created_at": "d.created_at",
+	}
+	sortCol := "d.name"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "ASC"
+	if strings.ToUpper(filter.SortOrder) == "DESC" {
+		sortDir = "DESC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, d.id %s", sortCol, sortDir, sortDir)
+
+	query := `
+		SELECT d.id, d.name, d.kfa_code, d.unit, d.category, d.min_stock_alert, d.sell_price,
+		       coalesce(sum(b.physical_stock), 0) as physical_stock,
+		       coalesce(sum(b.reserved_stock), 0) as reserved_stock,
+		       d.created_at
+		FROM drugs d
+		LEFT JOIN drug_batches b ON d.id = b.drug_id
+	` + whereClause + " GROUP BY d.id " + orderBy
+
+	if filter.Limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, filter.Limit, filter.Offset)
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("query drugs: %w", err)
+	}
+	defer rows.Close()
+
+	var drugs []domain.Drug
+	threeMonthsLater := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
+
+	for rows.Next() {
+		var d domain.Drug
+		if err := rows.Scan(
+			&d.ID, &d.Name, &d.KFACode, &d.Unit, &d.Category, &d.MinStockAlert, &d.SellPrice,
+			&d.PhysicalStock, &d.ReservedStock, &d.CreatedAt,
+		); err != nil {
+			return nil, 0, fmt.Errorf("scan drug row: %w", err)
+		}
+		d.AvailableStock = d.PhysicalStock - d.ReservedStock
+		d.IsLowStock = d.AvailableStock <= d.MinStockAlert
+
+		var expCount int
+		_ = r.db.QueryRow(`
+			SELECT COUNT(*) FROM drug_batches
+			WHERE drug_id = ? AND physical_stock > 0 AND expired_date <= ?
+		`, d.ID, threeMonthsLater).Scan(&expCount)
+		d.HasExpiring = expCount > 0
+
+		drugs = append(drugs, d)
+	}
+	return drugs, total, nil
 }
 
 func (r *sqlRepository) GetDrugDetail(drugID int64) (*domain.Drug, error) {

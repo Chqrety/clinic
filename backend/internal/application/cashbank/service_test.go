@@ -56,12 +56,12 @@ func (m *mockCashBankRepo) GetAccountByCode(ctx context.Context, code string) (*
 	return nil, cashbankApp.ErrAccountNotFound
 }
 
-func (m *mockCashBankRepo) ListAccounts(ctx context.Context, branchID *uuid.UUID, accType *cashbankDomain.AccountType) ([]cashbankDomain.CashBankAccount, error) {
+func (m *mockCashBankRepo) ListAccounts(ctx context.Context, filter cashbankDomain.CashAccountFilter) ([]cashbankDomain.CashBankAccount, int64, error) {
 	var list []cashbankDomain.CashBankAccount
 	for _, a := range m.accounts {
 		list = append(list, *a)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockCashBankRepo) CreateTransaction(ctx context.Context, tx *cashbankDomain.CashBankTransaction) error {
@@ -113,12 +113,12 @@ func (m *mockAccountRepo) GetByCode(ctx context.Context, code string) (*accounti
 	}
 	return nil, accountingApp.ErrAccountNotFound
 }
-func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, error) {
+func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, int64, error) {
 	var list []accountingDomain.Account
 	for _, a := range m.accounts {
 		list = append(list, *a)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 func (m *mockAccountRepo) Create(ctx context.Context, acc *accountingDomain.Account) error {
 	m.accounts[acc.ID] = acc

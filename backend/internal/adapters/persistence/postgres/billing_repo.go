@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain/billing"
@@ -254,6 +255,12 @@ func (r *PostgresBillingRepo) List(ctx context.Context, filter billing.InvoiceFi
 		args = append(args, *filter.EndDate)
 		argIdx++
 	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(invoice_number) LIKE $%d OR LOWER(patient_name) LIKE $%d OR LOWER(patient_nik) LIKE $%d)", argIdx, argIdx+1, argIdx+2)
+		args = append(args, searchParam, searchParam, searchParam)
+		argIdx += 3
+	}
 
 	exec := GetExecutor(ctx, r.db)
 
@@ -263,12 +270,30 @@ func (r *PostgresBillingRepo) List(ctx context.Context, filter billing.InvoiceFi
 		return nil, 0, fmt.Errorf("count invoices: %w", err)
 	}
 
+	allowedSorts := map[string]string{
+		"created_at":     "created_at",
+		"invoice_number": "invoice_number",
+		"patient_name":   "patient_name",
+		"total_amount":   "total_amount",
+		"paid_amount":    "paid_amount",
+		"payment_status": "payment_status",
+	}
+	sortCol := "created_at"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "DESC"
+	if strings.ToUpper(filter.SortOrder) == "ASC" {
+		sortDir = "ASC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, id %s", sortCol, sortDir, sortDir)
+
 	selectQuery := `
 		SELECT id, branch_id, invoice_number, patient_id, patient_name, patient_nik,
 		       queue_id, invoice_type, registration_fee, consultation_fee, medication_fee,
 		       total_amount, paid_amount, payment_status, payment_method, journal_id,
 		       created_at, updated_at
-	` + baseQuery + " ORDER BY created_at DESC"
+	` + baseQuery + orderBy
 
 	if filter.Limit > 0 {
 		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)

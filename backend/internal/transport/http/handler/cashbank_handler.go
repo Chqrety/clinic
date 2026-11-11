@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	accountingApp "clinic-api/internal/application/accounting"
@@ -12,6 +11,7 @@ import (
 	"clinic-api/internal/transport/http/middleware"
 	"clinic-api/internal/domain/cashbank"
 	"clinic-api/internal/domain/shared"
+	"clinic-api/pkg/pagination"
 	"clinic-api/pkg/response"
 
 	"github.com/go-chi/chi/v5"
@@ -48,18 +48,44 @@ func (h *CashBankHandler) RegisterRoutes(r chi.Router) {
 
 func (h *CashBankHandler) HandleListAccounts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(ctx); ok {
-		branchID = &bID
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit:     20,
+		MaxLimit:         100,
+		DefaultSortBy:    "code",
+		DefaultSortOrder: "ASC",
+		AllowedSortColumns: map[string]string{
+			"code":       "code",
+			"name":       "name",
+			"type":       "type",
+			"created_at": "created_at",
+		},
+		TieBreakerColumn: "id",
+	})
+	if err != nil {
+		response.BadRequest(w, err.Error(), nil)
+		return
 	}
 
-	var accType *cashbank.AccountType
+	filter := cashbank.CashAccountFilter{
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
+
+	if bID, ok := middleware.GetBranchID(ctx); ok {
+		filter.BranchID = &bID
+	} else if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
+	}
+
 	if tStr := r.URL.Query().Get("type"); tStr != "" {
 		t := cashbank.AccountType(tStr)
-		accType = &t
+		filter.Type = &t
 	}
 
-	accounts, err := h.cashbankService.ListAccounts(ctx, branchID, accType)
+	accounts, totalCount, err := h.cashbankService.ListAccounts(ctx, filter)
 	if err != nil {
 		response.InternalServerError(w, err.Error())
 		return
@@ -82,7 +108,8 @@ func (h *CashBankHandler) HandleListAccounts(w http.ResponseWriter, r *http.Requ
 		})
 	}
 
-	response.OK(w, "Cash and bank accounts retrieved successfully", resList, nil)
+	meta := pg.ToMeta(totalCount)
+	response.OK(w, "Cash and bank accounts retrieved successfully", resList, meta)
 }
 
 func (h *CashBankHandler) HandleCreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -277,11 +304,40 @@ func (h *CashBankHandler) HandleTransfer(w http.ResponseWriter, r *http.Request)
 
 func (h *CashBankHandler) HandleListTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var filter cashbank.TransactionFilter
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit:     20,
+		MaxLimit:         100,
+		DefaultSortBy:    "transaction_date",
+		DefaultSortOrder: "DESC",
+		AllowedSortColumns: map[string]string{
+			"transaction_date":   "t.transaction_date",
+			"transaction_number": "t.transaction_number",
+			"amount":             "t.amount",
+			"created_at":         "t.created_at",
+		},
+		TieBreakerColumn: "t.id",
+	})
+	if err != nil {
+		response.BadRequest(w, err.Error(), nil)
+		return
+	}
+
+	filter := cashbank.TransactionFilter{
+		StartDate: pg.StartDate,
+		EndDate:   pg.EndDate,
+		Search:    pg.Search,
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
 
 	if bID, ok := middleware.GetBranchID(ctx); ok {
 		filter.BranchID = &bID
+	} else if pg.BranchID != nil {
+		filter.BranchID = pg.BranchID
 	}
+
 	if accIDStr := r.URL.Query().Get("account_id"); accIDStr != "" {
 		if id, err := uuid.Parse(accIDStr); err == nil {
 			filter.CashBankAccountID = &id
@@ -291,18 +347,6 @@ func (h *CashBankHandler) HandleListTransactions(w http.ResponseWriter, r *http.
 		t := cashbank.TransactionType(tTypeStr)
 		filter.TransactionType = &t
 	}
-
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit <= 0 {
-		limit = 20
-	}
-	filter.Limit = limit
-
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	if page <= 0 {
-		page = 1
-	}
-	filter.Offset = (page - 1) * limit
 
 	txs, totalCount, err := h.cashbankService.ListTransactions(ctx, filter)
 	if err != nil {
@@ -315,15 +359,8 @@ func (h *CashBankHandler) HandleListTransactions(w http.ResponseWriter, r *http.
 		resList = append(resList, toTransactionResponse(&t))
 	}
 
-	totalPages := int((totalCount + int64(limit) - 1) / int64(limit))
-	meta := response.PaginationMeta{
-		CurrentPage: page,
-		PerPage:     limit,
-		TotalItems:  totalCount,
-		TotalPages:  totalPages,
-	}
-
-	response.OK(w, "Transactions retrieved successfully", resList, meta)
+	meta := pg.ToMeta(totalCount)
+	response.OK(w, "Cash and bank transactions retrieved successfully", resList, meta)
 }
 
 func (h *CashBankHandler) HandleClosePeriod(w http.ResponseWriter, r *http.Request) {

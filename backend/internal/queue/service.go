@@ -40,6 +40,10 @@ func (s *Service) GetQueues() ([]domain.QueueItem, error) {
 	return s.repo.GetQueues()
 }
 
+func (s *Service) GetQueuesPaginated(filter QueueFilter) ([]domain.QueueItem, int64, error) {
+	return s.repo.GetQueuesPaginated(filter)
+}
+
 func (s *Service) GetQueueByID(id int64) (*domain.QueueItem, error) {
 	return s.repo.GetQueueByID(id)
 }

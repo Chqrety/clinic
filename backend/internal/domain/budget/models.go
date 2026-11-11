@@ -57,11 +57,23 @@ type BudgetVarianceReport struct {
 	Items         []BudgetVarianceItem `json:"items"`
 }
 
+type BudgetFilter struct {
+	BranchID     *uuid.UUID
+	CostCenterID *uuid.UUID
+	Year         int
+	Status       *BudgetStatus
+	Search       string
+	SortBy       string
+	SortOrder    string
+	Limit        int
+	Offset       int
+}
+
 type Repository interface {
 	CreateBudget(ctx context.Context, b *Budget) error
 	GetBudgetByID(ctx context.Context, id uuid.UUID) (*Budget, error)
 	GetBudgetByYear(ctx context.Context, branchID uuid.UUID, costCenterID uuid.UUID, year int) (*Budget, error)
 	UpdateBudgetStatus(ctx context.Context, id uuid.UUID, status BudgetStatus) error
-	ListBudgets(ctx context.Context, branchID *uuid.UUID, year int) ([]Budget, error)
+	ListBudgets(ctx context.Context, filter BudgetFilter) ([]Budget, int64, error)
 	GetActualAmounts(ctx context.Context, branchID *uuid.UUID, costCenterID *uuid.UUID, year, month int) (map[string]decimal.Decimal, error)
 }

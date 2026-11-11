@@ -54,6 +54,14 @@ func (m *mockAssetRepo) ListActiveAssets(ctx context.Context, branchID *uuid.UUI
 	return list, nil
 }
 
+func (m *mockAssetRepo) List(ctx context.Context, filter asset.AssetFilter) ([]asset.FixedAsset, int64, error) {
+	var list []asset.FixedAsset
+	for _, a := range m.assets {
+		list = append(list, *a)
+	}
+	return list, int64(len(list)), nil
+}
+
 func (m *mockAssetRepo) RecordDepreciation(ctx context.Context, dep *asset.AssetDepreciation) error {
 	m.depreciations[dep.AssetID] = append(m.depreciations[dep.AssetID], *dep)
 	return nil
@@ -108,12 +116,12 @@ func (m *mockAccountRepo) GetByCode(ctx context.Context, code string) (*accounti
 	return nil, nil
 }
 
-func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, error) {
+func (m *mockAccountRepo) List(ctx context.Context, filter accountingDomain.AccountFilter) ([]accountingDomain.Account, int64, error) {
 	var list []accountingDomain.Account
 	for _, a := range m.accounts {
 		list = append(list, *a)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockAccountRepo) Create(ctx context.Context, acc *accountingDomain.Account) error {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"clinic-api/internal/domain/asset"
 	"clinic-api/pkg/decimal"
@@ -106,6 +107,120 @@ func (r *PostgresAssetRepo) ListActiveAssets(ctx context.Context, branchID *uuid
 		assets = append(assets, a)
 	}
 	return assets, nil
+}
+
+func (r *PostgresAssetRepo) List(ctx context.Context, filter asset.AssetFilter) ([]asset.FixedAsset, int64, error) {
+	exec := GetExecutor(ctx, r.db)
+	baseQuery := `FROM fixed_assets WHERE 1=1`
+	var args []any
+	argIdx := 1
+
+	if filter.BranchID != nil {
+		baseQuery += fmt.Sprintf(" AND branch_id = $%d", argIdx)
+		args = append(args, *filter.BranchID)
+		argIdx++
+	}
+	if filter.CostCenterID != nil {
+		baseQuery += fmt.Sprintf(" AND cost_center_id = $%d", argIdx)
+		args = append(args, *filter.CostCenterID)
+		argIdx++
+	}
+	if filter.Category != "" {
+		baseQuery += fmt.Sprintf(" AND category = $%d", argIdx)
+		args = append(args, filter.Category)
+		argIdx++
+	}
+	if filter.Status != nil {
+		baseQuery += fmt.Sprintf(" AND status = $%d", argIdx)
+		args = append(args, *filter.Status)
+		argIdx++
+	}
+	if filter.StartDate != nil {
+		baseQuery += fmt.Sprintf(" AND acquisition_date >= $%d", argIdx)
+		args = append(args, *filter.StartDate)
+		argIdx++
+	}
+	if filter.EndDate != nil {
+		baseQuery += fmt.Sprintf(" AND acquisition_date <= $%d", argIdx)
+		args = append(args, *filter.EndDate)
+		argIdx++
+	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(asset_code) LIKE $%d OR LOWER(asset_name) LIKE $%d OR LOWER(category) LIKE $%d)", argIdx, argIdx+1, argIdx+2)
+		args = append(args, searchParam, searchParam, searchParam)
+		argIdx += 3
+	}
+
+	var totalCount int64
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := exec.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		return nil, 0, fmt.Errorf("count fixed assets: %w", err)
+	}
+
+	allowedSorts := map[string]string{
+		"asset_code":       "asset_code",
+		"asset_name":       "asset_name",
+		"category":         "category",
+		"acquisition_date": "acquisition_date",
+		"acquisition_cost": "acquisition_cost",
+		"status":           "status",
+		"created_at":       "created_at",
+	}
+	sortCol := "asset_code"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "ASC"
+	if strings.ToUpper(filter.SortOrder) == "DESC" {
+		sortDir = "DESC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, id %s", sortCol, sortDir, sortDir)
+
+	selectQuery := `
+		SELECT id, branch_id, cost_center_id, asset_code, asset_name,
+		       category, acquisition_date, acquisition_cost, salvage_value,
+		       useful_life_months, depreciation_method, asset_account_code,
+		       accum_account_code, expense_account_code, status,
+		       created_at, updated_at
+	` + baseQuery + orderBy
+
+	if filter.Limit > 0 {
+		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+	if filter.Offset > 0 {
+		selectQuery += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+		argIdx++
+	}
+
+	rows, err := exec.QueryContext(ctx, selectQuery, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("list fixed assets: %w", err)
+	}
+	defer rows.Close()
+
+	var assets []asset.FixedAsset
+	for rows.Next() {
+		var a asset.FixedAsset
+		var costStr, salvageStr string
+		err := rows.Scan(
+			&a.ID, &a.BranchID, &a.CostCenterID, &a.AssetCode, &a.AssetName,
+			&a.Category, &a.AcquisitionDate, &costStr, &salvageStr,
+			&a.UsefulLifeMonths, &a.DepreciationMethod, &a.AssetAccountCode,
+			&a.AccumAccountCode, &a.ExpenseAccountCode, &a.Status,
+			&a.CreatedAt, &a.UpdatedAt,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("scan fixed asset: %w", err)
+		}
+		a.AcquisitionCost, _ = decimal.NewFromString(costStr)
+		a.SalvageValue, _ = decimal.NewFromString(salvageStr)
+		assets = append(assets, a)
+	}
+	return assets, totalCount, nil
 }
 
 func (r *PostgresAssetRepo) RecordDepreciation(ctx context.Context, dep *asset.AssetDepreciation) error {

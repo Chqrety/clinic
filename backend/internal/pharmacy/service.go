@@ -44,6 +44,10 @@ func (s *Service) GetDrugs() ([]domain.Drug, error) {
 	return s.repo.GetDrugs()
 }
 
+func (s *Service) GetDrugsPaginated(filter DrugFilter) ([]domain.Drug, int64, error) {
+	return s.repo.GetDrugsPaginated(filter)
+}
+
 func (s *Service) GetDrugDetail(drugID int64) (*domain.Drug, error) {
 	return s.repo.GetDrugDetail(drugID)
 }

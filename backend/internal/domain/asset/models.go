@@ -60,10 +60,25 @@ func (a *FixedAsset) CalculateStraightLineMonthly() decimal.Decimal {
 	return depreciable.Div(decimal.FromInt(int64(a.UsefulLifeMonths)))
 }
 
+type AssetFilter struct {
+	BranchID         *uuid.UUID
+	CostCenterID     *uuid.UUID
+	Category         string
+	Status           *AssetStatus
+	StartDate        *time.Time
+	EndDate          *time.Time
+	Search           string
+	SortBy           string
+	SortOrder        string
+	Limit            int
+	Offset           int
+}
+
 type Repository interface {
 	CreateAsset(ctx context.Context, asset *FixedAsset) error
 	GetAssetByID(ctx context.Context, id uuid.UUID) (*FixedAsset, error)
 	ListActiveAssets(ctx context.Context, branchID *uuid.UUID) ([]FixedAsset, error)
+	List(ctx context.Context, filter AssetFilter) ([]FixedAsset, int64, error)
 	RecordDepreciation(ctx context.Context, dep *AssetDepreciation) error
 	GetDepreciationHistory(ctx context.Context, assetID uuid.UUID) ([]AssetDepreciation, error)
 }

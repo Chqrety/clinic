@@ -309,7 +309,175 @@ Dibayarkan melalui transfer dari Bank BCA:
 
 ---
 
-## 5. Rencana Struktur Folder Domain-Driven Design (DDD) Backend
+## 5. Standar Bagan Akun Dinamis 4-Digit & Struktur Laporan Neraca / Laba Rugi
+
+> [!NOTE]
+> **Filosofi Desain Dinamis ala ERPNext:**
+> Bagan Akun (*Chart of Accounts / COA*) di bawah ini mengadopsi standar hierarki penomoran 4-digit industri (PSAK / Akuntansi Standar Indonesia) yang fleksibel. Nama akun dan nomor kode dapat disesuaikan oleh manajemen atau akuntan di database tanpa merusak logika aplikasi Go backend, karena sistem menggunakan **Pola Pemetaan Peran (*Default Account Role Mapping*)**.
+
+### A. Format Struktur Laporan Neraca (Balance Sheet)
+*Mencakup Kelompok Akun 1 (Aset), Kelompok 2 (Kewajiban), dan Kelompok 3 (Ekuitas) sesuai tampilan standar sistem laporan akuntansi:*
+
+| Kode Akun | Nama Akun COA | Tipe Akun | Saldo Normal | Sub-Unit & Keterangan Operasional |
+| :--- | :--- | :---: | :---: | :--- |
+| **1 - ASET** | **AKTIVA / ASSET** | **ASSET** | **DEBIT** | **Klasifikasi Utama Aset** |
+| **11** | **KAS DAN BANK** | **ASSET** | **DEBIT** | **Header Kas & Setara Kas** |
+| 1101 | Kas Kasir Kidinest (Poli Anak) | ASSET | DEBIT | Kas fisik di meja kasir Unit Kidinest |
+| 1102 | Kas Kasir Semarang Skin Center (SSC) | ASSET | DEBIT | Kas fisik di meja kasir Unit SSC |
+| 1103 | Kas Kecil / Petty Cash Operasional | ASSET | DEBIT | Kas pengeluaran operasional harian kantor |
+| 1104 | Bank BCA Operasional | ASSET | DEBIT | Rekening giro/tabungan utama operasional BCA |
+| 1105 | Bank Mandiri Operasional | ASSET | DEBIT | Rekening cadangan / payroll Bank Mandiri |
+| 1106 | Settlement QRIS & EDC Transit | ASSET | DEBIT | Kliring sementara pembayaran digital sebelum masuk bank |
+| **12** | **PIUTANG** | **ASSET** | **DEBIT** | **Header Piutang Usaha** |
+| 1201 | Piutang Pasien Perawatan | ASSET | DEBIT | Piutang tindakan pasien rawat jalan/estetika |
+| 1202 | Piutang Klaim Asuransi / BPJS / Korporat | ASSET | DEBIT | Tagihan klaim jaminan ke asuransi rekanan |
+| 1203 | Cadangan Kerugian Piutang | ASSET | CREDIT | Kontra-aset estimasi piutang macet/kadaluarsa |
+| **13** | **PERSEDIAAN** | **ASSET** | **DEBIT** | **Header Persediaan Medis & Non-Medis (FIFO)** |
+| 1301 | Persediaan Obat & Sirup Anak (Kidinest) | ASSET | DEBIT | Stok obat paten, sirup, racikan farmasi anak |
+| 1302 | Persediaan Produk Skincare & Kosmetika (SSC) | ASSET | DEBIT | Stok krim malam, krim pagi, serum, sunscreen SSC |
+| 1303 | Persediaan Bahan Medis Habis Pakai (BMHP) | ASSET | DEBIT | Stok spuit, jarum suntik, kassa, infus, alkohol |
+| 1304 | Persediaan Vaksin & Serum Anak (Kidinest) | ASSET | DEBIT | Stok vaksin dasar & lanjutan cold chain Kidinest |
+| **14** | **INVESTASI** | **ASSET** | **DEBIT** | **Header Investasi Jangka Panjang** |
+| 1401 | Investasi Tanah & Gedung Cabang | ASSET | DEBIT | Kepemilikan aset tanah/bangunan perluasan klinik |
+| 1402 | Investasi Pengembangan Formula Skincare SSC | ASSET | DEBIT | Aset tidak berwujud / HKI formulasi produk SSC |
+| **15** | **BIAYA DIBAYAR DI MUKA** | **ASSET** | **DEBIT** | **Header Beban Ditangguhkan (Prepaid Expense)** |
+| 1501 | Sewa Gedung & Ruko Dibayar di Muka | ASSET | DEBIT | Alokasi per bulan amortisasi sewa tempat praktek |
+| 1502 | Uang Muka Pembelian Alat Medis (DP) | ASSET | DEBIT | Uang muka pemesanan laser/alat medis baru |
+| 1503 | Asuransi Kebakaran & Malpraktik Dibayar di Muka | ASSET | DEBIT | Premi tahunan asuransi klinik dibayar di muka |
+| **16** | **AKTIVA TETAP** | **ASSET** | **DEBIT** | **Header Aset Tetap Berwujud** |
+| 1601 | Bangunan & Renovasi Interior Klinik | ASSET | DEBIT | Biaya fit-out ruko, poli anak, & ruang treatment |
+| 1602 | Mesin & Alat Medis Estetika (Laser/Facial SSC) | ASSET | DEBIT | Mesin Laser Q-Switched, Cauter, IPL, HydraFacial |
+| 1603 | Peralatan Medis Poli Anak & Vaccine Chiller | ASSET | DEBIT | Kulkas medis cold chain, nebulizer, timbangan anak |
+| 1604 | Inventaris Kantor, Komputer & Perangkat POS | ASSET | DEBIT | Laptop, thermal printer kasir, AC, furniture ruko |
+| 1605 | Kendaraan Operasional Klinik | ASSET | DEBIT | Mobil operasional jemputan dokter & logistik farmasi |
+| 1606 | Akumulasi Penyusutan Aktiva Tetap | ASSET | CREDIT | Akumulasi depresiasi metode garis lurus (*Contra-Asset*) |
+| **2 - KEWAJIBAN** | **KEWAJIBAN / LIABILITAS** | **LIABILITY** | **CREDIT** | **Klasifikasi Utama Kewajiban** |
+| **21** | **UANG MUKA & TITIPAN** | **LIABILITY** | **CREDIT** | **Header Pendapatan Ditangguhkan** |
+| 2101 | Uang Muka / Deposit Pasien Paket Treatment SSC | LIABILITY | CREDIT | Pembayaran di awal untuk paket 5x/10x facial laser |
+| 2102 | Titipan Booking Pasien & Pendaftaran | LIABILITY | CREDIT | Down payment reservasi jadwal dokter spesialis |
+| **22** | **HUTANG DAGANG & SUPPLIER** | **LIABILITY** | **CREDIT** | **Header Hutang Usaha Pengadaan** |
+| 2201 | Hutang Distributor Farmasi (PBF) | LIABILITY | CREDIT | Tagihan jatuh tempo faktur obat dari distributor PBF |
+| 2202 | Hutang Supplier & Pabrik Maklon Skincare SSC | LIABILITY | CREDIT | Tagihan produksi krim dan kosmetika ber-BPOM |
+| 2203 | Hutang Vendor Bahan Medis Habis Pakai (BMHP) | LIABILITY | CREDIT | Tagihan jarum, spuit, kassa steril, antiseptic |
+| **23** | **HUTANG BANK** | **LIABILITY** | **CREDIT** | **Header Pinjaman Bank & Lembaga Finansial** |
+| 2301 | Hutang Kredit Modal Kerja (KMK) Operasional | LIABILITY | CREDIT | Fasilitas pinjaman modal kerja bergulir dari perbankan |
+| 2302 | Hutang Kredit Investasi Alat Medis | LIABILITY | CREDIT | Fasilitas cicilan leasing alat laser/medis klinik |
+| **24** | **HUTANG PIHAK KETIGA & JASA MEDIS** | **LIABILITY** | **CREDIT** | **Header Kewajiban Medis & Pemegang Saham** |
+| 2401 | Hutang Bagi Hasil Jasa Dokter Spesialis Anak | LIABILITY | CREDIT | Saldo honor dokter anak sebelum dipotong PPh 21 |
+| 2402 | Hutang Bagi Hasil Dokter Kulit & Estetika SSC | LIABILITY | CREDIT | Saldo honor dokter Sp.DVE sebelum dipotong PPh 21 |
+| 2403 | Hutang Komisi Tindakan Terapis / Beautician | LIABILITY | CREDIT | Saldo komisi bulanan staf beautician SSC |
+| 2404 | Hutang Pemegang Saham / Pihak Terelasi | LIABILITY | CREDIT | Pinjaman dana talangan dari pendiri/owner |
+| **25** | **HUTANG PAJAK** | **LIABILITY** | **CREDIT** | **Header Pajak Terutang (Clinic Pajak)** |
+| 2501 | Hutang PPh 21 Dokter Tenaga Ahli (PMK 168/2023) | LIABILITY | CREDIT | Potongan PPh 21 honor dokter (objek e-Bupot 21-100-07) |
+| 2502 | Hutang PPh 21 Karyawan & Perawat | LIABILITY | CREDIT | Potongan PPh 21 pegawai tetap bulanan |
+| 2503 | Hutang PPh 23 Vendor Limbah B3 & Kalibrasi | LIABILITY | CREDIT | Potongan 2% jasa teknik & pengolahan limbah medis |
+| 2504 | Hutang PPh Final 4 ayat (2) Sewa Gedung | LIABILITY | CREDIT | Potongan 10% atas pembayaran sewa ruko klinik |
+| 2505 | Hutang PPN Keluaran (Jika Klinik PKP) | LIABILITY | CREDIT | PPN 11%/12% penjualan produk kosmetika/skincare OTC |
+| **26** | **HUTANG PEMBEBANAN AKRUAL** | **LIABILITY** | **CREDIT** | **Header Beban Akrual Akhir Bulan** |
+| 2601 | Hutang Akrual Gaji & THR Karyawan | LIABILITY | CREDIT | Beban gaji bulan berjalan yang belum ditransfer |
+| 2602 | Hutang Akrual Listrik PLN, Air & Internet | LIABILITY | CREDIT | Beban utilitas bulan berjalan yang belum terbayar |
+| **3 - EKUITAS** | **EKUITAS & MODAL** | **EQUITY** | **CREDIT** | **Klasifikasi Utama Permodalan** |
+| **31** | **MODAL** | **EQUITY** | **CREDIT** | **Header Modal Pemilik** |
+| 3101 | Setoran Modal Awal Pendiri / Pemegang Saham | EQUITY | CREDIT | Modal disetor klinik Kidinest & SSC |
+| 3102 | Dividen / Prive Dibagi Pemilik | EQUITY | DEBIT | Pengambilan dividen pemilik (*Contra-Equity*) |
+| **32** | **LABA AKUMULASI** | **EQUITY** | **CREDIT** | **Header Laba Ditahan** |
+| 3201 | Laba Ditahan Tahun-Tahun Sebelumnya | EQUITY | CREDIT | Akumulasi laba bersih historis yang tidak dibagikan |
+| 3202 | Laba / Rugi Periode Berjalan | EQUITY | CREDIT | Saldo laba/rugi bersih dari laporan laba rugi tahun berjalan |
+
+---
+
+### B. Format Struktur Laporan Laba Rugi (Income Statement)
+*Mencakup Kelompok Akun 4 (Pendapatan), Kelompok 5 (HPP & Beban Medis Langsung), Kelompok 6 (Beban Operasional), dan Kelompok 7 (Non-Usaha):*
+
+| Kode Akun | Nama Akun COA | Tipe Akun | Saldo Normal | Sub-Unit & Keterangan Operasional |
+| :--- | :--- | :---: | :---: | :--- |
+| **4 - PENDAPATAN** | **PENDAPATAN OPERASIONAL UTAMA** | **REVENUE** | **CREDIT** | **Klasifikasi Utama Pendapatan** |
+| **41** | **PENDAPATAN LAYANAN & PRODUK** | **REVENUE** | **CREDIT** | **Header Pendapatan Usaha Medis & Estetika** |
+| 4101 | Pendapatan Registrasi & Skrining Pasien Anak | REVENUE | CREDIT | Unit Kidinest: Biaya administrasi & pendaftaran pasien baru |
+| 4102 | Pendapatan Jasa Konsultasi Spesialis Anak | REVENUE | CREDIT | Unit Kidinest: Jasa periksa dokter spesialis anak (Sp.A) |
+| 4103 | Pendapatan Tindakan Vaksinasi & Imunisasi | REVENUE | CREDIT | Unit Kidinest: Tindakan suntik vaksinasi anak |
+| 4104 | Pendapatan Penjualan Obat Farmasi Kidinest | REVENUE | CREDIT | Unit Kidinest: Penjualan obat paten dan sirup racikan |
+| 4105 | Pendapatan Konsultasi Dokter Kulit & Estetika | REVENUE | CREDIT | Unit SSC: Jasa periksa dokter spesialis kulit (Sp.DVE) |
+| 4106 | Pendapatan Tindakan Medis Dokter SSC | REVENUE | CREDIT | Unit SSC: Laser pigmen/vascular, cauter, chemical peeling |
+| 4107 | Pendapatan Tindakan Facial & Treatment Terapis | REVENUE | CREDIT | Unit SSC: Facial komedo, microdermabrasi, IPL beautician |
+| 4108 | Pendapatan Penjualan Produk Skincare & Kosmetika | REVENUE | CREDIT | Unit SSC: Penjualan krim racik, sunscreen, serum OTC |
+| **49** | **POTONGAN & PENYESUAIAN PENDAPATAN** | **REVENUE** | **DEBIT/CREDIT** | **Header Akun Koreksi Kasir** |
+| 4901 | Potongan Diskon Promosi & Voucher Pasien | REVENUE | DEBIT | Diskon promo, voucher member (*Contra-Revenue*) |
+| 4902 | Pendapatan Selisih Kas Lebih (Cash Overage) | REVENUE | CREDIT | Selisih lebih uang fisik kasir saat rekonsiliasi shift |
+| **5 - HPP** | **HARGA POKOK PENJUALAN & BEBAN MEDIS** | **COGS** | **DEBIT** | **Klasifikasi Utama Beban Pokok** |
+| **51** | **HPP PRODUK & BIAYA MEDIS LANGSUNG** | **COGS** | **DEBIT** | **Header Beban Langsung Pelayanan** |
+| 5101 | HPP Obat Resep & Paten Farmasi Kidinest | COGS | DEBIT | Nilai perolehan batch FIFO obat terjual (Kidinest) |
+| 5102 | HPP Vaksin & Serum Imunisasi Kidinest | COGS | DEBIT | Nilai perolehan batch FIFO vaksin terpakai (Kidinest) |
+| 5103 | HPP Produk Skincare & Kosmetika Terjual SSC | COGS | DEBIT | Nilai perolehan batch FIFO krim/skincare terjual (SSC) |
+| 5104 | HPP Bahan Tindakan Facial & Peeling SSC | COGS | DEBIT | Nilai perolehan bahan serum/krim terpakai saat facial |
+| 5105 | Beban Pemakaian Bahan Medis Habis Pakai (BMHP) | COGS | DEBIT | Spuit, kapas steril, kassa, handscoon terpakai |
+| 5106 | Beban Bagi Hasil Dokter Spesialis Anak | COGS | DEBIT | Akrual honor porsi dokter anak (e.g. 70% dari jasa medis) |
+| 5107 | Beban Bagi Hasil Dokter Estetika & Kulit SSC | COGS | DEBIT | Akrual honor porsi dokter kulit SSC |
+| 5108 | Beban Komisi Tindakan Beautician / Terapis | COGS | DEBIT | Komisi pengerjaan per tindakan untuk beautician SSC |
+| **6 - BEBAN** | **BEBAN OPERASIONAL & UMUM** | **EXPENSE** | **DEBIT** | **Klasifikasi Utama Beban Rutin** |
+| **61** | **BEBAN UMUM & ADMINISTRASI** | **EXPENSE** | **DEBIT** | **Header Biaya Rutin Klinik** |
+| 6101 | Beban Gaji Staf, Perawat, Apoteker & Kasir | EXPENSE | DEBIT | Gaji bulanan tim operasional pendukung non-dokter |
+| 6102 | Beban Listrik PLN, Air PDAM & Internet Klinik | EXPENSE | DEBIT | Biaya utilitas bulanan operasional ruko klinik |
+| 6103 | Beban Pengolahan Limbah Medis B3 | EXPENSE | DEBIT | Biaya vendor pengangkut & pemusnah jarum/limbah B3 |
+| 6104 | Beban Kalibrasi & Pemeliharaan Alat Medis | EXPENSE | DEBIT | Uji berkala kelayakan alat medis & service mesin laser |
+| 6105 | Beban Kemasan Obat & Perlengkapan Farmasi | EXPENSE | DEBIT | Plastik klip obat, etiket resep, kantong belanja klinik |
+| 6106 | Beban Pemasaran, Iklan Ads & Media Sosial | EXPENSE | DEBIT | Iklan Meta/TikTok Ads, photoshoot konten, brosur |
+| 6107 | Beban Penyusutan Aktiva Tetap Klinik | EXPENSE | DEBIT | Amortisasi depresiasi gedung, alkes, & inventaris |
+| 6108 | Beban Selisih Kas Kurang (Cash Shortage) | EXPENSE | DEBIT | Selisih kurang uang fisik kasir saat rekonsiliasi shift |
+| **7 - NON USAHA**| **PENDAPATAN & BEBAN NON USAHA** | **EXPENSE/REV** | **DEBIT/CREDIT** | **Klasifikasi Pendapatan/Beban Luar Usaha** |
+| **71** | **PENDAPATAN NON USAHA** | **REVENUE** | **CREDIT** | **Header Pendapatan Lain-lain** |
+| 7101 | Pendapatan Bunga Bank / Jasa Giro | REVENUE | CREDIT | Bunga simpanan rekening operasional klinik |
+| 7102 | Pendapatan Lain-Lain Non-Operasional | REVENUE | CREDIT | Pendapatan insidental di luar bisnis medis/skincare |
+| **72** | **BEBAN NON USAHA** | **EXPENSE** | **DEBIT** | **Header Biaya Finansial & Administrasi** |
+| 7201 | Beban Administrasi Bank | EXPENSE | DEBIT | Biaya administrasi bulanan rekening perbankan |
+| 7202 | Beban MDR Digital Payment (QRIS & EDC) | EXPENSE | DEBIT | Potongan biaya transaksi dari payment gateway/bank |
+
+---
+
+### C. Mekanisme Pemetaan Peran Akun Dinamis (*Role-Based Account Mapping*)
+
+Untuk menjamin sistem backend tidak rusak ketika nomor atau nama akun di atas disesuaikan oleh akuntan, backend Go menggunakan relasi **Policy / Role Key** (tersimpan di tabel `accounting_policies` database):
+
+```mermaid
+graph LR
+    subgraph EventBisnis["1. Event Transaksi Operasional"]
+        E1["Kasir Kidinest Terima Pembayaran"]
+        E2["Kasir SSC Terima Pembayaran"]
+        E3["Pemotongan Stok Obat Farmasi"]
+        E4["Akrual Honor Dokter Spesialis"]
+    end
+
+    subgraph PolicyMapping["2. Tabel accounting_policies (Mapping Peran)"]
+        P1["KEY: default_cash_kidinest"]
+        P2["KEY: default_cash_ssc"]
+        P3["KEY: default_inv_pharmacy"]
+        P4["KEY: default_cogs_pharmacy"]
+        P5["KEY: default_doctor_share_kid"]
+    end
+
+    subgraph COADinamis["3. Bagan Akun COA (Bebas Disesuaikan Akuntan)"]
+        A1["ID: UUID-01 | Code: 1101 (Kasir Anak)"]
+        A2["ID: UUID-02 | Code: 1102 (Kasir SSC)"]
+        A3["ID: UUID-03 | Code: 1301 (Persediaan Obat)"]
+        A4["ID: UUID-04 | Code: 5101 (HPP Obat)"]
+        A5["ID: UUID-05 | Code: 5106 (Bagi Hasil Dokter)"]
+    end
+
+    E1 --> P1 --> A1
+    E2 --> P2 --> A2
+    E3 --> P3 --> A3
+    E3 --> P4 --> A4
+    E4 --> P5 --> A5
+```
+
+> **Keunggulan Arsitektur Pemetaan Peran:**
+> 1. Akuntan memiliki kendali penuh mengubah nomor kode akun (misal dari `1101` menjadi `11.01.001` atau `1101-01`) atau mengganti nama akun tanpa menyentuh kode program Go.
+> 2. Sistem tetap terjamin seimbang (*balanced double-entry*) secara otomatis saat kasir memproses pembayaran.
+> 3. Laporan **Neraca** dan **Laba Rugi** langsung tersusun rapi sesuai standar PSAK Indonesia dan siap diaudit.
+
+---
+
+## 6. Rencana Struktur Folder Domain-Driven Design (DDD) Backend
 
 Untuk mengatasi folder-folder yang belum terbentuk (`application/journal`, `application/receivable`, `application/reporting`), struktur DDD distandarisasi sebagai berikut:
 
@@ -394,7 +562,7 @@ clinic/backend/
 
 ---
 
-## 6. Tahapan Pelaksanaan Implementasi (*Milestone Roadmap*)
+## 7. Tahapan Pelaksanaan Implementasi (*Milestone Roadmap*)
 
 ```mermaid
 flowchart LR

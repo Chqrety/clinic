@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain/payable"
@@ -133,34 +134,44 @@ func (r *PostgresPayableRepo) GetByNumber(ctx context.Context, number string) (*
 
 func (r *PostgresPayableRepo) List(ctx context.Context, filter payable.Filter) ([]payable.Payable, int64, error) {
 	exec := GetExecutor(ctx, r.db)
-	baseQuery := `FROM payables WHERE 1=1`
+	baseQuery := `
+		FROM payables p
+		JOIN accounts a ON p.account_id = a.id
+		WHERE 1=1
+	`
 	var args []any
 	argIdx := 1
 
 	if filter.BranchID != nil {
-		baseQuery += fmt.Sprintf(" AND branch_id = $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND p.branch_id = $%d", argIdx)
 		args = append(args, *filter.BranchID)
 		argIdx++
 	}
 	if filter.VendorType != nil {
-		baseQuery += fmt.Sprintf(" AND vendor_type = $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND p.vendor_type = $%d", argIdx)
 		args = append(args, *filter.VendorType)
 		argIdx++
 	}
 	if filter.Status != nil {
-		baseQuery += fmt.Sprintf(" AND status = $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND p.status = $%d", argIdx)
 		args = append(args, *filter.Status)
 		argIdx++
 	}
 	if filter.StartDate != nil {
-		baseQuery += fmt.Sprintf(" AND issue_date >= $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND p.issue_date >= $%d", argIdx)
 		args = append(args, *filter.StartDate)
 		argIdx++
 	}
 	if filter.EndDate != nil {
-		baseQuery += fmt.Sprintf(" AND issue_date <= $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND p.issue_date <= $%d", argIdx)
 		args = append(args, *filter.EndDate)
 		argIdx++
+	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(p.vendor_name) LIKE $%d OR LOWER(p.invoice_reference) LIKE $%d OR LOWER(p.payable_number) LIKE $%d)", argIdx, argIdx+1, argIdx+2)
+		args = append(args, searchParam, searchParam, searchParam)
+		argIdx += 3
 	}
 
 	var totalCount int64
@@ -169,13 +180,31 @@ func (r *PostgresPayableRepo) List(ctx context.Context, filter payable.Filter) (
 		return nil, 0, fmt.Errorf("count payables: %w", err)
 	}
 
+	allowedSorts := map[string]string{
+		"due_date":           "p.due_date",
+		"issue_date":         "p.issue_date",
+		"created_at":         "p.created_at",
+		"payable_number":     "p.payable_number",
+		"vendor_name":        "p.vendor_name",
+		"total_amount":       "p.total_amount",
+		"outstanding_amount": "p.outstanding_amount",
+		"status":             "p.status",
+	}
+	sortCol := "p.due_date"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "ASC"
+	if strings.ToUpper(filter.SortOrder) == "DESC" {
+		sortDir = "DESC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, p.id %s", sortCol, sortDir, sortDir)
+
 	selectQuery := `
 		SELECT p.id, p.branch_id, p.payable_number, p.vendor_type, p.vendor_id, p.vendor_name,
 		       p.invoice_reference, p.total_amount, p.outstanding_amount, p.issue_date, p.due_date,
 		       p.status, p.account_id, a.code as account_code, COALESCE(p.notes, ''), p.created_at, p.updated_at
-		FROM payables p
-		JOIN accounts a ON p.account_id = a.id
-		` + baseQuery + ` ORDER BY p.due_date ASC, p.created_at DESC`
+	` + baseQuery + orderBy
 
 	if filter.Limit > 0 {
 		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)

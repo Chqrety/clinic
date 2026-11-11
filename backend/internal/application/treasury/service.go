@@ -326,7 +326,7 @@ func (s *Service) GetShiftByID(ctx context.Context, id uuid.UUID) (*treasury.Cas
 	return s.treasuryRepo.GetShiftByID(ctx, id)
 }
 
-func (s *Service) ListShifts(ctx context.Context, branchID *uuid.UUID, startDate, endDate *time.Time) ([]treasury.CashierShift, error) {
-	return s.treasuryRepo.ListShifts(ctx, branchID, startDate, endDate)
+func (s *Service) ListShifts(ctx context.Context, filter treasury.ShiftFilter) ([]treasury.CashierShift, int64, error) {
+	return s.treasuryRepo.ListShifts(ctx, filter)
 }
 

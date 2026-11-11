@@ -274,8 +274,8 @@ func (s *Service) ReverseJournal(ctx context.Context, journalID uuid.UUID, reaso
 	return reversalEntry, nil
 }
 
-// GetAccounts returns filtered list of accounts.
-func (s *Service) GetAccounts(ctx context.Context, filter domain.AccountFilter) ([]domain.Account, error) {
+// GetAccounts returns filtered list of accounts with total count.
+func (s *Service) GetAccounts(ctx context.Context, filter domain.AccountFilter) ([]domain.Account, int64, error) {
 	return s.accountRepo.List(ctx, filter)
 }
 

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain/accounting"
@@ -230,6 +231,12 @@ func (r *PostgresJournalRepo) List(ctx context.Context, filter accounting.Journa
 		args = append(args, *filter.EndDate)
 		argIdx++
 	}
+	if filter.Search != "" {
+		pattern := "%" + strings.ToLower(filter.Search) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(journal_number) LIKE $%d OR LOWER(description) LIKE $%d OR LOWER(reference_id) LIKE $%d)", argIdx, argIdx, argIdx)
+		args = append(args, pattern)
+		argIdx++
+	}
 
 	exec := GetExecutor(ctx, r.db)
 
@@ -239,11 +246,24 @@ func (r *PostgresJournalRepo) List(ctx context.Context, filter accounting.Journa
 		return nil, 0, fmt.Errorf("count journals: %w", err)
 	}
 
+	// Deterministic sorting with tie-breaker (id)
+	sortCol := "transaction_date"
+	sortOrder := "DESC"
+	if filter.SortBy != "" {
+		switch filter.SortBy {
+		case "transaction_date", "journal_number", "created_at", "total_debit":
+			sortCol = filter.SortBy
+		}
+	}
+	if strings.ToUpper(filter.SortOrder) == "ASC" {
+		sortOrder = "ASC"
+	}
+
 	selectQuery := `
 		SELECT id, branch_id, journal_number, journal_type, transaction_date,
 		       posting_date, status, reference_type, reference_id,
 		       total_debit, total_credit, description, posted_by, created_by, created_at, updated_at
-	` + baseQuery + " ORDER BY transaction_date DESC, created_at DESC"
+	` + baseQuery + fmt.Sprintf(" ORDER BY %s %s, id %s", sortCol, sortOrder, sortOrder)
 
 	if filter.Limit > 0 {
 		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)

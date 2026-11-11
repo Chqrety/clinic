@@ -62,12 +62,36 @@ type DoctorFeeSettlement struct {
 	Items       []DoctorFeeItem   `json:"items,omitempty"`
 }
 
+type RuleFilter struct {
+	BranchID  *uuid.UUID
+	Search    string
+	SortBy    string
+	SortOrder string
+	Limit     int
+	Offset    int
+}
+
+type SettlementFilter struct {
+	BranchID  *uuid.UUID
+	DoctorID  *uuid.UUID
+	Status    *SettlementStatus
+	Year      int
+	Month     int
+	StartDate *time.Time
+	EndDate   *time.Time
+	Search    string
+	SortBy    string
+	SortOrder string
+	Limit     int
+	Offset    int
+}
+
 type Repository interface {
 	CreateRule(ctx context.Context, rule *DoctorShareRule) error
 	GetRule(ctx context.Context, branchID uuid.UUID, doctorName, serviceCategory string) (*DoctorShareRule, error)
-	ListRules(ctx context.Context, branchID *uuid.UUID) ([]DoctorShareRule, error)
+	ListRules(ctx context.Context, filter RuleFilter) ([]DoctorShareRule, int64, error)
 	CreateSettlement(ctx context.Context, s *DoctorFeeSettlement) error
 	GetSettlementByID(ctx context.Context, id uuid.UUID) (*DoctorFeeSettlement, error)
-	ListSettlements(ctx context.Context, branchID *uuid.UUID, year, month int) ([]DoctorFeeSettlement, error)
+	ListSettlements(ctx context.Context, filter SettlementFilter) ([]DoctorFeeSettlement, int64, error)
 	UpdateSettlementStatus(ctx context.Context, id uuid.UUID, status SettlementStatus, paidAt *time.Time, journalID *uuid.UUID) error
 }

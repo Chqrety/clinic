@@ -3,14 +3,25 @@ package queue
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain"
 )
 
+type QueueFilter struct {
+	Search      string
+	QueueStatus string
+	SortBy      string
+	SortOrder   string
+	Limit       int
+	Offset      int
+}
+
 // Repository defines data access operations for queue and patient registration.
 type Repository interface {
 	GetQueues() ([]domain.QueueItem, error)
+	GetQueuesPaginated(filter QueueFilter) ([]domain.QueueItem, int64, error)
 	GetQueueByID(id int64) (*domain.QueueItem, error)
 	FindPatientByNIK(tx *sql.Tx, nik string) (int64, string, error)
 	CreatePatient(tx *sql.Tx, nik, name, phone, birthDate, gender, ihs string) (int64, error)
@@ -70,6 +81,80 @@ func (r *sqlRepository) GetQueues() ([]domain.QueueItem, error) {
 		items = append(items, q)
 	}
 	return items, nil
+}
+
+func (r *sqlRepository) GetQueuesPaginated(filter QueueFilter) ([]domain.QueueItem, int64, error) {
+	whereClause := "WHERE 1=1"
+	var args []any
+
+	if strings.TrimSpace(filter.Search) != "" {
+		whereClause += " AND (LOWER(p.name) LIKE ? OR LOWER(p.nik) LIKE ? OR LOWER(q.queue_number) LIKE ?)"
+		s := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		args = append(args, s, s, s)
+	}
+	if filter.QueueStatus != "" {
+		whereClause += " AND q.queue_status = ?"
+		args = append(args, filter.QueueStatus)
+	}
+
+	countQuery := "SELECT COUNT(*) FROM queues q JOIN patients p ON q.patient_id = p.id " + whereClause
+	var total int64
+	if err := r.db.QueryRow(countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("count queues: %w", err)
+	}
+
+	allowedSorts := map[string]string{
+		"queue_number": "q.queue_number",
+		"patient_name": "p.name",
+		"queue_status": "q.queue_status",
+		"created_at":   "q.created_at",
+	}
+	sortCol := "q.id"
+	sortDir := "ASC"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+		if strings.ToUpper(filter.SortOrder) == "DESC" {
+			sortDir = "DESC"
+		}
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, q.id %s", sortCol, sortDir, sortDir)
+
+	query := `
+		SELECT q.id, q.patient_id, p.name, p.nik, p.phone, coalesce(p.ihs_number, ''),
+		       q.queue_number, coalesce(q.complaint, ''), q.payment_method, q.payment_status,
+		       q.queue_status, q.paid_at, q.created_at
+		FROM queues q
+		JOIN patients p ON q.patient_id = p.id
+	` + whereClause + orderBy
+
+	if filter.Limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, filter.Limit, filter.Offset)
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("query queues: %w", err)
+	}
+	defer rows.Close()
+
+	var items []domain.QueueItem
+	for rows.Next() {
+		var q domain.QueueItem
+		var paidAt sql.NullTime
+		if err := rows.Scan(
+			&q.ID, &q.PatientID, &q.PatientName, &q.PatientNIK, &q.PatientPhone, &q.PatientIHS,
+			&q.QueueNumber, &q.Complaint, &q.PaymentMethod, &q.PaymentStatus,
+			&q.QueueStatus, &paidAt, &q.CreatedAt,
+		); err != nil {
+			return nil, 0, fmt.Errorf("scan queue item: %w", err)
+		}
+		if paidAt.Valid {
+			q.PaidAt = &paidAt.Time
+		}
+		items = append(items, q)
+	}
+	return items, total, nil
 }
 
 func (r *sqlRepository) GetQueueByID(id int64) (*domain.QueueItem, error) {

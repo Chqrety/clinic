@@ -264,8 +264,8 @@ func (s *Service) GetAssetByID(ctx context.Context, id uuid.UUID) (*asset.FixedA
 	return s.assetRepo.GetAssetByID(ctx, id)
 }
 
-func (s *Service) ListAssets(ctx context.Context, branchID *uuid.UUID) ([]asset.FixedAsset, error) {
-	return s.assetRepo.ListActiveAssets(ctx, branchID)
+func (s *Service) ListAssets(ctx context.Context, filter asset.AssetFilter) ([]asset.FixedAsset, int64, error) {
+	return s.assetRepo.List(ctx, filter)
 }
 
 func (s *Service) GetDepreciationHistory(ctx context.Context, assetID uuid.UUID) ([]asset.AssetDepreciation, error) {

@@ -51,12 +51,12 @@ func (m *mockBudgetRepo) UpdateBudgetStatus(ctx context.Context, id uuid.UUID, s
 	return nil
 }
 
-func (m *mockBudgetRepo) ListBudgets(ctx context.Context, branchID *uuid.UUID, year int) ([]budget.Budget, error) {
+func (m *mockBudgetRepo) ListBudgets(ctx context.Context, filter budget.BudgetFilter) ([]budget.Budget, int64, error) {
 	var list []budget.Budget
 	for _, b := range m.budgets {
 		list = append(list, *b)
 	}
-	return list, nil
+	return list, int64(len(list)), nil
 }
 
 func (m *mockBudgetRepo) GetActualAmounts(ctx context.Context, branchID *uuid.UUID, costCenterID *uuid.UUID, year, month int) (map[string]decimal.Decimal, error) {

@@ -67,7 +67,7 @@ func (s *Service) Log(ctx context.Context, cmd LogCommand) error {
 	return s.auditRepo.Log(ctx, entry)
 }
 
-func (s *Service) ListLogs(ctx context.Context, branchID *uuid.UUID, action *audit.ActionType, entityType string, limit, offset int) ([]audit.FinancialAuditLog, int64, error) {
-	return s.auditRepo.ListLogs(ctx, branchID, action, entityType, limit, offset)
+func (s *Service) ListLogs(ctx context.Context, filter audit.AuditFilter) ([]audit.FinancialAuditLog, int64, error) {
+	return s.auditRepo.ListLogs(ctx, filter)
 }
 

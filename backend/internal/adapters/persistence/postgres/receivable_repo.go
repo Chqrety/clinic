@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain/receivable"
@@ -166,6 +167,12 @@ func (r *PostgresReceivableRepo) List(ctx context.Context, filter receivable.Fil
 		args = append(args, *filter.EndDate)
 		argIdx++
 	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(r.customer_name) LIKE $%d OR LOWER(r.invoice_reference) LIKE $%d OR LOWER(r.receivable_number) LIKE $%d)", argIdx, argIdx+1, argIdx+2)
+		args = append(args, searchParam, searchParam, searchParam)
+		argIdx += 3
+	}
 
 	var totalCount int64
 	countQuery := "SELECT COUNT(*) " + baseQuery
@@ -173,11 +180,31 @@ func (r *PostgresReceivableRepo) List(ctx context.Context, filter receivable.Fil
 		return nil, 0, fmt.Errorf("count receivables: %w", err)
 	}
 
+	allowedSorts := map[string]string{
+		"due_date":           "r.due_date",
+		"issue_date":         "r.issue_date",
+		"created_at":         "r.created_at",
+		"receivable_number":  "r.receivable_number",
+		"customer_name":      "r.customer_name",
+		"total_amount":       "r.total_amount",
+		"outstanding_amount": "r.outstanding_amount",
+		"status":             "r.status",
+	}
+	sortCol := "r.due_date"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "ASC"
+	if strings.ToUpper(filter.SortOrder) == "DESC" {
+		sortDir = "DESC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, r.id %s", sortCol, sortDir, sortDir)
+
 	selectQuery := `
 		SELECT r.id, r.branch_id, r.receivable_number, r.customer_type, r.customer_id, r.customer_name,
 		       r.invoice_reference, r.total_amount, r.outstanding_amount, r.issue_date, r.due_date,
 		       r.status, r.account_id, a.code as account_code, COALESCE(r.notes, ''), r.created_at, r.updated_at
-	` + baseQuery + " ORDER BY r.due_date ASC, r.created_at DESC"
+	` + baseQuery + orderBy
 
 	if filter.Limit > 0 {
 		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)

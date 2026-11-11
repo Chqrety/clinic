@@ -252,6 +252,10 @@ func (s *Service) ListActivePrepaid(ctx context.Context, branchID *uuid.UUID) ([
 	return s.prepaidRepo.ListActivePrepaid(ctx, branchID)
 }
 
+func (s *Service) ListPrepaid(ctx context.Context, filter prepaid.PrepaidFilter) ([]prepaid.PrepaidExpense, int64, error) {
+	return s.prepaidRepo.List(ctx, filter)
+}
+
 func (s *Service) GetAmortizationHistory(ctx context.Context, id uuid.UUID) ([]prepaid.PrepaidAmortization, error) {
 	return s.prepaidRepo.GetAmortizationHistory(ctx, id)
 }

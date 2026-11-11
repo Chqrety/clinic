@@ -69,8 +69,8 @@ func (s *Service) CreateWithholding(ctx context.Context, cmd CreateWithholdingCo
 	return tw, nil
 }
 
-func (s *Service) ListWithholdings(ctx context.Context, branchID *uuid.UUID, year, month int, taxType *tax.TaxType) ([]tax.TaxWithholding, error) {
-	return s.taxRepo.ListWithholdings(ctx, branchID, year, month, taxType)
+func (s *Service) ListWithholdings(ctx context.Context, filter tax.TaxFilter) ([]tax.TaxWithholding, int64, error) {
+	return s.taxRepo.ListWithholdings(ctx, filter)
 }
 
 func (s *Service) MarkAsReported(ctx context.Context, id uuid.UUID) error {
@@ -86,7 +86,11 @@ type TaxSummaryItem struct {
 }
 
 func (s *Service) GetTaxSummary(ctx context.Context, branchID *uuid.UUID, year, month int) ([]TaxSummaryItem, error) {
-	list, err := s.taxRepo.ListWithholdings(ctx, branchID, year, month, nil)
+	list, _, err := s.taxRepo.ListWithholdings(ctx, tax.TaxFilter{
+		BranchID: branchID,
+		Year:     year,
+		Month:    month,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("list withholdings for summary: %w", err)
 	}
@@ -121,7 +125,12 @@ func (s *Service) GetTaxSummary(ctx context.Context, branchID *uuid.UUID, year, 
 // ExportEBupot21CSV exports withholdings in the standard CSV format required by DJP e-Bupot 21/26.
 func (s *Service) ExportEBupot21CSV(ctx context.Context, branchID *uuid.UUID, year, month int) ([]byte, error) {
 	p21 := tax.TaxTypePPh21Doctor
-	records, err := s.taxRepo.ListWithholdings(ctx, branchID, year, month, &p21)
+	records, _, err := s.taxRepo.ListWithholdings(ctx, tax.TaxFilter{
+		BranchID: branchID,
+		Year:     year,
+		Month:    month,
+		TaxType:  &p21,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("fetch pph21 withholdings: %w", err)
 	}

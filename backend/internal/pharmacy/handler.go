@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"clinic-api/internal/domain"
+	"clinic-api/pkg/pagination"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -18,12 +19,45 @@ func RegisterRoutes(r chi.Router, s *Service) {
 }
 
 func (s *Service) HandleGetDrugs(w http.ResponseWriter, r *http.Request) {
-	drugs, err := s.GetDrugs()
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit: 20,
+		MaxLimit:     100,
+		AllowedSortColumns: map[string]string{
+			"name":       "d.name",
+			"category":   "d.category",
+			"sell_price": "d.sell_price",
+			"created_at": "d.created_at",
+		},
+		DefaultSortBy:    "name",
+		DefaultSortOrder: "ASC",
+	})
+	if err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid pagination parameters: "+err.Error())
+		return
+	}
+
+	filter := DrugFilter{
+		Search:    pg.Search,
+		Category:  r.URL.Query().Get("category"),
+		SortBy:    pg.SortBy,
+		SortOrder: pg.SortOrder,
+		Limit:     pg.Limit,
+		Offset:    pg.Offset,
+	}
+
+	drugs, total, err := s.GetDrugsPaginated(filter)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	sendJSON(w, http.StatusOK, domain.ApiResponse{Success: true, Data: drugs})
+
+	meta := pg.ToMeta(total)
+	sendJSON(w, http.StatusOK, domain.ApiResponse{
+		Success:    true,
+		Data:       drugs,
+		Meta:       meta,
+		Pagination: meta,
+	})
 }
 
 func (s *Service) HandleGetDrugDetail(w http.ResponseWriter, r *http.Request) {

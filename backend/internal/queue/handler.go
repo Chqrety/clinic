@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"clinic-api/internal/domain"
+	"clinic-api/pkg/pagination"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -19,12 +20,46 @@ func RegisterRoutes(r chi.Router, s *Service) {
 }
 
 func (s *Service) HandleGetQueues(w http.ResponseWriter, r *http.Request) {
-	queues, err := s.GetQueues()
+	pg, err := pagination.Parse(r, pagination.Config{
+		DefaultLimit: 20,
+		MaxLimit:     100,
+		AllowedSortColumns: map[string]string{
+			"queue_number": "q.queue_number",
+			"patient_name": "p.name",
+			"queue_status": "q.queue_status",
+			"created_at":   "q.created_at",
+			"id":           "q.id",
+		},
+		DefaultSortBy:    "id",
+		DefaultSortOrder: "ASC",
+	})
+	if err != nil {
+		sendError(w, http.StatusBadRequest, "Invalid pagination parameters: "+err.Error())
+		return
+	}
+
+	filter := QueueFilter{
+		Search:      pg.Search,
+		QueueStatus: r.URL.Query().Get("status"),
+		SortBy:      pg.SortBy,
+		SortOrder:   pg.SortOrder,
+		Limit:       pg.Limit,
+		Offset:      pg.Offset,
+	}
+
+	queues, total, err := s.GetQueuesPaginated(filter)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	sendJSON(w, http.StatusOK, domain.ApiResponse{Success: true, Data: queues})
+
+	meta := pg.ToMeta(total)
+	sendJSON(w, http.StatusOK, domain.ApiResponse{
+		Success:    true,
+		Data:       queues,
+		Meta:       meta,
+		Pagination: meta,
+	})
 }
 
 func (s *Service) HandleCreateQueue(w http.ResponseWriter, r *http.Request) {

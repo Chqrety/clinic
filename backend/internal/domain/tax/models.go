@@ -88,10 +88,23 @@ func CalculateDoctorPPh21(grossFee decimal.Decimal, priorYearDPP decimal.Decimal
 	return dpp, tax
 }
 
+type TaxFilter struct {
+	BranchID   *uuid.UUID
+	Year       int
+	Month      int
+	TaxType    *TaxType
+	IsReported *bool
+	Search     string
+	SortBy     string
+	SortOrder  string
+	Limit      int
+	Offset     int
+}
+
 type Repository interface {
 	CreateWithholding(ctx context.Context, tw *TaxWithholding) error
 	GetWithholdingByID(ctx context.Context, id uuid.UUID) (*TaxWithholding, error)
 	GetCumulativeDPP(ctx context.Context, branchID uuid.UUID, taxpayerNIK string, year int) (decimal.Decimal, error)
-	ListWithholdings(ctx context.Context, branchID *uuid.UUID, year, month int, taxType *TaxType) ([]TaxWithholding, error)
+	ListWithholdings(ctx context.Context, filter TaxFilter) ([]TaxWithholding, int64, error)
 	MarkAsReported(ctx context.Context, id uuid.UUID) error
 }

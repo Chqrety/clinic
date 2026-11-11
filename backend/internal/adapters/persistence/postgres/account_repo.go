@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"clinic-api/internal/domain/accounting"
 
@@ -85,37 +86,72 @@ func (r *PostgresAccountRepo) GetByCode(ctx context.Context, code string) (*acco
 	return &acc, nil
 }
 
-func (r *PostgresAccountRepo) List(ctx context.Context, filter accounting.AccountFilter) ([]accounting.Account, error) {
-	query := `
-		SELECT id, code, name, type, normal_balance, parent_id, level, is_header, is_active, description, created_at, updated_at
-		FROM accounts
-		WHERE 1=1
-	`
+func (r *PostgresAccountRepo) List(ctx context.Context, filter accounting.AccountFilter) ([]accounting.Account, int64, error) {
+	baseQuery := `FROM accounts WHERE 1=1`
 	var args []any
 	argIdx := 1
 
 	if filter.Type != nil {
-		query += fmt.Sprintf(" AND type = $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND type = $%d", argIdx)
 		args = append(args, *filter.Type)
 		argIdx++
 	}
 	if filter.IsActive != nil {
-		query += fmt.Sprintf(" AND is_active = $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND is_active = $%d", argIdx)
 		args = append(args, *filter.IsActive)
 		argIdx++
 	}
 	if filter.IsHeader != nil {
-		query += fmt.Sprintf(" AND is_header = $%d", argIdx)
+		baseQuery += fmt.Sprintf(" AND is_header = $%d", argIdx)
 		args = append(args, *filter.IsHeader)
 		argIdx++
 	}
-
-	query += " ORDER BY code ASC"
+	if filter.Search != "" {
+		pattern := "%" + strings.ToLower(filter.Search) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(code) LIKE $%d OR LOWER(name) LIKE $%d OR LOWER(description) LIKE $%d)", argIdx, argIdx, argIdx)
+		args = append(args, pattern)
+		argIdx++
+	}
 
 	exec := GetExecutor(ctx, r.db)
+
+	var totalCount int64
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := exec.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		return nil, 0, fmt.Errorf("count accounts: %w", err)
+	}
+
+	// Deterministic sorting with tie-breaker (id)
+	sortCol := "code"
+	sortOrder := "ASC"
+	if filter.SortBy != "" {
+		switch filter.SortBy {
+		case "code", "name", "type", "level", "created_at":
+			sortCol = filter.SortBy
+		}
+	}
+	if strings.ToUpper(filter.SortOrder) == "DESC" {
+		sortOrder = "DESC"
+	}
+
+	query := `
+		SELECT id, code, name, type, normal_balance, parent_id, level, is_header, is_active, description, created_at, updated_at
+	` + baseQuery + fmt.Sprintf(" ORDER BY %s %s, id %s", sortCol, sortOrder, sortOrder)
+
+	if filter.Limit > 0 {
+		query += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+	if filter.Offset > 0 {
+		query += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+		argIdx++
+	}
+
 	rows, err := exec.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("list accounts: %w", err)
+		return nil, 0, fmt.Errorf("list accounts: %w", err)
 	}
 	defer rows.Close()
 
@@ -130,7 +166,7 @@ func (r *PostgresAccountRepo) List(ctx context.Context, filter accounting.Accoun
 			&parentID, &acc.Level, &acc.IsHeader, &acc.IsActive, &desc,
 			&acc.CreatedAt, &acc.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("scan account row: %w", err)
+			return nil, 0, fmt.Errorf("scan account row: %w", err)
 		}
 		acc.ParentID = parentID
 		if desc.Valid {
@@ -139,7 +175,7 @@ func (r *PostgresAccountRepo) List(ctx context.Context, filter accounting.Accoun
 		accounts = append(accounts, acc)
 	}
 
-	return accounts, nil
+	return accounts, totalCount, nil
 }
 
 func (r *PostgresAccountRepo) Create(ctx context.Context, acc *accounting.Account) error {

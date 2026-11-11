@@ -76,8 +76,8 @@ func (s *Service) CreateRule(ctx context.Context, cmd CreateRuleCommand) (*docto
 	return rule, nil
 }
 
-func (s *Service) ListRules(ctx context.Context, branchID *uuid.UUID) ([]doctorshare.DoctorShareRule, error) {
-	return s.doctorShareRepo.ListRules(ctx, branchID)
+func (s *Service) ListRules(ctx context.Context, filter doctorshare.RuleFilter) ([]doctorshare.DoctorShareRule, int64, error) {
+	return s.doctorShareRepo.ListRules(ctx, filter)
 }
 
 type FeeItemInput struct {
@@ -291,6 +291,6 @@ func (s *Service) GetSettlementByID(ctx context.Context, id uuid.UUID) (*doctors
 	return s.doctorShareRepo.GetSettlementByID(ctx, id)
 }
 
-func (s *Service) ListSettlements(ctx context.Context, branchID *uuid.UUID, year, month int) ([]doctorshare.DoctorFeeSettlement, error) {
-	return s.doctorShareRepo.ListSettlements(ctx, branchID, year, month)
+func (s *Service) ListSettlements(ctx context.Context, filter doctorshare.SettlementFilter) ([]doctorshare.DoctorFeeSettlement, int64, error) {
+	return s.doctorShareRepo.ListSettlements(ctx, filter)
 }

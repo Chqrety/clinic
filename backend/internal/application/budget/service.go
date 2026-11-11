@@ -151,7 +151,7 @@ func (s *Service) GetBudgetByID(ctx context.Context, id uuid.UUID) (*budget.Budg
 	return s.budgetRepo.GetBudgetByID(ctx, id)
 }
 
-func (s *Service) ListBudgets(ctx context.Context, branchID *uuid.UUID, year int) ([]budget.Budget, error) {
-	return s.budgetRepo.ListBudgets(ctx, branchID, year)
+func (s *Service) ListBudgets(ctx context.Context, filter budget.BudgetFilter) ([]budget.Budget, int64, error) {
+	return s.budgetRepo.ListBudgets(ctx, filter)
 }
 

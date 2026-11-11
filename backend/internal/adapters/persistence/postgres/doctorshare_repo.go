@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/domain/doctorshare"
@@ -81,19 +82,68 @@ func (r *PostgresDoctorShareRepo) GetRule(ctx context.Context, branchID uuid.UUI
 	return &rule, nil
 }
 
-func (r *PostgresDoctorShareRepo) ListRules(ctx context.Context, branchID *uuid.UUID) ([]doctorshare.DoctorShareRule, error) {
+func (r *PostgresDoctorShareRepo) ListRules(ctx context.Context, filter doctorshare.RuleFilter) ([]doctorshare.DoctorShareRule, int64, error) {
 	exec := GetExecutor(ctx, r.db)
-	query := `
+	baseQuery := `FROM doctor_share_rules WHERE 1=1`
+	var args []any
+	argIdx := 1
+
+	if filter.BranchID != nil {
+		baseQuery += fmt.Sprintf(" AND branch_id = $%d", argIdx)
+		args = append(args, *filter.BranchID)
+		argIdx++
+	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(doctor_name) LIKE $%d OR LOWER(service_category) LIKE $%d)", argIdx, argIdx+1)
+		args = append(args, searchParam, searchParam)
+		argIdx += 2
+	}
+
+	var totalCount int64
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := exec.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		return nil, 0, fmt.Errorf("count doctor share rules: %w", err)
+	}
+
+	allowedSorts := map[string]string{
+		"doctor_name":        "doctor_name",
+		"service_category":   "service_category",
+		"sharing_percentage": "sharing_percentage",
+		"fixed_fee":          "fixed_fee",
+		"is_active":          "is_active",
+		"created_at":         "created_at",
+	}
+	sortCol := "doctor_name"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "ASC"
+	if strings.ToUpper(filter.SortOrder) == "DESC" {
+		sortDir = "DESC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, service_category %s, id %s", sortCol, sortDir, sortDir, sortDir)
+
+	selectQuery := `
 		SELECT id, branch_id, cost_center_id, doctor_id, doctor_name,
 		       service_category, sharing_percentage, fixed_fee, is_active,
 		       created_at, updated_at
-		FROM doctor_share_rules
-		WHERE ($1::uuid IS NULL OR branch_id = $1)
-		ORDER BY doctor_name, service_category
-	`
-	rows, err := exec.QueryContext(ctx, query, branchID)
+	` + baseQuery + orderBy
+
+	if filter.Limit > 0 {
+		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+	if filter.Offset > 0 {
+		selectQuery += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+		argIdx++
+	}
+
+	rows, err := exec.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
-		return nil, fmt.Errorf("list doctor share rules: %w", err)
+		return nil, 0, fmt.Errorf("list doctor share rules: %w", err)
 	}
 	defer rows.Close()
 
@@ -107,13 +157,13 @@ func (r *PostgresDoctorShareRepo) ListRules(ctx context.Context, branchID *uuid.
 			&rule.CreatedAt, &rule.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("scan doctor share rule: %w", err)
+			return nil, 0, fmt.Errorf("scan doctor share rule: %w", err)
 		}
 		rule.SharingPercentage, _ = decimal.NewFromString(sharingPctStr)
 		rule.FixedFee, _ = decimal.NewFromString(fixedFeeStr)
 		rules = append(rules, rule)
 	}
-	return rules, nil
+	return rules, totalCount, nil
 }
 
 func (r *PostgresDoctorShareRepo) CreateSettlement(ctx context.Context, s *doctorshare.DoctorFeeSettlement) error {
@@ -229,21 +279,99 @@ func (r *PostgresDoctorShareRepo) GetSettlementByID(ctx context.Context, id uuid
 	return &s, nil
 }
 
-func (r *PostgresDoctorShareRepo) ListSettlements(ctx context.Context, branchID *uuid.UUID, year, month int) ([]doctorshare.DoctorFeeSettlement, error) {
+func (r *PostgresDoctorShareRepo) ListSettlements(ctx context.Context, filter doctorshare.SettlementFilter) ([]doctorshare.DoctorFeeSettlement, int64, error) {
 	exec := GetExecutor(ctx, r.db)
-	query := `
+	baseQuery := `FROM doctor_fee_settlements WHERE 1=1`
+	var args []any
+	argIdx := 1
+
+	if filter.BranchID != nil {
+		baseQuery += fmt.Sprintf(" AND branch_id = $%d", argIdx)
+		args = append(args, *filter.BranchID)
+		argIdx++
+	}
+	if filter.DoctorID != nil {
+		baseQuery += fmt.Sprintf(" AND doctor_id = $%d", argIdx)
+		args = append(args, *filter.DoctorID)
+		argIdx++
+	}
+	if filter.Status != nil {
+		baseQuery += fmt.Sprintf(" AND status = $%d", argIdx)
+		args = append(args, *filter.Status)
+		argIdx++
+	}
+	if filter.Year > 0 {
+		baseQuery += fmt.Sprintf(" AND period_year = $%d", argIdx)
+		args = append(args, filter.Year)
+		argIdx++
+	}
+	if filter.Month > 0 {
+		baseQuery += fmt.Sprintf(" AND period_month = $%d", argIdx)
+		args = append(args, filter.Month)
+		argIdx++
+	}
+	if filter.StartDate != nil {
+		baseQuery += fmt.Sprintf(" AND created_at >= $%d", argIdx)
+		args = append(args, *filter.StartDate)
+		argIdx++
+	}
+	if filter.EndDate != nil {
+		baseQuery += fmt.Sprintf(" AND created_at <= $%d", argIdx)
+		args = append(args, *filter.EndDate)
+		argIdx++
+	}
+	if strings.TrimSpace(filter.Search) != "" {
+		searchParam := "%" + strings.ToLower(strings.TrimSpace(filter.Search)) + "%"
+		baseQuery += fmt.Sprintf(" AND (LOWER(doctor_name) LIKE $%d OR LOWER(COALESCE(doctor_npwp, '')) LIKE $%d)", argIdx, argIdx+1)
+		args = append(args, searchParam, searchParam)
+		argIdx += 2
+	}
+
+	var totalCount int64
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := exec.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		return nil, 0, fmt.Errorf("count settlements: %w", err)
+	}
+
+	allowedSorts := map[string]string{
+		"doctor_name":  "doctor_name",
+		"period_year":  "period_year",
+		"period_month": "period_month",
+		"gross_fee":    "gross_fee",
+		"net_fee":      "net_fee",
+		"status":       "status",
+		"created_at":   "created_at",
+	}
+	sortCol := "period_year"
+	if col, ok := allowedSorts[strings.ToLower(filter.SortBy)]; ok {
+		sortCol = col
+	}
+	sortDir := "DESC"
+	if strings.ToUpper(filter.SortOrder) == "ASC" {
+		sortDir = "ASC"
+	}
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, period_month %s, doctor_name ASC, id %s", sortCol, sortDir, sortDir, sortDir)
+
+	selectQuery := `
 		SELECT id, branch_id, doctor_id, doctor_name, doctor_npwp,
 		       period_year, period_month, gross_fee, dpp_amount, tax_pph21,
 		       net_fee, status, journal_id, paid_at, created_at, updated_at
-		FROM doctor_fee_settlements
-		WHERE ($1::uuid IS NULL OR branch_id = $1)
-		  AND ($2 = 0 OR period_year = $2)
-		  AND ($3 = 0 OR period_month = $3)
-		ORDER BY period_year DESC, period_month DESC, doctor_name ASC
-	`
-	rows, err := exec.QueryContext(ctx, query, branchID, year, month)
+	` + baseQuery + orderBy
+
+	if filter.Limit > 0 {
+		selectQuery += fmt.Sprintf(" LIMIT $%d", argIdx)
+		args = append(args, filter.Limit)
+		argIdx++
+	}
+	if filter.Offset > 0 {
+		selectQuery += fmt.Sprintf(" OFFSET $%d", argIdx)
+		args = append(args, filter.Offset)
+		argIdx++
+	}
+
+	rows, err := exec.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
-		return nil, fmt.Errorf("list settlements: %w", err)
+		return nil, 0, fmt.Errorf("list settlements: %w", err)
 	}
 	defer rows.Close()
 
@@ -257,7 +385,7 @@ func (r *PostgresDoctorShareRepo) ListSettlements(ctx context.Context, branchID 
 			&netStr, &s.Status, &s.JournalID, &s.PaidAt, &s.CreatedAt, &s.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("scan settlement: %w", err)
+			return nil, 0, fmt.Errorf("scan settlement: %w", err)
 		}
 		s.GrossFee, _ = decimal.NewFromString(grossStr)
 		s.DPPAmount, _ = decimal.NewFromString(dppStr)
@@ -265,7 +393,7 @@ func (r *PostgresDoctorShareRepo) ListSettlements(ctx context.Context, branchID 
 		s.NetFee, _ = decimal.NewFromString(netStr)
 		settlements = append(settlements, s)
 	}
-	return settlements, nil
+	return settlements, totalCount, nil
 }
 
 func (r *PostgresDoctorShareRepo) UpdateSettlementStatus(ctx context.Context, id uuid.UUID, status doctorshare.SettlementStatus, paidAt *time.Time, journalID *uuid.UUID) error {
