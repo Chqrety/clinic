@@ -1,0 +1,36 @@
+-- Seed Transaction to Account Mappings for Kidinest & Semarang Skin Center (SSC)
+-- Maps operational clinical transactions to Double-Entry General Ledger
+
+-- 1. KIDINEST TRANSACTIONS:
+--    A. Pendaftaran & Skrining Anak (Kas):
+--       Debit: 1-1111 (Kas Kasir Kidinest)   -> Credit: 4-1100 (Pendapatan Pendaftaran & Skrining Anak)
+--    B. Konsultasi Dokter Spesialis Anak (Sp.A):
+--       Debit: 1-1111 (Kas Kasir Kidinest)   -> Credit: 4-1200 (Pendapatan Dokter Spesialis Anak)
+--    C. Layanan Vaksinasi & Imunisasi Anak:
+--       Debit: 1-1111 (Kas Kasir Kidinest)   -> Credit: 4-1300 (Pendapatan Vaksinasi Anak)
+--       Debit: 5-1200 (HPP Vaksin Anak)      -> Credit: 1-1320 (Persediaan Vaksin Anak)
+--    D. Program Pemantauan Tumbuh Kembang:
+--       Debit: 1-1111 (Kas Kasir Kidinest)   -> Credit: 4-1400 (Pendapatan Tumbuh Kembang)
+--    E. Farmasi Obat Anak & Racikan Sirup:
+--       Debit: 1-1111 (Kas Kasir Kidinest)   -> Credit: 4-1500 (Pendapatan Obat Anak)
+--       Debit: 5-1100 (HPP Obat Anak)        -> Credit: 1-1310 (Persediaan Obat Anak)
+
+-- 2. SEMARANG SKIN CENTER (SSC) TRANSACTIONS:
+--    A. Konsultasi Dokter Spesialis Kulit (Sp.DVE):
+--       Debit: 1-1112 (Kas Kasir SSC)        -> Credit: 4-2100 (Pendapatan Dokter Kulit)
+--    B. Treatment Facial & Perawatan Kulit:
+--       Debit: 1-1112 (Kas Kasir SSC)        -> Credit: 4-2200 (Pendapatan Facial & Estetika)
+--       Debit: 5-1400 (HPP BMHP Estetika)    -> Credit: 1-1340 (Persediaan BMHP Estetika)
+--    C. Tindakan Medis Laser, Cauter & Chemical Peeling:
+--       Debit: 1-1112 (Kas Kasir SSC)        -> Credit: 4-2300 (Pendapatan Laser & Peeling)
+--    D. Penjualan Retail Skincare & Sunscreen:
+--       Debit: 1-1112 (Kas Kasir SSC)        -> Credit: 4-2400 (Pendapatan Skincare SSC)
+--       Debit: 5-1300 (HPP Skincare SSC)     -> Credit: 1-1330 (Persediaan Skincare SSC)
+
+-- 3. SHARED FINANCIAL TRANSACTIONS:
+--    A. Setoran Kasir ke Bank (BCA):
+--       Debit: 1-1113 (Bank BCA Operasional) -> Credit: 1-1111 / 1-1112 (Kas Kasir)
+--    B. Pembayaran Tagihan Supplier Obat / Vaksin:
+--       Debit: 2-1110 (Hutang Supplier)      -> Credit: 1-1113 (Bank BCA)
+--    C. Pembayaran Bagi Hasil / Honor Dokter:
+--       Debit: 2-1120 / 2-1125 (Hutang Dokter) -> Credit: 1-1113 (Bank BCA)
