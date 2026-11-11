@@ -23,6 +23,16 @@ VALUES
     TRUE,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
+),
+(
+    '11111111-1111-1111-1111-111111111111',
+    'MAIN',
+    'Klinik Utama Kidinest & Semarang Skin Center',
+    'Jl. Dokter Cipto No. 100, Semarang, Jawa Tengah',
+    '024-8888000',
+    TRUE,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
 )
 ON CONFLICT (code) DO UPDATE SET
     name = EXCLUDED.name,
