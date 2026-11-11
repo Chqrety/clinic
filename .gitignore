@@ -17,6 +17,11 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env.local
 frontend/.env.*.local
+backend/.env
+backend/.env.local
+backend/rest-client/
+backend/*.http
+*.http
 
 # Logs & temp
 *.log

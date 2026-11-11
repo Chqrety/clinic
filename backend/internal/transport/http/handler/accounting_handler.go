@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	app "clinic-api/internal/application/accounting"
@@ -131,6 +133,10 @@ func (h *AccountingHandler) HandleCreateAccount(w http.ResponseWriter, r *http.R
 	}
 
 	if err := h.service.CreateAccount(r.Context(), acc); err != nil {
+		if strings.Contains(err.Error(), "accounts_code_key") || strings.Contains(err.Error(), "23505") {
+			response.BadRequest(w, fmt.Sprintf("Akun dengan kode '%s' sudah terdaftar dalam Chart of Accounts (COA). Gunakan kode akun lain yang unik.", req.Code), nil)
+			return
+		}
 		response.BadRequest(w, err.Error(), nil)
 		return
 	}
