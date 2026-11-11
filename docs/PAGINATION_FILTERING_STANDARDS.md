@@ -198,3 +198,4 @@ X-Branch-ID: 11111111-1111-1111-1111-111111111111
 * **Antrean Pasien**: `GET /api/v1/queues`
   * **Sort Whitelist**: `id`, `queue_number`, `patient_name`, `queue_status`, `created_at`
   * **Search**: `name`, `nik`, `queue_number`
+
