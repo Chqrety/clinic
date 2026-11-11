@@ -1,9 +1,17 @@
 # System Context & Architecture
 
 ## 1. Project Overview
-Aplikasi **Smart Clinic Management System** adalah solusi digital untuk klinik swasta modern yang mengintegrasikan pendaftaran mandiri (self-service queue), e-resep dokter, manajemen inventori apotek berbasis batch & expired date, single-invoice pasien dengan audit internal, serta kesiapan integrasi **SATUSEHAT Kemenkes RI**.
+Aplikasi **Smart Clinic Management System (SCMS)** adalah solusi digitalisasi operasional kustom terpadu untuk klinik modern, dirancang secara khusus untuk melayani dua unit bisnis:
+1. **Kidinest:** Layanan poli anak, vaksinasi, dan tumbuh kembang dengan antrian berkeadilan (FIFO) dan pembayaran biaya registrasi terverifikasi di awal.
+2. **Semarang Skin Center (SSC):** Layanan estetika medis, perawatan wajah (*facial*), dan tindakan kulit dengan skema reservasi jadwal (*booking* tanpa bayar di awal / Rp0) dan pelunasan di kasir meja depan setelah tindakan selesai.
 
-Dibangun menggunakan arsitektur **Modular Monolith** dengan backend **Go** dan frontend **Vue 3 SPA**.
+Dibangun menggunakan arsitektur **Modular Monolith** dengan backend **Go (Golang)** dan frontend **Vue 3 SPA**, berfokus murni pada **keunggulan operasional medis (*Clinical Operations Excellence*)**.
+
+> **Prinsip Utama Domain:**
+> * **Privacy-First:** Pendaftaran pasien tidak meminta Nomor KTP/NIK. Identitas di monitor antrian publik disamarkan otomatis (`Budi P****`).
+> * **Paperless Queue:** Tiket antrian dikirimkan via WhatsApp dan dipantau live melalui web. Pasien *walk-in* tetap didaftarkan lewat web oleh GRO meja depan tanpa struk fisik.
+> * **Invarian Stok Obat:** `available_stock = physical_stock - reserved_stock`. Stok otomatis terkunci (*reserved*) saat dokter meresepkan dan terpotong permanen saat diserahkan apoteker.
+> * **Bebas Embel-Embel Akuntansi & SATUSEHAT:** Modul akuntansi umum (jurnal/pajak) dan integrasi bridging Kemenkes SATUSEHAT resmi berada di luar lingkup rilis ini (*Out of Scope*).
 
 ---
 
@@ -11,67 +19,126 @@ Dibangun menggunakan arsitektur **Modular Monolith** dengan backend **Go** dan f
 
 * **Backend:**
   * Runtime: Go 1.22+
-  * Framework/Router: Go Chi / Fiber (REST API)
-  * Database: SQLite (local development & demo zero-config, portable ke PostgreSQL)
-  * ORM / Data Layer: GORM atau modernc.org/sqlite + database/sql
+  * Framework/Router: Go Chi / Standard Library `net/http`
+  * Database: PostgreSQL 16+ (ACID compliant, row-level locking `SELECT ... FOR UPDATE` untuk integritas transaksi antrian & reservasi stok obat, native concurrent connection pool)
+  * Data Layer: `database/sql` + `github.com/jackc/pgx/v5/stdlib` (atau `github.com/lib/pq`)
+  * Containerization (Local Dev): Podman / Docker via `docker-compose.yml` (`podman compose up -d`)
 * **Frontend:**
   * Framework: Vue 3 (Composition API, `<script setup>`)
   * Bundler: Vite
-  * Styling: Tailwind CSS
+  * Styling: Tailwind CSS (estetika Brandlos / Nordic Modern, warm off-white canvas, pill badges)
   * State Store: Pinia
-  * UI Helper: Lucide Icons, Headless UI / Tailwind UI
-* **Communication:** JSON REST API + Server-Sent Events (SSE) / Polling ringan untuk live updates antrian & notifikasi apotek.
+  * UI Icons: Lucide Icons
+* **Real-Time Communication:** Server-Sent Events (SSE) / WebSocket untuk sinkronisasi monitor antrian live dan notifikasi audio chime apotek (*zero page refresh*).
+* **Integrasi Eksternal:** WhatsApp Gateway Adapter (tiket & link antrian) & Payment Gateway Adapter (QRIS / transfer verifikasi otomatis).
 
 ---
 
 ## 3. Core Domain Entities & Relationships
 
 ### A. Patient & Queue
-* **Patient:** `id`, `nik`, `name`, `phone`, `birth_date`, `ihs_number` (SATUSEHAT ID)
-* **Queue:** `id`, `patient_id`, `queue_number` (A-001), `payment_method` (QRIS, CASH), `payment_status` (PENDING, PAID), `queue_status` (WAITING, CALLING, IN_EXAM, COMPLETED, CANCELLED), `created_at`
+* **Patient:** `id`, `name`, `phone`, `created_at` *(Privacy-first, tanpa NIK)*
+* **Queue:** 
+  * `id`, `patient_id`, `clinic_unit` (`KIDINEST`, `SSC`)
+  * `category` (`A_VAKSIN`, `B_SAKIT`, `C_TUMBANG`, `D_PAKET`, `E_WALKIN`, `SSC_TREATMENT`)
+  * `doctor_id`, `doctor_name`
+  * `queue_number` (Format: `A-001`, `B-005`, `E-012`, `S-003`)
+  * `registration_fee` (Kidinest: nominal registrasi; SSC: Rp 0)
+  * `payment_method` (`QRIS`, `TRANSFER`, `CASH`, `UNPAID_BOOKING`)
+  * `payment_status` (`PENDING`, `PAID`, `REFUNDED`)
+  * `queue_status` (`WAITING`, `CALLING`, `IN_EXAM`, `PHARMACY_WAITING`, `COMPLETED`, `CANCELLED`)
+  * `created_at`, `called_at`, `completed_at`
 
-### B. Consultation & Prescription
-* **Consultation:** `id`, `queue_id`, `doctor_name`, `anamnesis`, `diagnosis`, `icd10_code`, `status` (DRAFT, COMPLETED)
-* **Prescription:** `id`, `consultation_id`, `status` (RESERVED, PREPARING, DISPENSED, CANCELLED)
-* **PrescriptionItem:** `id`, `prescription_id`, `drug_id`, `quantity`, `dosage_instruction`, `price`
+### B. Staff & Security (Role-Based Access)
+* **StaffUser:**
+  * `id`, `employee_number` (Nomor Induk Karyawan resmi klinik)
+  * `name`, `role` (`SUPERADMIN_OWNER`, `DOCTOR`, `GRO_CASHIER`, `PHARMACIST`)
+  * `clinic_unit` (`KIDINEST`, `SSC`, `ALL`)
+  * `password_hash`, `is_active`, `created_at`
+  *(Akun staf diinput & dikelola langsung oleh Atasan/Owner)*
 
-### C. Pharmacy & Inventory
-* **Drug:** `id`, `name`, `kfa_code` (Kode Farmasi Kemenkes), `unit` (Tablet, Botol, Strip), `min_stock_alert`, `sell_price`
-* **DrugBatch:** `id`, `drug_id`, `batch_number`, `expired_date`, `physical_stock`, `reserved_stock`, `buy_price`
+### C. Consultation & E-Prescription
+* **Consultation:** 
+  * `id`, `queue_id`, `doctor_id`, `doctor_name`
+  * `anamnesis`, `diagnosis`, `action_notes`
+  * `action_fee` (Jasa tindakan dokter/terapis: Kidees vaksin/tindakan; SSC facial/peeling/laser)
+  * `status` (`DRAFT`, `COMPLETED`)
+* **Prescription:** 
+  * `id`, `consultation_id`, `status` (`RESERVED`, `PREPARING`, `DISPENSED`, `CANCELLED`)
+* **PrescriptionItem:** 
+  * `id`, `prescription_id`
+  * `drug_id` (nullable untuk obat racikan/item manual)
+  * `item_name`, `is_manual` (boolean)
+  * `unit_price`, `quantity`, `subtotal`
+  * `dosage_instruction` (Signa / aturan pakai)
 
-> **Formula Stok Obat:**  
-> `available_stock = physical_stock - reserved_stock`
+### D. Pharmacy & Stock Opname
+* **Drug:** 
+  * `id`, `clinic_unit` (`KIDINEST`, `SSC`, `ALL`)
+  * `name`, `unit` (`Tablet`, `Botol`, `Tube`, `Ampul`, `Strip`)
+  * `buy_price`, `sell_price`, `min_stock_alert`
+* **DrugBatch:** 
+  * `id`, `drug_id`, `batch_number`, `expired_date`
+  * `physical_stock`, `reserved_stock`
+  * Formula Invarian: `available_stock = physical_stock - reserved_stock`
+* **StockOpnameLog:** 
+  * `id`, `drug_id`, `batch_id`, `system_stock`, `actual_stock`, `discrepancy`, `adjusted_by`, `notes`, `created_at`
+  *(Mendukung ekspor & impor massal via file Excel/CSV)*
 
-### D. Billing & Invoice
-* **Invoice:** `id`, `queue_id`, `patient_id`, `invoice_number`, `total_amount`, `payment_method`, `status` (PAID)
-* **InvoiceItem:** `id`, `invoice_id`, `item_type` (REGISTRATION, CONSULTATION, MEDICATION, ACTION), `item_name`, `amount`, `doctor_share`, `clinic_share`, `tax_share`
-
-### E. SATUSEHAT Integration Log
-* **SatusehatLog:** `id`, `resource_type` (Patient, Encounter, Condition, MedicationRequest), `entity_id`, `fhir_payload` (JSON), `status` (READY, SYNCED)
+### E. Billing & Kasir Meja Depan (GRO)
+* **Invoice:** 
+  * `id`, `queue_id`, `patient_id`, `invoice_number`
+  * `subtotal_action`, `subtotal_medication`, `subtotal_registration`
+  * `voucher_discount` (input nominal potongan voucher)
+  * `total_amount` (setelah diskon)
+  * `payment_method` (`CASH`, `BANK_TRANSFER`, `EDC`)
+  * `cashier_staff_id`, `status` (`PAID`, `REFUNDED`)
+  * `refund_bank_account`, `refund_notes`
+  * `created_at`
+* **CashierShiftReport:**
+  * `id`, `staff_id`, `shift_date`, `total_cash`, `total_transfer`, `total_voucher`, `total_refund`, `sent_to_owner_at`
 
 ---
 
 ## 4. State Transitions & Lifecycle
 
-### Antrian & Pembayaran (FIFO)
+### A. Alur Pendaftaran & Antrian (FIFO)
 ```text
-[Pasien Input Data]
+[Pasien Scan QR / Dibantu GRO]
        │
-       ├─ (Pilih QRIS) ──> [Simulasi Bayar Lunas] ──> [Nomor Antrian Aktif] ──> [Masuk Urutan FIFO]
-       │
-       └─ (Pilih Tunai) ─> [Status Menunggu Kasir] ──> [Kasir Konfirmasi Tunai] ──> [Nomor Antrian Aktif]
+       ├─ Kidinest (Bayar Pendaftaran Awal)
+       │       ├─ (QRIS / Transfer) ─> [Auto Verifikasi Lunas] ──┐
+       │       └─ (Tunai di Kasir) ──> [Kasir Terima Uang] ─────┼─> [Nomor Antrian Aktif]
+       │                                                         │   (Kategori A/B/C/D/E)
+       └─ Semarang Skin Center (Booking Saja)                    │   (Masuk Antrian Dokter FIFO)
+               └─ [Tanpa Bayar Awal / Rp0] ──────────────────────┘
 ```
 
-### Siklus E-Resep & Reserved Stock
+### B. Alur E-Resep & Reserved Stock Apotek
 ```text
-[Dokter Rangkai Resep] 
+[Dokter Rangkai Resep di Tabel]
+  (Dropdown Search + Harga Satuan + Opsi Manual Racikan)
        │
-       ▼ (Validasi Available Stock > 0)
-[Dokter Kirim Resep] ──> [Reserved Stock +Qty] ──> [Notif Masuk ke Apotek]
+       ▼
+[Dokter Klik "Kirim Resep"] ────> [Audio Chime Berbunyi di Komputer Apotek]
+       │                          [Stok Obat Masuk Status RESERVED]
        │
-       ├─ (Apoteker Serahkan Obat) ─> [Physical Stock -Qty] & [Reserved Stock -Qty] ─> (Selesai)
+       ├─ (Apoteker Serahkan Obat) ─> [Physical Stock Terpotong, Reserved Rilis] ─> [Selesai]
        │
-       └─ (Resep Dibatalkan) ───────> [Reserved Stock -Qty] ─> (Batal, Fisik Utuh)
+       └─ (Resep Dibatalkan / Edit) ─> [Reserved Stock Dirilis Kembali]
+```
+
+### C. Alur Kasir & Cetak Invoice
+```text
+[Pasien Selesai Konsultasi / Tindakan]
+       │
+       ▼
+[Kasir Panggil Tagihan Pasien]
+  (Total: Jasa Tindakan + Obat/Vaksin - Diskon Voucher)
+       │
+       ├─ [Bayar: Tunai / Transfer / EDC] ──> [Cetak Struk Thermal 80mm / PDF]
+       │
+       └─ [Batal Kunjungan Berbayar] ───────> [Catat Norek Refund Manual]
 ```
 
 ---
@@ -79,47 +146,95 @@ Dibangun menggunakan arsitektur **Modular Monolith** dengan backend **Go** dan f
 ## 5. Directory Layout & Architecture Rules
 
 ### A. Architectural Principles
-1. **Backend: Package by Feature (Domain-Driven Package)**
-   * DILARANG menggunakan *Global Layered Architecture* (seperti `pkg/controllers/`, `pkg/services/`, `pkg/repositories/` terpisah di tingkat atas) karena anti-pattern di Go dan memicu *circular dependency*.
-   * Setiap modul domain (`queue`, `pharmacy`, dll.) memiliki `handler.go`, `service.go`, dan `repository.go` sendiri di dalam foldernya.
-2. **Frontend: Role/Feature Views + Cohesive UI Components**
-   * DILARANG menggunakan *Atomic Design* (`atoms/`, `molecules/`, `organisms/`) untuk mencegah *wrapper hell* dan debat kategorisasi tak berujung.
-   * Gunakan `src/views/` berbasis Role pengguna klinik dan `src/components/ui/` hanya untuk komponen yang benar-benar dipakai berulang.
+1. **Backend: Domain-Driven Design (DDD) per Bounded Context**
+   * Setiap modul bisnis dikelompokkan ke dalam bounded context di `backend/internal/<context>/`.
+   * Setiap context menerapkan pemisahan layer DDD yang bersih dan terisolasi:
+     * `domain/`: Pure business entity, value objects, domain error, dan interface repository (bebas dependensi framework/SQL).
+     * `usecase/`: Application logic / use cases yang mengorkestrasi alur bisnis domain.
+     * `repository/`: Implementasi persistensi data ke PostgreSQL (SQL query, database mapping).
+     * `delivery/http/`: HTTP handler (Go Chi), request DTO validation, JSON response, dan route registration.
+   * `internal/shared/`: Shared kernel untuk komponen lintas domain (database connection pool, HTTP response wrapper, auth middleware/token).
+2. **Frontend: Role/Feature Views + Cohesive Components**
+   * Halaman diatur berdasarkan Role pengguna klinik (`src/views/`).
+   * Gunakan `src/components/ui/` hanya untuk komponen yang benar-benar digunakan berulang.
+3. **Frontend Layout: Prioritas Sidebar untuk Admin & Staf**
+   * Antarmuka kerja staf dan admin (Atasan/Owner, Dokter, Kasir GRO, Apotek, Gudang) diprioritaskan menggunakan **Sidebar Navigation (Navigasi Samping Vertikal)** bergaya Nordic Modern yang ringkas dan fungsional, menggantikan tab atas, guna memaksimalkan keleluasaan layar untuk tabel resep, monitor antrian, dan form transaksi.
+   * *(Catatan: Pembaruan UI sidebar ini dijadwalkan setelah seluruh modul rencana fungsional inti 1–5 selesai dibangun).*
 
 ### B. Tree Layout
 
 ```text
 clinic/
+├── docker-compose.yml          # PostgreSQL 16 local container (Podman / Docker)
+├── .env.example                # Template konfigurasi DB & Port
 ├── docs/
 │   ├── PRD.md
+│   ├── PROPOSAL_OPERASIONAL_KLINIK.md
+│   ├── PLAN_BAGIAN_1_STAFF_AUTH.md
+│   ├── PLAN_BAGIAN_2_PATIENT_QUEUE.md
+│   ├── clinic-flowchart-spec.excalidraw
 │   └── ...
 ├── backend/
-│   ├── cmd/api/main.go
+│   ├── cmd/
+│   │   └── api/
+│   │       └── main.go         # Dependency injection & router bootstrap
 │   ├── internal/
-│   │   ├── domain/           # Shared models & interfaces
-│   │   ├── queue/            # handler.go, service.go, repo.go (antrian & payment)
-│   │   ├── pharmacy/         # handler.go, service.go, repo.go (obat, batch, reserved stock)
-│   │   ├── consultation/     # handler.go, service.go, repo.go (rekam medis & e-resep)
-│   │   ├── billing/          # handler.go, service.go, repo.go (invoice & breakdown)
-│   │   └── satusehat/        # handler.go, service.go (FHIR R4 converter)
-│   └── pkg/database/         # SQLite connection & migration
+│   │   ├── shared/             # Shared kernel lintas domain
+│   │   │   ├── database/       # Postgres connection & migration runner
+│   │   │   ├── response/       # Standard JSON response helper
+│   │   │   └── middleware/     # Auth JWT & CORS middleware
+│   │   ├── auth/               # Bounded Context: Autentikasi Staf & NIK Karyawan
+│   │   │   ├── domain/         # StaffAuth entity, Token claims, Repo interface
+│   │   │   ├── usecase/        # Login & verify logic
+│   │   │   ├── repository/     # Postgres query auth
+│   │   │   └── delivery/http/  # Login handler & auth routes
+│   │   ├── staff/              # Bounded Context: Manajemen Staf (Atasan/Owner)
+│   │   │   ├── domain/         # Staff entity, Role/Unit value types, Repo interface
+│   │   │   ├── usecase/        # CreateStaff, UpdateStaff, ResetPassword
+│   │   │   ├── repository/     # Postgres CRUD staff
+│   │   │   └── delivery/http/  # Staff admin handler & routes
+│   │   ├── queue/              # Bounded Context: Pendaftaran & Antrian FIFO
+│   │   │   ├── domain/         # Patient, Queue, DailyCounter entity & repo interface
+│   │   │   ├── usecase/        # RegisterQueue, VerifyPayment, NextQueue
+│   │   │   ├── repository/     # Postgres FIFO locking & queries
+│   │   │   └── delivery/http/  # Public registration, SSE stream, TV monitor handler
+│   │   ├── consultation/       # Bounded Context: Konsultasi Dokter & E-Resep
+│   │   │   ├── domain/         # Consultation, Prescription, Item entity
+│   │   │   ├── usecase/        # SubmitConsultation, ReserveMedication
+│   │   │   ├── repository/     # Postgres consultation queries
+│   │   │   └── delivery/http/  # Doctor room handler & routes
+│   │   ├── pharmacy/           # Bounded Context: Farmasi & Gudang Obat
+│   │   │   ├── domain/         # Drug, Batch, StockOpname entity
+│   │   │   ├── usecase/        # DispenseDrug, StockOpnameImportExport
+│   │   │   ├── repository/     # Postgres drug batch & atomic stock queries
+│   │   │   └── delivery/http/  # Pharmacy room & inventory handlers
+│   │   └── cashier/            # Bounded Context: Kasir GRO & Tagihan
+│   │       ├── domain/         # Invoice, Payment, ShiftReport entity
+│   │       ├── usecase/        # ProcessPayment, CloseShiftReport, Refund
+│   │       ├── repository/     # Postgres invoice & payment queries
+│   │       └── delivery/http/  # Cashier frontdesk handler & thermal receipt
 ├── frontend/
 │   ├── src/
-│   │   ├── views/            # Halaman berbasis Role Pengguna
-│   │   │   ├── PatientKiosk.vue   # Ambil antrian & bayar QRIS/Cash
-│   │   │   ├── CashierView.vue    # Layar kasir (konfirmasi cash & monitor)
-│   │   │   ├── DoctorRoom.vue     # Layar periksa & e-resep
-│   │   │   ├── PharmacyRoom.vue   # Layar racik obat & potong stok
-│   │   │   ├── InventoryView.vue  # Layar stok batch & ED alert
-│   │   │   └── BillingView.vue    # Layar invoice pasien & audit internal
+│   │   ├── views/              # Halaman berbasis Peran Pengguna
+│   │   │   ├── StaffLogin.vue    # Login NIK Karyawan & password
+│   │   │   ├── StaffAdmin.vue    # Layar Atasan: input data staf & kontrol password
+│   │   │   ├── PatientPortal.vue # Landing page QR (Kidinest & SSC) + Tiket
+│   │   │   ├── QueueMonitor.vue  # Layar TV monitor antrian publik (disamarkan)
+│   │   │   ├── CashierView.vue   # Meja depan GRO: walk-in, bayar, struk, tutup shift
+│   │   │   ├── DoctorRoom.vue    # Layar periksa dokter: antrian FIFO & e-resep tabel
+│   │   │   ├── PharmacyRoom.vue  # Layar apotek: resep live chime & dispensing
+│   │   │   └── InventoryView.vue # Gudang obat: master obat & stok opnam Excel
 │   │   ├── components/
-│   │   │   ├── ui/                # PillBadge.vue, ModalDialog.vue, StatCard.vue
-│   │   │   └── RoleSwitcher.vue   # Bar floating navigasi demo
-│   │   ├── stores/                # Pinia global states (queue.ts, pharmacy.ts)
-│   │   └── api/                   # Fetch client helper
+│   │   │   ├── ui/               # PillBadge.vue, ModalDialog.vue, StatCard.vue
+│   │   │   └── RoleSwitcher.vue  # Floating bar demo switcher
+│   │   ├── stores/               # Pinia global states (auth, queue, pharmacy)
+│   │   └── api/                  # Fetch client helper
 │   ├── index.html
 │   └── vite.config.ts
 ├── CONTEXT.md
+├── AGENT.md
+├── DESIGN.md
+└── GEMINI.md
 ├── AGENT.md
 ├── DESIGN.md
 └── GEMINI.md

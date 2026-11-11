@@ -19,16 +19,21 @@ This repository follows the **Ponytail (Lazy Senior Developer)** philosophy: wri
 
 ---
 
-## 2. Backend Guidelines (Go)
+## 2. Backend Guidelines (Go - Domain-Driven Design)
 
-* **Folder Architecture (Package by Feature):** DILARANG menggunakan Global Layered Architecture (`controllers/`, `services/`, `repositories/` global). Gunakan pengelompokan modular domain di `internal/<domain>/` (misal `internal/pharmacy/` berisi `handler.go`, `service.go`, `repository.go`).
+* **Folder Architecture (DDD per Bounded Context):** DILARANG menggunakan Global Layered Architecture (`controllers/`, `services/`, `repositories/` global). Gunakan pengelompokan domain di `internal/<context>/` yang memiliki 4 sub-layer:
+  1. `domain/`: Entity murni, value objects, domain error, dan interface repository (independen, bebas SQL/framework).
+  2. `usecase/`: Application business logic & use case orchestration.
+  3. `repository/`: Implementasi persistensi PostgreSQL (SQL queries).
+  4. `delivery/http/`: HTTP router & handler (Go Chi), request DTO validation, standard JSON response.
+* **Shared Kernel (`internal/shared/`):** Menyediakan koneksi database pool, standard response helper, dan middleware (JWT auth, CORS).
 * **Code Style:** Idiomatic Go. Return errors explicitly (`if err != nil`). Avoid deep nesting.
 * **HTTP Handlers:** Simple REST handlers returning standard JSON structures:
   ```json
   { "success": true, "data": { ... }, "error": null }
   ```
-* **Database:** SQLite using modern lightweight drivers. Always enforce foreign keys and transactions when handling financial data or inventory mutations (e.g. `reserved_stock` -> `physical_stock`).
-* **Concurrency & Inventory Safety:** When reserving or dispensing drugs, use database transactions or atomic updates (`UPDATE drug_batches SET reserved_stock = reserved_stock + ? WHERE available_stock >= ?`) to prevent race conditions.
+* **Database:** PostgreSQL 16+ using modern driver (`pgx/v5` or `database/sql` wrapper). Always enforce foreign keys, schema constraints, and transactions when handling financial data or inventory mutations (e.g. `reserved_stock` -> `physical_stock`).
+* **Concurrency & Inventory Safety:** When reserving or dispensing drugs, use database transactions with row-level locks or atomic updates (`UPDATE drug_batches SET reserved_stock = reserved_stock + $1 WHERE id = $2 AND physical_stock - reserved_stock >= $1`) to prevent race conditions.
 
 ---
 
@@ -51,5 +56,5 @@ This repository follows the **Ponytail (Lazy Senior Developer)** philosophy: wri
    Queue numbers must be assigned sequentially based on successful payment completion timestamp (`PAID`), not registration draft time.
 3. **Single Invoice for Patients:**  
    The patient-facing receipt must display a single consolidated breakdown. Internal margin/tax allocations must be kept strictly within management reporting views.
-4. **SATUSEHAT Compliance:**  
-   Every encounter and prescription must format its data compatible with Kemenkes FHIR R4 structure (`Encounter`, `Condition`, `MedicationRequest`).
+4. **SATUSEHAT Separation:**  
+   Bridging SATUSEHAT Kemenkes resmi berada di luar cakupan rilis saat ini (Out of Scope / Fase 2). Sistem fokus 100% pada keandalan operasional klinik internal.

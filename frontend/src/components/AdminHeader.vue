@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { useClinicStore, type RoleType } from '../stores/clinic'
-import { Stethoscope, Pill, CreditCard, Package, Receipt, ShieldCheck, LogOut, Volume2, VolumeX } from 'lucide-vue-next'
+import { useAuthStore } from '../stores/auth'
+import { Stethoscope, Pill, CreditCard, Package, Receipt, ShieldCheck, LogOut, Volume2, VolumeX, UserCheck } from 'lucide-vue-next'
 
 const emit = defineEmits<{
   (e: 'navigate', view: 'landing' | 'kiosk' | 'login'): void
 }>()
 
 const store = useClinicStore()
+const auth = useAuthStore()
 
 const roles: Array<{ key: RoleType; label: string; icon: any }> = [
+  { key: 'owner', label: 'Atasan/Owner', icon: ShieldCheck },
   { key: 'doctor', label: 'Dokter', icon: Stethoscope },
   { key: 'pharmacy', label: 'Apotek', icon: Pill },
   { key: 'cashier', label: 'Kasir', icon: CreditCard },
@@ -18,22 +21,32 @@ const roles: Array<{ key: RoleType; label: string; icon: any }> = [
 ]
 
 function getStaffTitle(role: RoleType) {
+  if (auth.user) {
+    return `${auth.user.name} (${auth.user.employee_number})`
+  }
   switch (role) {
+    case 'owner':
+      return 'dr. Ratna Paramita, M.Kes (Owner)'
     case 'doctor':
-      return 'dr. Hendra Pratama, Sp.PD (Poli Umum)'
+      return 'dr. Hendra Pratama, Sp.A (Kidinest)'
     case 'pharmacy':
-      return 'apt. Annisa Fitri, S.Farm (Kepala Farmasi)'
+      return 'Apt. Dimas Wicaksono, S.Farm (Apotek)'
     case 'cashier':
-      return 'Budi Setiawan (Loket Pendaftaran)'
+      return 'Siti Sarah, A.Md (Kasir GRO)'
     case 'inventory':
-      return 'Siti Nurhaliza (Gudang & Logistik)'
+      return 'Gudang & Logistik Obat'
     case 'billing':
-      return 'Keuangan & Akuntansi Klinik'
+      return 'Kasir & Rekap Shift'
     case 'satusehat':
-      return 'Tim Integrasi DTO Kemenkes'
+      return 'Integrasi Sistem'
     default:
       return 'Staf Klinik'
   }
+}
+
+async function handleLogout() {
+  await auth.logout()
+  emit('navigate', 'landing')
 }
 </script>
 
@@ -88,7 +101,7 @@ function getStaffTitle(role: RoleType) {
         </button>
 
         <button
-          @click="emit('navigate', 'landing')"
+          @click="handleLogout"
           title="Keluar ke Halaman Depan"
           class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors"
         >

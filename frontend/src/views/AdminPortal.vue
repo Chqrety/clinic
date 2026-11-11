@@ -8,6 +8,7 @@ import CashierView from './CashierView.vue'
 import InventoryView from './InventoryView.vue'
 import BillingView from './BillingView.vue'
 import SatusehatView from './SatusehatView.vue'
+import StaffAdmin from './StaffAdmin.vue'
 
 const emit = defineEmits<{
   (e: 'navigate', view: 'landing' | 'kiosk' | 'login'): void
@@ -17,6 +18,8 @@ const store = useClinicStore()
 
 const currentWorkstation = computed(() => {
   switch (store.currentRole) {
+    case 'owner':
+      return StaffAdmin
     case 'doctor':
       return DoctorRoom
     case 'pharmacy':

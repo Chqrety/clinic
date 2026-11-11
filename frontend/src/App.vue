@@ -2,12 +2,13 @@
 import { ref, computed } from 'vue'
 import { useClinicStore } from './stores/clinic'
 import LandingPage from './views/LandingPage.vue'
-import PatientKiosk from './views/PatientKiosk.vue'
+import PatientPortal from './views/PatientPortal.vue'
 import LoginView from './views/LoginView.vue'
 import AdminPortal from './views/AdminPortal.vue'
-import { Compass, Sparkles } from 'lucide-vue-next'
+import QueueMonitor from './views/QueueMonitor.vue'
+import { Compass, Sparkles, Tv } from 'lucide-vue-next'
 
-type AppRoute = 'landing' | 'kiosk' | 'login' | 'admin'
+type AppRoute = 'landing' | 'kiosk' | 'login' | 'admin' | 'monitor'
 const currentRoute = ref<AppRoute>('landing')
 const showDemoNav = ref(false)
 
@@ -23,11 +24,13 @@ const activeComponent = computed(() => {
     case 'landing':
       return LandingPage
     case 'kiosk':
-      return PatientKiosk
+      return PatientPortal
     case 'login':
       return LoginView
     case 'admin':
       return AdminPortal
+    case 'monitor':
+      return QueueMonitor
     default:
       return LandingPage
   }
@@ -76,6 +79,13 @@ const activeComponent = computed(() => {
         >
           <span>4. Admin Portal Staf</span>
           <span v-if="currentRoute === 'admin'" class="text-emerald-600">●</span>
+        </button>
+        <button
+          @click="navigateTo('monitor'); showDemoNav = false"
+          class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-stone-100 flex items-center justify-between"
+        >
+          <span>5. Monitor TV Antrian</span>
+          <span v-if="currentRoute === 'monitor'" class="text-emerald-600">●</span>
         </button>
       </div>
 

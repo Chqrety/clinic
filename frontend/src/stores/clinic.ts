@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { QueueItem } from '../api/client'
 
-export type RoleType = 'patient' | 'cashier' | 'doctor' | 'pharmacy' | 'inventory' | 'billing' | 'satusehat'
+export type RoleType = 'patient' | 'cashier' | 'doctor' | 'pharmacy' | 'inventory' | 'billing' | 'satusehat' | 'owner'
 
 export const useClinicStore = defineStore('clinic', () => {
   const currentRole = ref<RoleType>('patient')
