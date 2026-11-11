@@ -18,7 +18,7 @@ import {
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
-  (e: 'navigate', view: 'landing' | 'kiosk' | 'login' | 'monitor'): void
+  (e: 'navigate', view: 'kidinest' | 'ssc' | 'kiosk' | 'login' | 'monitor'): void
 }>()
 
 // Step: 'register' | 'payment' | 'ticket'
@@ -174,10 +174,10 @@ function resetForm() {
     <!-- Top Bar Navigation -->
     <header class="max-w-2xl mx-auto w-full flex items-center justify-between pb-4">
       <button
-        @click="emit('navigate', 'landing')"
+        @click="emit('navigate', selectedUnit === 'KIDINEST' ? 'kidinest' : 'ssc')"
         class="inline-flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-zinc-950 transition-colors"
       >
-        <ArrowLeft class="w-3.5 h-3.5" /> Beranda
+        <ArrowLeft class="w-3.5 h-3.5" /> Beranda {{ selectedUnit === 'KIDINEST' ? 'Kidinest' : 'SSC' }}
       </button>
 
       <div class="flex items-center gap-2">
