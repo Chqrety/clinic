@@ -106,11 +106,48 @@ Mengadopsi format layout resmi feed SSC:
 </div>
 ```
 
-### C. Live Antrian Strip (Integrated Clinical Monitor)
-Widget live antrian dirancang menyatu harmonis dengan kanvas halaman, bukan kotak kardus tebal mengambang:
-* Garis status atas dengan dot pulsa real-time.
-* Angka antrian mono tajam (`font-mono font-black text-5xl sm:text-6xl`).
-* Segmented pill switcher per dokter tanpa border tebal.
+### C. Live Antrian Strip (Zero Fluff & Scalable Dropdown)
+Widget live antrian dirancang menyatu harmonis dengan kanvas halaman, fokus murni pada prioritas pasien:
+* **Dropdown Filter Dokter (Skalabel):** Menggantikan deretan tombol tab dengan `<select>` dropdown ramping di kanan atas. Siap menampung pertambahan dokter spesialis (5–20 dokter) tanpa merusak atau melebarkan layout.
+* **Bebas Microcopy Redundan (Zero Fluff):**
+  * ❌ *Dihapus:* `• Diperbarui Baru Saja` (sudah jelas live).
+  * ❌ *Dihapus:* `Tiket terkirim via WhatsApp` (noise visual).
+  * ❌ *Dihapus:* Tip bawah panjang `Panggilan otomatis dikirim via WhatsApp saat antrian mendekati 2 giliran`.
+* **Prioritas Pasien yang Dipertahankan:**
+  * Status badge minimalis: `● Sedang Diperiksa` / `● Sedang Dipanggil`.
+  * Nomor antrian besar tajam (`font-mono font-black text-5xl sm:text-6xl`).
+  * Nama pasien tersamar & nama dokter pemeriksa.
+  * Tiga tiket antrian berikutnya (`K-008 ~8m`, `K-009 ~15m`) + tombol modal riwayat lengkap.
+  * Satu aksi utama: `Ambil Antrian Online →`.
+
+### D. Standar Header & Navbar (Sleek Single-Bar + Sister Clinic Link)
+* **Tinggi Bar Proporsional:** `h-16` (64px) di desktop, `h-14` (56px) di mobile (menghindari header tebal 120px).
+* **Top Micro-Ribbon (Auto-Hide di Mobile):**
+  * Di desktop (`hidden sm:block`): Pita tipis `py-1 text-[11px]` berisi alamat resmi SMG dan kontak WA aktif.
+  * Di mobile: Otomatis di-hide agar tidak memakan ruang vertikal layar HP.
+* **Logo Bersih (Bebas Kotak AI & Subtitle Berjejal):**
+  * Logo mark asli + teks brand tegas (`kidinest` / `Semarang Skin Center`).
+  * Dihilangkan badge kotak, subtitle panjang, dan dekorasi yang membuat sempit.
+* **Sister-Clinic Link (Bukan Switcher Tab):**
+  * Jangan gunakan switcher tab `[ Kidinest | SSC ]` yang membingungkan kepemilikan halaman.
+  * Gunakan **link teks santai** dengan icon panah keluar: `Layanan Kulit (SSC) ↗` pada Kidinest, dan `Poli Anak (Kidinest) ↗` pada SSC.
+* **Hierarki Tombol:** Hanya ada **satu tombol CTA primer** yang solid di navbar: `[ Ambil Antrian → ]`.
+
+### E. Standar Hero Section: Pure Typography & Hairline Split (Zero Foto Produk & Zero Card)
+Menghindari jebakan klise AI (*floating card box* di sisi kanan hero):
+* **Tanpa Foto Produk / Tanpa Card Widget:** Area kanan hero tidak diisi card widget AI ataupun foto produk yang dipaksakan.
+* **Tata Letak Asimetris Bergaris Rambut (`lg:col-span-7` vs `lg:col-span-5` dengan `lg:border-l`):**
+  * **Sisi Kiri:** Tag brand tenang, Display H1 berbobot manusiawi (*line-height 1.15*), narasi pengantar 2 baris, dan tombol aksi utama.
+  * **Sisi Kanan:** Dibatasi garis pembagi 1px tipis vertikal, memuat pilar klinis murni berbasis tipografi:
+    * Headline filosofi pelayanan klinik.
+    * 4 baris hairline bernomor monospaced (`01–04`) yang merangkum fokus keunggulan medis.
+    * Sign-off dokter spesialis penanggung jawab.
+* **Strip Fakta Klinik 3-Kolom (Hairline Terbuka):**
+  * Tepat di bawah narasi hero membentang 3 kolom terbuka tanpa kotak card:
+    * `01 • Dokter Spesialis Jaga Hari Ini`
+    * `02 • Sesi Layanan Praktik (Pagi & Sore)`
+    * `03 • Lokasi & Fasilitas Resmi`
+  * Berfungsi sebagai transisi alami yang langsung mengalirkan pandangan ke Papan Antrian di bawahnya.
 
 ---
 
