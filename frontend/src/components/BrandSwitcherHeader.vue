@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'navigate', view: 'kidinest' | 'ssc' | 'kiosk' | 'login'): void
+  (e: 'navigate', view: 'kidinest' | 'ssc' | 'kiosk' | 'login' | 'kiosk-kidinest' | 'kiosk-ssc' | 'login-kidinest' | 'login-ssc'): void
 }>()
 
 const mobileMenuOpen = ref(false)
@@ -156,7 +156,7 @@ function scrollToSection(id: string) {
 
           <!-- Single Primary CTA Button -->
           <button
-            @click="emit('navigate', 'kiosk')"
+            @click="emit('navigate', currentBrand === 'kidinest' ? 'kiosk-kidinest' : 'kiosk-ssc')"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all shadow-xs active:scale-95"
             :class="
               currentBrand === 'kidinest'
@@ -241,7 +241,7 @@ function scrollToSection(id: string) {
 
       <div class="pt-1">
         <button
-          @click="emit('navigate', 'kiosk'); mobileMenuOpen = false"
+          @click="emit('navigate', currentBrand === 'kidinest' ? 'kiosk-kidinest' : 'kiosk-ssc'); mobileMenuOpen = false"
           class="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-center text-white shadow-xs"
           :class="currentBrand === 'kidinest' ? 'bg-[#0C3B36]' : 'bg-[#9E606D]'"
         >

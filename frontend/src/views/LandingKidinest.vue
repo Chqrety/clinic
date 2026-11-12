@@ -10,7 +10,7 @@ import {
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
-  (e: 'navigate', view: 'kidinest' | 'ssc' | 'kiosk' | 'login'): void
+  (e: 'navigate', view: string): void
 }>()
 
 const doctors: DoctorInfo[] = [
@@ -124,7 +124,7 @@ const faqs = [
             <!-- Dual Action Buttons -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-kidinest')"
                 class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
               >
                 <span>Ambil Nomor Antrian Online</span>
@@ -234,7 +234,7 @@ const faqs = [
         <LiveQueueFilter
           brand="kidinest"
           :doctors="doctors"
-          @register="emit('navigate', 'kiosk')"
+          @register="emit('navigate', 'kiosk-kidinest')"
         />
       </div>
     </section>
@@ -254,7 +254,7 @@ const faqs = [
             </h2>
           </div>
           <button
-            @click="emit('navigate', 'kiosk')"
+            @click="emit('navigate', 'kiosk-kidinest')"
             class="text-xs font-bold uppercase tracking-wider text-[#0C3B36] underline hover:text-[#E5A93C] transition-colors"
           >
             Reservasi Semua Layanan →
@@ -292,7 +292,7 @@ const faqs = [
                 {{ item.doctor }}
               </span>
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-kidinest')"
                 class="inline-flex items-center gap-1.5 text-xs font-bold text-[#0C3B36] hover:text-[#E5A93C] transition-colors"
               >
                 <span>Daftar</span>
@@ -391,7 +391,7 @@ const faqs = [
                 <div class="text-[11px] text-[#0C3B36]/70">08:30 – 13:00 WIB</div>
               </div>
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-kidinest')"
                 class="px-4 py-2 rounded-lg bg-[#0C3B36] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#134E48] transition-colors"
               >
                 Daftar →
@@ -426,7 +426,7 @@ const faqs = [
                 <div class="text-[11px] text-[#0C3B36]/70">14:00 – 18:00 WIB</div>
               </div>
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-kidinest')"
                 class="px-4 py-2 rounded-lg bg-zinc-950 text-white text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
               >
                 Daftar →
@@ -528,11 +528,11 @@ const faqs = [
           Jl. Melati Utara No 3, Semarang
         </div>
         <div class="flex items-center gap-4 text-white/70 font-semibold">
-          <button @click="emit('navigate', 'kiosk')" class="hover:text-white">Portal Antrian</button>
+          <button @click="emit('navigate', 'kiosk-kidinest')" class="hover:text-white">Portal Antrian (Lt. 1)</button>
           <span>•</span>
           <button @click="emit('navigate', 'ssc')" class="hover:text-white">Semarang Skin Center</button>
           <span>•</span>
-          <button @click="emit('navigate', 'login')" class="hover:text-white">Login Staf</button>
+          <button @click="emit('navigate', 'login-kidinest')" class="hover:text-white">Login Staf</button>
         </div>
       </div>
     </footer>

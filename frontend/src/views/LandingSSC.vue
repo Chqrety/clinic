@@ -10,7 +10,7 @@ import {
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
-  (e: 'navigate', view: 'kidinest' | 'ssc' | 'kiosk' | 'login'): void
+  (e: 'navigate', view: string): void
 }>()
 
 const doctors: DoctorInfo[] = [
@@ -129,7 +129,7 @@ const faqs = [
             <!-- Dual Action Buttons -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-ssc')"
                 class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#9E606D] hover:bg-[#8B505D] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
               >
                 <span>Reservasi Antrian Konsultasi</span>
@@ -239,7 +239,7 @@ const faqs = [
         <LiveQueueFilter
           brand="ssc"
           :doctors="doctors"
-          @register="emit('navigate', 'kiosk')"
+          @register="emit('navigate', 'kiosk-ssc')"
         />
       </div>
     </section>
@@ -259,7 +259,7 @@ const faqs = [
             </h2>
           </div>
           <button
-            @click="emit('navigate', 'kiosk')"
+            @click="emit('navigate', 'kiosk-ssc')"
             class="text-xs font-bold uppercase tracking-wider text-[#9E606D] underline hover:text-[#2D1E24] transition-colors"
           >
             Reservasi Konsultasi Treatment →
@@ -297,7 +297,7 @@ const faqs = [
                 {{ item.doctor }}
               </span>
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-ssc')"
                 class="inline-flex items-center gap-1.5 text-xs font-bold text-[#9E606D] hover:text-[#2D1E24] transition-colors"
               >
                 <span>Reservasi</span>
@@ -427,7 +427,7 @@ const faqs = [
                 <div class="text-[11px] text-[#2D1E24]/70">09:00 – 14:00 WIB</div>
               </div>
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-ssc')"
                 class="px-4 py-2 rounded-lg bg-[#9E606D] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#8B505D] transition-colors"
               >
                 Daftar →
@@ -462,7 +462,7 @@ const faqs = [
                 <div class="text-[11px] text-[#2D1E24]/70">14:00 – 19:00 WIB</div>
               </div>
               <button
-                @click="emit('navigate', 'kiosk')"
+                @click="emit('navigate', 'kiosk-ssc')"
                 class="px-4 py-2 rounded-lg bg-[#2D1E24] text-white text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
               >
                 Daftar →
@@ -564,11 +564,11 @@ const faqs = [
           Klinik Utama Semarang Medical Group • Jl. Melati Utara No. 3, Semarang
         </div>
         <div class="flex items-center gap-4 text-white/80 font-semibold">
-          <button @click="emit('navigate', 'kiosk')" class="hover:text-white">Portal Reservasi</button>
+          <button @click="emit('navigate', 'kiosk-ssc')" class="hover:text-white">Portal Reservasi (Lt. 2)</button>
           <span>•</span>
           <button @click="emit('navigate', 'kidinest')" class="hover:text-white">Kidinest Pediatric</button>
           <span>•</span>
-          <button @click="emit('navigate', 'login')" class="hover:text-white">Login Staf</button>
+          <button @click="emit('navigate', 'login-ssc')" class="hover:text-white">Login Staf</button>
         </div>
       </div>
     </footer>
