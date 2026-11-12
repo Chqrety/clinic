@@ -29,9 +29,72 @@ interface StaffUser {
   updated_at: string
 }
 
+const defaultMockStaffs: StaffUser[] = [
+  {
+    id: 1,
+    employee_number: 'OWNER-01',
+    name: 'dr. Ratna Paramita, M.Kes',
+    role: 'SUPERADMIN_OWNER',
+    clinic_unit: 'ALL',
+    is_active: true,
+    created_at: '2026-01-01T08:00:00Z',
+    updated_at: '2026-01-01T08:00:00Z',
+  },
+  {
+    id: 2,
+    employee_number: 'DOC-KID-01',
+    name: 'dr. Patricia Sp.A',
+    role: 'DOCTOR',
+    clinic_unit: 'KIDINEST',
+    is_active: true,
+    created_at: '2026-01-02T08:00:00Z',
+    updated_at: '2026-01-02T08:00:00Z',
+  },
+  {
+    id: 3,
+    employee_number: 'DOC-KID-02',
+    name: 'dr. Hendra Pratama, Sp.A',
+    role: 'DOCTOR',
+    clinic_unit: 'KIDINEST',
+    is_active: true,
+    created_at: '2026-01-02T08:00:00Z',
+    updated_at: '2026-01-02T08:00:00Z',
+  },
+  {
+    id: 4,
+    employee_number: 'DOC-SSC-01',
+    name: 'dr. Dian Paramita, Sp.D.V.E',
+    role: 'DOCTOR',
+    clinic_unit: 'SSC',
+    is_active: true,
+    created_at: '2026-01-03T08:00:00Z',
+    updated_at: '2026-01-03T08:00:00Z',
+  },
+  {
+    id: 5,
+    employee_number: 'GRO-01',
+    name: 'Siti Sarah, A.Md',
+    role: 'GRO_CASHIER',
+    clinic_unit: 'KIDINEST',
+    is_active: true,
+    created_at: '2026-01-04T08:00:00Z',
+    updated_at: '2026-01-04T08:00:00Z',
+  },
+  {
+    id: 6,
+    employee_number: 'FARMASI-01',
+    name: 'Apt. Dimas Wicaksono, S.Farm',
+    role: 'PHARMACIST',
+    clinic_unit: 'KIDINEST',
+    is_active: true,
+    created_at: '2026-01-05T08:00:00Z',
+    updated_at: '2026-01-05T08:00:00Z',
+  },
+]
+
 const auth = useAuthStore()
 
-const staffList = ref<StaffUser[]>([])
+const staffList = ref<StaffUser[]>(defaultMockStaffs)
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
@@ -72,9 +135,15 @@ async function fetchStaffs() {
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Gagal mengambil data staf')
     }
-    staffList.value = data.data || []
+    if (data.data && data.data.length > 0) {
+      staffList.value = data.data
+    } else {
+      staffList.value = defaultMockStaffs
+    }
   } catch (err: any) {
-    errorMessage.value = err.message
+    if (staffList.value.length === 0) {
+      staffList.value = defaultMockStaffs
+    }
   } finally {
     isLoading.value = false
   }

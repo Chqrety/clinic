@@ -48,13 +48,18 @@ const allRoles: MenuRole[] = [
   { key: 'satusehat', label: 'SATUSEHAT Bridge', sub: 'Kemenkes RME', icon: Sparkles, allowedRoles: ['SUPERADMIN_OWNER'] },
 ]
 
+const isSuperAdmin = computed(() => {
+  const role = (auth.user?.role || 'SUPERADMIN_OWNER').toUpperCase()
+  return role === 'SUPERADMIN_OWNER' || role === 'OWNER' || auth.isOwner || !auth.user
+})
+
 // Superadmin sees all 7 modules; non-owners see only their designated modules
 const visibleRoles = computed(() => {
-  const currentRole = auth.user?.role || 'SUPERADMIN_OWNER'
-  if (currentRole === 'SUPERADMIN_OWNER') {
+  if (isSuperAdmin.value) {
     return allRoles
   }
-  return allRoles.filter(r => r.allowedRoles.includes(currentRole))
+  const userRole = (auth.user?.role || '').toUpperCase()
+  return allRoles.filter(r => r.allowedRoles.includes(userRole))
 })
 
 // Auto-align active role with user permissions
@@ -116,7 +121,7 @@ async function handleLogout() {
         <div class="relative">
           <!-- Superadmin Interactive Switcher -->
           <button
-            v-if="auth.isOwner || !auth.user"
+            v-if="isSuperAdmin"
             @click="isRoleMenuOpen = !isRoleMenuOpen"
             class="w-full p-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-left transition-all border border-zinc-700/60 flex items-center justify-between group"
           >
@@ -147,10 +152,10 @@ async function handleLogout() {
               </div>
               <div class="truncate">
                 <div class="text-xs font-bold text-white truncate">
-                  {{ auth.user.name }}
+                  {{ auth.user?.name || 'Staf Medis' }}
                 </div>
                 <div class="text-[10px] text-emerald-400 font-semibold truncate flex items-center gap-1">
-                  <span>{{ auth.user.role }} &bull; {{ auth.user.clinic_unit }}</span>
+                  <span>{{ auth.user?.role || 'STAF' }} &bull; {{ auth.user?.clinic_unit || 'UNIT' }}</span>
                 </div>
               </div>
             </div>
@@ -158,7 +163,7 @@ async function handleLogout() {
 
           <!-- Dropdown Switcher Menu (Superadmin Only) -->
           <div
-            v-if="isRoleMenuOpen && (auth.isOwner || !auth.user)"
+            v-if="isRoleMenuOpen && isSuperAdmin"
             class="absolute top-full left-0 right-0 mt-1.5 p-1.5 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl z-50 space-y-1 animate-in fade-in duration-100"
           >
             <div class="px-2 py-1 text-[9px] font-black uppercase tracking-wider text-zinc-400">

@@ -17,7 +17,9 @@ func RegisterStaffRoutes(
 		r.Use(ownerMw)
 
 		r.Get("/", h.List)
+		r.Get("", h.List)
 		r.Post("/", h.Create)
+		r.Post("", h.Create)
 		r.Get("/{id}", h.GetByID)
 		r.Put("/{id}", h.Update)
 		r.Put("/{id}/reset-password", h.ResetPassword)

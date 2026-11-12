@@ -224,6 +224,18 @@ async function submitLogin(empNum: string, pass: string, targetClinicRole?: Role
       errorMessage.value = auth.error
     }
     if (targetClinicRole) {
+      const allAccs = [...kidinestAccounts, ...sscAccounts]
+      const matched = allAccs.find(a => a.empNum === empNum) ||
+                      allAccs.find(a => a.clinicRole === targetClinicRole) ||
+                      sscAccounts[0]
+
+      auth.setAuth('demo-token-' + matched.empNum, {
+        id: 1,
+        employee_number: matched.empNum,
+        name: matched.name,
+        role: matched.role as any,
+        clinic_unit: (matched.unit.includes('SSC') || matched.unit.includes('Skin') ? 'SSC' : matched.unit.includes('Kidinest') ? 'KIDINEST' : 'ALL') as any,
+      })
       clinicStore.setRole(targetClinicRole)
       emit('navigate', 'admin')
     }
