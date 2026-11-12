@@ -18,6 +18,7 @@ import (
 	consHttp "clinic-api/internal/consultation/delivery/http"
 	consRepo "clinic-api/internal/consultation/repository"
 	consUsecase "clinic-api/internal/consultation/usecase"
+	"clinic-api/internal/dev"
 	"clinic-api/internal/domain"
 	legacyPharmacy "clinic-api/internal/pharmacy"
 	pharmacyHttp "clinic-api/internal/pharmacy/delivery/http"
@@ -162,6 +163,10 @@ func main() {
 		pharmUc := pharmacyUsecase.NewPharmacyUsecase(pharmRepository)
 		pharmHandler := pharmacyHttp.NewPharmacyHandler(pharmUc)
 		pharmacyHttp.RegisterPharmacyRoutes(r, pharmHandler, authMiddleware)
+
+		// Dev & Demo God Mode (Guarded: Dev only)
+		devHandler := dev.NewDevHandler(pgDB)
+		dev.RegisterDevRoutes(r, devHandler)
 	}
 
 	// 4. Register Legacy Modules (Fase sebelum Bagian 3-5 dimigrasikan)

@@ -8,6 +8,7 @@ import PatientPortal from './views/PatientPortal.vue'
 import LoginView from './views/LoginView.vue'
 import AdminPortal from './views/AdminPortal.vue'
 import QueueMonitor from './views/QueueMonitor.vue'
+import GodModeModal from './components/GodModeModal.vue'
 import { Baby, Sparkles, Tv, Shield, QrCode } from 'lucide-vue-next'
 
 export type AppRoute =
@@ -244,6 +245,9 @@ const activeComponent = computed(() => {
         <span>Demo Switcher ({{ currentRoute }})</span>
       </button>
     </div>
+
+    <!-- Dev & Demo God Mode Modal -->
+    <GodModeModal />
 
   </div>
 </template>
