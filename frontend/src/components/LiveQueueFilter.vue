@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import {
-  Clock,
   Search,
   X,
-  Stethoscope,
-  Sparkles,
-  ArrowRight,
-  Filter
+  ArrowRight
 } from 'lucide-vue-next'
 
 export interface DoctorInfo {
@@ -247,8 +243,8 @@ const modalFilteredQueues = computed(() => {
 <template>
   <div class="w-full select-none">
 
-    <!-- 1. Minimalist Underline Tabs (Pilihan Dokter Tanpa Kotak-Kotak AI) -->
-    <div class="pb-4 border-b flex flex-col md:flex-row md:items-end justify-between gap-4"
+    <!-- 1. Header & Minimalist Doctor Dropdown (Skalabel untuk Banyak Dokter) -->
+    <div class="pb-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       :class="brand === 'kidinest' ? 'border-[#E5A93C]/20' : 'border-[#9E606D]/15'"
     >
       <div>
@@ -257,63 +253,62 @@ const modalFilteredQueues = computed(() => {
             class="w-2 h-2 rounded-full animate-pulse"
             :class="brand === 'kidinest' ? 'bg-[#E5A93C]' : 'bg-[#9E606D]'"
           ></span>
-          <span class="text-[11px] font-bold uppercase tracking-wider opacity-75">
-            Papan Antrian Pasien • Live Real-Time
+          <span class="text-[11px] font-bold uppercase tracking-wider opacity-70">
+            Antrian Langsung
           </span>
         </div>
         <h3 class="text-xl sm:text-2xl font-bold tracking-tight">
-          Nomor Antrian Sedang Dipanggil
+          Nomor Antrian Sedang Berjalan
         </h3>
       </div>
 
-      <!-- Clean Segmented Underline Tabs (Bebas Kotak Card) -->
-      <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
-        <button
-          @click="selectedDoctorId = 'ALL'"
-          class="px-3 py-1.5 text-xs font-bold transition-all relative whitespace-nowrap"
-          :class="
-            selectedDoctorId === 'ALL'
-              ? brand === 'kidinest'
-                ? 'text-[#0C3B36] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#0C3B36]'
-                : 'text-[#2D1E24] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#9E606D]'
-              : 'text-zinc-500 hover:text-zinc-800'
-          "
-        >
-          Semua Dokter
-        </button>
-
-        <button
-          v-for="doc in doctors"
-          :key="doc.id"
-          @click="selectedDoctorId = doc.id"
-          class="px-3 py-1.5 text-xs font-bold transition-all relative flex items-center gap-1.5 whitespace-nowrap"
-          :class="
-            selectedDoctorId === doc.id
-              ? brand === 'kidinest'
-                ? 'text-[#0C3B36] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#0C3B36]'
-                : 'text-[#2D1E24] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#9E606D]'
-              : 'text-zinc-500 hover:text-zinc-800'
-          "
-        >
-          <span>{{ doc.name.split(',')[0] }}</span>
-          <span class="text-[10px] opacity-60">({{ doc.room }})</span>
-        </button>
+      <!-- Dropdown Filter Dokter (Clean, Minimalist, Menampung Banyak Dokter) -->
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <label for="doctor-select" class="text-xs font-semibold opacity-70 whitespace-nowrap">
+          Pilih Dokter:
+        </label>
+        <div class="relative">
+          <select
+            id="doctor-select"
+            v-model="selectedDoctorId"
+            class="appearance-none text-xs font-bold pl-3 pr-8 py-2 rounded-lg border bg-white cursor-pointer focus:outline-hidden transition-all shadow-2xs"
+            :class="
+              brand === 'kidinest'
+                ? 'border-[#0C3B36]/20 text-[#0C3B36] focus:border-[#0C3B36] focus:ring-1 focus:ring-[#0C3B36]'
+                : 'border-[#9E606D]/25 text-[#2D1E24] focus:border-[#9E606D] focus:ring-1 focus:ring-[#9E606D]'
+            "
+          >
+            <option value="ALL">Semua Dokter</option>
+            <option
+              v-for="doc in doctors"
+              :key="doc.id"
+              :value="doc.id"
+            >
+              {{ doc.name }} ({{ doc.room }})
+            </option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 opacity-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 2. Integrated Hairline Board (Nomor Antrian Aktif + 3 Antrian Berikutnya) -->
+    <!-- 2. Integrated Hairline Board (Prioritas Utama: Nomor Aktif + 3 Antrian Berikutnya) -->
     <div
       class="py-6 sm:py-8 border-b grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
       :class="brand === 'kidinest' ? 'border-[#E5A93C]/20' : 'border-[#9E606D]/15'"
     >
 
       <!-- Kiri: Nomor Antrian yang Sedang Berjalan (Col 7) -->
-      <div class="lg:col-span-7 space-y-4">
+      <div class="lg:col-span-7 space-y-3">
         
-        <!-- Status Label Strip -->
-        <div class="flex items-center gap-3">
+        <!-- Status Label Strip Ringkas -->
+        <div class="flex items-center gap-2">
           <span
-            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-bold"
             :class="
               currentActiveQueue?.status === 'IN_EXAM'
                 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
@@ -323,12 +318,9 @@ const modalFilteredQueues = computed(() => {
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
             {{
               currentActiveQueue?.status === 'IN_EXAM'
-                ? 'Sedang Dalam Pemeriksaan'
+                ? 'Sedang Diperiksa'
                 : 'Sedang Dipanggil'
             }}
-          </span>
-          <span class="text-xs opacity-60">
-            • Diperbarui Baru Saja
           </span>
         </div>
 
@@ -338,46 +330,43 @@ const modalFilteredQueues = computed(() => {
             class="font-mono text-5xl sm:text-6xl font-black tracking-tight"
             :class="brand === 'kidinest' ? 'text-[#0C3B36]' : 'text-[#2D1E24]'"
           >
-            {{ currentActiveQueue?.queue_number || 'K-001' }}
+            {{ currentActiveQueue?.queue_number || '—' }}
           </div>
           <div>
             <div class="text-base sm:text-lg font-bold">
-              {{ currentActiveQueue?.patient_masked || 'Pasien Mandiri' }}
+              {{ currentActiveQueue?.patient_masked || 'Tidak ada antrian' }}
             </div>
             <div class="text-xs opacity-75 mt-0.5">
-              Pemeriksa: <strong>{{ currentActiveQueue?.doctor_name }}</strong>
+              {{ currentActiveQueue?.doctor_name }}
             </div>
           </div>
         </div>
 
-        <!-- Action Button Inline -->
-        <div class="pt-2 flex items-center gap-4">
+        <!-- Action Button Ringkas -->
+        <div class="pt-2">
           <button
             @click="emit('register')"
             class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-95"
             :class="brand === 'kidinest' ? 'bg-[#0C3B36] hover:bg-[#134E48]' : 'bg-[#9E606D] hover:bg-[#8B505D]'"
           >
-            <span>Ambil Nomor Antrian Baru</span>
+            <span>Ambil Antrian Online</span>
             <ArrowRight class="w-3.5 h-3.5" />
           </button>
-          <span class="text-xs opacity-60 hidden sm:inline">
-            Tiket terkirim via WhatsApp
-          </span>
         </div>
 
       </div>
 
-      <!-- Kanan: 3 Antrian Berikutnya (Hairline Rows - Bukan Card Kotak!) (Col 5) -->
+      <!-- Kanan: 3 Antrian Berikutnya (Hairline Rows) (Col 5) -->
       <div
         class="lg:col-span-5 lg:pl-8 lg:border-l space-y-3"
         :class="brand === 'kidinest' ? 'lg:border-[#E5A93C]/20' : 'lg:border-[#9E606D]/15'"
       >
         <div class="flex items-center justify-between text-xs font-semibold opacity-70 pb-1">
-          <span>3 Antrian Berikutnya</span>
-          <span>{{ totalWaiting }} pasien menunggu</span>
+          <span>Antrian Berikutnya</span>
+          <span>{{ totalWaiting }} menunggu</span>
         </div>
 
-        <!-- Hairline Rows (Bukan Kotak Card Bertumpuk!) -->
+        <!-- Hairline Rows -->
         <div class="divide-y border-t border-b"
           :class="brand === 'kidinest' ? 'divide-[#0C3B36]/10 border-[#0C3B36]/10' : 'divide-[#9E606D]/10 border-[#9E606D]/10'"
         >
@@ -424,7 +413,7 @@ const modalFilteredQueues = computed(() => {
             @click="isAllQueuesModalOpen = true"
             class="text-xs font-bold underline underline-offset-4 hover:opacity-80 transition-opacity"
           >
-            Lihat seluruh antrian hari ini ({{ filteredByDoctor.length }}) →
+            Lihat semua antrian ({{ filteredByDoctor.length }}) →
           </button>
         </div>
 
@@ -432,19 +421,7 @@ const modalFilteredQueues = computed(() => {
 
     </div>
 
-    <!-- 3. Minimalist Info Note (Inline Text, Tanpa Card Tebal) -->
-    <div class="py-3 flex items-center justify-between text-xs opacity-75">
-      <div class="flex items-center gap-2">
-        <Sparkles class="w-3.5 h-3.5 text-amber-500 shrink-0" />
-        <span>Panggilan otomatis dikirim via WhatsApp saat antrian Anda mendekati 2 giliran lagi.</span>
-      </div>
-      <button
-        @click="emit('register')"
-        class="font-bold underline hover:opacity-100 shrink-0 hidden sm:inline"
-      >
-        Daftar Mandiri Online →
-      </button>
-    </div>
+
 
     <!-- Modal Drawer: Seluruh Antrian Hari Ini (Hairline Minimalist) -->
     <div

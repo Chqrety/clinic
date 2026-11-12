@@ -80,7 +80,7 @@ const servicesList = [
 const faqs = [
   {
     q: 'Bagaimana cara mengambil nomor antrian online Kidinest?',
-    a: 'Cukup klik tombol "Ambil Antrian Online", pilih tanggal dan dokter spesialis anak, lalu tiket digital langsung tersimpan di ponsel dan terhubung ke WhatsApp Anda.'
+    a: 'Cukup klik tombol "Ambil Antrian Online", pilih dokter dan jam kunjungan, lalu tiket antrian digital langsung tersimpan di ponsel Anda.'
   },
   {
     q: 'Apakah Kidinest melayani imunisasi lengkap bayi baru lahir?',
@@ -123,7 +123,7 @@ const faqs = [
               Pemeriksaan Buah Hati dengan Hangat & Tenang.
             </h1>
             <p class="text-sm sm:text-base text-[#0C3B36]/80 leading-relaxed max-w-xl font-medium">
-              Pelayanan dokter spesialis anak bersama <strong>dr. Patricia Vanessa A., Sp.A</strong>. Pantau nomor antrian secara live dari ponsel Anda, hindari antrean panjang di ruang tunggu, dan dapatkan notifikasi WhatsApp saat giliran tiba.
+              Pelayanan dokter spesialis anak bersama <strong>dr. Patricia Vanessa A., Sp.A</strong> dan tim. Pantau nomor antrian secara langsung dari ponsel Anda tanpa harus menunggu lama di ruang tunggu.
             </p>
 
             <!-- Dual Action Buttons -->
@@ -153,7 +153,7 @@ const faqs = [
               </div>
               <div class="flex items-center gap-2">
                 <CheckCircle2 class="w-4 h-4 text-[#E5A93C]" />
-                <span>Notifikasi WhatsApp Paperless</span>
+                <span>Antrian Digital Transparan</span>
               </div>
             </div>
           </div>
