@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useClinicStore } from '../stores/clinic'
-import AdminHeader from '../components/AdminHeader.vue'
+import AdminSidebar from '../components/AdminSidebar.vue'
 import DoctorRoom from './DoctorRoom.vue'
 import PharmacyRoom from './PharmacyRoom.vue'
 import CashierView from './CashierView.vue'
@@ -11,7 +11,7 @@ import SatusehatView from './SatusehatView.vue'
 import StaffAdmin from './StaffAdmin.vue'
 
 const emit = defineEmits<{
-  (e: 'navigate', view: 'landing' | 'kiosk' | 'login'): void
+  (e: 'navigate', view: 'kidinest' | 'ssc' | 'kiosk' | 'login' | 'monitor'): void
 }>()
 
 const store = useClinicStore()
@@ -33,29 +33,33 @@ const currentWorkstation = computed(() => {
     case 'satusehat':
       return SatusehatView
     default:
-      return DoctorRoom
+      return CashierView
   }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F9F9F7] text-zinc-950 flex flex-col">
-    <!-- Sleek Top Masthead for Authenticated Staff -->
-    <AdminHeader @navigate="(v) => emit('navigate', v)" />
+  <div class="h-screen w-screen flex overflow-hidden bg-slate-50 text-zinc-950 font-['Plus_Jakarta_Sans',sans-serif]">
+    
+    <!-- Fixed Minimalist Left Sidebar -->
+    <AdminSidebar @navigate="(v) => emit('navigate', v)" />
 
-    <!-- Active Staff Workstation Content -->
-    <main class="flex-1">
-      <Transition name="fade" mode="out-in">
-        <component :is="currentWorkstation" :key="store.currentRole" />
-      </Transition>
+    <!-- Main Workstation View Area -->
+    <main class="flex-1 h-screen overflow-y-auto bg-slate-100/70 p-4 sm:p-6 lg:p-8">
+      <div class="max-w-[1600px] mx-auto w-full">
+        <Transition name="fade" mode="out-in">
+          <component :is="currentWorkstation" :key="store.currentRole" />
+        </Transition>
+      </div>
     </main>
+
   </div>
 </template>
 
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.15s ease;
+  transition: opacity 0.12s ease;
 }
 .fade-enter-from,
 .fade-leave-to {

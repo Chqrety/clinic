@@ -11,7 +11,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  Filter
+  Filter,
+  Baby
 } from 'lucide-vue-next'
 
 export interface DoctorInfo {
@@ -56,7 +57,7 @@ function initMockData() {
       {
         queue_number: 'K-006',
         patient_masked: 'Ananda R**** (2 th)',
-        doctor_name: 'dr. Hendra Pratama, Sp.A',
+        doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'IN_EXAM',
         created_at: '09:15',
@@ -64,7 +65,7 @@ function initMockData() {
       {
         queue_number: 'K-007',
         patient_masked: 'Ananda M**** (8 bln)',
-        doctor_name: 'dr. Anita Ratna, Sp.A',
+        doctor_name: 'dr. Hendra Pratama, Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'CALLING',
         created_at: '09:20',
@@ -72,7 +73,7 @@ function initMockData() {
       {
         queue_number: 'K-008',
         patient_masked: 'Ananda F**** (4 th)',
-        doctor_name: 'dr. Hendra Pratama, Sp.A',
+        doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
         estimated_wait_minutes: 8,
@@ -81,7 +82,7 @@ function initMockData() {
       {
         queue_number: 'K-009',
         patient_masked: 'Ananda S**** (1 th)',
-        doctor_name: 'dr. Anita Ratna, Sp.A',
+        doctor_name: 'dr. Hendra Pratama, Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
         estimated_wait_minutes: 15,
@@ -90,7 +91,7 @@ function initMockData() {
       {
         queue_number: 'K-010',
         patient_masked: 'Ananda D**** (5 th)',
-        doctor_name: 'dr. Hendra Pratama, Sp.A',
+        doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
         estimated_wait_minutes: 25,
@@ -99,7 +100,7 @@ function initMockData() {
       {
         queue_number: 'K-011',
         patient_masked: 'Ananda Z**** (3 bln)',
-        doctor_name: 'dr. Anita Ratna, Sp.A',
+        doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
         estimated_wait_minutes: 35,
@@ -108,7 +109,7 @@ function initMockData() {
       {
         queue_number: 'K-004',
         patient_masked: 'Ananda K****',
-        doctor_name: 'dr. Hendra Pratama, Sp.A',
+        doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'PHARMACY',
         created_at: '08:45',
@@ -116,7 +117,7 @@ function initMockData() {
       {
         queue_number: 'K-005',
         patient_masked: 'Ananda B****',
-        doctor_name: 'dr. Anita Ratna, Sp.A',
+        doctor_name: 'dr. Hendra Pratama, Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'COMPLETED',
         created_at: '08:30',
@@ -257,10 +258,10 @@ const modalFilteredQueues = computed(() => {
         <div class="flex items-center gap-2 mb-1.5">
           <span
             class="w-2.5 h-2.5 rounded-full animate-ping"
-            :class="brand === 'kidinest' ? 'bg-emerald-500' : 'bg-rose-500'"
+            :class="brand === 'kidinest' ? 'bg-sky-500' : 'bg-rose-500'"
           ></span>
           <span class="text-xs font-black uppercase tracking-wider text-zinc-500">
-            Live Queue Board • Sistem Sinkronisasi Real-Time
+            Papan Antrian Pasien • Live Real-Time
           </span>
         </div>
         <h3 class="text-2xl sm:text-3xl font-extrabold text-zinc-950 tracking-tight">
@@ -269,14 +270,16 @@ const modalFilteredQueues = computed(() => {
       </div>
 
       <!-- Segmented Doctor Pills -->
-      <div class="flex items-center flex-wrap gap-1.5 p-1.5 rounded-2xl bg-zinc-200/70 border border-zinc-300/80">
+      <div class="flex items-center flex-wrap gap-1.5 p-1.5 rounded-2xl bg-zinc-100 border border-zinc-200">
         <button
           @click="selectedDoctorId = 'ALL'"
           class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-150"
           :class="
             selectedDoctorId === 'ALL'
-              ? 'bg-zinc-950 text-white shadow-sm'
-              : 'text-zinc-700 hover:text-zinc-950 hover:bg-white/60'
+              ? brand === 'kidinest'
+                ? 'bg-sky-600 text-white shadow-xs'
+                : 'bg-zinc-950 text-white shadow-xs'
+              : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'
           "
         >
           Semua Dokter
@@ -290,12 +293,12 @@ const modalFilteredQueues = computed(() => {
           :class="
             selectedDoctorId === doc.id
               ? brand === 'kidinest'
-                ? 'bg-[#0F4C3A] text-white shadow-sm'
-                : 'bg-zinc-950 text-white shadow-sm'
-              : 'text-zinc-700 hover:text-zinc-950 hover:bg-white/60'
+                ? 'bg-sky-600 text-white shadow-xs'
+                : 'bg-zinc-950 text-white shadow-xs'
+              : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'
           "
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full" :class="brand === 'kidinest' ? 'bg-amber-300' : 'bg-rose-400'"></span>
           <span>{{ doc.name }}</span>
           <span class="text-[10px] opacity-75 hidden xl:inline">({{ doc.room }})</span>
         </button>
@@ -310,8 +313,8 @@ const modalFilteredQueues = computed(() => {
         class="lg:col-span-7 rounded-3xl p-6 sm:p-8 flex flex-col justify-between border shadow-sm transition-all"
         :class="
           brand === 'kidinest'
-            ? 'bg-white border-emerald-950/15'
-            : 'bg-white border-zinc-200'
+            ? 'bg-white border-sky-100 ring-4 ring-sky-50'
+            : 'bg-white border-rose-100 ring-4 ring-rose-50'
         "
       >
         <div>
@@ -321,11 +324,16 @@ const modalFilteredQueues = computed(() => {
               class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider"
               :class="
                 currentActiveQueue?.status === 'IN_EXAM'
-                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                  ? brand === 'kidinest'
+                    ? 'bg-sky-100 text-sky-900 border border-sky-200'
+                    : 'bg-rose-100 text-rose-900 border border-rose-200'
                   : 'bg-amber-100 text-amber-900 border border-amber-200'
               "
             >
-              <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+              <span
+                class="w-2 h-2 rounded-full animate-pulse"
+                :class="brand === 'kidinest' ? 'bg-sky-600' : 'bg-rose-600'"
+              ></span>
               {{
                 currentActiveQueue?.status === 'IN_EXAM'
                   ? 'Sedang Dalam Pemeriksaan'
@@ -333,8 +341,8 @@ const modalFilteredQueues = computed(() => {
               }}
             </span>
 
-            <span class="text-xs font-bold text-zinc-500">
-              Update: Terkini
+            <span class="text-xs font-bold text-zinc-400">
+              Live Board
             </span>
           </div>
 
@@ -342,9 +350,9 @@ const modalFilteredQueues = computed(() => {
           <div class="my-3">
             <div
               class="text-6xl sm:text-7xl font-black font-mono tracking-tighter"
-              :class="brand === 'kidinest' ? 'text-[#0F4C3A]' : 'text-zinc-950'"
+              :class="brand === 'kidinest' ? 'text-sky-600' : 'text-zinc-950'"
             >
-              {{ currentActiveQueue?.queue_number || 'A-001' }}
+              {{ currentActiveQueue?.queue_number || 'K-001' }}
             </div>
             <div class="text-lg sm:text-xl font-bold text-zinc-800 mt-1">
               {{ currentActiveQueue?.patient_masked || 'Pasien Mandiri' }}
@@ -359,14 +367,14 @@ const modalFilteredQueues = computed(() => {
               class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm"
               :class="
                 brand === 'kidinest'
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  : 'bg-zinc-100 text-zinc-800 border border-zinc-200'
+                  ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                  : 'bg-rose-50 text-rose-700 border border-rose-200'
               "
             >
               <Stethoscope class="w-5 h-5" />
             </div>
             <div>
-              <div class="text-xs text-zinc-500 font-semibold">Dokter Pemeriksa:</div>
+              <div class="text-xs text-zinc-400 font-semibold">Dokter Pemeriksa:</div>
               <div class="text-sm font-extrabold text-zinc-950">
                 {{ currentActiveQueue?.doctor_name || 'dr. Jaga Klinik' }}
               </div>
@@ -376,10 +384,10 @@ const modalFilteredQueues = computed(() => {
           <!-- Quick Action to Register -->
           <button
             @click="emit('register')"
-            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider text-white transition-all shadow-sm active:scale-95"
-            :class="brand === 'kidinest' ? 'bg-[#0F4C3A] hover:bg-[#0A3629]' : 'bg-zinc-950 hover:bg-zinc-800'"
+            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider text-white transition-all shadow-sm active:scale-95"
+            :class="brand === 'kidinest' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-zinc-950 hover:bg-zinc-800'"
           >
-            <span>Ambil Nomor Baru</span>
+            <span>Ambil Antrian</span>
             <ArrowRight class="w-3.5 h-3.5" />
           </button>
         </div>
@@ -403,8 +411,8 @@ const modalFilteredQueues = computed(() => {
           <div
             v-for="(item, idx) in nextThreeQueues"
             :key="item.queue_number"
-            class="p-4 rounded-2xl border bg-white hover:border-zinc-400 transition-all shadow-2xs flex items-center justify-between"
-            :class="idx === 0 ? 'border-zinc-300 ring-2 ring-zinc-950/5' : 'border-zinc-200'"
+            class="p-4 rounded-2xl border bg-white hover:border-zinc-300 transition-all shadow-2xs flex items-center justify-between"
+            :class="idx === 0 ? 'border-sky-300 ring-2 ring-sky-50' : 'border-zinc-200'"
           >
             <div class="flex items-center gap-3.5">
               <div
@@ -412,8 +420,8 @@ const modalFilteredQueues = computed(() => {
                 :class="
                   idx === 0
                     ? brand === 'kidinest'
-                      ? 'bg-emerald-100 text-[#0F4C3A]'
-                      : 'bg-zinc-900 text-white'
+                      ? 'bg-sky-100 text-sky-800'
+                      : 'bg-rose-100 text-rose-800'
                     : 'bg-zinc-100 text-zinc-800'
                 "
               >
@@ -423,7 +431,7 @@ const modalFilteredQueues = computed(() => {
                 <div class="text-xs font-extrabold text-zinc-900">
                   {{ item.patient_masked }}
                 </div>
-                <div class="text-[11px] text-zinc-500 font-medium">
+                <div class="text-[11px] text-zinc-400 font-medium">
                   {{ item.doctor_name.split(',')[0] }}
                 </div>
               </div>
@@ -439,7 +447,7 @@ const modalFilteredQueues = computed(() => {
 
           <div
             v-if="nextThreeQueues.length === 0"
-            class="p-8 rounded-2xl border border-dashed border-zinc-300 text-center text-zinc-500 text-xs font-medium"
+            class="p-8 rounded-2xl border border-dashed border-zinc-200 text-center text-zinc-400 text-xs font-medium"
           >
             Tidak ada pasien lain dalam antrian tunggu saat ini.
           </div>
@@ -448,7 +456,7 @@ const modalFilteredQueues = computed(() => {
         <!-- Action: Open Drawer All Queues -->
         <button
           @click="isAllQueuesModalOpen = true"
-          class="w-full py-3 px-4 rounded-2xl border border-zinc-300 bg-white hover:bg-zinc-50 hover:border-zinc-900 text-zinc-900 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-2xs group"
+          class="w-full py-3 px-4 rounded-2xl border border-zinc-200 bg-white hover:bg-zinc-50 hover:border-zinc-400 text-zinc-900 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-2xs group"
         >
           <span>Lihat Semua Antrian Hari Ini ({{ filteredByDoctor.length }})</span>
           <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -459,16 +467,23 @@ const modalFilteredQueues = computed(() => {
     </div>
 
     <!-- Notification Tip / WhatsApp Integration Notice -->
-    <div class="mt-6 p-4 rounded-2xl bg-zinc-100/90 border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-700">
+    <div
+      class="mt-6 p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+      :class="
+        brand === 'kidinest'
+          ? 'bg-sky-50/70 border-sky-100 text-sky-950'
+          : 'bg-rose-50/70 border-rose-100 text-rose-950'
+      "
+    >
       <div class="flex items-center gap-2.5">
         <Sparkles class="w-4 h-4 text-amber-500 shrink-0" />
         <span class="font-medium">
-          <strong>Tips Pasien:</strong> Anda tidak perlu berdiam di ruang tunggu. Sistem kami mengirim notifikasi WhatsApp otomatis saat antrian Anda berjarak 2 pasien.
+          <strong>Antrian Ramah Keluarga:</strong> Pasien tidak perlu berdesakan di ruang tunggu. Notifikasi panggilan terkirim otomatis ke WhatsApp saat nomor Anda mendekati giliran.
         </span>
       </div>
       <button
         @click="emit('register')"
-        class="font-extrabold text-zinc-950 underline hover:text-zinc-700 shrink-0"
+        class="font-extrabold underline hover:opacity-80 shrink-0"
       >
         Ambil Tiket Online →
       </button>
@@ -486,10 +501,10 @@ const modalFilteredQueues = computed(() => {
         <div class="p-6 border-b border-zinc-200 flex items-center justify-between">
           <div>
             <h4 class="text-xl font-black text-zinc-950">
-              Daftar Seluruh Antrian Hari Ini
+              Daftar Antrian Lengkap Hari Ini
             </h4>
             <p class="text-xs text-zinc-500 font-medium">
-              Data real-time poli {{ brand === 'kidinest' ? 'Kidinest' : 'Semarang Skin Center' }} • Nama disamarkan
+              Data real-time poli {{ brand === 'kidinest' ? 'Kidinest Pediatric' : 'Semarang Skin Center' }} • Nama disamarkan
             </p>
           </div>
           <button
