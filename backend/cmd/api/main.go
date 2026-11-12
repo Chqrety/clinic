@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	authHttp "clinic-api/internal/auth/delivery/http"
@@ -39,7 +40,32 @@ import (
 	"github.com/go-chi/cors"
 )
 
+func loadEnv(paths ...string) {
+	for _, p := range paths {
+		b, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		for _, line := range strings.Split(string(b), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				k := strings.TrimSpace(parts[0])
+				v := strings.Trim(strings.TrimSpace(parts[1]), `"'`)
+				if os.Getenv(k) == "" {
+					os.Setenv(k, v)
+				}
+			}
+		}
+	}
+}
+
 func main() {
+	loadEnv(".env", "../.env")
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

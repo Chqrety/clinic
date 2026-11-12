@@ -11,12 +11,18 @@ backend/clinic.db
 backend/clinic.db-journal
 backend/clinic.db-wal
 backend/clinic.db-shm
+clinic.db*
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
 frontend/.env.*.local
+
+# Environment variables
+.env
+*.env
+!.env.example
 
 # Logs & temp
 *.log

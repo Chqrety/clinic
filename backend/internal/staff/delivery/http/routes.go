@@ -12,16 +12,18 @@ func RegisterStaffRoutes(
 	authMw func(http.Handler) http.Handler,
 	ownerMw func(http.Handler) http.Handler,
 ) {
-	r.Route("/api/admin/staff", func(r chi.Router) {
-		r.Use(authMw)
-		r.Use(ownerMw)
+	r.Group(func(sr chi.Router) {
+		sr.Use(authMw)
+		sr.Use(ownerMw)
 
-		r.Get("/", h.List)
-		r.Get("", h.List)
-		r.Post("/", h.Create)
-		r.Post("", h.Create)
-		r.Get("/{id}", h.GetByID)
-		r.Put("/{id}", h.Update)
-		r.Put("/{id}/reset-password", h.ResetPassword)
+		sr.Get("/api/admin/staff", h.List)
+		sr.Post("/api/admin/staff", h.Create)
+		sr.Route("/api/admin/staff", func(sub chi.Router) {
+			sub.Get("/", h.List)
+			sub.Post("/", h.Create)
+			sub.Get("/{id}", h.GetByID)
+			sub.Put("/{id}", h.Update)
+			sub.Put("/{id}/reset-password", h.ResetPassword)
+		})
 	})
 }
