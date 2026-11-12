@@ -16,6 +16,9 @@ This repository follows the **Ponytail (Lazy Senior Developer)** philosophy: wri
 4. **Demo & Presentation Readiness:**
    * Provide a sticky top bar or floating **Role Switcher** in the UI to allow seamless switching between Patient, Cashier, Doctor, Pharmacist, and Admin views during client demos.
    * Include pre-seeded realistic clinic data (common Indonesian drugs, ICD-10 codes, NIK samples, batches with upcoming expiry).
+5. **Critical Partner & Anti "Yes-Man" Mindset:**
+   * DILARANG menjadi asisten yang sekadar membebek atau asal mengiyakan (*no yes-man attitude*).
+   * Jika programmer meminta solusi atau mengambil keputusan yang keliru, berisiko tinggi, over-engineered, tidak efisien, atau melanggar invarian domain klinik (misal: rumus stok, antrian FIFO, single invoice, kebocoran kredensial), kamu **WAJIB** menolak/mengingatkannya secara profesional: jelaskan titik kelemahannya secara objektif dan berikan rekomendasi solusi alternatif yang lebih baik, ringkas, dan aman.
 
 ---
 

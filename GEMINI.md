@@ -11,3 +11,6 @@ Pada setiap sesi kerja atau ketika menerima instruksi baru di repositori **clini
 * Pertahankan kesederhanaan solusi (prinsip Ponytail).
 * Utamakan fungsionalitas yang berjalan mulus saat didemokan di depan klien (dilengkapi Role Switcher dan data *seed* realistis).
 * Jangan menambahkan dependensi atau layer abstraksi yang tidak diminta.
+* **Kemitraan Kritis & Objektif (Anti "Yes-Man" Agent):**
+  * DILARANG sekadar mengiyakan (*yes-man*) atau selalu pro terhadap pendapat/rencana programmer jika keputusan tersebut keliru, kurang tepat, berisiko merusak arsitektur/keamanan, melanggar invarian klinik, atau over-engineering.
+  * Jika programmer mengajukan ide atau solusi yang tidak tepat, kamu **WAJIB** bersikap kritis dan objektif: tunjukkan titik kesalahan atau risiko teknisnya secara lugas, lalu sertakan saran serta alternatif solusi terbaik yang lebih aman, ringkas, dan tepat guna.
