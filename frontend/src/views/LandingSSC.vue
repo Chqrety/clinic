@@ -114,33 +114,56 @@ const faqs = [
           </span>
         </div>
 
-        <!-- Headline & Brief Narrative (Broad Editorial Width) -->
-        <div class="max-w-3xl space-y-4">
-          <h1 class="text-3xl sm:text-5xl font-extrabold text-[#2D1E24] tracking-tight leading-[1.15]">
-            Advanced Care <span class="font-['Playfair_Display',serif] italic font-normal text-[#9E606D]">for Your Skin.</span>
-          </h1>
-          <p class="text-sm sm:text-base text-[#2D1E24]/80 leading-relaxed font-medium max-w-2xl">
-            Pusat dermatologi medis dan estetika klinis bersama <strong>dr. Dian Paramita, Sp.D.V.E</strong> dan <strong>dr. Kevin Wijaya, Sp.D.V.E</strong>. Protokol terstandar dokter spesialis kulit, teknologi laser medis modern, dan estimasi antrian ruang tindakan transparan.
-          </p>
+        <!-- Headline & Visual Grid (Bebas Kotak AI, Dilengkapi Visual Otentik) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
 
-          <!-- Dual Action Buttons -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-            <button
-              @click="emit('navigate', 'kiosk')"
-              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#9E606D] hover:bg-[#8B505D] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
-            >
-              <span>Reservasi Antrian Konsultasi</span>
-              <ArrowRight class="w-4 h-4 text-white/80" />
-            </button>
+          <!-- Left: Narasi & Tindakan Utama (Col 7) -->
+          <div class="lg:col-span-7 space-y-4">
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-[#2D1E24] tracking-tight leading-[1.15]">
+              Advanced Care <span class="font-['Playfair_Display',serif] italic font-normal text-[#9E606D]">for Your Skin.</span>
+            </h1>
+            <p class="text-sm sm:text-base text-[#2D1E24]/80 leading-relaxed font-medium max-w-xl">
+              Pusat dermatologi medis dan estetika klinis bersama <strong>dr. Dian Paramita, Sp.D.V.E</strong> dan <strong>dr. Kevin Wijaya, Sp.D.V.E</strong>. Protokol terstandar dokter spesialis kulit, teknologi laser medis modern, dan estimasi antrian ruang tindakan transparan.
+            </p>
 
-            <a
-              href="#live-antrian"
-              class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/80 hover:bg-white border border-[#9E606D]/30 text-[#2D1E24] font-bold text-xs sm:text-sm transition-all shadow-2xs"
-            >
-              <span class="w-2 h-2 rounded-full bg-[#9E606D] animate-pulse"></span>
-              <span>Pantau Antrian Hari Ini</span>
-            </a>
+            <!-- Dual Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+              <button
+                @click="emit('navigate', 'kiosk')"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#9E606D] hover:bg-[#8B505D] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
+              >
+                <span>Reservasi Antrian Konsultasi</span>
+                <ArrowRight class="w-4 h-4 text-white/80" />
+              </button>
+
+              <a
+                href="#live-antrian"
+                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/80 hover:bg-white border border-[#9E606D]/30 text-[#2D1E24] font-bold text-xs sm:text-sm transition-all shadow-2xs"
+              >
+                <span class="w-2 h-2 rounded-full bg-[#9E606D] animate-pulse"></span>
+                <span>Pantau Antrian Hari Ini</span>
+              </a>
+            </div>
           </div>
+
+          <!-- Right: Authentic Clinical Visual Window (Col 5) -->
+          <div class="lg:col-span-5">
+            <div class="relative rounded-3xl overflow-hidden border border-[#9E606D]/25 shadow-xs bg-white/60">
+              <img
+                src="/assets/ssc/hero-citrus.jpg"
+                alt="Clinical Dermatology Protocol"
+                class="w-full h-60 sm:h-72 object-cover object-center"
+              />
+              <div class="px-4 py-3 bg-white/95 border-t border-[#9E606D]/20 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <img src="/assets/ssc/logo-ssc.png" class="w-4 h-4 object-contain" />
+                  <span class="font-bold text-[#2D1E24]">Semarang Skin Center</span>
+                </div>
+                <span class="text-[11px] font-semibold text-[#9E606D]">Advanced Care for Your Skin</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Clinic Facts Strip (Hairline 3-Column - Bukan Card Kotak!) -->

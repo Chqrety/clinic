@@ -109,33 +109,56 @@ const faqs = [
           </span>
         </div>
 
-        <!-- Headline & Brief Narrative (Broad Editorial Width) -->
-        <div class="max-w-3xl space-y-4">
-          <h1 class="text-3xl sm:text-5xl font-extrabold text-[#0C3B36] tracking-tight leading-[1.15]">
-            Pemeriksaan Buah Hati yang Tenang, Cermat, dan Hangat.
-          </h1>
-          <p class="text-sm sm:text-base text-[#0C3B36]/80 leading-relaxed font-medium max-w-2xl">
-            Layanan dokter spesialis anak bersama <strong>dr. Patricia Vanessa A., Sp.A</strong> dan <strong>dr. Hendra Pratama, Sp.A</strong>. Pantau nomor antrian secara langsung dari ponsel Anda tanpa harus menunggu lama di ruang tunggu.
-          </p>
+        <!-- Headline & Visual Grid (Bebas Kotak AI, Dilengkapi Visual Otentik) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
 
-          <!-- Dual Action Buttons -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-            <button
-              @click="emit('navigate', 'kiosk')"
-              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
-            >
-              <span>Ambil Nomor Antrian Online</span>
-              <ArrowRight class="w-4 h-4 text-[#E5A93C]" />
-            </button>
+          <!-- Left: Narasi & Tindakan Utama (Col 7) -->
+          <div class="lg:col-span-7 space-y-4">
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-[#0C3B36] tracking-tight leading-[1.15]">
+              Pemeriksaan Buah Hati yang Tenang, Cermat, dan Hangat.
+            </h1>
+            <p class="text-sm sm:text-base text-[#0C3B36]/80 leading-relaxed font-medium max-w-xl">
+              Layanan dokter spesialis anak bersama <strong>dr. Patricia Vanessa A., Sp.A</strong> dan <strong>dr. Hendra Pratama, Sp.A</strong>. Pantau nomor antrian secara langsung dari ponsel Anda tanpa harus menunggu lama di ruang tunggu.
+            </p>
 
-            <a
-              href="#live-antrian"
-              class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/80 hover:bg-white border border-[#E5A93C]/30 text-[#0C3B36] font-bold text-xs sm:text-sm transition-all shadow-2xs"
-            >
-              <span class="w-2 h-2 rounded-full bg-[#E5A93C] animate-pulse"></span>
-              <span>Pantau Antrian Hari Ini</span>
-            </a>
+            <!-- Dual Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+              <button
+                @click="emit('navigate', 'kiosk')"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
+              >
+                <span>Ambil Nomor Antrian Online</span>
+                <ArrowRight class="w-4 h-4 text-[#E5A93C]" />
+              </button>
+
+              <a
+                href="#live-antrian"
+                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/80 hover:bg-white border border-[#E5A93C]/30 text-[#0C3B36] font-bold text-xs sm:text-sm transition-all shadow-2xs"
+              >
+                <span class="w-2 h-2 rounded-full bg-[#E5A93C] animate-pulse"></span>
+                <span>Pantau Antrian Hari Ini</span>
+              </a>
+            </div>
           </div>
+
+          <!-- Right: Authentic Photographic Visual Window (Col 5) -->
+          <div class="lg:col-span-5">
+            <div class="relative rounded-3xl overflow-hidden border border-[#E5A93C]/30 shadow-xs bg-white/60">
+              <img
+                src="/assets/kidinest/hero-baby.jpg"
+                alt="Pemeriksaan Pediatri Kidinest"
+                class="w-full h-60 sm:h-72 object-cover object-center"
+              />
+              <div class="px-4 py-3 bg-white/95 border-t border-[#E5A93C]/20 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <img src="/assets/kidinest/logo-maskot.png" class="w-4 h-4 object-contain" />
+                  <span class="font-bold text-[#0C3B36]">Kidinest Pediatric Care</span>
+                </div>
+                <span class="text-[11px] font-semibold text-[#0C3B36]/70">Semarang Medical Group</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Clinic Facts Strip (Hairline 3-Column - Bukan Card Kotak!) -->
