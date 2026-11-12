@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useClinicStore } from '../stores/clinic'
+import { useAuthStore } from '../stores/auth'
 import AdminSidebar from '../components/AdminSidebar.vue'
 import DoctorRoom from './DoctorRoom.vue'
 import PharmacyRoom from './PharmacyRoom.vue'
@@ -15,6 +16,13 @@ const emit = defineEmits<{
 }>()
 
 const store = useClinicStore()
+const auth = useAuthStore()
+
+onMounted(async () => {
+  if (auth.token && !auth.user) {
+    await auth.fetchMe()
+  }
+})
 
 const currentWorkstation = computed(() => {
   switch (store.currentRole) {

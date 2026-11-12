@@ -35,14 +35,29 @@ const clinicStore = useClinicStore()
 // Doctor Session State
 const availableDoctors = [
   { name: 'dr. Hendra Pratama, Sp.A', unit: 'KIDINEST', title: 'Dokter Spesialis Anak' },
+  { name: 'dr. Patricia Vanessa A., Sp.A', unit: 'KIDINEST', title: 'Dokter Spesialis Anak' },
   { name: 'dr. Nadia Kusuma, Sp.KK', unit: 'SSC', title: 'Dokter Spesialis Kulit & Estetika' },
+  { name: 'dr. Dian Paramita, Sp.D.V.E', unit: 'SSC', title: 'Spesialis Dermatologi & Laser' },
 ]
 
-const currentDoctor = ref(
-  authStore.user?.role === 'DOCTOR' && authStore.user.name
-    ? availableDoctors.find((d) => d.name.includes(authStore.user!.name.split(' ')[1] || '')) || availableDoctors[0]
-    : availableDoctors[0]
-)
+function getInitialDoctor() {
+  if (authStore.user?.role === 'DOCTOR' && authStore.user.name) {
+    const userUnit = authStore.user.clinic_unit || 'KIDINEST'
+    const found = availableDoctors.find((d) =>
+      (authStore.user!.clinic_unit && d.unit === authStore.user!.clinic_unit) ||
+      d.name.toLowerCase().includes(authStore.user!.name.toLowerCase().split(' ')[1] || '')
+    )
+    if (found) return found
+    return {
+      name: authStore.user.name,
+      unit: userUnit,
+      title: userUnit === 'KIDINEST' ? 'Dokter Spesialis Anak' : 'Dokter Spesialis Kulit & Estetika',
+    }
+  }
+  return availableDoctors[0]
+}
+
+const currentDoctor = ref(getInitialDoctor())
 
 // State: Queues & Active Patient
 const queues = ref<DoctorQueuePatient[]>([])
@@ -344,8 +359,8 @@ onMounted(() => {
         </p>
       </div>
 
-      <!-- Quick Doctor Switcher (For Demo & Multi-Unit) -->
-      <div class="flex items-center gap-2 bg-white rounded-2xl p-1.5 border border-black/5 shadow-sm">
+      <!-- Quick Doctor Switcher: Tampil untuk Superadmin (Demo), Terkunci untuk Dokter Riil -->
+      <div v-if="authStore.isOwner || !authStore.user" class="flex items-center gap-2 bg-white rounded-2xl p-1.5 border border-black/5 shadow-sm">
         <button
           v-for="doc in availableDoctors"
           :key="doc.name"
@@ -370,6 +385,22 @@ onMounted(() => {
             </div>
           </div>
         </button>
+      </div>
+
+      <!-- Static Doctor Profile Badge (When logged in as Doctor) -->
+      <div v-else class="flex items-center gap-2.5 bg-white rounded-2xl p-2.5 px-4 border border-black/5 shadow-xs">
+        <div
+          :class="[
+            'w-2.5 h-2.5 rounded-full',
+            currentDoctor.unit === 'KIDINEST' ? 'bg-amber-400' : 'bg-rose-400',
+          ]"
+        ></div>
+        <div>
+          <div class="text-xs font-black text-zinc-900 leading-tight">{{ currentDoctor.name }}</div>
+          <div class="text-[10px] text-zinc-500 font-semibold">
+            {{ currentDoctor.unit === 'KIDINEST' ? 'Poli Anak & Vaksinasi' : 'Dermatologi & Estetika' }} &bull; NIK: {{ authStore.user?.employee_number || 'DOC' }}
+          </div>
+        </div>
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { useClinicStore, type RoleType } from '../stores/clinic'
 import { useAuthStore } from '../stores/auth'
 import {
@@ -35,20 +35,37 @@ interface MenuRole {
   sub: string
   icon: any
   badge?: string
+  allowedRoles: string[]
 }
 
-const roles: MenuRole[] = [
-  { key: 'cashier', label: 'Kasir & Pendaftaran', sub: 'Meja Depan & GRO', icon: CreditCard },
-  { key: 'doctor', label: 'Ruang Dokter', sub: 'E-Prescription & ICD-10', icon: Stethoscope },
-  { key: 'pharmacy', label: 'Farmasi & Apotek', sub: 'Dispensing Resep', icon: Pill },
-  { key: 'inventory', label: 'Gudang & Logistik', sub: 'Stok Opname & Batch', icon: Package },
-  { key: 'billing', label: 'Billing & Tutup Shift', sub: 'Rekap Finansial', icon: Receipt },
-  { key: 'owner', label: 'Manajemen Staf', sub: 'Hak Akses Atasan', icon: ShieldCheck },
-  { key: 'satusehat', label: 'SATUSEHAT Bridge', sub: 'Kemenkes RME', icon: Sparkles },
+const allRoles: MenuRole[] = [
+  { key: 'cashier', label: 'Kasir & Pendaftaran', sub: 'Meja Depan & GRO', icon: CreditCard, allowedRoles: ['SUPERADMIN_OWNER', 'GRO_CASHIER'] },
+  { key: 'doctor', label: 'Ruang Dokter', sub: 'E-Prescription & ICD-10', icon: Stethoscope, allowedRoles: ['SUPERADMIN_OWNER', 'DOCTOR'] },
+  { key: 'pharmacy', label: 'Farmasi & Apotek', sub: 'Dispensing Resep', icon: Pill, allowedRoles: ['SUPERADMIN_OWNER', 'PHARMACIST'] },
+  { key: 'inventory', label: 'Gudang & Logistik', sub: 'Stok Opname & Batch', icon: Package, allowedRoles: ['SUPERADMIN_OWNER', 'PHARMACIST'] },
+  { key: 'billing', label: 'Billing & Tutup Shift', sub: 'Rekap Finansial', icon: Receipt, allowedRoles: ['SUPERADMIN_OWNER', 'GRO_CASHIER'] },
+  { key: 'owner', label: 'Manajemen Staf', sub: 'Hak Akses Atasan', icon: ShieldCheck, allowedRoles: ['SUPERADMIN_OWNER'] },
+  { key: 'satusehat', label: 'SATUSEHAT Bridge', sub: 'Kemenkes RME', icon: Sparkles, allowedRoles: ['SUPERADMIN_OWNER'] },
 ]
 
+// Superadmin sees all 7 modules; non-owners see only their designated modules
+const visibleRoles = computed(() => {
+  const currentRole = auth.user?.role || 'SUPERADMIN_OWNER'
+  if (currentRole === 'SUPERADMIN_OWNER') {
+    return allRoles
+  }
+  return allRoles.filter(r => r.allowedRoles.includes(currentRole))
+})
+
+// Auto-align active role with user permissions
+watchEffect(() => {
+  if (visibleRoles.value.length > 0 && !visibleRoles.value.some(r => r.key === store.currentRole)) {
+    store.setRole(visibleRoles.value[0].key)
+  }
+})
+
 function getRoleDisplayName(role: RoleType): string {
-  const found = roles.find(r => r.key === role)
+  const found = allRoles.find(r => r.key === role)
   return found ? found.label : 'Staf'
 }
 
@@ -94,10 +111,12 @@ async function handleLogout() {
         </button>
       </div>
 
-      <!-- Staff Profile & Role Switcher Dropdown (Minimalist Utilitarian) -->
+      <!-- Staff Profile & Role Switcher Dropdown (Superadmin gets switcher, others get clean profile) -->
       <div class="p-3 border-b border-zinc-800/80 bg-zinc-900/60">
         <div class="relative">
+          <!-- Superadmin Interactive Switcher -->
           <button
+            v-if="auth.isOwner || !auth.user"
             @click="isRoleMenuOpen = !isRoleMenuOpen"
             class="w-full p-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-left transition-all border border-zinc-700/60 flex items-center justify-between group"
           >
@@ -107,26 +126,46 @@ async function handleLogout() {
               </div>
               <div class="truncate">
                 <div class="text-xs font-bold text-white truncate">
-                  {{ auth.user?.name || 'dr. Patricia Vanessa, Sp.A' }}
+                  {{ auth.user?.name || 'dr. Ratna Paramita, M.Kes' }}
                 </div>
-                <div class="text-[10px] text-emerald-400 font-semibold truncate flex items-center gap-1">
-                  <span>Role: {{ getRoleDisplayName(store.currentRole) }}</span>
+                <div class="text-[10px] text-amber-400 font-semibold truncate flex items-center gap-1">
+                  <span>Atasan &bull; {{ getRoleDisplayName(store.currentRole) }}</span>
                 </div>
               </div>
             </div>
             <ChevronDown class="w-3.5 h-3.5 text-zinc-400 group-hover:text-white shrink-0 transition-transform" :class="isRoleMenuOpen ? 'rotate-180' : ''" />
           </button>
 
-          <!-- Dropdown Switcher Menu -->
+          <!-- Non-Superadmin Fixed Profile (Clean & Professional) -->
           <div
-            v-if="isRoleMenuOpen"
+            v-else
+            class="w-full p-2 rounded-xl bg-zinc-800/80 text-left border border-zinc-700/60 flex items-center justify-between"
+          >
+            <div class="flex items-center gap-2.5 overflow-hidden">
+              <div class="w-7 h-7 rounded-lg bg-zinc-700 text-zinc-200 flex items-center justify-center shrink-0">
+                <User class="w-4 h-4" />
+              </div>
+              <div class="truncate">
+                <div class="text-xs font-bold text-white truncate">
+                  {{ auth.user.name }}
+                </div>
+                <div class="text-[10px] text-emerald-400 font-semibold truncate flex items-center gap-1">
+                  <span>{{ auth.user.role }} &bull; {{ auth.user.clinic_unit }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dropdown Switcher Menu (Superadmin Only) -->
+          <div
+            v-if="isRoleMenuOpen && (auth.isOwner || !auth.user)"
             class="absolute top-full left-0 right-0 mt-1.5 p-1.5 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl z-50 space-y-1 animate-in fade-in duration-100"
           >
             <div class="px-2 py-1 text-[9px] font-black uppercase tracking-wider text-zinc-400">
-              Ganti Peran Staf (Demo Mode)
+              Ganti Peran Staf (Demo Superadmin)
             </div>
             <button
-              v-for="r in roles"
+              v-for="r in allRoles"
               :key="r.key"
               @click="handleSelectRole(r.key)"
               class="w-full px-2.5 py-1.5 rounded-lg text-xs font-bold text-left flex items-center justify-between transition-colors"
@@ -149,7 +188,7 @@ async function handleLogout() {
         </div>
 
         <button
-          v-for="item in roles"
+          v-for="item in visibleRoles"
           :key="item.key"
           @click="store.setRole(item.key)"
           class="w-full px-3 py-2.5 rounded-xl text-left flex items-center gap-3 transition-all text-xs font-bold group"

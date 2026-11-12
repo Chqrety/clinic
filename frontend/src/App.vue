@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useClinicStore } from './stores/clinic'
+import { useAuthStore } from './stores/auth'
 import LandingKidinest from './views/LandingKidinest.vue'
 import LandingSSC from './views/LandingSSC.vue'
 import PatientPortal from './views/PatientPortal.vue'
@@ -26,6 +27,7 @@ const currentRoute = ref<AppRoute>('kidinest')
 const showDemoNav = ref(false)
 
 const store = useClinicStore()
+const auth = useAuthStore()
 
 // Current Brand context (kidinest = Lantai 1, ssc = Lantai 2)
 const activeBrand = computed<'kidinest' | 'ssc'>(() => {
@@ -75,7 +77,10 @@ function navigateTo(route: string) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  if (auth.token && !auth.user) {
+    await auth.fetchMe()
+  }
   syncRouteFromPath()
   window.addEventListener('popstate', syncRouteFromPath)
 })
