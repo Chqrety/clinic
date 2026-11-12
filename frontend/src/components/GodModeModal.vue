@@ -97,15 +97,15 @@ async function executeSeed(endpoint: string, actionKey: string) {
 
 <template>
   <div>
-    <!-- Floating Bottom-Left Trigger Pill -->
-    <div class="fixed bottom-4 left-4 z-50 select-none">
+    <!-- Floating Bottom-Right Trigger Pill (Placed next to Demo Switcher, completely clears sidebar logout on the left) -->
+    <div class="fixed bottom-4 right-54 z-50 select-none">
       <button
         @click="isOpen = true"
         title="Klik atau tekan Ctrl+Shift+G untuk membuka God Mode Seeder"
         class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/85 hover:bg-zinc-950 text-zinc-300 hover:text-white text-[11px] font-bold shadow-xl backdrop-blur-sm transition-all border border-zinc-700/60 active:scale-95 group"
       >
         <Zap class="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-        <span>DEV GOD MODE</span>
+        <span>GOD MODE</span>
         <span class="text-[9px] text-zinc-400 font-mono bg-zinc-800/80 px-1.5 py-0.5 rounded border border-zinc-700/50">
           Ctrl+Shift+G
         </span>
