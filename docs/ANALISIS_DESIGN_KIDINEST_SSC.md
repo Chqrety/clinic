@@ -34,16 +34,23 @@ Desain sebelumnya mengadopsi gaya *Nordic Editorial / Tech SaaS* (ala Figma/X.ai
 
 ## 3. Arah Desain Baru: Kidinest Pediatric Care (`/kidinest`)
 
-### Karakter Visual (Friendly, Warm, Hygienic & Nurturing)
-* **Palet Warna:**
-  * **Canvas:** Soft Warm White / Milk Cream (`#FFFDF9`)
-  * **Warna Utama:** Soft Baby Blue / Sky (`#0284C7` / `#E0F2FE`) dipadu Soft Sunshine Warm Peach (`#F59E0B` / `#FEF3C7`) dan Soft Sage Green (`#059669` / `#ECFDF5`).
-  * **Tipografi:** Plus Jakarta Sans dengan rounded touch yang bersahabat (*friendly geometric*), heading tegas namun tidak mengintimidasi.
-* **Elemen Visual:**
-  * Sudut membulat lembut (`rounded-2xl` & `rounded-3xl`).
-  * Pill badge pastel lembut (`bg-sky-50 text-sky-700 border-sky-100`).
-  * Ikon berkarakter ramah anak (Vaksin, Stetoskop, Senyum, Bayi).
-  * Menampilkan dokter anak secara personal: **dr. Patricia Vanessa A., Sp.A** beserta jadwal praktik dan tombol pendaftaran langsung.
+*(Berdasarkan foto feed dan maskot resmi Instagram @kidinest.id — selengkapnya di [BREAKDOWN_DESIGN_KIDINEST.md](file:///home/alpi/Projects/clinic/docs/BREAKDOWN_DESIGN_KIDINEST.md))*
+
+### Karakter Visual (Warm Mustard, Forest Green, Baby Bean Mascot & Nurturing)
+* **Palet Warna Resmi:**
+  * **Canvas:** Warm Linen / Milk Cream (`#FAF7F2`)
+  * **Warna Primer:** Mustard Warm Gold (`#E5A93C` / `#D99B26`) untuk maskot, aksen gelombang, dan pill highlight.
+  * **Warna Teks & Kontur:** Deep Forest / Bottle Green (`#0C3B36` / `#134E48`) untuk heading tebal, garis kontur, tombol utama, dan pita footer.
+  * **Warna Aksen:** Soft Peach Tint (`#FEF3C7`), Soft Mint (`#D1FAE5`), dan Pure White Outline.
+* **Elemen Visual Khas:**
+  * **Maskot Resmi "Baby Bean":** Kepala oval kuning mustard dengan rambut ikal dan wajah tersenyum yang dibentuk dari huruf **"k"** dan **"n"** (*Kidinest = kn*).
+  * **Tipografi:** *Friendly Rounded Bold* dengan efek *white outline stroke* pada latar belakang berwarna.
+  * **Pill Badges Ganda:** Pill kuning mustard teks hijau tua (*Helpful Healing Tips*) dan pill hijau tua teks putih (*Milestone Tag*).
+  * **Panah Lengkung Organik:** Mengarahkan perhatian dari foto bayi ke poin manfaat & milestone anak.
+  * **Pita Footer Resmi:** Pita hijau botol pekat solid (`#0C3B36`) bertuliskan *"Jl. Melati Utara No 3, Semarang"*.
+* **Tenaga Medis Kunci:**
+  * **dr. Patricia Vanessa A., Sp.A** (Dokter Spesialis Anak & Vaksinasi Pediatri).
+  * **dr. Hendra Pratama, Sp.A** (Konsultan Tumbuh Kembang & Nutrisi Anak).
 * **Struktur Halaman Utama:**
   1. **Top Bar:** Identitas Kidinest Pediatric Care + Tombol Beralih ke Semarang Skin Center + Tombol WA & Ambil Antrian.
   2. **Hero:** Sambutan hangat untuk bunda & ayah, dokter jaga hari ini, tombol booking vaksinasi/periksa sakit.
