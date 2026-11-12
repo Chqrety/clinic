@@ -235,7 +235,22 @@ clinic/
 ├── AGENT.md
 ├── DESIGN.md
 └── GEMINI.md
-├── AGENT.md
-├── DESIGN.md
-└── GEMINI.md
 ```
+
+---
+
+## 8. Technical Debt & Production Checklist: Staff Login Demo Removal
+
+> [!WARNING]
+> **Checklist Wajib Sebelum Deployment ke Production Server:**
+> Saat sistem siap dideploy ke server produksi untuk operasional klinik riil, bagian demo login staf wajib dibersihkan agar kredensial internal tidak tersisa di bundle frontend.
+
+### Daftar Lokasi Kode Demo yang Wajib Dihapus:
+1. **`frontend/src/views/LoginView.vue`:**
+   * **Array Kredensial Dummy:** Hapus definisi `kidinestAccounts` dan `sscAccounts` yang memuat NIK (`DOC-KID-01`, `OWNER-01`, dll.) dan password terbuka `klinik123`.
+   * **State & Deteksi Query Param:** Hapus variabel `isDemoMode` dan blok pembacaan `URLSearchParams(window.location.search)`.
+   * **Komponen Quick Fill:** Hapus template section `#demo-quick-fill` atau tombol 1-klik akun demo.
+   * **Fallback Mock Auth:** Pastikan otentikasi hanya mengandalkan endpoint `/api/auth/login` yang memvalidasi JWT dari database PostgreSQL, bukan fallback token demo lokal di frontend.
+2. **`frontend/src/App.vue`:**
+   * Hapus rute langsung atau floating demo switcher `showDemoNav` jika tidak lagi dibutuhkan di lingkungan produksi.
+
