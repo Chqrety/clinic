@@ -4,20 +4,13 @@ import BrandSwitcherHeader from '../components/BrandSwitcherHeader.vue'
 import LiveQueueFilter, { type DoctorInfo } from '../components/LiveQueueFilter.vue'
 import {
   Baby,
-  Sparkles,
-  ShieldCheck,
   Clock,
   CheckCircle2,
   MapPin,
   Phone,
-  Stethoscope,
-  HeartPulse,
   ArrowRight,
-  Syringe,
   Smile,
   Activity,
-  Calendar,
-  ChevronRight,
   Heart
 } from 'lucide-vue-next'
 
@@ -165,46 +158,44 @@ const faqs = [
             </div>
           </div>
 
-          <!-- Right: Visual Card Inspirasi Feed Asli (Col 5) -->
+          <!-- Right: Visual Strip Inspirasi Feed Asli (Minimalist Hairline) -->
           <div class="lg:col-span-5">
-            <div class="p-6 rounded-3xl bg-white/90 border border-[#E5A93C]/30 shadow-sm relative overflow-hidden">
+            <div class="p-5 rounded-2xl bg-white/70 border border-[#E5A93C]/25 space-y-4">
               
               <!-- Header Visual Feed -->
-              <div class="flex items-center justify-between pb-4 border-b border-zinc-100">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E5A93C]/20">
                 <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-lg bg-[#E5A93C]/20 flex items-center justify-center">
-                    <img src="/assets/kidinest/logo-maskot.png" class="w-5 h-5 object-contain" />
-                  </div>
+                  <img src="/assets/kidinest/logo-maskot.png" class="w-5 h-5 object-contain" />
                   <span class="font-bold text-xs text-[#0C3B36]">Milestone & Tumbuh Kembang</span>
                 </div>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#0C3B36] text-white">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#0C3B36] text-white">
                   Panduan IDAI
                 </span>
               </div>
 
-              <!-- Interactive Milestone Showcase -->
-              <div class="py-4 space-y-3">
-                <div class="flex items-center justify-between p-3 rounded-2xl bg-[#FAF7F2] border border-[#E5A93C]/25">
-                  <div class="flex items-center gap-3">
-                    <span class="w-7 h-7 rounded-full bg-[#E5A93C] text-[#0C3B36] font-extrabold text-xs flex items-center justify-center">
+              <!-- Interactive Milestone Showcase (Hairline Dividers) -->
+              <div class="space-y-2.5 divide-y divide-zinc-100 text-xs">
+                <div class="flex items-center justify-between pt-1">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded-full bg-[#E5A93C]/20 text-[#0C3B36] font-extrabold text-[11px] flex items-center justify-center">
                       12m
                     </span>
                     <div>
-                      <div class="text-xs font-bold text-zinc-950">Kosakata Pertama (1-5 Kata)</div>
-                      <div class="text-[11px] text-zinc-500 font-medium">Mama, Papa, Daa, Minta</div>
+                      <div class="font-bold text-zinc-950">Kosakata Pertama (1–5 Kata)</div>
+                      <div class="text-[11px] text-zinc-500">Mama, Papa, Daa, Minta</div>
                     </div>
                   </div>
                   <span class="text-[11px] font-bold text-[#0C3B36]">Normal</span>
                 </div>
 
-                <div class="flex items-center justify-between p-3 rounded-2xl bg-[#FAF7F2] border border-[#E5A93C]/25">
-                  <div class="flex items-center gap-3">
-                    <span class="w-7 h-7 rounded-full bg-[#0C3B36] text-white font-extrabold text-xs flex items-center justify-center">
+                <div class="flex items-center justify-between pt-2.5">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded-full bg-[#0C3B36]/15 text-[#0C3B36] font-extrabold text-[11px] flex items-center justify-center">
                       24m
                     </span>
                     <div>
-                      <div class="text-xs font-bold text-zinc-950">Kalimat 2 Kata (50-300 Kata)</div>
-                      <div class="text-[11px] text-zinc-500 font-medium">Mau minum, Naik mobil</div>
+                      <div class="font-bold text-zinc-950">Kalimat 2 Kata (50–300 Kata)</div>
+                      <div class="text-[11px] text-zinc-500">Mau minum, Naik mobil</div>
                     </div>
                   </div>
                   <span class="text-[11px] font-bold text-[#0C3B36]">Aktif</span>
@@ -212,15 +203,15 @@ const faqs = [
               </div>
 
               <!-- Doctor Signature Info -->
-              <div class="pt-3 border-t border-zinc-100 flex items-center justify-between text-xs text-[#0C3B36]">
-                <div class="font-medium">
+              <div class="pt-3 border-t border-[#E5A93C]/20 flex items-center justify-between text-xs text-[#0C3B36]">
+                <div class="font-medium text-[11px]">
                   Konsultasi: <strong>dr. Patricia Vanessa A., Sp.A</strong>
                 </div>
                 <button
                   @click="emit('navigate', 'kiosk')"
-                  class="text-xs font-bold text-[#E5A93C] hover:text-[#0C3B36] flex items-center gap-1"
+                  class="text-xs font-bold text-[#0C3B36] underline hover:text-[#E5A93C]"
                 >
-                  <span>Daftar →</span>
+                  Daftar →
                 </button>
               </div>
 
@@ -232,8 +223,8 @@ const faqs = [
       </div>
     </section>
 
-    <!-- Section 2: Live Queue Strip (Menyatu Alami dengan Halaman) -->
-    <section id="live-antrian" class="w-full py-12 sm:py-16 border-b border-[#E5A93C]/20 bg-white">
+    <!-- Section 2: Live Queue Strip (Menyatu Alami dengan Halaman, Tanpa Kotak-Kotak AI) -->
+    <section id="live-antrian" class="w-full py-10 sm:py-14 border-b border-[#E5A93C]/20 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-8">
         <LiveQueueFilter
           brand="kidinest"
@@ -325,14 +316,14 @@ const faqs = [
           </p>
         </div>
 
-        <!-- 6 Benefit Points Berbaris Rapi (Bukan Card Tebal) -->
+        <!-- 6 Benefit Points Berbaris Rapi (Minimalist Hairline Grid, Tanpa Card Tebal) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           <div
             v-for="(b, idx) in massageBenefits"
             :key="idx"
-            class="p-5 rounded-2xl bg-[#FAF7F2] border border-[#E5A93C]/20 flex items-start gap-3.5"
+            class="py-3 border-b border-[#E5A93C]/20 flex items-start gap-3.5"
           >
-            <div class="w-8 h-8 rounded-full bg-[#E5A93C]/30 text-[#0C3B36] font-bold text-xs flex items-center justify-center shrink-0">
+            <div class="w-7 h-7 rounded-full bg-[#E5A93C]/25 text-[#0C3B36] font-bold text-xs flex items-center justify-center shrink-0">
               0{{ idx + 1 }}
             </div>
             <div>
@@ -347,115 +338,110 @@ const faqs = [
       </div>
     </section>
 
-    <!-- Section 5: Jadwal Dokter Spesialis Anak -->
+    <!-- Section 5: Jadwal Dokter Spesialis Anak (Editorial Directory - Tanpa Kotak Card Tebal!) -->
     <section id="jadwal-dokter" class="w-full py-12 sm:py-16 border-b border-[#E5A93C]/20 bg-[#FAF7F2]">
       <div class="max-w-7xl mx-auto px-4 sm:px-8">
 
-        <div class="mb-8">
-          <span class="text-xs font-bold uppercase tracking-wider text-[#0C3B36]/70">
-            Jadwal Praktik
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-[#0C3B36]/70">
+              Direktori Dokter
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0C3B36] tracking-tight mt-1">
+              Jadwal Praktik Spesialis Anak Kidinest
+            </h2>
+          </div>
+          <span class="text-xs text-[#0C3B36]/70 font-medium">
+            Klinik Utama Semarang Medical Group
           </span>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0C3B36] tracking-tight mt-1">
-            Dokter Spesialis Anak Kidinest
-          </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Hairline Directory Rows (Bebas Kotak Card!) -->
+        <div class="border-t border-b border-[#0C3B36]/15 divide-y divide-[#0C3B36]/10">
+          
           <!-- Dokter 1: dr. Patricia Vanessa A., Sp.A -->
-          <div class="p-6 rounded-3xl bg-white border border-[#E5A93C]/30 shadow-2xs flex flex-col justify-between">
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <div class="w-14 h-14 rounded-2xl bg-[#0C3B36] text-[#E5A93C] font-black text-xl flex items-center justify-center shadow-xs">
-                  PV
-                </div>
-                <div>
+          <div class="py-6 flex flex-col md:flex-row md:items-center justify-between gap-5 group hover:bg-white/40 transition-colors px-2 sm:px-4 rounded-xl">
+            <div class="flex items-start sm:items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-[#0C3B36] text-[#E5A93C] font-black text-lg flex items-center justify-center shrink-0">
+                PV
+              </div>
+              <div>
+                <div class="flex items-center gap-2.5">
                   <h3 class="text-lg font-bold text-[#0C3B36]">
                     dr. Patricia Vanessa A., Sp.A
                   </h3>
-                  <p class="text-xs font-semibold text-[#E5A93C] mt-0.5">
-                    Spesialis Ilmu Kesehatan Anak & Vaksinasi Pediatri
-                  </p>
-                  <p class="text-[11px] text-[#0C3B36]/60">
-                    Ruang Poli Anak 1 • Semarang Medical Group
-                  </p>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5A93C]/20 text-[#0C3B36]">
+                    Poli 1 • Pagi
+                  </span>
                 </div>
-              </div>
-
-              <div class="py-3 border-t border-b border-zinc-100 space-y-1.5 text-xs text-[#0C3B36]/80 font-medium">
-                <div class="flex justify-between">
-                  <span>Jadwal Praktik Pagi:</span>
-                  <span class="font-bold text-[#0C3B36]">Senin - Sabtu (08:30 - 13:00)</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Fokus Penanganan:</span>
-                  <span class="font-bold text-[#0C3B36]">Vaksinasi, Nutrisi & Infeksi Anak</span>
-                </div>
+                <p class="text-xs text-[#0C3B36]/75 mt-0.5 font-medium">
+                  Spesialis Ilmu Kesehatan Anak & Vaksinasi Pediatri • Fokus: Imunisasi Lengkap, Nutrisi & Infeksi Anak
+                </p>
               </div>
             </div>
 
-            <div class="pt-5">
+            <div class="flex items-center justify-between sm:justify-end gap-6 shrink-0 pl-16 md:pl-0">
+              <div class="text-right text-xs">
+                <div class="font-bold text-[#0C3B36]">Senin – Sabtu</div>
+                <div class="text-[11px] text-[#0C3B36]/70">08:30 – 13:00 WIB</div>
+              </div>
               <button
                 @click="emit('navigate', 'kiosk')"
-                class="w-full py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-2 rounded-lg bg-[#0C3B36] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#134E48] transition-colors"
               >
-                Daftar Konsultasi ke dr. Patricia →
+                Daftar →
               </button>
             </div>
           </div>
 
           <!-- Dokter 2: dr. Hendra Pratama, Sp.A -->
-          <div class="p-6 rounded-3xl bg-white border border-[#E5A93C]/30 shadow-2xs flex flex-col justify-between">
-            <div>
-              <div class="flex items-center gap-4 mb-4">
-                <div class="w-14 h-14 rounded-2xl bg-[#E5A93C] text-[#0C3B36] font-black text-xl flex items-center justify-center shadow-xs">
-                  HP
-                </div>
-                <div>
+          <div class="py-6 flex flex-col md:flex-row md:items-center justify-between gap-5 group hover:bg-white/40 transition-colors px-2 sm:px-4 rounded-xl">
+            <div class="flex items-start sm:items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-[#E5A93C] text-[#0C3B36] font-black text-lg flex items-center justify-center shrink-0">
+                HP
+              </div>
+              <div>
+                <div class="flex items-center gap-2.5">
                   <h3 class="text-lg font-bold text-[#0C3B36]">
                     dr. Hendra Pratama, Sp.A
                   </h3>
-                  <p class="text-xs font-semibold text-[#0C3B36] mt-0.5">
-                    Spesialis Anak • Konsultan Tumbuh Kembang & Alergi
-                  </p>
-                  <p class="text-[11px] text-[#0C3B36]/60">
-                    Ruang Poli Anak 2 • Semarang Medical Group
-                  </p>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-200 text-zinc-800">
+                    Poli 2 • Sore
+                  </span>
                 </div>
-              </div>
-
-              <div class="py-3 border-t border-b border-zinc-100 space-y-1.5 text-xs text-[#0C3B36]/80 font-medium">
-                <div class="flex justify-between">
-                  <span>Jadwal Praktik Sore:</span>
-                  <span class="font-bold text-[#0C3B36]">Senin - Sabtu (14:00 - 18:00)</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Fokus Penanganan:</span>
-                  <span class="font-bold text-[#0C3B36]">Milestone Perkembangan & Asma</span>
-                </div>
+                <p class="text-xs text-[#0C3B36]/75 mt-0.5 font-medium">
+                  Spesialis Anak • Konsultan Tumbuh Kembang, Nutrisi & Alergi Anak
+                </p>
               </div>
             </div>
 
-            <div class="pt-5">
+            <div class="flex items-center justify-between sm:justify-end gap-6 shrink-0 pl-16 md:pl-0">
+              <div class="text-right text-xs">
+                <div class="font-bold text-[#0C3B36]">Senin – Sabtu</div>
+                <div class="text-[11px] text-[#0C3B36]/70">14:00 – 18:00 WIB</div>
+              </div>
               <button
                 @click="emit('navigate', 'kiosk')"
-                class="w-full py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-2 rounded-lg bg-zinc-950 text-white text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
               >
-                Daftar Konsultasi ke dr. Hendra →
+                Daftar →
               </button>
             </div>
           </div>
+
         </div>
 
       </div>
     </section>
 
-    <!-- Section 6: Lokasi & FAQ -->
+    <!-- Section 6: Lokasi & FAQ (Hairline Clean Layout - Bebas Card Tebal) -->
     <section id="lokasi" class="w-full py-12 sm:py-16 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-8">
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          
           <!-- Left: Alamat & Kontak (Col 5) -->
-          <div class="lg:col-span-5 space-y-5">
+          <div class="lg:col-span-5 space-y-4">
             <div>
               <span class="text-xs font-bold uppercase tracking-wider text-[#0C3B36]/70">
                 Akses & Janji Temu
@@ -465,7 +451,7 @@ const faqs = [
               </h2>
             </div>
 
-            <div class="p-5 rounded-2xl bg-[#FAF7F2] border border-[#E5A93C]/20 space-y-3 text-xs text-[#0C3B36]">
+            <div class="space-y-3 text-xs text-[#0C3B36] pt-1">
               <div class="flex items-start gap-2.5">
                 <MapPin class="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
                 <div>
@@ -477,20 +463,20 @@ const faqs = [
                 </div>
               </div>
 
-              <div class="flex items-start gap-2.5 border-t border-zinc-200/60 pt-2.5">
+              <div class="flex items-start gap-2.5 pt-2 border-t border-zinc-100">
                 <Clock class="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
                 <div>
                   <div class="font-bold">Jam Layanan Poli:</div>
                   <div class="opacity-80 mt-0.5">
-                    Pagi: 08:30 - 13:00 WIB • Sore: 14:00 - 18:00 WIB
+                    Pagi: 08:30 – 13:00 WIB • Sore: 14:00 – 18:00 WIB
                   </div>
                 </div>
               </div>
 
-              <div class="flex items-start gap-2.5 border-t border-zinc-200/60 pt-2.5">
+              <div class="flex items-start gap-2.5 pt-2 border-t border-zinc-100">
                 <Phone class="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
                 <div>
-                  <div class="font-bold">WhatsApp Reservasi & Dokter:</div>
+                  <div class="font-bold">WhatsApp Reservasi:</div>
                   <div class="opacity-80 mt-0.5 font-mono">
                     +62 812-3456-7890
                   </div>
@@ -499,25 +485,28 @@ const faqs = [
             </div>
           </div>
 
-          <!-- Right: FAQ (Col 7) -->
+          <!-- Right: FAQ (Hairline Clean Dividers, Bebas Kotak Card) (Col 7) -->
           <div class="lg:col-span-7 space-y-3">
             <h3 class="text-lg font-bold text-[#0C3B36] mb-3">
               Pertanyaan yang Sering Diajukan
             </h3>
 
-            <div
-              v-for="(faq, idx) in faqs"
-              :key="idx"
-              class="p-4 rounded-xl border border-zinc-200/80 bg-[#FAF7F2]/50"
-            >
-              <h4 class="text-xs sm:text-sm font-bold text-[#0C3B36] mb-1">
-                {{ faq.q }}
-              </h4>
-              <p class="text-xs text-[#0C3B36]/75 leading-relaxed font-medium">
-                {{ faq.a }}
-              </p>
+            <div class="border-t border-b border-zinc-200/80 divide-y divide-zinc-200/60">
+              <div
+                v-for="(faq, idx) in faqs"
+                :key="idx"
+                class="py-3.5"
+              >
+                <h4 class="text-xs sm:text-sm font-bold text-[#0C3B36] mb-1">
+                  {{ faq.q }}
+                </h4>
+                <p class="text-xs text-[#0C3B36]/75 leading-relaxed font-medium">
+                  {{ faq.a }}
+                </p>
+              </div>
             </div>
           </div>
+
         </div>
 
       </div>

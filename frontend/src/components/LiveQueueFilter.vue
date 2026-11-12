@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import {
-  Users,
   Clock,
   Search,
   X,
   Stethoscope,
-  ChevronRight,
   Sparkles,
-  CheckCircle2,
-  AlertCircle,
   ArrowRight,
-  Filter,
-  Baby
+  Filter
 } from 'lucide-vue-next'
 
 export interface DoctorInfo {
@@ -129,7 +124,7 @@ function initMockData() {
       {
         queue_number: 'S-004',
         patient_masked: 'Ny. Clarissa D****',
-        doctor_name: 'dr. Dian Paramita, Sp.DV',
+        doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'IN_EXAM',
         created_at: '10:05',
@@ -137,7 +132,7 @@ function initMockData() {
       {
         queue_number: 'S-005',
         patient_masked: 'Tn. Raymond W****',
-        doctor_name: 'dr. Kevin Wijaya, Sp.KK',
+        doctor_name: 'dr. Kevin Wijaya, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'CALLING',
         created_at: '10:15',
@@ -145,7 +140,7 @@ function initMockData() {
       {
         queue_number: 'S-006',
         patient_masked: 'Nn. Vanessa L****',
-        doctor_name: 'dr. Dian Paramita, Sp.DV',
+        doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'WAITING',
         estimated_wait_minutes: 10,
@@ -154,7 +149,7 @@ function initMockData() {
       {
         queue_number: 'S-007',
         patient_masked: 'Ny. Helena T****',
-        doctor_name: 'dr. Kevin Wijaya, Sp.KK',
+        doctor_name: 'dr. Kevin Wijaya, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'WAITING',
         estimated_wait_minutes: 20,
@@ -163,7 +158,7 @@ function initMockData() {
       {
         queue_number: 'S-008',
         patient_masked: 'Nn. Gracia M****',
-        doctor_name: 'dr. Dian Paramita, Sp.DV',
+        doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'WAITING',
         estimated_wait_minutes: 32,
@@ -172,7 +167,7 @@ function initMockData() {
       {
         queue_number: 'S-002',
         patient_masked: 'Ny. Jessica S****',
-        doctor_name: 'dr. Dian Paramita, Sp.DV',
+        doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'PHARMACY',
         created_at: '09:20',
@@ -180,7 +175,7 @@ function initMockData() {
       {
         queue_number: 'S-003',
         patient_masked: 'Tn. Arya B****',
-        doctor_name: 'dr. Kevin Wijaya, Sp.KK',
+        doctor_name: 'dr. Kevin Wijaya, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'COMPLETED',
         created_at: '09:10',
@@ -250,36 +245,38 @@ const modalFilteredQueues = computed(() => {
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full select-none">
 
-    <!-- Segmented Multi-Doctor Filter Header -->
-    <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- 1. Minimalist Underline Tabs (Pilihan Dokter Tanpa Kotak-Kotak AI) -->
+    <div class="pb-4 border-b flex flex-col md:flex-row md:items-end justify-between gap-4"
+      :class="brand === 'kidinest' ? 'border-[#E5A93C]/20' : 'border-[#9E606D]/15'"
+    >
       <div>
-        <div class="flex items-center gap-2 mb-1.5">
+        <div class="flex items-center gap-2 mb-1">
           <span
-            class="w-2.5 h-2.5 rounded-full animate-ping"
-            :class="brand === 'kidinest' ? 'bg-sky-500' : 'bg-rose-500'"
+            class="w-2 h-2 rounded-full animate-pulse"
+            :class="brand === 'kidinest' ? 'bg-[#E5A93C]' : 'bg-[#9E606D]'"
           ></span>
-          <span class="text-xs font-black uppercase tracking-wider text-zinc-500">
+          <span class="text-[11px] font-bold uppercase tracking-wider opacity-75">
             Papan Antrian Pasien • Live Real-Time
           </span>
         </div>
-        <h3 class="text-2xl sm:text-3xl font-extrabold text-zinc-950 tracking-tight">
-          Pantau Nomor Antrian & Dokter Jaga
+        <h3 class="text-xl sm:text-2xl font-bold tracking-tight">
+          Nomor Antrian Sedang Dipanggil
         </h3>
       </div>
 
-      <!-- Segmented Doctor Pills -->
-      <div class="flex items-center flex-wrap gap-1.5 p-1.5 rounded-2xl bg-zinc-100 border border-zinc-200">
+      <!-- Clean Segmented Underline Tabs (Bebas Kotak Card) -->
+      <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
         <button
           @click="selectedDoctorId = 'ALL'"
-          class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-150"
+          class="px-3 py-1.5 text-xs font-bold transition-all relative whitespace-nowrap"
           :class="
             selectedDoctorId === 'ALL'
               ? brand === 'kidinest'
-                ? 'bg-sky-600 text-white shadow-xs'
-                : 'bg-zinc-950 text-white shadow-xs'
-              : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'
+                ? 'text-[#0C3B36] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#0C3B36]'
+                : 'text-[#2D1E24] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#9E606D]'
+              : 'text-zinc-500 hover:text-zinc-800'
           "
         >
           Semua Dokter
@@ -289,312 +286,259 @@ const modalFilteredQueues = computed(() => {
           v-for="doc in doctors"
           :key="doc.id"
           @click="selectedDoctorId = doc.id"
-          class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-150 flex items-center gap-1.5"
+          class="px-3 py-1.5 text-xs font-bold transition-all relative flex items-center gap-1.5 whitespace-nowrap"
           :class="
             selectedDoctorId === doc.id
               ? brand === 'kidinest'
-                ? 'bg-sky-600 text-white shadow-xs'
-                : 'bg-zinc-950 text-white shadow-xs'
-              : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'
+                ? 'text-[#0C3B36] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#0C3B36]'
+                : 'text-[#2D1E24] font-extrabold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#9E606D]'
+              : 'text-zinc-500 hover:text-zinc-800'
           "
         >
-          <span class="w-1.5 h-1.5 rounded-full" :class="brand === 'kidinest' ? 'bg-amber-300' : 'bg-rose-400'"></span>
-          <span>{{ doc.name }}</span>
-          <span class="text-[10px] opacity-75 hidden xl:inline">({{ doc.room }})</span>
+          <span>{{ doc.name.split(',')[0] }}</span>
+          <span class="text-[10px] opacity-60">({{ doc.room }})</span>
         </button>
       </div>
     </div>
 
-    <!-- Main Grid: Active Card (Left) + Next 3 Preview Cards (Right) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+    <!-- 2. Integrated Hairline Board (Nomor Antrian Aktif + 3 Antrian Berikutnya) -->
+    <div
+      class="py-6 sm:py-8 border-b grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+      :class="brand === 'kidinest' ? 'border-[#E5A93C]/20' : 'border-[#9E606D]/15'"
+    >
 
-      <!-- Active Calling Ticket Hero Box (Col 7) -->
-      <div
-        class="lg:col-span-7 rounded-3xl p-6 sm:p-8 flex flex-col justify-between border shadow-sm transition-all"
-        :class="
-          brand === 'kidinest'
-            ? 'bg-white border-sky-100 ring-4 ring-sky-50'
-            : 'bg-white border-rose-100 ring-4 ring-rose-50'
-        "
-      >
-        <div>
-          <!-- Header Tag -->
-          <div class="flex items-center justify-between mb-4">
-            <span
-              class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider"
-              :class="
-                currentActiveQueue?.status === 'IN_EXAM'
-                  ? brand === 'kidinest'
-                    ? 'bg-sky-100 text-sky-900 border border-sky-200'
-                    : 'bg-rose-100 text-rose-900 border border-rose-200'
-                  : 'bg-amber-100 text-amber-900 border border-amber-200'
-              "
-            >
-              <span
-                class="w-2 h-2 rounded-full animate-pulse"
-                :class="brand === 'kidinest' ? 'bg-sky-600' : 'bg-rose-600'"
-              ></span>
-              {{
-                currentActiveQueue?.status === 'IN_EXAM'
-                  ? 'Sedang Dalam Pemeriksaan'
-                  : 'Sedang Dipanggil ke Ruangan'
-              }}
-            </span>
-
-            <span class="text-xs font-bold text-zinc-400">
-              Live Board
-            </span>
-          </div>
-
-          <!-- Giant Number & Patient Display -->
-          <div class="my-3">
-            <div
-              class="text-6xl sm:text-7xl font-black font-mono tracking-tighter"
-              :class="brand === 'kidinest' ? 'text-sky-600' : 'text-zinc-950'"
-            >
-              {{ currentActiveQueue?.queue_number || 'K-001' }}
-            </div>
-            <div class="text-lg sm:text-xl font-bold text-zinc-800 mt-1">
-              {{ currentActiveQueue?.patient_masked || 'Pasien Mandiri' }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Doctor & Room Details -->
-        <div class="pt-6 border-t border-zinc-100 mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm"
-              :class="
-                brand === 'kidinest'
-                  ? 'bg-sky-50 text-sky-700 border border-sky-200'
-                  : 'bg-rose-50 text-rose-700 border border-rose-200'
-              "
-            >
-              <Stethoscope class="w-5 h-5" />
-            </div>
-            <div>
-              <div class="text-xs text-zinc-400 font-semibold">Dokter Pemeriksa:</div>
-              <div class="text-sm font-extrabold text-zinc-950">
-                {{ currentActiveQueue?.doctor_name || 'dr. Jaga Klinik' }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Action to Register -->
-          <button
-            @click="emit('register')"
-            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider text-white transition-all shadow-sm active:scale-95"
-            :class="brand === 'kidinest' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-zinc-950 hover:bg-zinc-800'"
+      <!-- Kiri: Nomor Antrian yang Sedang Berjalan (Col 7) -->
+      <div class="lg:col-span-7 space-y-4">
+        
+        <!-- Status Label Strip -->
+        <div class="flex items-center gap-3">
+          <span
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+            :class="
+              currentActiveQueue?.status === 'IN_EXAM'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
+                : 'bg-amber-50 text-amber-900 border border-amber-200/80'
+            "
           >
-            <span>Ambil Antrian</span>
-            <ArrowRight class="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Next 3 Waiting Queues Preview (Col 5) -->
-      <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
-
-        <div class="flex items-center justify-between">
-          <div class="text-xs font-black uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
-            <Clock class="w-3.5 h-3.5 text-zinc-600" />
-            <span>3 Antrian Berikutnya (Next In Line)</span>
-          </div>
-          <span class="text-xs font-bold text-zinc-600">
-            {{ totalWaiting }} pasien menunggu
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+            {{
+              currentActiveQueue?.status === 'IN_EXAM'
+                ? 'Sedang Dalam Pemeriksaan'
+                : 'Sedang Dipanggil'
+            }}
+          </span>
+          <span class="text-xs opacity-60">
+            • Diperbarui Baru Saja
           </span>
         </div>
 
-        <!-- 3 Cards Stack -->
-        <div class="space-y-3">
+        <!-- Nomor Antrian Besar Bersih & Nama Pasien -->
+        <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 pt-1">
+          <div
+            class="font-mono text-5xl sm:text-6xl font-black tracking-tight"
+            :class="brand === 'kidinest' ? 'text-[#0C3B36]' : 'text-[#2D1E24]'"
+          >
+            {{ currentActiveQueue?.queue_number || 'K-001' }}
+          </div>
+          <div>
+            <div class="text-base sm:text-lg font-bold">
+              {{ currentActiveQueue?.patient_masked || 'Pasien Mandiri' }}
+            </div>
+            <div class="text-xs opacity-75 mt-0.5">
+              Pemeriksa: <strong>{{ currentActiveQueue?.doctor_name }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button Inline -->
+        <div class="pt-2 flex items-center gap-4">
+          <button
+            @click="emit('register')"
+            class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-95"
+            :class="brand === 'kidinest' ? 'bg-[#0C3B36] hover:bg-[#134E48]' : 'bg-[#9E606D] hover:bg-[#8B505D]'"
+          >
+            <span>Ambil Nomor Antrian Baru</span>
+            <ArrowRight class="w-3.5 h-3.5" />
+          </button>
+          <span class="text-xs opacity-60 hidden sm:inline">
+            Tiket terkirim via WhatsApp
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Kanan: 3 Antrian Berikutnya (Hairline Rows - Bukan Card Kotak!) (Col 5) -->
+      <div
+        class="lg:col-span-5 lg:pl-8 lg:border-l space-y-3"
+        :class="brand === 'kidinest' ? 'lg:border-[#E5A93C]/20' : 'lg:border-[#9E606D]/15'"
+      >
+        <div class="flex items-center justify-between text-xs font-semibold opacity-70 pb-1">
+          <span>3 Antrian Berikutnya</span>
+          <span>{{ totalWaiting }} pasien menunggu</span>
+        </div>
+
+        <!-- Hairline Rows (Bukan Kotak Card Bertumpuk!) -->
+        <div class="divide-y border-t border-b"
+          :class="brand === 'kidinest' ? 'divide-[#0C3B36]/10 border-[#0C3B36]/10' : 'divide-[#9E606D]/10 border-[#9E606D]/10'"
+        >
           <div
             v-for="(item, idx) in nextThreeQueues"
             :key="item.queue_number"
-            class="p-4 rounded-2xl border bg-white hover:border-zinc-300 transition-all shadow-2xs flex items-center justify-between"
-            :class="idx === 0 ? 'border-sky-300 ring-2 ring-sky-50' : 'border-zinc-200'"
+            class="py-2.5 flex items-center justify-between text-xs"
           >
-            <div class="flex items-center gap-3.5">
-              <div
-                class="w-11 h-11 rounded-xl flex items-center justify-center font-black font-mono text-base"
+            <div class="flex items-center gap-3">
+              <span
+                class="font-mono font-bold px-2 py-0.5 rounded-md text-[11px]"
                 :class="
                   idx === 0
                     ? brand === 'kidinest'
-                      ? 'bg-sky-100 text-sky-800'
-                      : 'bg-rose-100 text-rose-800'
-                    : 'bg-zinc-100 text-zinc-800'
+                      ? 'bg-[#E5A93C]/20 text-[#0C3B36]'
+                      : 'bg-[#9E606D]/15 text-[#9E606D]'
+                    : 'bg-zinc-100 text-zinc-700'
                 "
               >
                 {{ item.queue_number }}
-              </div>
+              </span>
               <div>
-                <div class="text-xs font-extrabold text-zinc-900">
-                  {{ item.patient_masked }}
-                </div>
-                <div class="text-[11px] text-zinc-400 font-medium">
-                  {{ item.doctor_name.split(',')[0] }}
-                </div>
+                <span class="font-bold text-zinc-900">{{ item.patient_masked }}</span>
+                <span class="text-[11px] opacity-60 ml-2">({{ item.doctor_name.split(',')[0] }})</span>
               </div>
             </div>
 
-            <div class="text-right">
-              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                <Clock class="w-3 h-3" />
-                ~{{ item.estimated_wait_minutes }} mnt
-              </span>
-            </div>
+            <span class="text-[11px] font-semibold opacity-70">
+              ~{{ item.estimated_wait_minutes }} mnt
+            </span>
           </div>
 
           <div
             v-if="nextThreeQueues.length === 0"
-            class="p-8 rounded-2xl border border-dashed border-zinc-200 text-center text-zinc-400 text-xs font-medium"
+            class="py-4 text-xs opacity-50 italic text-center"
           >
-            Tidak ada pasien lain dalam antrian tunggu saat ini.
+            Tidak ada antrian lain yang menunggu.
           </div>
         </div>
 
         <!-- Action: Open Drawer All Queues -->
-        <button
-          @click="isAllQueuesModalOpen = true"
-          class="w-full py-3 px-4 rounded-2xl border border-zinc-200 bg-white hover:bg-zinc-50 hover:border-zinc-400 text-zinc-900 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-2xs group"
-        >
-          <span>Lihat Semua Antrian Hari Ini ({{ filteredByDoctor.length }})</span>
-          <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-        </button>
+        <div class="pt-1 flex items-center justify-between">
+          <button
+            @click="isAllQueuesModalOpen = true"
+            class="text-xs font-bold underline underline-offset-4 hover:opacity-80 transition-opacity"
+          >
+            Lihat seluruh antrian hari ini ({{ filteredByDoctor.length }}) →
+          </button>
+        </div>
 
       </div>
 
     </div>
 
-    <!-- Notification Tip / WhatsApp Integration Notice -->
-    <div
-      class="mt-6 p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-      :class="
-        brand === 'kidinest'
-          ? 'bg-sky-50/70 border-sky-100 text-sky-950'
-          : 'bg-rose-50/70 border-rose-100 text-rose-950'
-      "
-    >
-      <div class="flex items-center gap-2.5">
-        <Sparkles class="w-4 h-4 text-amber-500 shrink-0" />
-        <span class="font-medium">
-          <strong>Antrian Ramah Keluarga:</strong> Pasien tidak perlu berdesakan di ruang tunggu. Notifikasi panggilan terkirim otomatis ke WhatsApp saat nomor Anda mendekati giliran.
-        </span>
+    <!-- 3. Minimalist Info Note (Inline Text, Tanpa Card Tebal) -->
+    <div class="py-3 flex items-center justify-between text-xs opacity-75">
+      <div class="flex items-center gap-2">
+        <Sparkles class="w-3.5 h-3.5 text-amber-500 shrink-0" />
+        <span>Panggilan otomatis dikirim via WhatsApp saat antrian Anda mendekati 2 giliran lagi.</span>
       </div>
       <button
         @click="emit('register')"
-        class="font-extrabold underline hover:opacity-80 shrink-0"
+        class="font-bold underline hover:opacity-100 shrink-0 hidden sm:inline"
       >
-        Ambil Tiket Online →
+        Daftar Mandiri Online →
       </button>
     </div>
 
-    <!-- Modal Drawer: Lihat Semua Antrian Hari Ini -->
+    <!-- Modal Drawer: Seluruh Antrian Hari Ini (Hairline Minimalist) -->
     <div
       v-if="isAllQueuesModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-150"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-100"
     >
       <div
-        class="bg-white rounded-3xl border border-zinc-200 shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        class="bg-white rounded-2xl border border-zinc-200 shadow-xl w-full max-w-xl max-h-[80vh] flex flex-col overflow-hidden text-zinc-950"
       >
         <!-- Modal Header -->
-        <div class="p-6 border-b border-zinc-200 flex items-center justify-between">
+        <div class="p-5 border-b border-zinc-100 flex items-center justify-between">
           <div>
-            <h4 class="text-xl font-black text-zinc-950">
-              Daftar Antrian Lengkap Hari Ini
+            <h4 class="text-base font-bold">
+              Daftar Lengkap Antrian Hari Ini
             </h4>
-            <p class="text-xs text-zinc-500 font-medium">
-              Data real-time poli {{ brand === 'kidinest' ? 'Kidinest Pediatric' : 'Semarang Skin Center' }} • Nama disamarkan
+            <p class="text-xs text-zinc-500">
+              Data real-time poli {{ brand === 'kidinest' ? 'Kidinest Pediatric' : 'Semarang Skin Center' }}
             </p>
           </div>
           <button
             @click="isAllQueuesModalOpen = false"
-            class="w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-600 transition-colors"
+            class="p-1 rounded-lg hover:bg-zinc-100 text-zinc-500 transition-colors"
           >
             <X class="w-5 h-5" />
           </button>
         </div>
 
-        <!-- Filter & Search Inside Modal -->
-        <div class="p-4 bg-zinc-50 border-b border-zinc-200 flex flex-col sm:flex-row gap-3">
+        <!-- Filter & Search (Clean Bar) -->
+        <div class="p-3 bg-zinc-50/80 border-b border-zinc-100 flex items-center gap-2 text-xs">
           <div class="relative flex-1">
-            <Search class="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+            <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Cari nomor tiket atau nama..."
-              class="w-full pl-9 pr-3 py-2 bg-white rounded-xl border border-zinc-300 text-xs font-bold text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-950"
+              placeholder="Cari nomor atau nama pasien..."
+              class="w-full pl-8 pr-3 py-1.5 bg-white rounded-lg border border-zinc-200 text-xs font-semibold focus:outline-hidden focus:border-zinc-900"
             />
           </div>
-
-          <div class="flex items-center gap-1">
-            <button
-              @click="statusFilter = 'ALL'"
-              class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold"
-              :class="statusFilter === 'ALL' ? 'bg-zinc-950 text-white' : 'bg-white border text-zinc-700'"
-            >
-              Semua
-            </button>
-            <button
-              @click="statusFilter = 'ACTIVE'"
-              class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold"
-              :class="statusFilter === 'ACTIVE' ? 'bg-zinc-950 text-white' : 'bg-white border text-zinc-700'"
-            >
-              Diperiksa
-            </button>
-            <button
-              @click="statusFilter = 'WAITING'"
-              class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold"
-              :class="statusFilter === 'WAITING' ? 'bg-zinc-950 text-white' : 'bg-white border text-zinc-700'"
-            >
-              Menunggu
-            </button>
-          </div>
+          <button
+            @click="statusFilter = 'ALL'"
+            class="px-2.5 py-1.5 rounded-md font-bold text-[11px]"
+            :class="statusFilter === 'ALL' ? 'bg-zinc-900 text-white' : 'bg-white border text-zinc-600'"
+          >
+            Semua
+          </button>
+          <button
+            @click="statusFilter = 'ACTIVE'"
+            class="px-2.5 py-1.5 rounded-md font-bold text-[11px]"
+            :class="statusFilter === 'ACTIVE' ? 'bg-zinc-900 text-white' : 'bg-white border text-zinc-600'"
+          >
+            Dipanggil
+          </button>
+          <button
+            @click="statusFilter = 'WAITING'"
+            class="px-2.5 py-1.5 rounded-md font-bold text-[11px]"
+            :class="statusFilter === 'WAITING' ? 'bg-zinc-900 text-white' : 'bg-white border text-zinc-600'"
+          >
+            Menunggu
+          </button>
         </div>
 
-        <!-- Queues Table / List -->
-        <div class="p-6 overflow-y-auto space-y-2.5 flex-1">
+        <!-- Table List (Hairline, Bebas Kotak Card) -->
+        <div class="p-4 overflow-y-auto divide-y divide-zinc-100 flex-1">
           <div
             v-for="item in modalFilteredQueues"
             :key="item.queue_number"
-            class="p-3.5 rounded-2xl border border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/60 flex items-center justify-between transition-colors"
+            class="py-3 flex items-center justify-between text-xs"
           >
             <div class="flex items-center gap-3">
-              <span class="font-mono font-black text-sm px-2.5 py-1 rounded-lg bg-zinc-200 text-zinc-900">
+              <span class="font-mono font-bold px-2 py-0.5 bg-zinc-100 rounded text-zinc-800 text-[11px]">
                 {{ item.queue_number }}
               </span>
               <div>
-                <div class="text-xs font-extrabold text-zinc-900">
-                  {{ item.patient_masked }}
-                </div>
-                <div class="text-[11px] text-zinc-500 font-medium">
-                  {{ item.doctor_name }} • Masuk: {{ item.created_at }}
-                </div>
+                <div class="font-bold text-zinc-900">{{ item.patient_masked }}</div>
+                <div class="text-[11px] text-zinc-500">{{ item.doctor_name.split(',')[0] }} • {{ item.created_at }}</div>
               </div>
             </div>
 
             <div>
               <span
                 v-if="item.status === 'IN_EXAM' || item.status === 'CALLING'"
-                class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-300"
+                class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800"
               >
-                ● Sedang Diperiksa
+                ● Diperiksa
               </span>
               <span
                 v-else-if="item.status === 'WAITING'"
-                class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300"
+                class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900"
               >
                 Menunggu (~{{ item.estimated_wait_minutes || 10 }}m)
               </span>
               <span
-                v-else-if="item.status === 'PHARMACY'"
-                class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-900 border border-sky-300"
-              >
-                Farmasi / Kasir
-              </span>
-              <span
                 v-else
-                class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-zinc-200 text-zinc-600"
+                class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 text-zinc-600"
               >
                 Selesai
               </span>
@@ -603,24 +547,23 @@ const modalFilteredQueues = computed(() => {
 
           <div
             v-if="modalFilteredQueues.length === 0"
-            class="text-center py-12 text-zinc-400 text-xs font-semibold"
+            class="py-8 text-center text-xs text-zinc-400 italic"
           >
-            Tidak ada data antrian yang cocok dengan kriteria pencarian.
+            Tidak ada nomor antrian yang cocok.
           </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="p-4 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between">
-          <span class="text-xs text-zinc-500 font-medium">
-            Total {{ modalFilteredQueues.length }} antrian tercatat
-          </span>
+        <!-- Footer -->
+        <div class="p-3 border-t border-zinc-100 bg-zinc-50/50 flex items-center justify-between text-xs text-zinc-500">
+          <span>Total {{ modalFilteredQueues.length }} antrian</span>
           <button
             @click="isAllQueuesModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-zinc-950 text-white font-extrabold text-xs"
+            class="px-3 py-1.5 rounded-lg bg-zinc-900 text-white font-bold text-xs"
           >
             Tutup
           </button>
         </div>
+
       </div>
     </div>
 
