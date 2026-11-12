@@ -114,11 +114,11 @@ const faqs = [
           </span>
         </div>
 
-        <!-- Headline & Visual Grid (Bebas Kotak AI, Dilengkapi Visual Otentik) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <!-- Headline & Typographic Focus Grid (Murni Tipografi & Layout Hairline, Bebas Foto & Bebas Card) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
           <!-- Left: Narasi & Tindakan Utama (Col 7) -->
-          <div class="lg:col-span-7 space-y-4">
+          <div class="lg:col-span-7 space-y-5">
             <h1 class="text-3xl sm:text-5xl font-extrabold text-[#2D1E24] tracking-tight leading-[1.15]">
               Advanced Care <span class="font-['Playfair_Display',serif] italic font-normal text-[#9E606D]">for Your Skin.</span>
             </h1>
@@ -127,7 +127,7 @@ const faqs = [
             </p>
 
             <!-- Dual Action Buttons -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
               <button
                 @click="emit('navigate', 'kiosk')"
                 class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#9E606D] hover:bg-[#8B505D] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
@@ -146,22 +146,47 @@ const faqs = [
             </div>
           </div>
 
-          <!-- Right: Authentic Clinical Visual Window (Col 5) -->
-          <div class="lg:col-span-5">
-            <div class="relative rounded-3xl overflow-hidden border border-[#9E606D]/25 shadow-xs bg-white/60">
-              <img
-                src="/assets/ssc/hero-citrus.jpg"
-                alt="Clinical Dermatology Protocol"
-                class="w-full h-60 sm:h-72 object-cover object-center"
-              />
-              <div class="px-4 py-3 bg-white/95 border-t border-[#9E606D]/20 flex items-center justify-between text-xs">
-                <div class="flex items-center gap-2">
-                  <img src="/assets/ssc/logo-ssc.png" class="w-4 h-4 object-contain" />
-                  <span class="font-bold text-[#2D1E24]">Semarang Skin Center</span>
-                </div>
-                <span class="text-[11px] font-semibold text-[#9E606D]">Advanced Care for Your Skin</span>
+          <!-- Right: Pure Typographic Pillar (Col 5 - Hairline Divider, Zero Card, Zero Foto) -->
+          <div class="lg:col-span-5 lg:pl-8 lg:border-l border-[#9E606D]/20 space-y-4">
+            
+            <div class="space-y-1">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#9E606D]">
+                Clinical Dermatology Protocol
+              </span>
+              <h3 class="text-base sm:text-lg font-bold text-[#2D1E24] leading-snug">
+                Perawatan kulit presisi berbasis bukti klinis dan teknologi medis terstandar.
+              </h3>
+            </div>
+
+            <!-- 4 Hairline Focus Rows -->
+            <div class="border-t border-b border-[#9E606D]/15 divide-y divide-[#9E606D]/10 text-xs text-[#2D1E24]">
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#9E606D]">01</span>
+                <span class="font-bold flex-1">Spesialis Dermatologi (Sp.D.V.E)</span>
+                <span class="text-[11px] opacity-70">Dokter Berlisensi</span>
+              </div>
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#9E606D]">02</span>
+                <span class="font-bold flex-1">Laser Medis Bersertifikasi FDA</span>
+                <span class="text-[11px] opacity-70">Teknologi Modern</span>
+              </div>
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#9E606D]">03</span>
+                <span class="font-bold flex-1">Protokol Resep Racikan Presisi</span>
+                <span class="text-[11px] opacity-70">Personalized</span>
+              </div>
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#9E606D]">04</span>
+                <span class="font-bold flex-1">Antrian Tindakan Transparan</span>
+                <span class="text-[11px] opacity-70">Tepat Waktu</span>
               </div>
             </div>
+
+            <div class="flex items-center justify-between text-xs text-[#2D1E24]/75 pt-0.5">
+              <span class="text-[11px]">Tim Dokter Spesialis:</span>
+              <span class="font-bold text-[#2D1E24]">dr. Dian, Sp.D.V.E & dr. Kevin, Sp.D.V.E</span>
+            </div>
+
           </div>
 
         </div>

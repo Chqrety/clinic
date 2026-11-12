@@ -109,20 +109,20 @@ const faqs = [
           </span>
         </div>
 
-        <!-- Headline & Visual Grid (Bebas Kotak AI, Dilengkapi Visual Otentik) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <!-- Headline & Typographic Focus Grid (Murni Tipografi & Layout Hairline, Bebas Foto & Bebas Card) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
           <!-- Left: Narasi & Tindakan Utama (Col 7) -->
-          <div class="lg:col-span-7 space-y-4">
+          <div class="lg:col-span-7 space-y-5">
             <h1 class="text-3xl sm:text-5xl font-extrabold text-[#0C3B36] tracking-tight leading-[1.15]">
               Pemeriksaan Buah Hati yang Tenang, Cermat, dan Hangat.
             </h1>
             <p class="text-sm sm:text-base text-[#0C3B36]/80 leading-relaxed font-medium max-w-xl">
-              Layanan dokter spesialis anak bersama <strong>dr. Patricia Vanessa A., Sp.A</strong> dan <strong>dr. Hendra Pratama, Sp.A</strong>. Pantau nomor antrian secara langsung dari ponsel Anda tanpa harus menunggu lama di ruang tunggu.
+              Layanan dokter spesialis anak berstandar IDAI bersama <strong>dr. Patricia Vanessa A., Sp.A</strong> dan <strong>dr. Hendra Pratama, Sp.A</strong>. Pantau nomor antrian secara langsung dari ponsel Anda tanpa harus menunggu lama di ruang tunggu.
             </p>
 
             <!-- Dual Action Buttons -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
               <button
                 @click="emit('navigate', 'kiosk')"
                 class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
@@ -141,22 +141,47 @@ const faqs = [
             </div>
           </div>
 
-          <!-- Right: Authentic Photographic Visual Window (Col 5) -->
-          <div class="lg:col-span-5">
-            <div class="relative rounded-3xl overflow-hidden border border-[#E5A93C]/30 shadow-xs bg-white/60">
-              <img
-                src="/assets/kidinest/hero-baby.jpg"
-                alt="Pemeriksaan Pediatri Kidinest"
-                class="w-full h-60 sm:h-72 object-cover object-center"
-              />
-              <div class="px-4 py-3 bg-white/95 border-t border-[#E5A93C]/20 flex items-center justify-between text-xs">
-                <div class="flex items-center gap-2">
-                  <img src="/assets/kidinest/logo-maskot.png" class="w-4 h-4 object-contain" />
-                  <span class="font-bold text-[#0C3B36]">Kidinest Pediatric Care</span>
-                </div>
-                <span class="text-[11px] font-semibold text-[#0C3B36]/70">Semarang Medical Group</span>
+          <!-- Right: Pure Typographic Pillar (Col 5 - Hairline Divider, Zero Card, Zero Foto) -->
+          <div class="lg:col-span-5 lg:pl-8 lg:border-l border-[#0C3B36]/15 space-y-4">
+            
+            <div class="space-y-1">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#E5A93C]">
+                Standar Pelayanan Pediatri IDAI
+              </span>
+              <h3 class="text-base sm:text-lg font-bold text-[#0C3B36] leading-snug">
+                Kesehatan dan kenyamanan si kecil adalah prioritas utama setiap konsultasi.
+              </h3>
+            </div>
+
+            <!-- 4 Hairline Focus Rows -->
+            <div class="border-t border-b border-[#0C3B36]/10 divide-y divide-[#0C3B36]/10 text-xs text-[#0C3B36]">
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">01</span>
+                <span class="font-bold flex-1">Vaksinasi Terjaga Cold-Chain</span>
+                <span class="text-[11px] opacity-70">Standar IDAI</span>
+              </div>
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">02</span>
+                <span class="font-bold flex-1">Skrining Milestone & Nutrisi</span>
+                <span class="text-[11px] opacity-70">Tumbuh Kembang</span>
+              </div>
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">03</span>
+                <span class="font-bold flex-1">Pemeriksaan Ramah & Lembut</span>
+                <span class="text-[11px] opacity-70">Bebas Trauma</span>
+              </div>
+              <div class="py-2.5 flex items-baseline justify-between gap-4">
+                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">04</span>
+                <span class="font-bold flex-1">Antrian Real-Time di Ponsel</span>
+                <span class="text-[11px] opacity-70">Bebas Antre Lama</span>
               </div>
             </div>
+
+            <div class="flex items-center justify-between text-xs text-[#0C3B36]/75 pt-0.5">
+              <span class="text-[11px]">Konsultasi bersama:</span>
+              <span class="font-bold text-[#0C3B36]">dr. Patricia, Sp.A & dr. Hendra, Sp.A</span>
+            </div>
+
           </div>
 
         </div>
