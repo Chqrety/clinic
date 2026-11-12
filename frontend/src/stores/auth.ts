@@ -29,6 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = newToken
     user.value = newUser
     localStorage.setItem('clinic_auth_token', newToken)
+    localStorage.setItem('clinic_token', newToken)
     localStorage.setItem('clinic_auth_user', JSON.stringify(newUser))
   }
 
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = ''
     user.value = null
     localStorage.removeItem('clinic_auth_token')
+    localStorage.removeItem('clinic_token')
     localStorage.removeItem('clinic_auth_user')
   }
 

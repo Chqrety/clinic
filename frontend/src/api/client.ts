@@ -115,7 +115,7 @@ export interface SatusehatStats {
 }
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('clinic_token')
+  const token = localStorage.getItem('clinic_token') || localStorage.getItem('clinic_auth_token')
   const authHeaders: Record<string, string> = {}
   if (token) {
     authHeaders['Authorization'] = `Bearer ${token}`
