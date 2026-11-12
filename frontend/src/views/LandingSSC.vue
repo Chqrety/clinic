@@ -3,13 +3,10 @@ import { ref } from 'vue'
 import BrandSwitcherHeader from '../components/BrandSwitcherHeader.vue'
 import LiveQueueFilter, { type DoctorInfo } from '../components/LiveQueueFilter.vue'
 import {
-  Sparkles,
   Clock,
-  CheckCircle2,
   MapPin,
   Phone,
-  ArrowRight,
-  ChevronRight
+  ArrowRight
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
@@ -105,115 +102,84 @@ const faqs = [
       @navigate="(v) => emit('navigate', v)"
     />
 
-    <!-- Hero Section (Clinical Editorial Luxury, Anti-Card, Skala Manusiawi) -->
-    <section class="w-full border-b border-[#9E606D]/15 py-12 sm:py-16 bg-gradient-to-b from-[#FAF5F5] via-[#FAF5F5] to-[#F5ECEE]">
+    <!-- Hero Section: Clinical Editorial Luxury (Bebas Kotak AI) -->
+    <section class="w-full border-b border-[#9E606D]/15 pt-12 sm:pt-16 pb-10 sm:pb-12 bg-gradient-to-b from-[#FAF5F5] to-[#F5ECEE]">
       <div class="max-w-7xl mx-auto px-4 sm:px-8">
 
         <!-- Top Pill Tag (Subtle Rose Badge) -->
-        <div class="mb-5">
-          <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-[#9E606D]/10 text-[#9E606D] border border-[#9E606D]/25">
+        <div class="mb-4">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#9E606D]/10 text-[#9E606D] border border-[#9E606D]/20">
             <img src="/assets/ssc/logo-ssc.png" alt="SSC Rosette" class="w-3.5 h-3.5 object-contain" />
-            <span>SSC • Semarang Skin Center • Semarang Medical Group</span>
+            <span>Klinik Dermatologi & Estetika Medis • Semarang Medical Group</span>
           </span>
         </div>
 
-        <!-- Headline & Action Grid (Hairline Editorial Layout) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <!-- Headline & Brief Narrative (Broad Editorial Width) -->
+        <div class="max-w-3xl space-y-4">
+          <h1 class="text-3xl sm:text-5xl font-extrabold text-[#2D1E24] tracking-tight leading-[1.15]">
+            Advanced Care <span class="font-['Playfair_Display',serif] italic font-normal text-[#9E606D]">for Your Skin.</span>
+          </h1>
+          <p class="text-sm sm:text-base text-[#2D1E24]/80 leading-relaxed font-medium max-w-2xl">
+            Pusat dermatologi medis dan estetika klinis bersama <strong>dr. Dian Paramita, Sp.D.V.E</strong> dan <strong>dr. Kevin Wijaya, Sp.D.V.E</strong>. Protokol terstandar dokter spesialis kulit, teknologi laser medis modern, dan estimasi antrian ruang tindakan transparan.
+          </p>
 
-          <!-- Left Column (Narasi & Tindakan Utama) -->
-          <div class="lg:col-span-7 space-y-5">
-            <h1 class="text-3xl sm:text-5xl font-extrabold text-[#2D1E24] tracking-tight leading-[1.15]">
-              Advanced Care <span class="font-['Playfair_Display',serif] italic font-normal text-[#9E606D]">for Your Skin.</span>
-            </h1>
-            <p class="text-sm sm:text-base text-[#2D1E24]/80 leading-relaxed max-w-xl font-medium">
-              Pusat dermatologi medis dan estetika klinis terpercaya di Semarang. Ditangani langsung oleh dokter spesialis kulit dengan teknologi laser medis modern, protokol presisi, dan antrian ruang tindakan transparan.
-            </p>
+          <!-- Dual Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <button
+              @click="emit('navigate', 'kiosk')"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#9E606D] hover:bg-[#8B505D] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
+            >
+              <span>Reservasi Antrian Konsultasi</span>
+              <ArrowRight class="w-4 h-4 text-white/80" />
+            </button>
 
-            <!-- Dual Action Buttons -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-              <button
-                @click="emit('navigate', 'kiosk')"
-                class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#9E606D] hover:bg-[#8B505D] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-md shadow-[#9E606D]/25 transition-all active:scale-95"
-              >
-                <span>Reservasi Antrian Konsultasi</span>
-                <ArrowRight class="w-4 h-4 text-white/80" />
-              </button>
+            <a
+              href="#live-antrian"
+              class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/80 hover:bg-white border border-[#9E606D]/30 text-[#2D1E24] font-bold text-xs sm:text-sm transition-all shadow-2xs"
+            >
+              <span class="w-2 h-2 rounded-full bg-[#9E606D] animate-pulse"></span>
+              <span>Pantau Antrian Hari Ini</span>
+            </a>
+          </div>
+        </div>
 
-              <a
-                href="#live-antrian"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white hover:bg-white/80 border border-[#9E606D]/30 text-[#2D1E24] font-bold text-xs sm:text-sm transition-all shadow-2xs"
-              >
-                <span class="w-2 h-2 rounded-full bg-[#9E606D] animate-pulse"></span>
-                <span>Pantau Antrian Hari Ini</span>
-              </a>
+        <!-- Clinic Facts Strip (Hairline 3-Column - Bukan Card Kotak!) -->
+        <div class="mt-10 sm:mt-12 pt-6 border-t border-[#9E606D]/15 grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-[#2D1E24]">
+          <div class="space-y-1">
+            <div class="font-bold text-[11px] uppercase tracking-wider text-[#9E606D] flex items-center gap-1.5">
+              <span>01 • Dokter Spesialis Kulit</span>
             </div>
-
-            <!-- Mini Trust Strip -->
-            <div class="pt-3 flex items-center gap-6 text-xs text-[#2D1E24]/75 font-semibold">
-              <div class="flex items-center gap-2">
-                <CheckCircle2 class="w-4 h-4 text-[#9E606D]" />
-                <span>Dokter Spesialis Kulit Sp.D.V.E</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <CheckCircle2 class="w-4 h-4 text-[#9E606D]" />
-                <span>Medical Laser FDA Certified</span>
-              </div>
+            <div class="font-bold text-sm text-[#2D1E24]">
+              dr. Dian Paramita, Sp.D.V.E & dr. Kevin Wijaya, Sp.D.V.E
+            </div>
+            <div class="text-[#2D1E24]/70 text-[11px]">
+              Dermatologi Medis, Laser & Bedah Minor
             </div>
           </div>
 
-          <!-- Right Column: Live Clinical Strip (Hairline Separator - Tanpa Card Tebal) -->
-          <div class="lg:col-span-5">
-            <div class="p-5 rounded-2xl bg-white/70 border border-[#9E606D]/20 space-y-3.5">
-              
-              <div class="flex items-center justify-between pb-3 border-b border-[#9E606D]/15">
-                <div class="flex items-center gap-2">
-                  <div class="w-5 h-5 rounded-full bg-[#9E606D] flex items-center justify-center p-0.5">
-                    <img src="/assets/ssc/logo-ssc.png" class="w-3.5 h-3.5 object-contain" />
-                  </div>
-                  <span class="font-bold text-xs text-[#2D1E24]">Layanan Poli Kulit Hari Ini</span>
-                </div>
-                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-[#9E606D] border border-[#9E606D]/20">
-                  Konsultasi Aktif
-                </span>
-              </div>
-
-              <!-- Doctors Today Quick Rows (Hairline) -->
-              <div class="space-y-2.5 divide-y divide-zinc-100 text-xs">
-                <div class="flex items-center justify-between pt-1">
-                  <div class="flex items-center gap-2.5">
-                    <span class="w-7 h-7 rounded-lg bg-[#9E606D]/15 text-[#9E606D] font-bold text-xs flex items-center justify-center">
-                      DP
-                    </span>
-                    <div>
-                      <div class="font-bold text-[#2D1E24]">dr. Dian Paramita, Sp.D.V.E</div>
-                      <div class="text-[11px] text-[#2D1E24]/60">Poli Laser & Estetika (09:00 – 14:00)</div>
-                    </div>
-                  </div>
-                  <span class="text-[11px] font-semibold text-[#9E606D]">Pagi</span>
-                </div>
-
-                <div class="flex items-center justify-between pt-2.5">
-                  <div class="flex items-center gap-2.5">
-                    <span class="w-7 h-7 rounded-lg bg-[#2D1E24]/10 text-[#2D1E24] font-bold text-xs flex items-center justify-center">
-                      KW
-                    </span>
-                    <div>
-                      <div class="font-bold text-[#2D1E24]">dr. Kevin Wijaya, Sp.D.V.E</div>
-                      <div class="text-[11px] text-[#2D1E24]/60">Poli Bedah & Tindakan (14:00 – 19:00)</div>
-                    </div>
-                  </div>
-                  <span class="text-[11px] font-semibold text-[#2D1E24]/70">Sore</span>
-                </div>
-              </div>
-
-              <div class="pt-2 border-t border-[#9E606D]/15 flex items-center justify-between text-xs">
-                <span class="text-[#2D1E24]/70 text-[11px]">Durasi Konsultasi:</span>
-                <span class="font-bold text-[#2D1E24] text-[11px]">~15 – 20 Menit / Pasien</span>
-              </div>
-
+          <div class="space-y-1 sm:border-l sm:border-[#9E606D]/15 sm:pl-6">
+            <div class="font-bold text-[11px] uppercase tracking-wider text-[#9E606D] flex items-center gap-1.5">
+              <span>02 • Sesi Konsultasi & Laser</span>
+            </div>
+            <div class="font-bold text-sm text-[#2D1E24]">
+              Pagi 09:00 – 14:00 • Sore 14:00 – 19:00
+            </div>
+            <div class="text-[#2D1E24]/70 text-[11px]">
+              Senin – Sabtu • Reservasi Antrian Online
             </div>
           </div>
 
+          <div class="space-y-1 sm:border-l sm:border-[#9E606D]/15 sm:pl-6">
+            <div class="font-bold text-[11px] uppercase tracking-wider text-[#9E606D] flex items-center gap-1.5">
+              <span>03 • Lokasi Fasilitas</span>
+            </div>
+            <div class="font-bold text-sm text-[#2D1E24]">
+              Klinik Utama Semarang Medical Group
+            </div>
+            <div class="text-[#2D1E24]/70 text-[11px]">
+              Jl. Melati Utara No. 3, Kota Semarang
+            </div>
+          </div>
         </div>
 
       </div>

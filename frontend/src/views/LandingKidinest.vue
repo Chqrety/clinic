@@ -3,15 +3,10 @@ import { ref } from 'vue'
 import BrandSwitcherHeader from '../components/BrandSwitcherHeader.vue'
 import LiveQueueFilter, { type DoctorInfo } from '../components/LiveQueueFilter.vue'
 import {
-  Baby,
   Clock,
-  CheckCircle2,
   MapPin,
   Phone,
-  ArrowRight,
-  Smile,
-  Activity,
-  Heart
+  ArrowRight
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
@@ -102,122 +97,84 @@ const faqs = [
       @navigate="(v) => emit('navigate', v)"
     />
 
-    <!-- Hero Section (Friendly Warmth, Scale Humanis, Inspirasi Feed Kidinest) -->
-    <section class="w-full border-b border-[#E5A93C]/20 py-12 sm:py-16 bg-gradient-to-b from-[#FAF7F2] via-[#FAF7F2] to-[#F5EFE6]">
+    <!-- Hero Section: Clean Editorial Healthcare (Bebas Kotak AI) -->
+    <section class="w-full border-b border-[#E5A93C]/20 pt-12 sm:pt-16 pb-10 sm:pb-12 bg-gradient-to-b from-[#FAF7F2] to-[#F5EFE6]">
       <div class="max-w-7xl mx-auto px-4 sm:px-8">
 
         <!-- Top Pill Tag (Mustard Badge Khas Feed) -->
-        <div class="mb-5">
-          <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-[#0C3B36] shadow-2xs">
+        <div class="mb-4">
+          <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-[#E5A93C] text-[#0C3B36]">
             <img src="/assets/kidinest/logo-maskot.png" alt="Baby Bean" class="w-4 h-4 object-contain" />
-            <span>Kidinest Pediatric Care • Semarang Medical Group</span>
+            <span>Klinik Spesialis Anak • Semarang Medical Group</span>
           </span>
         </div>
 
-        <!-- Headline & Action Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <!-- Headline & Brief Narrative (Broad Editorial Width) -->
+        <div class="max-w-3xl space-y-4">
+          <h1 class="text-3xl sm:text-5xl font-extrabold text-[#0C3B36] tracking-tight leading-[1.15]">
+            Pemeriksaan Buah Hati yang Tenang, Cermat, dan Hangat.
+          </h1>
+          <p class="text-sm sm:text-base text-[#0C3B36]/80 leading-relaxed font-medium max-w-2xl">
+            Layanan dokter spesialis anak bersama <strong>dr. Patricia Vanessa A., Sp.A</strong> dan <strong>dr. Hendra Pratama, Sp.A</strong>. Pantau nomor antrian secara langsung dari ponsel Anda tanpa harus menunggu lama di ruang tunggu.
+          </p>
 
-          <!-- Left: Narasi Hangat & Proporsional (Col 7) -->
-          <div class="lg:col-span-7 space-y-5">
-            <h1 class="text-3xl sm:text-5xl font-extrabold text-[#0C3B36] tracking-tight leading-[1.15]">
-              Pemeriksaan Buah Hati dengan Hangat & Tenang.
-            </h1>
-            <p class="text-sm sm:text-base text-[#0C3B36]/80 leading-relaxed max-w-xl font-medium">
-              Pelayanan dokter spesialis anak bersama <strong>dr. Patricia Vanessa A., Sp.A</strong> dan tim. Pantau nomor antrian secara langsung dari ponsel Anda tanpa harus menunggu lama di ruang tunggu.
-            </p>
+          <!-- Dual Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+            <button
+              @click="emit('navigate', 'kiosk')"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
+            >
+              <span>Ambil Nomor Antrian Online</span>
+              <ArrowRight class="w-4 h-4 text-[#E5A93C]" />
+            </button>
 
-            <!-- Dual Action Buttons -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-              <button
-                @click="emit('navigate', 'kiosk')"
-                class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-md shadow-[#0C3B36]/20 transition-all active:scale-95"
-              >
-                <span>Ambil Nomor Antrian Online</span>
-                <ArrowRight class="w-4 h-4 text-[#E5A93C]" />
-              </button>
+            <a
+              href="#live-antrian"
+              class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/80 hover:bg-white border border-[#E5A93C]/30 text-[#0C3B36] font-bold text-xs sm:text-sm transition-all shadow-2xs"
+            >
+              <span class="w-2 h-2 rounded-full bg-[#E5A93C] animate-pulse"></span>
+              <span>Pantau Antrian Hari Ini</span>
+            </a>
+          </div>
+        </div>
 
-              <a
-                href="#live-antrian"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white hover:bg-white/80 border border-[#E5A93C]/40 text-[#0C3B36] font-bold text-xs sm:text-sm transition-all shadow-2xs"
-              >
-                <span class="w-2 h-2 rounded-full bg-[#E5A93C] animate-pulse"></span>
-                <span>Pantau Antrian Hari Ini</span>
-              </a>
+        <!-- Clinic Facts Strip (Hairline 3-Column - Bukan Card Kotak!) -->
+        <div class="mt-10 sm:mt-12 pt-6 border-t border-[#0C3B36]/15 grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-[#0C3B36]">
+          <div class="space-y-1">
+            <div class="font-bold text-[11px] uppercase tracking-wider text-[#0C3B36]/60 flex items-center gap-1.5">
+              <span>01 • Dokter Jaga Hari Ini</span>
             </div>
-
-            <!-- Mini Trust Strip -->
-            <div class="pt-3 flex items-center gap-6 text-xs text-[#0C3B36]/75 font-semibold">
-              <div class="flex items-center gap-2">
-                <CheckCircle2 class="w-4 h-4 text-[#E5A93C]" />
-                <span>Dokter Spesialis Anak Berlisensi</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <CheckCircle2 class="w-4 h-4 text-[#E5A93C]" />
-                <span>Antrian Digital Transparan</span>
-              </div>
+            <div class="font-bold text-sm text-[#0C3B36]">
+              dr. Patricia Vanessa, Sp.A & dr. Hendra, Sp.A
+            </div>
+            <div class="text-[#0C3B36]/70 text-[11px]">
+              Spesialis Anak & Tumbuh Kembang IDAI
             </div>
           </div>
 
-          <!-- Right: Visual Strip Inspirasi Feed Asli (Minimalist Hairline) -->
-          <div class="lg:col-span-5">
-            <div class="p-5 rounded-2xl bg-white/70 border border-[#E5A93C]/25 space-y-4">
-              
-              <!-- Header Visual Feed -->
-              <div class="flex items-center justify-between pb-3 border-b border-[#E5A93C]/20">
-                <div class="flex items-center gap-2">
-                  <img src="/assets/kidinest/logo-maskot.png" class="w-5 h-5 object-contain" />
-                  <span class="font-bold text-xs text-[#0C3B36]">Milestone & Tumbuh Kembang</span>
-                </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#0C3B36] text-white">
-                  Panduan IDAI
-                </span>
-              </div>
-
-              <!-- Interactive Milestone Showcase (Hairline Dividers) -->
-              <div class="space-y-2.5 divide-y divide-zinc-100 text-xs">
-                <div class="flex items-center justify-between pt-1">
-                  <div class="flex items-center gap-2.5">
-                    <span class="w-6 h-6 rounded-full bg-[#E5A93C]/20 text-[#0C3B36] font-extrabold text-[11px] flex items-center justify-center">
-                      12m
-                    </span>
-                    <div>
-                      <div class="font-bold text-zinc-950">Kosakata Pertama (1–5 Kata)</div>
-                      <div class="text-[11px] text-zinc-500">Mama, Papa, Daa, Minta</div>
-                    </div>
-                  </div>
-                  <span class="text-[11px] font-bold text-[#0C3B36]">Normal</span>
-                </div>
-
-                <div class="flex items-center justify-between pt-2.5">
-                  <div class="flex items-center gap-2.5">
-                    <span class="w-6 h-6 rounded-full bg-[#0C3B36]/15 text-[#0C3B36] font-extrabold text-[11px] flex items-center justify-center">
-                      24m
-                    </span>
-                    <div>
-                      <div class="font-bold text-zinc-950">Kalimat 2 Kata (50–300 Kata)</div>
-                      <div class="text-[11px] text-zinc-500">Mau minum, Naik mobil</div>
-                    </div>
-                  </div>
-                  <span class="text-[11px] font-bold text-[#0C3B36]">Aktif</span>
-                </div>
-              </div>
-
-              <!-- Doctor Signature Info -->
-              <div class="pt-3 border-t border-[#E5A93C]/20 flex items-center justify-between text-xs text-[#0C3B36]">
-                <div class="font-medium text-[11px]">
-                  Konsultasi: <strong>dr. Patricia Vanessa A., Sp.A</strong>
-                </div>
-                <button
-                  @click="emit('navigate', 'kiosk')"
-                  class="text-xs font-bold text-[#0C3B36] underline hover:text-[#E5A93C]"
-                >
-                  Daftar →
-                </button>
-              </div>
-
+          <div class="space-y-1 sm:border-l sm:border-[#0C3B36]/10 sm:pl-6">
+            <div class="font-bold text-[11px] uppercase tracking-wider text-[#0C3B36]/60 flex items-center gap-1.5">
+              <span>02 • Sesi Layanan Praktik</span>
+            </div>
+            <div class="font-bold text-sm text-[#0C3B36]">
+              Pagi 08:30 – 13:00 • Sore 14:00 – 18:00
+            </div>
+            <div class="text-[#0C3B36]/70 text-[11px]">
+              Senin – Sabtu • Reservasi Online Terbuka
             </div>
           </div>
 
+          <div class="space-y-1 sm:border-l sm:border-[#0C3B36]/10 sm:pl-6">
+            <div class="font-bold text-[11px] uppercase tracking-wider text-[#0C3B36]/60 flex items-center gap-1.5">
+              <span>03 • Fasilitas Poli Anak</span>
+            </div>
+            <div class="font-bold text-sm text-[#0C3B36]">
+              Klinik Utama Semarang Medical Group
+            </div>
+            <div class="text-[#0C3B36]/70 text-[11px]">
+              Jl. Melati Utara No. 3, Kota Semarang
+            </div>
+          </div>
         </div>
 
       </div>
