@@ -1,97 +1,126 @@
-# Design System & UI/UX Guidelines
-## Inspired by Modern Nordic / Brandlos Aesthetic
+# Design System & UI/UX Guidelines: Clinical Editorial (Anti-AI Slop)
+
+Dokumen ini adalah standar desain resmi antarmuka Smart Clinic Management System (SCMS) untuk dua brand terpadu: **Kidinest Pediatric Care** dan **Semarang Skin Center (SSC)** di bawah **Klinik Utama Semarang Medical Group**.
 
 ---
 
-## 1. Visual Philosophy: Anti "AI Slop"
-Sistem klinik ini **TIDAK** menggunakan template generik khas AI (latar ungu neon, gradien berlebihan, font kaku, atau card berantakan tanpa hirarki). 
+## 1. Prinsip Utama: Anti "AI Slop" (Bukan Teks Raksasa & Bukan Card di Mana-Mana)
 
-Aplikasi ini mengadopsi estetika **Brandlos (Dutch / Nordic Modern)**:
-* **Hangat & Ramah Pasien:** Menghilangkan kesan dingin dan menakutkan dari rumah sakit konvensional.
-* **Tipografi Berani & Percaya Diri:** Angka dan status langsung terbaca jelas tanpa perlu memicingkan mata.
-* **Minimalis & Bersih:** Ruang bernapas (*whitespace*) lapang, memisahkan konten penting dengan tegas.
+Pola umum template buatan AI memiliki kelemahan fatal yang membuat website terasa murah dan tidak manusiawi:
+* ❌ **Giant Screaming Headlines:** Teks heading 72–96px hitam tebal yang memenuhi setengah layar dan berteriak kepada pasien.
+* ❌ **Cards Everywhere (Sindrom Kotak di Mana-Mana):** Membungkus setiap judul, fitur, dokter, dan layanan ke dalam kotak kartu tebal (`border rounded-3xl p-6 shadow`) yang berderet kaku 4 kolom.
+* ❌ **Warna Palsu / Tech-Noir:** Latar abu-abu semen dingin, gradasi ungu neon, atau nuansa korporat yang menakutkan bagi pasien.
+
+### Standar Baru: **Editorial Clinical Architecture**
+Mengadopsi pendekatan situs medis dan estetika kelas dunia (*Aesop*, *Dr. Barbara Sturm*, klinik spesialis dermatologi Tokyo/Seoul, serta feed resmi Instagram Kidinest & SSC):
+1. **Tata Letak Garis Rambut (*1px Hairline Dividers*):** Pemisah antar konten menggunakan garis 1px tipis elegan atau whitespace proporsional, bukan kotak kartu tebal.
+2. **Tipografi Berbobot Manusiawi (*Human-Scale Typography*):** Heading berukuran proporsional (32–44px di desktop), dipadukan dengan aksen **Serif Italic** yang anggun dan berwibawa.
+3. **Format Daftar Editorial (*Editorial Index Row*):** Layanan disajikan dalam bentuk daftar berbaris rapi dengan nomor tipis (*01, 02, 03, 04*), nama treatment, dokter penanggung jawab, dan tombol reservasi langsung.
 
 ---
 
-## 2. Color Palette & Token
+## 2. Karakteristik Visual Dua Brand (Dual-Brand Identity)
 
-| Token | Nilai / Tailwind Class | Peruntukan |
+| Parameter | **Kidinest Pediatric Care** (`/kidinest`) | **Semarang Skin Center / SSC** (`/ssc`) |
 | :--- | :--- | :--- |
-| **Canvas Background** | `bg-[#F9F9F7]` atau `bg-stone-50` | Latar utama (Warm Off-White, ramah di mata) |
-| **Surface / Card** | `bg-white` | Kartu konten, modal, container |
-| **Borders** | `border-black/5` atau `border-zinc-200/70` | Garis batas tipis elegan (bukan abu-abu tebal) |
-| **Text Primary** | `text-zinc-950` atau `text-black` | Judul, angka antrian, teks utama |
-| **Text Secondary** | `text-zinc-500` | Label, metadata, timestamp, deskripsi |
-| **Brand Accent (Vibrant Blue)** | `bg-blue-600` / `text-white` | Pill badge kategori, link aktif, highlight |
-| **Action Primary (Warm Amber)** | `bg-amber-400` / `hover:bg-amber-500` | Tombol CTA utama, tombol bayar, konfirmasi |
-| **Healthcare Green** | `bg-emerald-500` / `text-emerald-700` | Status Lunas, Resep Siap, Stok Aman |
-| **Alert / Expired** | `bg-rose-500` / `text-rose-700` | Peringatan ED < 3 bulan, Stok Kosong |
+| **Audiens** | Orang tua muda (*moms & dads*), bayi, dan balita. | Pasien dewasa dermatologi & estetika klinis. |
+| **Nuansa Emosional** | Hangat, ceria, higienis, menenangkan (*nurturing*). | Anggun, mewah (*quiet luxury*), bersih, ilmiah medis. |
+| **Simbol Brand** | **Maskot "Baby Bean"** (oval mustard dengan senyum inisial *kn*). | **Rosette Mandala** (kelopak bunga geometrik presisi). |
+| **Palet Warna Utama** | • **Mustard Warm Gold:** `#E5A93C`<br>• **Forest Bottle Green:** `#0C3B36`<br>• **Warm Linen Cream:** `#FAF7F2` | • **Dusty Rose / Mauve:** `#9E606D`<br>• **Deep Plum Charcoal:** `#2D1E24`<br>• **Soft Silk Blush:** `#FAF5F5` |
+| **Tipografi** | *Friendly Bold Rounded* + panah lengkung organik. | *Modern Sans* dipadu aksen **Serif Italic Elegan**. |
+| **Elemen Grafis** | Panah lengkung (*organic arrows*), foto cutout anak. | Garis pembagi rambut (*hairline*), perbandingan *do's & don'ts*. |
+| **Pita Footer** | Pita hijau botol solid `#0C3B36` teks putih. | Pita dusty rose / slate dengan identitas resmi SMG. |
 
 ---
 
-## 3. Tipografi & Skala Hirarki
-Font keluarga: **Plus Jakarta Sans** atau **Inter** (sans-serif modern).
+## 3. Sistem Tipografi & Hirarki
 
-* **Display / Queue Number:** `text-4xl` hingga `text-6xl`, `font-extrabold`, `tracking-tight`, `text-zinc-950`.
-* **Section Heading:** `text-2xl`, `font-bold`, `tracking-tight`.
-* **Pill Badges:** `text-xs`, `font-semibold`, `tracking-wide`, `uppercase`.
-* **Body / Label:** `text-sm`, `font-normal`, `text-zinc-600`.
+Font keluarga:
+* **Sans-Serif:** `Plus Jakarta Sans` (jelas, modern, highly legible).
+* **Serif Accent:** `Playfair Display` / `Georgia` italic untuk aksen brand SSC (*"Advanced care for your skin"*).
+
+| Tingkat | Ukuran & Bobot | Karakteristik |
+| :--- | :--- | :--- |
+| **Display Heading** | `text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight` | Skala proporsional (tidak berteriak, nyaman dibaca). |
+| **Section Title** | `text-xl sm:text-2xl font-bold tracking-tight` | Jelas, tegas, mengarahkan fokus. |
+| **Editorial Accent** | `font-serif italic font-normal` | Digunakan untuk 1–2 kata penegas kemewahan di SSC. |
+| **Pill Badge** | `text-xs font-bold tracking-wide uppercase` | `rounded-full px-3.5 py-1` warna mustard atau dusty rose. |
+| **Body & Penjelasan** | `text-sm sm:text-base font-normal leading-relaxed` | Spasi baris lega (*line-height 1.6*), warna abu gelap netral. |
 
 ---
 
-## 4. Komponen Khas (Brandlos Style Elements)
+## 4. Pola Komponen Baru (Bebas dari Penyakit Card Clutter)
 
-### A. Pill Badges
-Badge melengkung penuh untuk status dan tag:
+### A. Editorial Index (Pengganti 4 Kotak Card Layanan)
+Alih-alih membuat 4 kotak kartu identik, layanan klinik disajikan secara berbaris elegan:
 ```html
-<!-- Kategori / Role -->
-<span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-sm">
-  Poliklinik Umum
-</span>
-
-<!-- Status Live -->
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-  Antrian Berjalan
-</span>
-```
-
-### B. Rounded Surface Cards
-Card dengan sudut membulat lebar dan border super halus:
-```html
-<div class="bg-white rounded-3xl p-6 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.05)] transition-all duration-200">
-  ...
+<div class="border-t border-b divide-y divide-zinc-200">
+  <div class="py-5 flex items-center justify-between group hover:bg-zinc-50/50 transition-colors">
+    <div class="flex items-center gap-6">
+      <span class="font-mono text-xs font-bold text-zinc-400">01</span>
+      <div>
+        <h4 class="text-base font-bold text-zinc-950 group-hover:text-rose-800 transition-colors">
+          Laser Skin Rejuvenation
+        </h4>
+        <p class="text-xs text-zinc-500">Pori, pigmentasi, melasma & peremajaan kolagen kulit</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-xs font-semibold text-zinc-600 hidden sm:inline">dr. Dian Paramita, Sp.D.V.E</span>
+      <button class="text-xs font-bold text-zinc-950 underline underline-offset-4 group-hover:text-rose-700">
+        Reservasi →
+      </button>
+    </div>
+  </div>
 </div>
 ```
 
-### C. Buttons with Tactile Feel
-Tombol aksi dengan efek tekan (*active scale*):
+### B. Perbandingan Format Feed (Do's vs Don'ts / Two-Column Breath)
+Mengadopsi format layout resmi feed SSC:
 ```html
-<button class="px-6 py-3 rounded-full font-semibold bg-amber-400 text-zinc-950 hover:bg-amber-500 active:scale-[0.98] transition-all duration-150 shadow-sm flex items-center gap-2">
-  Panggil Pasien Selanjutnya →
-</button>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start relative">
+  <!-- Hairline divider di tengah (desktop) -->
+  <div class="hidden md:block absolute top-0 bottom-0 left-1/2 w-px bg-zinc-200"></div>
+
+  <!-- Kolom Kiri -->
+  <div class="space-y-4 md:pr-8">
+    <h3 class="text-lg font-bold text-zinc-950">Do's: Protokol Perawatan</h3>
+    <ul class="space-y-2 text-sm text-zinc-600">
+      <li class="flex items-start gap-2.5">
+        <span class="text-zinc-400">•</span>
+        <span>Gunakan tabir surya SPF 30+ 15 menit sebelum keluar ruangan.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Kolom Kanan -->
+  <div class="space-y-4 md:pl-8">
+    <h3 class="text-lg font-bold text-zinc-950">Don'ts: Kesalahan Umum</h3>
+    <ul class="space-y-2 text-sm text-zinc-600">
+      <li class="flex items-start gap-2.5">
+        <span class="text-zinc-400">•</span>
+        <span>Mengaplikasikan krim baru saat kulit masih meradang aktif.</span>
+      </li>
+    </ul>
+  </div>
+</div>
 ```
 
----
-
-## 5. Micro-Interactions & Animasi Halus
-Semua animasi harus **cepat dan halus** (150ms – 250ms), jangan lambat yang membuat kerja staf klinik terhambat:
-* Gunakan Vue `<Transition>` dan `<TransitionGroup>` pada:
-  * Masuk/keluarnya tiket antrian.
-  * Baris resep saat dokter menambah obat.
-  * Kartu resep baru di apotek yang meluncur masuk (*slide up* halus).
-* Modal/dialog menggunakan latar belakang buram (`backdrop-blur-sm bg-black/20`).
+### C. Live Antrian Strip (Integrated Clinical Monitor)
+Widget live antrian dirancang menyatu harmonis dengan kanvas halaman, bukan kotak kardus tebal mengambang:
+* Garis status atas dengan dot pulsa real-time.
+* Angka antrian mono tajam (`font-mono font-black text-5xl sm:text-6xl`).
+* Segmented pill switcher per dokter tanpa border tebal.
 
 ---
 
-## 6. Layout Ergonomics Menurut Pengguna
+## 5. Standar Antarmuka Admin Minimalist (*Workstation Ergonomics*)
 
-1. **Pasien (Mobile-First):**
-   * Mengikuti gaya Brandlos 100%: Judul besar, sapaan personal hangat (*"Halo, selamat datang di Klinik Sehat"*), kartu tiket antrian digital yang menyerupai boarding pass / kartu bank digital, tombol aksi besar ramah jempol.
-2. **Dokter & Apotek (Workstation Ergonomics):**
-   * Tetap menggunakan warna dasar warm sand dan pill badge, namun dengan **densitas data yang efisien**.
-   * Daftar obat, rekam medis, dan checklist racikan tersaji dalam card/tabel rapi yang mudah di-scan mata dan minim scrolling berlebihan.
-3. **Demo Role Switcher:**
-   * Bar mengambang (*floating pill bar*) di bagian atas tengah layar:  
-     `[ Pasien ] [ Kasir ] [ Dokter ] [ Apotek ] [ Gudang ] [ SATUSEHAT ]`  
-     Memudahkan presenter mendemonstrasikan end-to-end flow hanya dengan 1 klik.
+Untuk operasional internal staf (Meja Kasir, Dokter, Apotek, Gudang):
+1. **Sidebar Kiri Tetap (Fixed 240px):**
+   * Latar gelap minimalis (`bg-zinc-950`), icon rapi, label ringkas.
+   * Modul cepat: Kasir & GRO, Ruang Dokter, Farmasi Resep, Gudang Stok, Billing Shift, SATUSEHAT.
+   * Role Switcher instan di bagian profil atas untuk kemudahan demo klien.
+2. **Kepadatan Data Tinggi (*High-Density Table*):**
+   * Font 12–13px, padding 8–10px, angka monospaced tabular.
+   * Tanpa grafik dekoratif yang tidak perlu; utamakan status antrian, nama pasien, dan aksi klinis langsung.

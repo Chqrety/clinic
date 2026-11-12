@@ -63,22 +63,29 @@ Desain sebelumnya mengadopsi gaya *Nordic Editorial / Tech SaaS* (ala Figma/X.ai
 
 ## 4. Arah Desain Baru: Semarang Skin Center (`/ssc`)
 
-### Karakter Visual (Clinical Aesthetic, Radiant, Elegant & Medically Sound)
-* **Palet Warna:**
-  * **Canvas:** Pure Medical Porcelain (`#FFFFFF` / `#FAFAFA`).
-  * **Aksen Utama:** Elegant Rose Champagne (`#E11D48` soft / `#FDA4AF` / `#FFF1F2`) dipadu Slate Charcoal (`#1E293B`).
-  * **Tipografi:** Sharp, modern, dan bernuansa dermatologi premium.
-* **Elemen Visual:**
-  * Garis border 1px ultra-halus (`border-zinc-200/80`).
-  * Fotografi & visual berfokus pada kesehatan kulit bersih (*clear skin, clinical treatments*).
-  * Menampilkan slogan resmi: *"Advanced care for your skin"*.
+*(Berdasarkan foto feed SPF do's vs don'ts dan logo resmi Instagram @semarang.skin.center — selengkapnya di [BREAKDOWN_DESIGN_SSC.md](file:///home/alpi/Projects/clinic/docs/BREAKDOWN_DESIGN_SSC.md))*
+
+### Karakter Visual (Dusty Rose, Rosette Mandala, Editorial Hairline & Anti-AI)
+* **Palet Warna Resmi:**
+  * **Canvas:** Soft Silk Petal Blush (`#FAF5F5` / `#F8ECEE`).
+  * **Warna Utama:** Dusty Rose / Mauve (`#9E606D` / `#A56976`) untuk logo roset, aksen tipografi, dan highlight.
+  * **Warna Teks Utama:** Deep Plum Charcoal (`#2D1E24` / `#362128`) untuk keterbacaan tinggi dan berkelas.
+  * **Warna Pembagi:** Hairline Muted Rose (`#E8D5C8` / `#F3E8E8`).
+* **Rombak Konsep Anti-AI (Menghapus Teks Raksasa & Sindrom Kotak Card):**
+  1. **Tipografi Hybrid Berkelas:** Kombinasi Sans-serif bersih dengan aksen **Serif Italic Elegan** (Playfair style) pada kata kunci, bukan font hitam raksasa yang berteriak.
+  2. **Editorial Index Table:** Menu perawatan medis (Laser, Acne Scar, Facial Medis, Bedah Minor) disajikan dalam format daftar berbaris rapi (*01, 02, 03, 04*) dengan hairline divider, **bukan 4 kotak kartu berderet**.
+  3. **Layout Do's vs Don'ts Resmi:** Mengadopsi tata letak feed SPF dengan garis tengah tipis, ilustrasi perbandingan kulit, dan poin edukasi dokter spesialis yang bernapas lega.
+  4. **Pita Monitoring Antrian:** Panel live antrian terintegrasi mulus dengan kanvas, bukan kardus tebal mengambang.
+* **Tenaga Medis Kunci:**
+  * **dr. Dian Paramita, Sp.D.V.E** (Spesialis Dermatologi, Venereologi & Estetika Medis).
+  * **dr. Kevin Wijaya, Sp.D.V.E** (Spesialis Dermatologi • Bedah Minor & Scar Treatment).
 * **Struktur Halaman Utama:**
-  1. **Top Bar:** SSC Semarang Skin Center + Tombol Beralih ke Kidinest Pediatric + Reservasi Treatment.
-  2. **Hero:** Slogan *"Advanced care for your skin"*, penanganan dermatologi oleh dokter spesialis, tombol booking konsultasi.
-  3. **Live Antrian Tindakan Kulit:** Status ruang konsultasi & ruang tindakan laser.
-  4. **Layanan Unggulan Medis:** Laser Rejuvenation & Pigmentasi, Terapi Acne & Bopeng (Scar), Medical Facial Klinis, Pengangkatan Lesi/Tahi Lalat.
-  5. **Dokter Spesialis Kulit:** Profil dermatolog berlisensi resmi.
-  6. **Akses & Reservasi VIP:** Jl. Melati Utara No. 3, Semarang + Jam praktik + WhatsApp Care.
+  1. **Top Bar:** Logo Rosette Mandala SSC + Switcher ke Kidinest Pediatric + WhatsApp Care & Reservasi.
+  2. **Hero:** Slogan *"Advanced care for your skin"* (aksen Serif Italic), narasi dermatologi berstandar medis, tombol reservasi.
+  3. **Live Antrian Poli Kulit:** Panel monitoring dokter jaga & ruang tindakan live.
+  4. **Menu Perawatan Medis (Editorial Index 01-04):** Daftar perawatan bergaris rambut elegan.
+  5. **Protokol Klinis (Do's vs Don'ts Format):** Panduan dokter Sp.D.V.E dalam layout dua kolom bernapas.
+  6. **Pita Footer Resmi:** Identitas Klinik Utama Semarang Medical Group • Jl. Melati Utara No. 3, Semarang.
 
 ---
 
