@@ -528,7 +528,7 @@ const faqs = [
           Jl. Melati Utara No 3, Semarang
         </div>
         <div class="flex items-center gap-4 text-white/70 font-semibold">
-          <button @click="emit('navigate', 'kiosk-kidinest')" class="hover:text-white">Portal Antrian (Lt. 1)</button>
+          <button @click="emit('navigate', 'kiosk-kidinest')" class="hover:text-white">Kiosk Antrian Mandiri</button>
           <span>•</span>
           <button @click="emit('navigate', 'ssc')" class="hover:text-white">Semarang Skin Center</button>
           <span>•</span>

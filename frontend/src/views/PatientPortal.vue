@@ -237,7 +237,7 @@ function resetForm() {
               src="/assets/ssc/logo-ssc.png"
               class="w-3.5 h-3.5 object-contain"
             />
-            <span>{{ brand === 'kidinest' ? 'Lantai 1 • Poli Anak & Vaksinasi' : 'Lantai 2 • Dermatologi & Estetika Medis' }}</span>
+            <span>{{ brand === 'kidinest' ? 'Kidinest • Poli Anak & Vaksinasi' : 'Semarang Skin Center • Dermatologi & Estetika' }}</span>
           </div>
 
           <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -246,8 +246,8 @@ function resetForm() {
           <p class="text-xs opacity-75 max-w-md mx-auto font-medium">
             {{
               brand === 'kidinest'
-                ? 'Pendaftaran mandiri pasien anak di Lantai 1. Tiket digital & estimasi waktu langsung tersimpan di ponsel Anda.'
-                : 'Pendaftaran mandiri konsultasi kulit di Lantai 2. Estimasi giliran ruang tindakan langsung tersimpan di ponsel Anda.'
+                ? 'Pendaftaran mandiri antrian poli anak. Tiket digital & estimasi waktu langsung tersimpan di ponsel Anda.'
+                : 'Pendaftaran mandiri konsultasi spesialis kulit. Estimasi giliran ruang tindakan langsung tersimpan di ponsel Anda.'
             }}
           </p>
         </div>
@@ -407,9 +407,9 @@ function resetForm() {
             </div>
           </div>
 
-          <!-- SSC Free Booking Note (Lantai 2) -->
+          <!-- SSC Free Booking Note -->
           <div v-else class="p-3.5 rounded-2xl bg-rose-50/70 border border-[#9E606D]/20 text-[11px] text-[#2D1E24] font-medium leading-relaxed">
-            💡 <strong>Semarang Skin Center (Lantai 2):</strong> Pendaftaran reservasi konsultasi dokter kulit Rp 0. Biaya tindakan laser/perawatan medis akan dihitung di kasir Lantai 2 setelah konsultasi selesai.
+            💡 <strong>Semarang Skin Center:</strong> Pendaftaran reservasi konsultasi dokter spesialis kulit Rp 0. Rincian tindakan medis/laser dan resep akan diselesaikan di kasir setelah konsultasi.
           </div>
 
           <!-- Submit Button -->
@@ -445,7 +445,7 @@ function resetForm() {
             </div>
             <div class="flex items-center justify-between text-xs opacity-70">
               <span>Lokasi Poli:</span>
-              <span class="font-bold text-[#0C3B36]">Kidinest (Poli Anak • Lantai 1)</span>
+              <span class="font-bold text-[#0C3B36]">Kidinest Pediatric Care</span>
             </div>
             <div class="flex items-center justify-between text-xs opacity-70">
               <span>Dokter Pemeriksa:</span>
@@ -518,7 +518,7 @@ function resetForm() {
             :class="brand === 'kidinest' ? 'bg-[#0C3B36]' : 'bg-[#9E606D]'"
           >
             <div class="text-[11px] font-bold uppercase tracking-wider text-white/70">
-              {{ brand === 'kidinest' ? 'Kidinest Pediatric Care • Lantai 1' : 'Semarang Skin Center • Lantai 2' }}
+              {{ brand === 'kidinest' ? 'Kidinest Pediatric Care' : 'Semarang Skin Center' }}
             </div>
             <!-- Giant Number -->
             <div class="text-6xl font-black tracking-tight text-white font-mono py-2">

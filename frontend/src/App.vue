@@ -124,7 +124,7 @@ const activeComponent = computed(() => {
         class="mb-2 p-2 bg-white/95 backdrop-blur-md rounded-2xl border border-black/10 shadow-2xl space-y-1 text-xs font-bold text-zinc-800 animate-in fade-in slide-in-from-bottom-2 duration-150 min-w-[240px]"
       >
         <div class="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-400">
-          Lantai 1 • Kidinest
+          Kidinest Pediatric Care
         </div>
         <button
           @click="navigateTo('kidinest'); showDemoNav = false"
@@ -133,7 +133,7 @@ const activeComponent = computed(() => {
         >
           <div class="flex items-center gap-2">
             <Baby class="w-3.5 h-3.5 text-emerald-700" />
-            <span>1. Landing Kidinest</span>
+            <span>1. Beranda Kidinest</span>
           </div>
           <span v-if="currentRoute === 'kidinest'" class="text-emerald-600 font-bold">●</span>
         </button>
@@ -145,7 +145,7 @@ const activeComponent = computed(() => {
         >
           <div class="flex items-center gap-2">
             <QrCode class="w-3.5 h-3.5 text-emerald-700" />
-            <span>2. Kiosk Antrian (Lt. 1)</span>
+            <span>2. Kiosk Antrian Anak</span>
           </div>
           <span v-if="currentRoute === 'kiosk-kidinest'" class="text-emerald-600 font-bold">●</span>
         </button>
@@ -157,13 +157,13 @@ const activeComponent = computed(() => {
         >
           <div class="flex items-center gap-2">
             <Shield class="w-3.5 h-3.5 text-emerald-700" />
-            <span>3. Login Staf (Lt. 1)</span>
+            <span>3. Login Staf Kidinest</span>
           </div>
           <span v-if="currentRoute === 'login-kidinest'" class="text-emerald-600 font-bold">●</span>
         </button>
 
         <div class="px-2 pt-2 py-1 text-[10px] font-black uppercase tracking-wider text-zinc-400 border-t border-zinc-100">
-          Lantai 2 • Semarang Skin Center
+          Semarang Skin Center
         </div>
 
         <button
@@ -173,7 +173,7 @@ const activeComponent = computed(() => {
         >
           <div class="flex items-center gap-2">
             <Sparkles class="w-3.5 h-3.5 text-rose-600" />
-            <span>4. Landing SSC</span>
+            <span>4. Beranda SSC</span>
           </div>
           <span v-if="currentRoute === 'ssc'" class="text-rose-600 font-bold">●</span>
         </button>
@@ -185,7 +185,7 @@ const activeComponent = computed(() => {
         >
           <div class="flex items-center gap-2">
             <QrCode class="w-3.5 h-3.5 text-rose-600" />
-            <span>5. Kiosk Antrian (Lt. 2)</span>
+            <span>5. Kiosk Reservasi SSC</span>
           </div>
           <span v-if="currentRoute === 'kiosk-ssc'" class="text-rose-600 font-bold">●</span>
         </button>
@@ -197,7 +197,7 @@ const activeComponent = computed(() => {
         >
           <div class="flex items-center gap-2">
             <Shield class="w-3.5 h-3.5 text-rose-600" />
-            <span>6. Login Staf (Lt. 2)</span>
+            <span>6. Login Staf SSC</span>
           </div>
           <span v-if="currentRoute === 'login-ssc'" class="text-rose-600 font-bold">●</span>
         </button>

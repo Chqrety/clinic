@@ -60,7 +60,7 @@ const kidinestAccounts: QuickAccount[] = [
     name: 'dr. Patricia Vanessa A., Sp.A',
     title: 'Dokter Spesialis Anak • Poli 1',
     role: 'DOCTOR',
-    unit: 'Kidinest (Lantai 1)',
+    unit: 'Kidinest (Poli Anak)',
     clinicRole: 'doctor',
     icon: Stethoscope,
   },
@@ -69,7 +69,7 @@ const kidinestAccounts: QuickAccount[] = [
     name: 'dr. Hendra Pratama, Sp.A',
     title: 'Konsultan Tumbang & Nutrisi • Poli 2',
     role: 'DOCTOR',
-    unit: 'Kidinest (Lantai 1)',
+    unit: 'Kidinest (Poli Anak)',
     clinicRole: 'doctor',
     icon: Stethoscope,
   },
@@ -78,7 +78,7 @@ const kidinestAccounts: QuickAccount[] = [
     name: 'Siti Sarah, A.Md',
     title: 'Kasir & Meja Depan GRO',
     role: 'GRO_CASHIER',
-    unit: 'Kidinest (Lantai 1)',
+    unit: 'Kidinest (Poli Anak)',
     clinicRole: 'cashier',
     icon: CreditCard,
   },
@@ -108,7 +108,7 @@ const sscAccounts: QuickAccount[] = [
     name: 'dr. Dian Paramita, Sp.D.V.E',
     title: 'Spesialis Dermatologi & Laser • Ruang 1',
     role: 'DOCTOR',
-    unit: 'SSC (Lantai 2)',
+    unit: 'Semarang Skin Center',
     clinicRole: 'doctor',
     icon: Sparkles,
   },
@@ -117,7 +117,7 @@ const sscAccounts: QuickAccount[] = [
     name: 'dr. Kevin Wijaya, Sp.D.V.E',
     title: 'Spesialis Kulit & Bedah Minor • Ruang 2',
     role: 'DOCTOR',
-    unit: 'SSC (Lantai 2)',
+    unit: 'Semarang Skin Center',
     clinicRole: 'doctor',
     icon: Building2,
   },
@@ -126,7 +126,7 @@ const sscAccounts: QuickAccount[] = [
     name: 'Amanda L., S.E',
     title: 'Kasir & Resepsionis VIP',
     role: 'GRO_CASHIER',
-    unit: 'SSC (Lantai 2)',
+    unit: 'Semarang Skin Center',
     clinicRole: 'cashier',
     icon: CreditCard,
   },
@@ -205,7 +205,7 @@ function handleFormSubmit() {
         class="inline-flex items-center gap-2 text-xs font-bold opacity-70 hover:opacity-100 transition-opacity"
       >
         <ArrowLeft class="w-3.5 h-3.5" />
-        <span>Kembali ke Beranda {{ brand === 'kidinest' ? 'Kidinest (Lantai 1)' : 'Semarang Skin Center (Lantai 2)' }}</span>
+        <span>Kembali ke Beranda {{ brand === 'kidinest' ? 'Kidinest' : 'Semarang Skin Center' }}</span>
       </button>
     </div>
 
@@ -229,7 +229,7 @@ function handleFormSubmit() {
               src="/assets/ssc/logo-ssc.png"
               class="w-3.5 h-3.5 object-contain"
             />
-            <span>{{ brand === 'kidinest' ? 'Kidinest Pediatric Care • Lantai 1' : 'Semarang Skin Center • Lantai 2' }}</span>
+            <span>{{ brand === 'kidinest' ? 'Kidinest Pediatric Care' : 'Semarang Skin Center' }}</span>
           </div>
 
           <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
@@ -238,15 +238,15 @@ function handleFormSubmit() {
           <p class="text-xs sm:text-sm opacity-75 leading-relaxed font-medium">
             {{
               brand === 'kidinest'
-                ? 'Autentikasi staf medis poli anak Lantai 1. Terintegrasi satu database terpusat di bawah supervisi Atasan Klinik Utama Semarang Medical Group.'
-                : 'Autentikasi staf medis dermatologi & laser Lantai 2. Terintegrasi satu database terpusat di bawah supervisi Atasan Klinik Utama Semarang Medical Group.'
+                ? 'Autentikasi staf medis poli anak & vaksinasi. Terintegrasi satu database terpusat di bawah supervisi Klinik Utama Semarang Medical Group.'
+                : 'Autentikasi staf medis dermatologi & estetika. Terintegrasi satu database terpusat di bawah supervisi Klinik Utama Semarang Medical Group.'
             }}
           </p>
 
           <!-- Quick Access Demo Accounts -->
           <div class="pt-4 border-t border-zinc-200/80 space-y-3">
             <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider opacity-60">
-              <span>Akun Demo Cepat {{ brand === 'kidinest' ? 'Lantai 1' : 'Lantai 2' }} (1-Klik):</span>
+              <span>Akun Demo Cepat ({{ brand === 'kidinest' ? 'Kidinest' : 'SSC' }}):</span>
               <span class="font-mono text-emerald-700">Password: klinik123</span>
             </div>
 
@@ -349,7 +349,7 @@ function handleFormSubmit() {
             >
               <Loader2 v-if="isSubmitting" class="w-3.5 h-3.5 animate-spin" />
               <KeyRound v-else class="w-3.5 h-3.5" />
-              <span>Masuk ke Workstation {{ brand === 'kidinest' ? 'Lantai 1' : 'Lantai 2' }}</span>
+              <span>Masuk ke Workstation {{ brand === 'kidinest' ? 'Kidinest' : 'Semarang Skin Center' }}</span>
             </button>
           </form>
 

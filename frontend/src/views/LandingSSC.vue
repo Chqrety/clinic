@@ -564,7 +564,7 @@ const faqs = [
           Klinik Utama Semarang Medical Group • Jl. Melati Utara No. 3, Semarang
         </div>
         <div class="flex items-center gap-4 text-white/80 font-semibold">
-          <button @click="emit('navigate', 'kiosk-ssc')" class="hover:text-white">Portal Reservasi (Lt. 2)</button>
+          <button @click="emit('navigate', 'kiosk-ssc')" class="hover:text-white">Kiosk Reservasi Mandiri</button>
           <span>•</span>
           <button @click="emit('navigate', 'kidinest')" class="hover:text-white">Kidinest Pediatric</button>
           <span>•</span>
