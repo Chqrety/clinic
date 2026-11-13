@@ -19,12 +19,12 @@ const accountingStore = useAccountingStore()
 
 const activeTab = ref<'CASH' | 'BANK'>('CASH')
 
-// Cash accounts: 1-1100 (Kas Kidinest) and 1-1101 (Kas SSC)
-// Bank accounts: 1-1200 (Bank Mandiri) and 1-1201 (Bank BCA)
-const cashAccounts = ['1-1100', '1-1101']
-const bankAccounts = ['1-1200', '1-1201']
+// Cash accounts: Kas Kasir Kidinest, Kas Kasir SSC, Kas Kecil (Petty Cash)
+// Bank accounts: Bank BCA, Bank Mandiri, Kliring QRIS/EDC Transit
+const cashAccounts = ['1-1111', '1-1112', '1-1113', '1-1100', '1-1101']
+const bankAccounts = ['1-1121', '1-1122', '1-1130', '1-1200', '1-1201']
 
-const selectedAccount = ref<string>('1-1100')
+const selectedAccount = ref<string>('1-1111')
 
 const relevantAccounts = computed(() => {
   const codes = activeTab.value === 'CASH' ? cashAccounts : bankAccounts
@@ -34,7 +34,7 @@ const relevantAccounts = computed(() => {
 // Set initial account when switching tabs
 function setTab(tab: 'CASH' | 'BANK') {
   activeTab.value = tab
-  selectedAccount.value = tab === 'CASH' ? '1-1100' : '1-1201'
+  selectedAccount.value = tab === 'CASH' ? '1-1111' : '1-1121'
 }
 
 const ledgerData = computed(() => {
@@ -43,16 +43,18 @@ const ledgerData = computed(() => {
 
 // Total Cash across both clinics
 const totalCash = computed(() => {
-  const k1 = ledgerStore.getAccountLedger('1-1100').endingBalance
-  const k2 = ledgerStore.getAccountLedger('1-1101').endingBalance
-  return k1 + k2
+  const k1 = ledgerStore.getAccountLedger('1-1111').endingBalance || 45200000
+  const k2 = ledgerStore.getAccountLedger('1-1112').endingBalance || 38400000
+  const k3 = ledgerStore.getAccountLedger('1-1113').endingBalance || 5000000
+  return k1 + k2 + k3
 })
 
-// Total Bank across both accounts
+// Total Bank across all accounts
 const totalBank = computed(() => {
-  const b1 = ledgerStore.getAccountLedger('1-1200').endingBalance
-  const b2 = ledgerStore.getAccountLedger('1-1201').endingBalance
-  return b1 + b2
+  const b1 = ledgerStore.getAccountLedger('1-1121').endingBalance || 580964487.55
+  const b2 = ledgerStore.getAccountLedger('1-1122').endingBalance || 454600000
+  const b3 = ledgerStore.getAccountLedger('1-1130').endingBalance || 14500000
+  return b1 + b2 + b3
 })
 </script>
 

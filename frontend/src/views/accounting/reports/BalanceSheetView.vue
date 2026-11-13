@@ -21,7 +21,7 @@ const accountingStore = useAccountingStore()
 // State
 const startDate = ref('01-11-2026')
 const endDate = ref('30-11-2026')
-const currentLevel = ref<number>(4)
+const currentLevel = ref<number>(1)
 const jumpLineNumber = ref<number>(1)
 const showZeroBalance = ref(false)
 
@@ -306,10 +306,9 @@ const neracaTree = ref<TreeNode[]>([
   }
 ])
 
-// Flat list calculation based on expanded state
+// Flat list calculation based on expanded state - default Level 1 matching Image 2
 const expandedIds = ref<Set<string>>(new Set([
-  'aktiva', '11', '1101', '1102', '12', '1202', '13', '14', '15', '16',
-  'kewajiban_modal', 'kewajiban', '2101', '2102', '22', '25', 'ekuitas', '31', '32'
+  'aktiva', 'kewajiban_modal', 'kewajiban', 'ekuitas'
 ]))
 
 function toggleExpand(id: string) {
@@ -322,7 +321,16 @@ function toggleExpand(id: string) {
 
 function setLevel(lvl: number) {
   currentLevel.value = lvl
+  jumpLineNumber.value = lvl
   expandedIds.value.clear()
+
+  if (lvl === 1) {
+    expandedIds.value.add('aktiva')
+    expandedIds.value.add('kewajiban_modal')
+    expandedIds.value.add('kewajiban')
+    expandedIds.value.add('ekuitas')
+    return
+  }
 
   function traverse(nodes: TreeNode[]) {
     for (const node of nodes) {
@@ -333,11 +341,21 @@ function setLevel(lvl: number) {
     }
   }
 
+  expandedIds.value.add('aktiva')
+  expandedIds.value.add('kewajiban_modal')
+  expandedIds.value.add('kewajiban')
+  expandedIds.value.add('ekuitas')
   traverse(neracaTree.value)
+}
+
+function applySetLevel() {
+  const lvl = Math.min(Math.max(Number(jumpLineNumber.value) || 1, 1), 4)
+  setLevel(lvl)
 }
 
 function expandAll() {
   currentLevel.value = 4
+  jumpLineNumber.value = 4
   function collectAll(nodes: TreeNode[]) {
     for (const n of nodes) {
       if (n.children && n.children.length > 0) {
@@ -351,7 +369,12 @@ function expandAll() {
 
 function collapseAll() {
   currentLevel.value = 1
+  jumpLineNumber.value = 1
   expandedIds.value.clear()
+  expandedIds.value.add('aktiva')
+  expandedIds.value.add('kewajiban_modal')
+  expandedIds.value.add('kewajiban')
+  expandedIds.value.add('ekuitas')
 }
 
 // Flatten for rendering
@@ -476,6 +499,24 @@ function handleExportExcel() {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/60 font-mono">
+            <!-- Header Titles matching Image 2 Lines 3, 4, 5 -->
+            <tr class="bg-[#0F172A] border-b border-slate-800/80">
+              <td class="py-2 px-4 text-slate-500 font-mono text-[11px]">3</td>
+              <td class="py-2 px-4 font-black text-white uppercase tracking-wider text-xs">NERACA</td>
+              <td class="py-2 px-6"></td>
+            </tr>
+            <tr class="bg-[#0F172A] border-b border-slate-800/80">
+              <td class="py-1.5 px-4 text-slate-500 font-mono text-[11px]">4</td>
+              <td class="py-1.5 px-4 font-bold text-slate-400 uppercase tracking-wide text-[11px]">PER 30 NOVEMBER 2026</td>
+              <td class="py-1.5 px-6"></td>
+            </tr>
+            <tr class="bg-[#0F172A]/50 border-b border-slate-800/40">
+              <td class="py-1 px-4 text-slate-500 font-mono text-[11px]">5</td>
+              <td class="py-1 px-4"></td>
+              <td class="py-1 px-6"></td>
+            </tr>
+
+            <!-- Interactive Tree Nodes -->
             <tr
               v-for="row in flattenedRows"
               :key="row.node.id"
@@ -557,11 +598,14 @@ function handleExportExcel() {
       <!-- Bottom Level Bar matching Image 2 -->
       <div class="px-4 py-3 bg-[#0F172A] border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-2">
-          <!-- Jump to Line -->
+          <!-- Jump to Line / Set Level Input matching Image 2 -->
           <input
             v-model.number="jumpLineNumber"
             type="number"
+            min="1"
+            max="4"
             class="w-12 px-2 py-1 bg-[#1E293B] border border-slate-700 rounded text-center text-xs text-white font-mono"
+            @keyup.enter="applySetLevel"
           />
 
           <!-- Level Buttons: Lvl 1, Lvl 2, Lvl 3, Lvl 4 (Detail) -->
@@ -605,22 +649,29 @@ function handleExportExcel() {
           </div>
 
           <button
+            @click="applySetLevel"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
+          >
+            Set Level
+          </button>
+
+          <button
             @click="expandAll"
-            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
           >
             Expand All
           </button>
 
           <button
             @click="collapseAll"
-            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
           >
             Collapse All
           </button>
         </div>
 
         <div class="flex items-center gap-3 text-slate-400 text-xs">
-          <span>Menampilkan <strong>{{ flattenedRows.length }}</strong> pos neraca</span>
+          <span>Menampilkan <strong>{{ flattenedRows.length }}</strong> baris neraca</span>
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           <span class="text-emerald-400 font-bold">Neraca Seimbang (Balanced)</span>
         </div>

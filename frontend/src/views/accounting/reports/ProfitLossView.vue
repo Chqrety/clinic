@@ -17,8 +17,8 @@ const accountingStore = useAccountingStore()
 
 // State
 const startDate = ref('01-09-2026')
-const endDate = ref('30-09-2026')
-const currentLevel = ref<number>(4)
+const endDate = ref('30-11-2026')
+const currentLevel = ref<number>(1)
 const jumpLineNumber = ref<number>(1)
 const hideStockReceipt = ref(true)
 
@@ -194,8 +194,8 @@ const plTree = ref<PLTreeNode[]>([
 ])
 
 const expandedIds = ref<Set<string>>(new Set([
-  'sec_pendapatan', 'grp_pendapatan', '4100',
-  'sec_biaya', 'grp_beban', '51', '52',
+  'sec_pendapatan', 'grp_pendapatan',
+  'sec_biaya', 'grp_beban',
   'sec_pend_lain', 'grp_pend_non_usaha',
   'sec_biaya_lain', 'grp_beban_non_usaha'
 ]))
@@ -210,7 +210,20 @@ function toggleExpand(id: string) {
 
 function setLevel(lvl: number) {
   currentLevel.value = lvl
+  jumpLineNumber.value = lvl
   expandedIds.value.clear()
+
+  if (lvl === 1) {
+    expandedIds.value.add('sec_pendapatan')
+    expandedIds.value.add('grp_pendapatan')
+    expandedIds.value.add('sec_biaya')
+    expandedIds.value.add('grp_beban')
+    expandedIds.value.add('sec_pend_lain')
+    expandedIds.value.add('grp_pend_non_usaha')
+    expandedIds.value.add('sec_biaya_lain')
+    expandedIds.value.add('grp_beban_non_usaha')
+    return
+  }
 
   function traverse(nodes: PLTreeNode[]) {
     for (const node of nodes) {
@@ -221,11 +234,25 @@ function setLevel(lvl: number) {
     }
   }
 
+  expandedIds.value.add('sec_pendapatan')
+  expandedIds.value.add('grp_pendapatan')
+  expandedIds.value.add('sec_biaya')
+  expandedIds.value.add('grp_beban')
+  expandedIds.value.add('sec_pend_lain')
+  expandedIds.value.add('grp_pend_non_usaha')
+  expandedIds.value.add('sec_biaya_lain')
+  expandedIds.value.add('grp_beban_non_usaha')
   traverse(plTree.value)
+}
+
+function applySetLevel() {
+  const lvl = Math.min(Math.max(Number(jumpLineNumber.value) || 1, 1), 4)
+  setLevel(lvl)
 }
 
 function expandAll() {
   currentLevel.value = 4
+  jumpLineNumber.value = 4
   function collectAll(nodes: PLTreeNode[]) {
     for (const n of nodes) {
       if (n.children && n.children.length > 0) {
@@ -239,7 +266,16 @@ function expandAll() {
 
 function collapseAll() {
   currentLevel.value = 1
+  jumpLineNumber.value = 1
   expandedIds.value.clear()
+  expandedIds.value.add('sec_pendapatan')
+  expandedIds.value.add('grp_pendapatan')
+  expandedIds.value.add('sec_biaya')
+  expandedIds.value.add('grp_beban')
+  expandedIds.value.add('sec_pend_lain')
+  expandedIds.value.add('grp_pend_non_usaha')
+  expandedIds.value.add('sec_biaya_lain')
+  expandedIds.value.add('grp_beban_non_usaha')
 }
 
 interface FlattenedPLRow {
@@ -453,11 +489,14 @@ function handleExportExcel() {
       <!-- Bottom Level Bar matching Image 4 -->
       <div class="px-4 py-3 bg-[#0F172A] border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-2">
-          <!-- Jump to Line -->
+          <!-- Jump to Line / Set Level Input matching Image 4 -->
           <input
             v-model.number="jumpLineNumber"
             type="number"
+            min="1"
+            max="4"
             class="w-12 px-2 py-1 bg-[#1E293B] border border-slate-700 rounded text-center text-xs text-white font-mono"
+            @keyup.enter="applySetLevel"
           />
 
           <!-- Level Buttons: Lvl 1, Lvl 2, Lvl 3, Lvl 4 (Detail) -->
@@ -501,15 +540,22 @@ function handleExportExcel() {
           </div>
 
           <button
+            @click="applySetLevel"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
+          >
+            Set Level
+          </button>
+
+          <button
             @click="expandAll"
-            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
           >
             Expand All
           </button>
 
           <button
             @click="collapseAll"
-            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
           >
             Collapse All
           </button>
