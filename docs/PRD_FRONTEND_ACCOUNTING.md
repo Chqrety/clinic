@@ -240,3 +240,4 @@ export interface StandardListParams {
 2. **Multi-Tenancy Unit**: Data unit Kidinest dan SSC terisolasi secara logis melalui parameter `business_unit` namun dapat dikonsolidasikan oleh level manajemen eksekutif.
 3. **Audit Log Tak Terhapus (`/audit-trail`)**: Setiap aktivitas posting, review, approval, dan pembalikan jurnal mencatat timestamp, user ID, IP address, status sebelum, dan status sesudah.
 4. **Validasi Tanpa Docker**: Aplikasi dan service berjalan penuh secara native di lingkungan pengembangan macOS (PostgreSQL 14 Homebrew port 5432, Go API port 8080, Vite dev server port 5173).
+
