@@ -4,16 +4,20 @@ import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel, printReport } from '@/utils/export'
+import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   Download,
   Printer,
-  BookOpen
+  BookOpen,
+  Layers,
+  Calculator
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const accountingStore = useAccountingStore()
 
 // State
+const activeTab = ref<'depreciation' | 'cashflow'>('cashflow')
 const startDate = ref('01-11-2026')
 const endDate = ref('30-11-2026')
 
@@ -31,35 +35,35 @@ interface CashFlowRow {
 // Cash Flow Statement matching Image 3 and Clinic ERP Context
 const cashFlowRows = ref<CashFlowRow[]>([
   { lineNo: 9, name: 'Penyesuaian untuk:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 10, name: 'Penyusutan dan Amortisasi Aset Tetap Medis', amountCurrent: 10416667.00, amountPrevious: 0, isLink: true, accountCode: '1-2900' },
-  { lineNo: 11, name: 'Laba Operasi Sebelum Perubahan Modal Kerja', amountCurrent: 117203823.47, amountPrevious: 0, isBold: true },
+  { lineNo: 10, name: 'Penyusutan dan Amortisasi', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '1606' },
+  { lineNo: 11, name: 'Laba Operasi Sebelum Perubahan Modal Kerja', amountCurrent: 0.00, amountPrevious: 0.00, isBold: true },
   { lineNo: 13, name: 'Perubahan Modal Kerja:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 14, name: 'Penurunan (Kenaikan) Persediaan Medis & Skincare', amountCurrent: -12850000.00, amountPrevious: 0, isLink: true, accountCode: '1-1300' },
-  { lineNo: 15, name: 'Penurunan (Kenaikan) Piutang Usaha & Klaim Asuransi', amountCurrent: -411190000.00, amountPrevious: 0, isLink: true, accountCode: '1-1200' },
-  { lineNo: 16, name: 'Penurunan (Kenaikan) Biaya Dibayar di Muka', amountCurrent: 0, amountPrevious: 0, isLink: true },
-  { lineNo: 17, name: 'Penurunan (Kenaikan) Investasi', amountCurrent: 0, amountPrevious: 0, isLink: true },
-  { lineNo: 18, name: 'Kenaikan (Penurunan) Hutang Uang Muka & Deposit Pasien', amountCurrent: 517451500.00, amountPrevious: 0, isLink: true, accountCode: '2101' },
-  { lineNo: 19, name: 'Kenaikan (Penurunan) Hutang Dagang Distributor PBF', amountCurrent: 4300000.00, amountPrevious: 0, isLink: true, accountCode: '2-1110' },
-  { lineNo: 20, name: 'Kenaikan (Penurunan) Hutang Bagi Hasil Dokter & Komisi', amountCurrent: 18450000.00, amountPrevious: 0, isLink: true, accountCode: '2-1210' },
-  { lineNo: 21, name: 'Kenaikan (Penurunan) Hutang Pembebanan HPP', amountCurrent: 0, amountPrevious: 0, isLink: true },
-  { lineNo: 22, name: 'Kenaikan (Penurunan) Hutang Pajak PPh 21 Dokter & PPN', amountCurrent: 7850000.00, amountPrevious: 0, isLink: true, accountCode: '2-1501' },
-  { lineNo: 23, name: 'Kas Bersih dari Aktivitas Operasi', amountCurrent: 106261500.00, amountPrevious: 0, isBold: true },
+  { lineNo: 14, name: 'Penurunan (Kenaikan) Persediaan', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '13' },
+  { lineNo: 15, name: 'Penurunan (Kenaikan) Piutang Usaha', amountCurrent: -411190000.00, amountPrevious: 0.00, isLink: true, accountCode: '12' },
+  { lineNo: 16, name: 'Penurunan (Kenaikan) Biaya Dibayar di Muka', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '15' },
+  { lineNo: 17, name: 'Penurunan (Kenaikan) Investasi', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '14' },
+  { lineNo: 18, name: 'Kenaikan (Penurunan) Hutang Uang Muka', amountCurrent: 517451500.00, amountPrevious: 0.00, isLink: true, accountCode: '2102' },
+  { lineNo: 19, name: 'Kenaikan (Penurunan) Hutang Dagang', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '22' },
+  { lineNo: 20, name: 'Kenaikan (Penurunan) Hutang Bank', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '23' },
+  { lineNo: 21, name: 'Kenaikan (Penurunan) Hutang Pembebanan HPP', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '26' },
+  { lineNo: 22, name: 'Kenaikan (Penurunan) Hutang Pajak', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '25' },
+  { lineNo: 23, name: 'Kas Bersih dari Aktivitas Operasi', amountCurrent: 106261500.00, amountPrevious: 0.00, isBold: true },
 
   { lineNo: 25, name: 'ARUS KAS DARI AKTIVITAS INVESTASI:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 26, name: 'Pembelian Aset Tetap Medis (Laser/USG)', amountCurrent: 0, amountPrevious: 0, isLink: true, accountCode: '1-2000' },
-  { lineNo: 27, name: 'Kas Bersih dari Aktivitas Investasi', amountCurrent: 0, amountPrevious: 0, isBold: true },
+  { lineNo: 26, name: 'Pembelian Aset Tetap', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '16' },
+  { lineNo: 27, name: 'Kas Bersih dari Aktivitas Investasi', amountCurrent: 0.00, amountPrevious: 0.00, isBold: true },
 
   { lineNo: 29, name: 'ARUS KAS DARI AKTIVITAS PENDANAAN:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 30, name: 'Kenaikan (Penurunan) Modal', amountCurrent: 0, amountPrevious: 0, isLink: true, accountCode: '3-1100' },
-  { lineNo: 31, name: 'Kenaikan (Penurunan) Hutang Pihak Ketiga', amountCurrent: 0, amountPrevious: 0, isLink: true },
-  { lineNo: 32, name: 'Kas Bersih dari Aktivitas Pendanaan', amountCurrent: 0, amountPrevious: 0, isBold: true },
+  { lineNo: 30, name: 'Kenaikan (Penurunan) Modal', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '31' },
+  { lineNo: 31, name: 'Kenaikan (Penurunan) Hutang Pihak Ketiga', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '24' },
+  { lineNo: 32, name: 'Kas Bersih dari Aktivitas Pendanaan', amountCurrent: 0.00, amountPrevious: 0.00, isBold: true },
 
-  { lineNo: 34, name: 'KENAIKAN (PENURUNAN) KAS DAN SETARA KAS', amountCurrent: 106261500.00, amountPrevious: 0, isBold: true },
+  { lineNo: 34, name: 'KENAIKAN (PENURUNAN) KAS DAN SETARA KAS', amountCurrent: 106261500.00, amountPrevious: 0.00, isBold: true },
 
   { lineNo: 36, name: 'PERUBAHAN DALAM KOMPONEN KAS DAN SETARA KAS:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 37, name: 'Kas dan Setara Kas pada awal periode', amountCurrent: 1138664487.55, amountPrevious: 0, isLink: true, accountCode: '1-1100' },
-  { lineNo: 38, name: 'Kas dan Setara Kas pada akhir periode', amountCurrent: 1244925987.55, amountPrevious: 0, isLink: true, accountCode: '1-1100' },
-  { lineNo: 39, name: 'Kenaikan (Penurunan) Kas', amountCurrent: 106261500.00, amountPrevious: 0, isBold: true }
+  { lineNo: 37, name: 'Kas dan Setara Kas pada awal periode', amountCurrent: 1138664487.55, amountPrevious: 0.00, isLink: true, accountCode: '11' },
+  { lineNo: 38, name: 'Kas dan Setara Kas pada akhir periode', amountCurrent: 1244925987.55, amountPrevious: 0.00, isLink: true, accountCode: '11' },
+  { lineNo: 39, name: 'Kenaikan (Penurunan) Kas', amountCurrent: 106261500.00, amountPrevious: 0.00, isBold: true }
 ])
 
 function openLedgerForAccount(accountCode?: string) {
@@ -85,6 +89,32 @@ function handleExportExcel() {
 
 <template>
   <div class="space-y-4">
+    <!-- Top Header Tabs matching Image 3: Penyusutan dan Amortisasi / Arus Kas -->
+    <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+      <button
+        @click="activeTab = 'depreciation'"
+        :class="[
+          'px-4 py-2 text-xs font-bold rounded-lg transition-all',
+          activeTab === 'depreciation'
+            ? 'bg-slate-800 text-white shadow-xs'
+            : 'text-slate-400 hover:text-slate-200'
+        ]"
+      >
+        Penyusutan dan Amortisasi
+      </button>
+      <button
+        @click="activeTab = 'cashflow'"
+        :class="[
+          'px-4 py-2 text-xs font-bold rounded-lg transition-all',
+          activeTab === 'cashflow'
+            ? 'bg-blue-600 text-white shadow-xs'
+            : 'text-slate-400 hover:text-slate-200'
+        ]"
+      >
+        Arus Kas
+      </button>
+    </div>
+
     <!-- Header matching Image 3 -->
     <div class="bg-[#121826] border border-slate-800 rounded-xl p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
       <div class="space-y-0.5">
@@ -94,7 +124,7 @@ function handleExportExcel() {
           <span class="text-blue-400 font-semibold">Arus Kas</span>
         </div>
         <h1 class="text-base font-bold text-white tracking-wide">
-          {{ accountingStore.businessUnit === 'ALL' ? 'KLINIK TERPADU (KIDINEST & SEMARANG SKIN CENTER)' : accountingStore.businessUnit === 'KIDINEST' ? 'KLINIK SPESIALIS ANAK KIDINEST' : 'SEMARANG SKIN CENTER (SSC)' }}
+          PT. BRAYO CIPTA SEJAHTERA (BCS) &bull; {{ accountingStore.businessUnit === 'ALL' ? 'KLINIK TERPADU (KIDINEST & SSC)' : accountingStore.businessUnit === 'KIDINEST' ? 'KLINIK SPESIALIS ANAK KIDINEST' : 'SEMARANG SKIN CENTER' }}
         </h1>
       </div>
 
@@ -221,5 +251,8 @@ function handleExportExcel() {
         </span>
       </div>
     </div>
+
+    <!-- Official Report Signature Section matching Image 1 -->
+    <ReportSignatures />
   </div>
 </template>

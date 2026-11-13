@@ -36,6 +36,7 @@ export interface Account {
   parentCode?: string
   description?: string
   currentBalance?: number
+  taxCategory?: 'PPH_21' | 'PPH_23' | 'PPH_4_2' | 'PPN_OUT' | 'PPN_IN' | 'PPH_25' | 'PPH_29' | 'NON_TAX'
 }
 
 export type JournalStatus =
@@ -209,7 +210,10 @@ export interface TaxTransaction {
   taxNumber: string
   taxDate: string
   businessUnit: BusinessUnit
-  taxCategory: 'PPN_OUTPUT' | 'PPN_INPUT' | 'PPH_21' | 'PPH_23' | 'PPH_4_2'
+  taxCategory: 'PPN_OUTPUT' | 'PPN_INPUT' | 'PPH_21' | 'PPH_23' | 'PPH_4_2' | 'PPH_25' | 'PPH_29'
+  accountCode?: string
+  journalId?: string
+  journalNumber?: string
   counterpartyName: string
   counterpartyNPWP: string
   counterpartyNIK?: string

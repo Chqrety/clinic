@@ -7,6 +7,7 @@ import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import { exportToExcel, printReport } from '@/utils/export'
+import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import type { JournalEntry } from '@/types/accounting'
@@ -88,8 +89,8 @@ const accountAliases: Record<string, string> = {
   '7107': '6-1201'
 }
 
-// Read query param if passed from BalanceSheet, ProfitLoss, or CashFlow (e.g. ?account=1-1111)
-const initialAccount = (route.query.account as string) || '1-1111'
+// Read query param if passed from BalanceSheet, ProfitLoss, or CashFlow (e.g. ?account=1101.001)
+const initialAccount = (route.query.account as string) || '1101.001'
 const resolvedInitial = accountAliases[initialAccount] || initialAccount
 const selectedAccountCode = ref(resolvedInitial)
 const searchQuery = ref('')
@@ -555,5 +556,8 @@ function handleExportExcel() {
       :journal="selectedJournal"
       @close="showDetailModal = false; selectedJournal = null"
     />
+
+    <!-- Official Report Signature Section matching Image 1 -->
+    <ReportSignatures />
   </div>
 </template>

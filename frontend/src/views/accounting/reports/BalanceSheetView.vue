@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel, printReport } from '@/utils/export'
+import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   Download,
   Printer,
@@ -43,143 +44,155 @@ const neracaTree = ref<TreeNode[]>([
   {
     id: 'aktiva',
     lineNo: 6,
-    name: 'AKTIVA',
+    code: '1',
+    name: 'AKTIVA - BCS',
     level: 1,
-    amount: 25770707945.51,
+    amount: 26461564553.84,
     isHeader: true,
     isBold: true,
+    accountCode: '1',
     children: [
       {
         id: '11',
         lineNo: 7,
         code: '11',
-        name: 'KAS DAN BANK',
+        name: 'KAS DAN BANK - BCS',
         level: 2,
-        amount: 1138664487.55,
+        amount: 1277929020.88,
         isHeader: true,
-        accountCode: '1-1100',
+        accountCode: '11',
         children: [
           {
             id: '1101',
             lineNo: 8,
             code: '1101',
-            name: 'Kas Kasir Kidinest (Poli Anak)',
+            name: 'Kas Kasir & Operasional - BCS',
             level: 3,
-            amount: 45200000.00,
+            amount: 88600000.00,
             isHeader: true,
-            accountCode: '1-1111',
+            accountCode: '1101',
             children: [
-              { id: '1101.01', lineNo: 9, code: '1101.01', name: 'Kas Fisik Meja Kasir Kidinest Shift Pagi & Sore', level: 4, amount: 28500000.00, isHeader: false, accountCode: '1-1111' },
-              { id: '1101.02', lineNo: 10, code: '1101.02', name: 'Kas Brankas Operasional Poli Anak', level: 4, amount: 16700000.00, isHeader: false, accountCode: '1-1111' }
+              { id: '1101.001', lineNo: 9, code: '1101.001', name: 'Kas Kasir Kidinest', level: 4, amount: 45200000.00, isHeader: false, accountCode: '1101.001' },
+              { id: '1101.002', lineNo: 10, code: '1101.002', name: 'Kas Kasir Semarang Skin Center (SSC)', level: 4, amount: 38400000.00, isHeader: false, accountCode: '1101.002' },
+              { id: '1101.003', lineNo: 11, code: '1101.003', name: 'Kas Kecil (Petty Cash Operasional)', level: 4, amount: 5000000.00, isHeader: false, accountCode: '1101.003' }
             ]
           },
           {
             id: '1102',
-            lineNo: 11,
+            lineNo: 12,
             code: '1102',
-            name: 'Kas Kasir Semarang Skin Center (SSC)',
+            name: 'Bank Operasional & Kliring - BCS',
             level: 3,
-            amount: 38400000.00,
+            amount: 1189329020.88,
             isHeader: true,
-            accountCode: '1-1112',
+            accountCode: '1102',
             children: [
-              { id: '1102.01', lineNo: 12, code: '1102.01', name: 'Kas Fisik Meja Kasir SSC Estetika', level: 4, amount: 22400000.00, isHeader: false, accountCode: '1-1112' },
-              { id: '1102.02', lineNo: 13, code: '1102.02', name: 'Kas Brankas Pelayanan Facial & Laser', level: 4, amount: 16000000.00, isHeader: false, accountCode: '1-1112' }
+              { id: '1102.001', lineNo: 13, code: '1102.001', name: 'Bank BCA Operasional (Giro & EDC)', level: 4, amount: 680964487.55, isHeader: false, accountCode: '1102.001' },
+              { id: '1102.002', lineNo: 14, code: '1102.002', name: 'Bank Mandiri Operasional & Payroll', level: 4, amount: 493864533.33, isHeader: false, accountCode: '1102.002' },
+              { id: '1102.003', lineNo: 15, code: '1102.003', name: 'Settlement QRIS & Payment Gateway Transit', level: 4, amount: 14500000.00, isHeader: false, accountCode: '1102.003' }
             ]
-          },
-          { id: '1103', lineNo: 14, code: '1103', name: 'Kas Kecil / Petty Cash Operasional', level: 3, amount: 5000000.00, isHeader: false, accountCode: '1-1113' },
-          { id: '1104', lineNo: 15, code: '1104', name: 'Bank BCA Operasional (EDC & Giro Utama)', level: 3, amount: 580964487.55, isHeader: false, accountCode: '1-1121' },
-          { id: '1105', lineNo: 16, code: '1105', name: 'Bank Mandiri Operasional & Payroll', level: 3, amount: 454600000.00, isHeader: false, accountCode: '1-1122' },
-          { id: '1106', lineNo: 17, code: '1106', name: 'Settlement QRIS & EDC Transit', level: 3, amount: 14500000.00, isHeader: false, accountCode: '1-1130' }
+          }
         ]
       },
       {
         id: '12',
         lineNo: 47,
         code: '12',
-        name: 'PIUTANG',
+        name: 'PIUTANG - BCS',
         level: 2,
-        amount: 1073834065.00,
+        amount: 1568434065.00,
         isHeader: true,
-        accountCode: '1-1200',
+        accountCode: '12',
         children: [
-          { id: '1201', lineNo: 48, code: '1201', name: 'Piutang Pasien Perawatan Rawat Jalan & Treatment', level: 3, amount: 324500000.00, isHeader: false, accountCode: '1-1201' },
+          { id: '1201', lineNo: 48, code: '1201', name: 'Piutang Pasien Perawatan Rawat Jalan & Treatment', level: 3, amount: 485600000.00, isHeader: false, accountCode: '1201' },
           {
             id: '1202',
             lineNo: 49,
             code: '1202',
             name: 'Piutang Klaim Asuransi & Korporat',
             level: 3,
-            amount: 764334065.00,
+            amount: 1097834065.00,
             isHeader: true,
-            accountCode: '1-1202',
+            accountCode: '1202',
             children: [
-              { id: '1202.01', lineNo: 50, code: '1202.01', name: 'Klaim Asuransi Sinarmas (Rawat Anak)', level: 4, amount: 285000000.00, isHeader: false, accountCode: '1-1202' },
-              { id: '1202.02', lineNo: 51, code: '1202.02', name: 'Klaim Asuransi Prudential Pediatrik', level: 4, amount: 312500000.00, isHeader: false, accountCode: '1-1202' },
-              { id: '1202.03', lineNo: 52, code: '1202.03', name: 'Klaim MCU Eksekutif Kulit PT Astra', level: 4, amount: 166834065.00, isHeader: false, accountCode: '1-1202' }
+              { id: '1202.001', lineNo: 50, code: '1202.001', name: 'Piutang Asuransi Sinarmas', level: 4, amount: 420000000.00, isHeader: false, accountCode: '1202.001' },
+              { id: '1202.002', lineNo: 51, code: '1202.002', name: 'Piutang Asuransi Prudential', level: 4, amount: 465000000.00, isHeader: false, accountCode: '1202.002' },
+              { id: '1202.003', lineNo: 52, code: '1202.003', name: 'Piutang MCU Eksekutif Korporat', level: 4, amount: 212834065.00, isHeader: false, accountCode: '1202.003' }
             ]
           },
-          { id: '1203', lineNo: 53, code: '1203', name: 'Cadangan Kerugian Piutang Tak Tertagih', level: 3, amount: -15000000.00, isHeader: false, accountCode: '1-1203' }
+          { id: '1203', lineNo: 53, code: '1203', name: 'Cadangan Kerugian Piutang Tak Tertagih', level: 3, amount: -15000000.00, isHeader: false, accountCode: '1203' }
         ]
       },
       {
         id: '13',
         lineNo: 49,
         code: '13',
-        name: 'Persediaan',
+        name: 'Persediaan - BCS',
         level: 2,
-        amount: 19278756221.88,
+        amount: 19335748296.88,
         isHeader: true,
-        accountCode: '1-1300',
+        accountCode: '13',
         children: [
-          { id: '1301', lineNo: 50, code: '1301', name: 'Persediaan Obat & Sirup Anak (Kidinest)', level: 3, amount: 4850000000.00, isHeader: false, accountCode: '1-1310' },
-          { id: '1302', lineNo: 51, code: '1302', name: 'Persediaan Produk Skincare & Kosmetika (SSC)', level: 3, amount: 6420756221.88, isHeader: false, accountCode: '1-1330' },
-          { id: '1303', lineNo: 52, code: '1303', name: 'Persediaan Bahan Medis Habis Pakai (BMHP)', level: 3, amount: 3208000000.00, isHeader: false, accountCode: '1-1320' },
-          { id: '1304', lineNo: 53, code: '1304', name: 'Persediaan Vaksin & Serum Anak (Kidinest)', level: 3, amount: 4800000000.00, isHeader: false, accountCode: '1-1311' }
+          { id: '1301', lineNo: 50, code: '1301', name: 'Persediaan Obat Resep & Paten Farmasi Kidinest', level: 3, amount: 4885000000.00, isHeader: false, accountCode: '1301' },
+          { id: '1302', lineNo: 51, code: '1302', name: 'Persediaan Produk Skincare & Kosmetika SSC', level: 3, amount: 6442748296.88, isHeader: false, accountCode: '1302' },
+          { id: '1303', lineNo: 52, code: '1303', name: 'Persediaan Bahan Medis Habis Pakai (BMHP)', level: 3, amount: 3208000000.00, isHeader: false, accountCode: '1303' },
+          { id: '1304', lineNo: 53, code: '1304', name: 'Persediaan Vaksin & Serum Imunisasi Anak', level: 3, amount: 4800000000.00, isHeader: false, accountCode: '1304' }
         ]
       },
       {
         id: '14',
         lineNo: 73,
         code: '14',
-        name: 'INVESTASI',
+        name: 'INVESTASI - BCS',
         level: 2,
         amount: 3234375045.00,
         isHeader: true,
+        accountCode: '14',
         children: [
-          { id: '1401', lineNo: 74, code: '1401', name: 'Investasi Tanah & Gedung Cabang Klinik', level: 3, amount: 2500000000.00, isHeader: false },
-          { id: '1402', lineNo: 75, code: '1402', name: 'Investasi Pengembangan Formula Skincare SSC', level: 3, amount: 734375045.00, isHeader: false }
+          { id: '1401', lineNo: 74, code: '1401', name: 'Investasi Tanah & Bangunan Cabang Baru', level: 3, amount: 2500000000.00, isHeader: false, accountCode: '1401' },
+          { id: '1402', lineNo: 75, code: '1402', name: 'Investasi Pengembangan Riset Formulasi Skincare', level: 3, amount: 734375045.00, isHeader: false, accountCode: '1402' }
         ]
       },
       {
         id: '15',
         lineNo: 73,
         code: '15',
-        name: 'BIAYA DIBAYAR DI MUKA',
+        name: 'BIAYA DIBAYAR DI MUKA - BCS',
         level: 2,
-        amount: 51750000.01,
+        amount: 2250000.00,
         isHeader: true,
+        accountCode: '15',
         children: [
-          { id: '1501', lineNo: 74, code: '1501', name: 'Sewa Gedung & Ruko Dibayar di Muka', level: 3, amount: 37500000.00, isHeader: false },
-          { id: '1502', lineNo: 75, code: '1502', name: 'Asuransi Kebakaran & Alkes Dibayar di Muka', level: 3, amount: 14250000.01, isHeader: false }
+          { id: '1501', lineNo: 74, code: '1501', name: 'Sewa Ruko & Fasilitas Dibayar di Muka', level: 3, amount: 2250000.00, isHeader: false, accountCode: '1501' },
+          { id: '1504', lineNo: 75, code: '1504', name: 'Uang Muka PPh 25 & Pajak Masukan (Kredit Pajak)', level: 3, amount: 0.00, isHeader: false, accountCode: '1504' }
         ]
       },
       {
         id: '16',
         lineNo: 73,
         code: '16',
-        name: 'AKTIVA TETAP',
+        name: 'AKTIVA TETAP - BCS',
         level: 2,
-        amount: 993328126.07,
+        amount: 1042828126.08,
         isHeader: true,
-        accountCode: '1-2000',
+        accountCode: '16',
         children: [
-          { id: '1601', lineNo: 74, code: '1601', name: 'Bangunan & Renovasi Interior Klinik', level: 3, amount: 350000000.00, isHeader: false, accountCode: '1-2010' },
-          { id: '1602', lineNo: 75, code: '1602', name: 'Mesin & Alat Medis Estetika (Laser Nd:YAG / Facial SSC)', level: 3, amount: 500000000.00, isHeader: false, accountCode: '1-2200' },
-          { id: '1603', lineNo: 76, code: '1603', name: 'Peralatan Medis Poli Anak & USG 4D Kidinest', level: 3, amount: 250000000.00, isHeader: false, accountCode: '1-2100' },
-          { id: '1604', lineNo: 77, code: '1604', name: 'Inventaris Komputer, Thermal Printer & POS', level: 3, amount: 48328126.07, isHeader: false },
-          { id: '1606', lineNo: 78, code: '1606', name: 'Akumulasi Penyusutan Aktiva Tetap Klinik', level: 3, amount: -155000000.00, isHeader: false, accountCode: '1-2900' }
+          { id: '1601', lineNo: 74, code: '1601', name: 'Bangunan & Renovasi Interior Klinik', level: 3, amount: 350000000.00, isHeader: false, accountCode: '1601' },
+          { id: '1602', lineNo: 75, code: '1602', name: 'Mesin Laser Nd:YAG & Alkes Estetika SSC', level: 3, amount: 500000000.00, isHeader: false, accountCode: '1602' },
+          { id: '1603', lineNo: 76, code: '1603', name: 'Peralatan USG 4D & Poli Anak Kidinest', level: 3, amount: 250000000.00, isHeader: false, accountCode: '1603' },
+          { id: '1604', lineNo: 77, code: '1604', name: 'Inventaris Komputer, POS Kasir & Jaringan', level: 3, amount: 97828126.08, isHeader: false, accountCode: '1604' },
+          { id: '1606', lineNo: 78, code: '1606', name: 'Akumulasi Penyusutan Aktiva Tetap', level: 3, amount: -155000000.00, isHeader: false, accountCode: '1606' }
         ]
+      },
+      {
+        id: '1999',
+        lineNo: 79,
+        code: '1999',
+        name: 'Temporary Opening - BCS',
+        level: 2,
+        amount: 0.00,
+        isHeader: false,
+        accountCode: '1999'
       }
     ]
   },
@@ -188,124 +201,142 @@ const neracaTree = ref<TreeNode[]>([
     lineNo: 73,
     name: 'KEWAJIBAN DAN MODAL',
     level: 1,
-    amount: 25876969445.51,
+    amount: 26461564553.84,
     isHeader: true,
     isBold: true,
     children: [
       {
         id: 'kewajiban',
         lineNo: 73,
-        name: 'KEWAJIBAN',
+        code: '2',
+        name: 'KEWAJIBAN - BCS',
         level: 2,
-        amount: 9873786668.05,
+        amount: 9962073223.05,
         isHeader: true,
         isBold: true,
-        accountCode: '2-0000',
+        accountCode: '2',
         children: [
           {
-            id: '2101',
+            id: '21',
             lineNo: 73,
-            code: '2101',
-            name: 'UANG TANDA JADI',
+            code: '21',
+            name: 'UANG MUKA & TITIPAN - BCS',
             level: 3,
-            amount: 35500000.00,
+            amount: 2147099360.00,
             isHeader: true,
+            accountCode: '21',
             children: [
-              { id: '2101.01', lineNo: 74, code: '2101.01', name: 'Uang Muka Reservasi Poli Spesialis Anak', level: 4, amount: 15500000.00, isHeader: false },
-              { id: '2101.02', lineNo: 75, code: '2101.02', name: 'Down Payment Treatment Laser & Bedah Estetika', level: 4, amount: 20000000.00, isHeader: false }
+              {
+                id: '2101',
+                lineNo: 73,
+                code: '2101',
+                name: 'UANG TANDA JADI',
+                level: 4,
+                amount: 35500000.00,
+                isHeader: false,
+                accountCode: '2101'
+              },
+              {
+                id: '2102',
+                lineNo: 74,
+                code: '2102',
+                name: 'UANG MUKA PENJUALAN',
+                level: 4,
+                amount: 1904190360.00,
+                isHeader: false,
+                accountCode: '2102'
+              },
+              {
+                id: '2103',
+                lineNo: 75,
+                code: '2103',
+                name: 'TITIPAN BIAYA',
+                level: 4,
+                amount: 207409000.00,
+                isHeader: false,
+                accountCode: '2103'
+              }
             ]
           },
-          {
-            id: '2102',
-            lineNo: 74,
-            code: '2102',
-            name: 'UANG MUKA PENJUALAN',
-            level: 3,
-            amount: 1904190360.00,
-            isHeader: true,
-            children: [
-              { id: '2102.01', lineNo: 75, code: '2102.01', name: 'Deposit Pasien Paket 10x Facial Glow SSC', level: 4, amount: 980190360.00, isHeader: false },
-              { id: '2102.02', lineNo: 76, code: '2102.02', name: 'Deposit Pasien Paket Terapi Tumbuh Kembang Kidinest', level: 4, amount: 924000000.00, isHeader: false }
-            ]
-          },
-          { id: '2103', lineNo: 74, code: '2103', name: 'TITIPAN BIAYA', level: 3, amount: 158347500.00, isHeader: false },
           {
             id: '22',
             lineNo: 75,
             code: '22',
-            name: 'HUTANG DAGANG',
+            name: 'HUTANG DAGANG - BCS',
             level: 3,
             amount: 4300000.00,
             isHeader: true,
-            accountCode: '2-1110',
+            accountCode: '22',
             children: [
-              { id: '2201', lineNo: 76, code: '2201', name: 'Hutang PBF Kimia Farma Trading (Vaksin & Obat)', level: 4, amount: 2800000.00, isHeader: false, accountCode: '2-1110' },
-              { id: '2202', lineNo: 77, code: '2202', name: 'Hutang Supplier Kosmetika & Skincare SSC', level: 4, amount: 1500000.00, isHeader: false, accountCode: '2-1120' }
+              { id: '2201', lineNo: 76, code: '2201', name: 'Hutang PBF Distributor Farmasi & Obat', level: 4, amount: 2800000.00, isHeader: false, accountCode: '2201' },
+              { id: '2202', lineNo: 77, code: '2202', name: 'Hutang Supplier Kosmetika & Skincare SSC', level: 4, amount: 1500000.00, isHeader: false, accountCode: '2202' }
             ]
           },
-          { id: '23', lineNo: 75, code: '23', name: 'HUTANG BANK', level: 3, amount: 6247750462.00, isHeader: false },
-          { id: '24', lineNo: 75, code: '24', name: 'HUTANG PIHAK KETIGA', level: 3, amount: 1326875333.01, isHeader: false },
+          { id: '23', lineNo: 75, code: '23', name: 'HUTANG BANK - BCS', level: 3, amount: 6245750462.00, isHeader: false, accountCode: '23' },
+          { id: '24', lineNo: 75, code: '24', name: 'HUTANG PIHAK KETIGA - BCS', level: 3, amount: 1363725333.01, isHeader: false, accountCode: '24' },
           {
             id: '25',
             lineNo: 75,
             code: '25',
-            name: 'HUTANG PAJAK',
+            name: 'HUTANG PAJAK - BCS',
             level: 3,
-            amount: 34874594.00,
+            amount: 39249649.00,
             isHeader: true,
-            accountCode: '2-1501',
+            accountCode: '25',
             children: [
-              { id: '2501', lineNo: 76, code: '2501', name: 'Hutang PPh 21 Dokter Tenaga Ahli (PMK 168/2023)', level: 4, amount: 14874594.00, isHeader: false, accountCode: '2-1501' },
-              { id: '2502', lineNo: 77, code: '2502', name: 'Hutang PPh 21 Karyawan & Perawat', level: 4, amount: 7500000.00, isHeader: false },
-              { id: '2505', lineNo: 78, code: '2505', name: 'Hutang PPN Keluaran Skincare & Treatment', level: 4, amount: 12500000.00, isHeader: false, accountCode: '2-1504' }
+              { id: '2501', lineNo: 76, code: '2501', name: 'Hutang PPh 21 (Dokter & Karyawan)', level: 4, amount: 22374594.00, isHeader: false, accountCode: '2501' },
+              { id: '2502', lineNo: 77, code: '2502', name: 'Hutang PPh 23 (Jasa Medis, B3 & Maintenance)', level: 4, amount: 2400000.00, isHeader: false, accountCode: '2502' },
+              { id: '2503', lineNo: 78, code: '2503', name: 'Hutang PPh Final Pasal 4(2) (Sewa Gedung Ruko)', level: 4, amount: 5000000.00, isHeader: false, accountCode: '2503' },
+              { id: '2504', lineNo: 79, code: '2504', name: 'Hutang PPN Keluaran (Skincare & Treatment)', level: 4, amount: 9475055.00, isHeader: false, accountCode: '2504' }
             ]
           },
-          { id: '26', lineNo: 79, code: '26', name: 'HUTANG PEMBEBANAN HPP', level: 3, amount: 161948419.04, isHeader: false }
+          { id: '26', lineNo: 79, code: '26', name: 'HUTANG PEMBEBANAN HPP - BCS', level: 3, amount: 161948419.04, isHeader: false, accountCode: '26' }
         ]
       },
       {
         id: 'ekuitas',
         lineNo: 79,
-        name: 'EKUITAS',
+        code: '3',
+        name: 'EKUITAS - BCS',
         level: 2,
-        amount: 16003182777.46,
+        amount: 16499491330.79,
         isHeader: true,
         isBold: true,
-        accountCode: '3-0000',
+        accountCode: '3',
         children: [
           {
             id: '31',
             lineNo: 79,
             code: '31',
-            name: 'MODAL',
+            name: 'MODAL - BCS',
             level: 3,
-            amount: 3890010000.00,
+            amount: 2367382942.15,
             isHeader: true,
-            accountCode: '3-1100',
+            accountCode: '31',
             children: [
-              { id: '3101', lineNo: 80, code: '3101', name: 'Modal Disetor Pemilik Klinik Kidinest & SSC', level: 4, amount: 3890010000.00, isHeader: false, accountCode: '3-1100' }
+              { id: '3101', lineNo: 80, code: '3101', name: 'Modal Disetor Pemilik Klinik Kidinest & SSC', level: 4, amount: 2367382942.15, isHeader: false, accountCode: '3101' }
             ]
           },
           {
             id: '32',
             lineNo: 80,
             code: '32',
-            name: 'LABA AKUMULASI',
+            name: 'LABA AKUMULASI - BCS',
             level: 3,
-            amount: 12113172777.46,
+            amount: 14132108388.64,
             isHeader: true,
-            accountCode: '3-1200',
+            accountCode: '32',
             children: [
-              { id: '3201', lineNo: 81, code: '3201', name: 'Laba Ditahan (Retained Earnings)', level: 4, amount: 10435172777.46, isHeader: false, accountCode: '3-1200' },
-              { id: '3202', lineNo: 82, code: '3202', name: 'Laba Bersih Tahun Berjalan', level: 4, amount: 1678000000.00, isHeader: false, accountCode: '3-1300' }
+              { id: '3201', lineNo: 81, code: '3201', name: 'Laba Ditahan (Retained Earnings)', level: 4, amount: 11496921049.78, isHeader: false, accountCode: '3201' },
+              { id: '3202', lineNo: 82, code: '3202', name: 'Laba Bersih Periode Berjalan', level: 4, amount: 2635187338.86, isHeader: false, accountCode: '3202' }
             ]
-          }
+          },
+          { id: '3999', lineNo: 83, code: '3999', name: 'Opening Balance Equity - BCS', level: 3, amount: 0.00, isHeader: false, accountCode: '3999' }
         ]
       }
     ]
   }
 ])
-
 // Flat list calculation based on expanded state - default Level 1 matching Image 2
 const expandedIds = ref<Set<string>>(new Set([
   'aktiva', 'kewajiban_modal', 'kewajiban', 'ekuitas'
@@ -677,5 +708,8 @@ function handleExportExcel() {
         </div>
       </div>
     </div>
+
+    <!-- Official Report Signature Section matching Image 1 -->
+    <ReportSignatures />
   </div>
 </template>

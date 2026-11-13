@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel, printReport } from '@/utils/export'
+import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   Download,
   Printer,
@@ -568,5 +569,8 @@ function handleExportExcel() {
         </div>
       </div>
     </div>
+
+    <!-- Official Report Signature Section matching Image 1 -->
+    <ReportSignatures />
   </div>
 </template>
