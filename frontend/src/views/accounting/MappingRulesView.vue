@@ -103,3 +103,4 @@ const rules = computed(() => transactionsStore.mappingRules)
     </div>
   </div>
 </template>
+

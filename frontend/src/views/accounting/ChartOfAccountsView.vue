@@ -340,3 +340,4 @@ const filteredAccounts = computed(() => {
     </div>
   </div>
 </template>
+

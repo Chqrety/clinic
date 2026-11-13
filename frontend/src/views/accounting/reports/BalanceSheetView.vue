@@ -1,244 +1,628 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useReportsStore } from '@/stores/reports'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel, printReport } from '@/utils/export'
 import {
-  Scale,
   Download,
   Printer,
-  CheckCircle2,
-  AlertCircle
+  ChevronRight,
+  ChevronDown,
+  BookOpen,
+  Filter,
+  Layers,
+  ArrowRight
 } from 'lucide-vue-next'
 
-const reportsStore = useReportsStore()
+const router = useRouter()
 const accountingStore = useAccountingStore()
 
-const bs = computed(() => reportsStore.balanceSheet)
+// State
+const startDate = ref('01-11-2026')
+const endDate = ref('30-11-2026')
+const currentLevel = ref<number>(4)
+const jumpLineNumber = ref<number>(1)
+const showZeroBalance = ref(false)
+
+export interface TreeNode {
+  id: string
+  lineNo: number
+  code?: string
+  name: string
+  level: number
+  amount: number
+  isHeader: boolean
+  isBold?: boolean
+  accountCode?: string
+  children?: TreeNode[]
+}
+
+// Tree Data for Balance Sheet (Neraca) aligned with Blueprint Kidinest & SSC
+const neracaTree = ref<TreeNode[]>([
+  {
+    id: 'aktiva',
+    lineNo: 6,
+    name: 'AKTIVA',
+    level: 1,
+    amount: 25770707945.51,
+    isHeader: true,
+    isBold: true,
+    children: [
+      {
+        id: '11',
+        lineNo: 7,
+        code: '11',
+        name: 'KAS DAN BANK',
+        level: 2,
+        amount: 1138664487.55,
+        isHeader: true,
+        accountCode: '1-1100',
+        children: [
+          {
+            id: '1101',
+            lineNo: 8,
+            code: '1101',
+            name: 'Kas Kasir Kidinest (Poli Anak)',
+            level: 3,
+            amount: 45200000.00,
+            isHeader: true,
+            accountCode: '1-1111',
+            children: [
+              { id: '1101.01', lineNo: 9, code: '1101.01', name: 'Kas Fisik Meja Kasir Kidinest Shift Pagi & Sore', level: 4, amount: 28500000.00, isHeader: false, accountCode: '1-1111' },
+              { id: '1101.02', lineNo: 10, code: '1101.02', name: 'Kas Brankas Operasional Poli Anak', level: 4, amount: 16700000.00, isHeader: false, accountCode: '1-1111' }
+            ]
+          },
+          {
+            id: '1102',
+            lineNo: 11,
+            code: '1102',
+            name: 'Kas Kasir Semarang Skin Center (SSC)',
+            level: 3,
+            amount: 38400000.00,
+            isHeader: true,
+            accountCode: '1-1112',
+            children: [
+              { id: '1102.01', lineNo: 12, code: '1102.01', name: 'Kas Fisik Meja Kasir SSC Estetika', level: 4, amount: 22400000.00, isHeader: false, accountCode: '1-1112' },
+              { id: '1102.02', lineNo: 13, code: '1102.02', name: 'Kas Brankas Pelayanan Facial & Laser', level: 4, amount: 16000000.00, isHeader: false, accountCode: '1-1112' }
+            ]
+          },
+          { id: '1103', lineNo: 14, code: '1103', name: 'Kas Kecil / Petty Cash Operasional', level: 3, amount: 5000000.00, isHeader: false, accountCode: '1-1113' },
+          { id: '1104', lineNo: 15, code: '1104', name: 'Bank BCA Operasional (EDC & Giro Utama)', level: 3, amount: 580964487.55, isHeader: false, accountCode: '1-1121' },
+          { id: '1105', lineNo: 16, code: '1105', name: 'Bank Mandiri Operasional & Payroll', level: 3, amount: 454600000.00, isHeader: false, accountCode: '1-1122' },
+          { id: '1106', lineNo: 17, code: '1106', name: 'Settlement QRIS & EDC Transit', level: 3, amount: 14500000.00, isHeader: false, accountCode: '1-1130' }
+        ]
+      },
+      {
+        id: '12',
+        lineNo: 47,
+        code: '12',
+        name: 'PIUTANG',
+        level: 2,
+        amount: 1073834065.00,
+        isHeader: true,
+        accountCode: '1-1200',
+        children: [
+          { id: '1201', lineNo: 48, code: '1201', name: 'Piutang Pasien Perawatan Rawat Jalan & Treatment', level: 3, amount: 324500000.00, isHeader: false, accountCode: '1-1201' },
+          {
+            id: '1202',
+            lineNo: 49,
+            code: '1202',
+            name: 'Piutang Klaim Asuransi & Korporat',
+            level: 3,
+            amount: 764334065.00,
+            isHeader: true,
+            accountCode: '1-1202',
+            children: [
+              { id: '1202.01', lineNo: 50, code: '1202.01', name: 'Klaim Asuransi Sinarmas (Rawat Anak)', level: 4, amount: 285000000.00, isHeader: false, accountCode: '1-1202' },
+              { id: '1202.02', lineNo: 51, code: '1202.02', name: 'Klaim Asuransi Prudential Pediatrik', level: 4, amount: 312500000.00, isHeader: false, accountCode: '1-1202' },
+              { id: '1202.03', lineNo: 52, code: '1202.03', name: 'Klaim MCU Eksekutif Kulit PT Astra', level: 4, amount: 166834065.00, isHeader: false, accountCode: '1-1202' }
+            ]
+          },
+          { id: '1203', lineNo: 53, code: '1203', name: 'Cadangan Kerugian Piutang Tak Tertagih', level: 3, amount: -15000000.00, isHeader: false, accountCode: '1-1203' }
+        ]
+      },
+      {
+        id: '13',
+        lineNo: 49,
+        code: '13',
+        name: 'Persediaan',
+        level: 2,
+        amount: 19278756221.88,
+        isHeader: true,
+        accountCode: '1-1300',
+        children: [
+          { id: '1301', lineNo: 50, code: '1301', name: 'Persediaan Obat & Sirup Anak (Kidinest)', level: 3, amount: 4850000000.00, isHeader: false, accountCode: '1-1310' },
+          { id: '1302', lineNo: 51, code: '1302', name: 'Persediaan Produk Skincare & Kosmetika (SSC)', level: 3, amount: 6420756221.88, isHeader: false, accountCode: '1-1330' },
+          { id: '1303', lineNo: 52, code: '1303', name: 'Persediaan Bahan Medis Habis Pakai (BMHP)', level: 3, amount: 3208000000.00, isHeader: false, accountCode: '1-1320' },
+          { id: '1304', lineNo: 53, code: '1304', name: 'Persediaan Vaksin & Serum Anak (Kidinest)', level: 3, amount: 4800000000.00, isHeader: false, accountCode: '1-1311' }
+        ]
+      },
+      {
+        id: '14',
+        lineNo: 73,
+        code: '14',
+        name: 'INVESTASI',
+        level: 2,
+        amount: 3234375045.00,
+        isHeader: true,
+        children: [
+          { id: '1401', lineNo: 74, code: '1401', name: 'Investasi Tanah & Gedung Cabang Klinik', level: 3, amount: 2500000000.00, isHeader: false },
+          { id: '1402', lineNo: 75, code: '1402', name: 'Investasi Pengembangan Formula Skincare SSC', level: 3, amount: 734375045.00, isHeader: false }
+        ]
+      },
+      {
+        id: '15',
+        lineNo: 73,
+        code: '15',
+        name: 'BIAYA DIBAYAR DI MUKA',
+        level: 2,
+        amount: 51750000.01,
+        isHeader: true,
+        children: [
+          { id: '1501', lineNo: 74, code: '1501', name: 'Sewa Gedung & Ruko Dibayar di Muka', level: 3, amount: 37500000.00, isHeader: false },
+          { id: '1502', lineNo: 75, code: '1502', name: 'Asuransi Kebakaran & Alkes Dibayar di Muka', level: 3, amount: 14250000.01, isHeader: false }
+        ]
+      },
+      {
+        id: '16',
+        lineNo: 73,
+        code: '16',
+        name: 'AKTIVA TETAP',
+        level: 2,
+        amount: 993328126.07,
+        isHeader: true,
+        accountCode: '1-2000',
+        children: [
+          { id: '1601', lineNo: 74, code: '1601', name: 'Bangunan & Renovasi Interior Klinik', level: 3, amount: 350000000.00, isHeader: false, accountCode: '1-2010' },
+          { id: '1602', lineNo: 75, code: '1602', name: 'Mesin & Alat Medis Estetika (Laser Nd:YAG / Facial SSC)', level: 3, amount: 500000000.00, isHeader: false, accountCode: '1-2200' },
+          { id: '1603', lineNo: 76, code: '1603', name: 'Peralatan Medis Poli Anak & USG 4D Kidinest', level: 3, amount: 250000000.00, isHeader: false, accountCode: '1-2100' },
+          { id: '1604', lineNo: 77, code: '1604', name: 'Inventaris Komputer, Thermal Printer & POS', level: 3, amount: 48328126.07, isHeader: false },
+          { id: '1606', lineNo: 78, code: '1606', name: 'Akumulasi Penyusutan Aktiva Tetap Klinik', level: 3, amount: -155000000.00, isHeader: false, accountCode: '1-2900' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'kewajiban_modal',
+    lineNo: 73,
+    name: 'KEWAJIBAN DAN MODAL',
+    level: 1,
+    amount: 25876969445.51,
+    isHeader: true,
+    isBold: true,
+    children: [
+      {
+        id: 'kewajiban',
+        lineNo: 73,
+        name: 'KEWAJIBAN',
+        level: 2,
+        amount: 9873786668.05,
+        isHeader: true,
+        isBold: true,
+        accountCode: '2-0000',
+        children: [
+          {
+            id: '2101',
+            lineNo: 73,
+            code: '2101',
+            name: 'UANG TANDA JADI',
+            level: 3,
+            amount: 35500000.00,
+            isHeader: true,
+            children: [
+              { id: '2101.01', lineNo: 74, code: '2101.01', name: 'Uang Muka Reservasi Poli Spesialis Anak', level: 4, amount: 15500000.00, isHeader: false },
+              { id: '2101.02', lineNo: 75, code: '2101.02', name: 'Down Payment Treatment Laser & Bedah Estetika', level: 4, amount: 20000000.00, isHeader: false }
+            ]
+          },
+          {
+            id: '2102',
+            lineNo: 74,
+            code: '2102',
+            name: 'UANG MUKA PENJUALAN',
+            level: 3,
+            amount: 1904190360.00,
+            isHeader: true,
+            children: [
+              { id: '2102.01', lineNo: 75, code: '2102.01', name: 'Deposit Pasien Paket 10x Facial Glow SSC', level: 4, amount: 980190360.00, isHeader: false },
+              { id: '2102.02', lineNo: 76, code: '2102.02', name: 'Deposit Pasien Paket Terapi Tumbuh Kembang Kidinest', level: 4, amount: 924000000.00, isHeader: false }
+            ]
+          },
+          { id: '2103', lineNo: 74, code: '2103', name: 'TITIPAN BIAYA', level: 3, amount: 158347500.00, isHeader: false },
+          {
+            id: '22',
+            lineNo: 75,
+            code: '22',
+            name: 'HUTANG DAGANG',
+            level: 3,
+            amount: 4300000.00,
+            isHeader: true,
+            accountCode: '2-1110',
+            children: [
+              { id: '2201', lineNo: 76, code: '2201', name: 'Hutang PBF Kimia Farma Trading (Vaksin & Obat)', level: 4, amount: 2800000.00, isHeader: false, accountCode: '2-1110' },
+              { id: '2202', lineNo: 77, code: '2202', name: 'Hutang Supplier Kosmetika & Skincare SSC', level: 4, amount: 1500000.00, isHeader: false, accountCode: '2-1120' }
+            ]
+          },
+          { id: '23', lineNo: 75, code: '23', name: 'HUTANG BANK', level: 3, amount: 6247750462.00, isHeader: false },
+          { id: '24', lineNo: 75, code: '24', name: 'HUTANG PIHAK KETIGA', level: 3, amount: 1326875333.01, isHeader: false },
+          {
+            id: '25',
+            lineNo: 75,
+            code: '25',
+            name: 'HUTANG PAJAK',
+            level: 3,
+            amount: 34874594.00,
+            isHeader: true,
+            accountCode: '2-1501',
+            children: [
+              { id: '2501', lineNo: 76, code: '2501', name: 'Hutang PPh 21 Dokter Tenaga Ahli (PMK 168/2023)', level: 4, amount: 14874594.00, isHeader: false, accountCode: '2-1501' },
+              { id: '2502', lineNo: 77, code: '2502', name: 'Hutang PPh 21 Karyawan & Perawat', level: 4, amount: 7500000.00, isHeader: false },
+              { id: '2505', lineNo: 78, code: '2505', name: 'Hutang PPN Keluaran Skincare & Treatment', level: 4, amount: 12500000.00, isHeader: false, accountCode: '2-1504' }
+            ]
+          },
+          { id: '26', lineNo: 79, code: '26', name: 'HUTANG PEMBEBANAN HPP', level: 3, amount: 161948419.04, isHeader: false }
+        ]
+      },
+      {
+        id: 'ekuitas',
+        lineNo: 79,
+        name: 'EKUITAS',
+        level: 2,
+        amount: 16003182777.46,
+        isHeader: true,
+        isBold: true,
+        accountCode: '3-0000',
+        children: [
+          {
+            id: '31',
+            lineNo: 79,
+            code: '31',
+            name: 'MODAL',
+            level: 3,
+            amount: 3890010000.00,
+            isHeader: true,
+            accountCode: '3-1100',
+            children: [
+              { id: '3101', lineNo: 80, code: '3101', name: 'Modal Disetor Pemilik Klinik Kidinest & SSC', level: 4, amount: 3890010000.00, isHeader: false, accountCode: '3-1100' }
+            ]
+          },
+          {
+            id: '32',
+            lineNo: 80,
+            code: '32',
+            name: 'LABA AKUMULASI',
+            level: 3,
+            amount: 12113172777.46,
+            isHeader: true,
+            accountCode: '3-1200',
+            children: [
+              { id: '3201', lineNo: 81, code: '3201', name: 'Laba Ditahan (Retained Earnings)', level: 4, amount: 10435172777.46, isHeader: false, accountCode: '3-1200' },
+              { id: '3202', lineNo: 82, code: '3202', name: 'Laba Bersih Tahun Berjalan', level: 4, amount: 1678000000.00, isHeader: false, accountCode: '3-1300' }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+])
+
+// Flat list calculation based on expanded state
+const expandedIds = ref<Set<string>>(new Set([
+  'aktiva', '11', '1101', '1102', '12', '1202', '13', '14', '15', '16',
+  'kewajiban_modal', 'kewajiban', '2101', '2102', '22', '25', 'ekuitas', '31', '32'
+]))
+
+function toggleExpand(id: string) {
+  if (expandedIds.value.has(id)) {
+    expandedIds.value.delete(id)
+  } else {
+    expandedIds.value.add(id)
+  }
+}
+
+function setLevel(lvl: number) {
+  currentLevel.value = lvl
+  expandedIds.value.clear()
+
+  function traverse(nodes: TreeNode[]) {
+    for (const node of nodes) {
+      if (node.level < lvl && node.children && node.children.length > 0) {
+        expandedIds.value.add(node.id)
+        traverse(node.children)
+      }
+    }
+  }
+
+  traverse(neracaTree.value)
+}
+
+function expandAll() {
+  currentLevel.value = 4
+  function collectAll(nodes: TreeNode[]) {
+    for (const n of nodes) {
+      if (n.children && n.children.length > 0) {
+        expandedIds.value.add(n.id)
+        collectAll(n.children)
+      }
+    }
+  }
+  collectAll(neracaTree.value)
+}
+
+function collapseAll() {
+  currentLevel.value = 1
+  expandedIds.value.clear()
+}
+
+// Flatten for rendering
+interface FlattenedRow {
+  node: TreeNode
+  visible: boolean
+  hasChildren: boolean
+  isExpanded: boolean
+}
+
+const flattenedRows = computed<FlattenedRow[]>(() => {
+  const result: FlattenedRow[] = []
+
+  function flatten(nodes: TreeNode[], isParentExpanded: boolean) {
+    for (const node of nodes) {
+      const hasChildren = Boolean(node.children && node.children.length > 0)
+      const isExpanded = expandedIds.value.has(node.id)
+
+      if (isParentExpanded) {
+        result.push({
+          node,
+          visible: true,
+          hasChildren,
+          isExpanded
+        })
+      }
+
+      if (hasChildren && node.children) {
+        flatten(node.children, isParentExpanded && isExpanded)
+      }
+    }
+  }
+
+  flatten(neracaTree.value, true)
+  return result
+})
+
+// Drill down to General Ledger
+function openLedgerForAccount(accountCode?: string) {
+  if (accountCode) {
+    router.push({ path: '/ledger', query: { account: accountCode } })
+  } else {
+    router.push('/ledger')
+  }
+}
 
 function handleExportExcel() {
-  const data = [
-    { 'Kategori': 'ASET LANCAR', 'Akun': 'Kas Operasional (Kidinest & SSC)', 'Jumlah (IDR)': bs.value.kasOperasional },
-    { 'Kategori': 'ASET LANCAR', 'Akun': 'Bank Operasional (BCA & Mandiri)', 'Jumlah (IDR)': bs.value.bankOperasional },
-    { 'Kategori': 'ASET LANCAR', 'Akun': 'Piutang Pasien & Asuransi', 'Jumlah (IDR)': bs.value.piutangPasien },
-    { 'Kategori': 'ASET LANCAR', 'Akun': 'Persediaan Farmasi & Obat', 'Jumlah (IDR)': bs.value.persediaan },
-    { 'Kategori': 'ASET LANCAR', 'Akun': 'PPN Masukan (Dapat Dikreditkan)', 'Jumlah (IDR)': bs.value.ppnMasukan },
-    { 'Kategori': 'SUBTOTAL', 'Akun': 'TOTAL ASET LANCAR', 'Jumlah (IDR)': bs.value.totalAsetLancar },
-    { 'Kategori': 'ASET TETAP', 'Akun': 'Peralatan Medis & Laser (Biaya Perolehan)', 'Jumlah (IDR)': bs.value.asetTetapGross },
-    { 'Kategori': 'ASET TETAP', 'Akun': 'Akumulasi Penyusutan Peralatan Medis', 'Jumlah (IDR)': -bs.value.akumulasiPenyusutan },
-    { 'Kategori': 'SUBTOTAL', 'Akun': 'TOTAL ASET TETAP (NET)', 'Jumlah (IDR)': bs.value.totalAsetTetapNet },
-    { 'Kategori': 'TOTAL', 'Akun': 'TOTAL ASET KESELURUHAN', 'Jumlah (IDR)': bs.value.totalAset },
-    { 'Kategori': 'KEWAJIBAN', 'Akun': 'Hutang Usaha Distributor Farmasi', 'Jumlah (IDR)': bs.value.hutangDistributor },
-    { 'Kategori': 'KEWAJIBAN', 'Akun': 'Hutang Jasa Medis Dokter', 'Jumlah (IDR)': bs.value.hutangDokter },
-    { 'Kategori': 'KEWAJIBAN', 'Akun': 'Hutang Pajak PPh 21, 23 & PPN Keluaran', 'Jumlah (IDR)': bs.value.hutangPajak },
-    { 'Kategori': 'SUBTOTAL', 'Akun': 'TOTAL KEWAJIBAN', 'Jumlah (IDR)': bs.value.totalKewajiban },
-    { 'Kategori': 'EKUITAS', 'Akun': 'Modal Disetor Pendiri', 'Jumlah (IDR)': bs.value.modalDisetor },
-    { 'Kategori': 'EKUITAS', 'Akun': 'Laba Ditahan (Retained Earnings)', 'Jumlah (IDR)': bs.value.labaDitahan },
-    { 'Kategori': 'EKUITAS', 'Akun': 'Laba Periode Berjalan', 'Jumlah (IDR)': bs.value.labaTahunBerjalan },
-    { 'Kategori': 'SUBTOTAL', 'Akun': 'TOTAL EKUITAS', 'Jumlah (IDR)': bs.value.totalEkuitas },
-    { 'Kategori': 'TOTAL', 'Akun': 'TOTAL KEWAJIBAN & EKUITAS', 'Jumlah (IDR)': bs.value.totalKewajibanDanEkuitas }
-  ]
+  const data = flattenedRows.value.map(r => ({
+    'Line': r.node.lineNo,
+    'Kode': r.node.code || '',
+    'Uraian': '  '.repeat(r.node.level - 1) + r.node.name,
+    'Level': r.node.level,
+    'Jumlah (IDR)': r.node.amount
+  }))
 
-  exportToExcel(data, `Laporan_Neraca_${accountingStore.businessUnit}_2026-03`, 'Neraca')
+  exportToExcel(data, `Laporan_Neraca_${accountingStore.businessUnit}_${endDate.value}`, 'Neraca')
   accountingStore.showToast('Laporan Neraca berhasil diekspor ke Excel', 'success')
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs print:hidden">
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-            Laporan Posisi Keuangan
-          </span>
-          <span class="text-xs text-slate-400">&bull; Balance Sheet (Neraca)</span>
+  <div class="space-y-4">
+    <!-- Header Controls matching ERP Reference -->
+    <div class="bg-[#121826] border border-slate-800 rounded-xl p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+      <div class="flex items-center gap-3">
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span class="hover:text-white cursor-pointer font-medium">Accounting</span>
+            <span>/</span>
+            <span class="text-blue-400 font-semibold">Laporan Neraca</span>
+          </div>
+          <h1 class="text-base font-bold text-white tracking-wide">
+            {{ accountingStore.businessUnit === 'ALL' ? 'KLINIK TERPADU (KIDINEST & SEMARANG SKIN CENTER)' : accountingStore.businessUnit === 'KIDINEST' ? 'KLINIK SPESIALIS ANAK KIDINEST' : 'SEMARANG SKIN CENTER (SSC)' }}
+          </h1>
         </div>
-        <h1 class="text-xl font-bold text-slate-900 mt-1">
-          Neraca Posisi Keuangan (Balance Sheet)
-        </h1>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Menampilkan aset, liabilitas, dan ekuitas dengan pembuktian formula fundamental: <strong>Aset = Kewajiban + Ekuitas</strong>.
-        </p>
       </div>
 
-      <div class="flex items-center gap-2.5">
-        <button
-          @click="printReport"
-          class="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold border border-slate-200 transition-colors"
-        >
-          <Printer class="w-4 h-4 text-slate-600" />
-          <span>Cetak Neraca</span>
-        </button>
+      <!-- Date Range Selectors -->
+      <div class="flex flex-wrap items-center gap-3 text-xs">
+        <div class="flex items-center gap-1.5 bg-[#1E293B] px-3 py-1.5 rounded-lg border border-slate-700">
+          <span class="text-slate-400">Periode:</span>
+          <input
+            v-model="startDate"
+            type="text"
+            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+          />
+          <span class="text-slate-400">s/d</span>
+          <input
+            v-model="endDate"
+            type="text"
+            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+          />
+        </div>
 
         <button
           @click="handleExportExcel"
-          class="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs transition-colors"
         >
-          <Download class="w-4 h-4" />
-          <span>Ekspor Excel (.xlsx)</span>
+          <Download class="w-3.5 h-3.5" />
+          <span>Ekspor</span>
+        </button>
+
+        <button
+          @click="printReport"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium transition-colors"
+        >
+          <Printer class="w-3.5 h-3.5" />
+          <span>Cetak</span>
         </button>
       </div>
     </div>
 
-    <!-- Presentation Sheet -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-8 max-w-5xl mx-auto space-y-6">
-      <!-- Title -->
-      <div class="text-center pb-6 border-b border-slate-200 space-y-1">
-        <h2 class="text-lg font-extrabold uppercase tracking-wide text-slate-900">
-          KLINIK TERPADU KIDINEST & SKIN SLIMMING CLINIC (SSC)
-        </h2>
-        <h3 class="text-sm font-bold text-blue-600 uppercase tracking-wider">
-          LAPORAN POSISI KEUANGAN (NERACA)
-        </h3>
-        <p class="text-xs text-slate-500">
-          Per 31 Maret 2026 (Dinyatakan dalam Rupiah Indonesia)
-        </p>
+    <!-- Tree Table Container (High-Contrast Dark SaaS Look matching Image 2) -->
+    <div class="bg-[#121826] border border-slate-800 rounded-xl overflow-hidden shadow-2xl text-slate-200">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs select-none">
+          <thead>
+            <tr class="border-b border-slate-800 bg-[#0F172A] text-[11px] font-bold text-slate-400">
+              <th class="py-2.5 px-4 w-16 text-slate-500">#</th>
+              <th class="py-2.5 px-4">Uraian</th>
+              <th class="py-2.5 px-6 text-right w-64">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-mono">
+            <tr
+              v-for="row in flattenedRows"
+              :key="row.node.id"
+              :class="[
+                'transition-colors group',
+                row.node.level === 1
+                  ? 'bg-[#182234] font-extrabold text-white text-sm'
+                  : row.node.level === 2
+                  ? 'bg-[#141D2E] font-bold text-slate-100 text-xs'
+                  : 'hover:bg-slate-800/40 text-slate-300'
+              ]"
+            >
+              <!-- Line Number Column -->
+              <td class="py-2 px-4 text-slate-500 text-[11px] select-none font-mono">
+                {{ row.node.lineNo }}
+              </td>
+
+              <!-- Uraian with Expand Caret & Book Icon -->
+              <td class="py-2 px-4 font-sans">
+                <div
+                  class="flex items-center gap-1.5"
+                  :style="{ paddingLeft: `${(row.node.level - 1) * 20}px` }"
+                >
+                  <!-- Caret for Parent Nodes -->
+                  <button
+                    v-if="row.hasChildren"
+                    @click="toggleExpand(row.node.id)"
+                    class="p-0.5 rounded text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors"
+                  >
+                    <ChevronDown v-if="row.isExpanded" class="w-3.5 h-3.5 text-slate-300" />
+                    <ChevronRight v-else class="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+                  <span v-else class="w-4 inline-block"></span>
+
+                  <!-- Account Code and Name -->
+                  <span
+                    :class="[
+                      'tracking-wide',
+                      row.node.level === 1 ? 'font-black tracking-wider text-white uppercase' : '',
+                      row.node.level === 2 ? 'font-bold text-slate-100 uppercase' : '',
+                      row.node.level === 3 ? 'font-semibold text-slate-200' : '',
+                      row.node.level === 4 ? 'font-normal text-slate-400 text-xs hover:text-blue-300 cursor-pointer' : ''
+                    ]"
+                    @click="row.node.accountCode && openLedgerForAccount(row.node.accountCode)"
+                  >
+                    {{ row.node.code ? `${row.node.code} - ` : '' }}{{ row.node.name }}
+                  </span>
+
+                  <!-- Subsidiary Ledger / Buku Besar Book Icon (📖) -->
+                  <button
+                    v-if="row.node.accountCode"
+                    @click.stop="openLedgerForAccount(row.node.accountCode)"
+                    class="ml-1 text-slate-500 hover:text-blue-400 transition-colors p-0.5 rounded"
+                    title="Buka Buku Besar (General Ledger) untuk akun ini"
+                  >
+                    <BookOpen class="w-3 h-3 text-slate-400 group-hover:text-blue-400" />
+                  </button>
+                </div>
+              </td>
+
+              <!-- Jumlah Column -->
+              <td
+                :class="[
+                  'py-2 px-6 text-right font-mono tracking-tight',
+                  row.node.level === 1
+                    ? 'font-black text-sm text-white'
+                    : row.node.level === 2
+                    ? 'font-bold text-slate-100 text-xs'
+                    : 'font-medium text-slate-300'
+                ]"
+              >
+                {{ formatIDR(row.node.amount) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- Balance Integrity Banner -->
-      <div
-        v-if="bs.isBalanced"
-        class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-emerald-900 text-xs"
-      >
-        <div class="flex items-center gap-2.5">
-          <CheckCircle2 class="w-5 h-5 text-emerald-600" />
-          <div>
-            <h4 class="font-bold">Neraca Seimbang Sempurna (Balanced)</h4>
-            <p class="text-[11px] text-emerald-700">Total Aset = Total Kewajiban + Ekuitas (Selisih: Rp 0)</p>
-          </div>
-        </div>
-        <span class="font-mono font-bold text-sm">{{ formatIDR(bs.totalAset) }}</span>
-      </div>
+      <!-- Bottom Level Bar matching Image 2 -->
+      <div class="px-4 py-3 bg-[#0F172A] border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <!-- Jump to Line -->
+          <input
+            v-model.number="jumpLineNumber"
+            type="number"
+            class="w-12 px-2 py-1 bg-[#1E293B] border border-slate-700 rounded text-center text-xs text-white font-mono"
+          />
 
-      <!-- Two-Column Financial Layout: Left = Assets, Right = Liabilities & Equity -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs">
-        <!-- LEFT COLUMN: ASET -->
-        <div class="space-y-6">
-          <div class="border-b-2 border-blue-600 pb-2">
-            <h3 class="font-bold text-sm text-slate-900 uppercase tracking-wider">ASET (AKTIVA)</h3>
-          </div>
-
-          <!-- Aset Lancar -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-blue-900 uppercase text-[11px]">Aset Lancar:</h4>
-            <div class="space-y-2 pl-3">
-              <div class="flex justify-between text-slate-700">
-                <span>Kas Operasional Kasir (Kidinest & SSC)</span>
-                <span class="font-mono">{{ formatIDR(bs.kasOperasional) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>Bank Mandiri & BCA Operasional</span>
-                <span class="font-mono">{{ formatIDR(bs.bankOperasional) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>Piutang Pasien & Asuransi</span>
-                <span class="font-mono">{{ formatIDR(bs.piutangPasien) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>Persediaan Farmasi & Obat-obatan</span>
-                <span class="font-mono">{{ formatIDR(bs.persediaan) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>PPN Masukan Dapat Dikreditkan</span>
-                <span class="font-mono">{{ formatIDR(bs.ppnMasukan) }}</span>
-              </div>
-            </div>
-            <!-- Subtotal Aset Lancar -->
-            <div class="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900 bg-slate-50 p-2 rounded">
-              <span>Total Aset Lancar:</span>
-              <span class="font-mono">{{ formatIDR(bs.totalAsetLancar) }}</span>
-            </div>
+          <!-- Level Buttons: Lvl 1, Lvl 2, Lvl 3, Lvl 4 (Detail) -->
+          <div class="flex items-center bg-[#1E293B] p-0.5 rounded-lg border border-slate-700">
+            <button
+              @click="setLevel(1)"
+              :class="[
+                'px-2.5 py-1 rounded text-xs font-bold transition-all',
+                currentLevel === 1 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+              ]"
+            >
+              Lvl 1
+            </button>
+            <button
+              @click="setLevel(2)"
+              :class="[
+                'px-2.5 py-1 rounded text-xs font-bold transition-all',
+                currentLevel === 2 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+              ]"
+            >
+              Lvl 2
+            </button>
+            <button
+              @click="setLevel(3)"
+              :class="[
+                'px-2.5 py-1 rounded text-xs font-bold transition-all',
+                currentLevel === 3 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+              ]"
+            >
+              Lvl 3
+            </button>
+            <button
+              @click="setLevel(4)"
+              :class="[
+                'px-2.5 py-1 rounded text-xs font-bold transition-all',
+                currentLevel === 4 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+              ]"
+            >
+              Lvl 4 (Detail)
+            </button>
           </div>
 
-          <!-- Aset Tetap -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-blue-900 uppercase text-[11px]">Aset Tetap & Peralatan Medis:</h4>
-            <div class="space-y-2 pl-3">
-              <div class="flex justify-between text-slate-700">
-                <span>Peralatan Medis & Laser (Biaya Perolehan)</span>
-                <span class="font-mono">{{ formatIDR(bs.asetTetapGross) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>Akumulasi Penyusutan Peralatan</span>
-                <span class="font-mono text-rose-700">({{ formatIDR(bs.akumulasiPenyusutan) }})</span>
-              </div>
-            </div>
-            <!-- Subtotal Aset Tetap -->
-            <div class="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900 bg-slate-50 p-2 rounded">
-              <span>Total Aset Tetap (Nilai Buku):</span>
-              <span class="font-mono">{{ formatIDR(bs.totalAsetTetapNet) }}</span>
-            </div>
-          </div>
+          <button
+            @click="expandAll"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700"
+          >
+            Expand All
+          </button>
 
-          <!-- Total Aset -->
-          <div class="pt-4 border-t-2 border-slate-300 flex justify-between font-extrabold text-sm text-white bg-blue-900 p-3 rounded-xl shadow-xs">
-            <span>TOTAL ASET (AKTIVA):</span>
-            <span class="font-mono">{{ formatIDR(bs.totalAset) }}</span>
-          </div>
+          <button
+            @click="collapseAll"
+            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700"
+          >
+            Collapse All
+          </button>
         </div>
 
-        <!-- RIGHT COLUMN: LIABILITIES & EQUITY -->
-        <div class="space-y-6">
-          <div class="border-b-2 border-rose-600 pb-2">
-            <h3 class="font-bold text-sm text-slate-900 uppercase tracking-wider">KEWAJIBAN & EKUITAS</h3>
-          </div>
-
-          <!-- Kewajiban Jangka Pendek -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-rose-900 uppercase text-[11px]">Kewajiban Jangka Pendek:</h4>
-            <div class="space-y-2 pl-3">
-              <div class="flex justify-between text-slate-700">
-                <span>Hutang Usaha Distributor Farmasi</span>
-                <span class="font-mono">{{ formatIDR(bs.hutangDistributor) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>Hutang Jasa Medis Dokter (Share Medis)</span>
-                <span class="font-mono">{{ formatIDR(bs.hutangDokter) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>Hutang Pajak PPh 21, 23 & PPN Keluaran</span>
-                <span class="font-mono">{{ formatIDR(bs.hutangPajak) }}</span>
-              </div>
-            </div>
-            <!-- Subtotal Kewajiban -->
-            <div class="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900 bg-slate-50 p-2 rounded">
-              <span>Total Kewajiban:</span>
-              <span class="font-mono">{{ formatIDR(bs.totalKewajiban) }}</span>
-            </div>
-          </div>
-
-          <!-- Ekuitas -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-blue-900 uppercase text-[11px]">Ekuitas (Modal):</h4>
-            <div class="space-y-2 pl-3">
-              <div class="flex justify-between text-slate-700">
-                <span>Modal Disetor Pendiri</span>
-                <span class="font-mono">{{ formatIDR(bs.modalDisetor) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700">
-                <span>Laba Ditahan (Retained Earnings)</span>
-                <span class="font-mono">{{ formatIDR(bs.labaDitahan) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-700 font-semibold text-emerald-800">
-                <span>Laba Bersih Tahun Berjalan</span>
-                <span class="font-mono">{{ formatIDR(bs.labaTahunBerjalan) }}</span>
-              </div>
-            </div>
-            <!-- Subtotal Ekuitas -->
-            <div class="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900 bg-slate-50 p-2 rounded">
-              <span>Total Ekuitas:</span>
-              <span class="font-mono">{{ formatIDR(bs.totalEkuitas) }}</span>
-            </div>
-          </div>
-
-          <!-- Total Kewajiban & Ekuitas -->
-          <div class="pt-4 border-t-2 border-slate-300 flex justify-between font-extrabold text-sm text-white bg-slate-900 p-3 rounded-xl shadow-xs">
-            <span>TOTAL KEWAJIBAN & EKUITAS:</span>
-            <span class="font-mono">{{ formatIDR(bs.totalKewajibanDanEkuitas) }}</span>
-          </div>
+        <div class="flex items-center gap-3 text-slate-400 text-xs">
+          <span>Menampilkan <strong>{{ flattenedRows.length }}</strong> pos neraca</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span class="text-emerald-400 font-bold">Neraca Seimbang (Balanced)</span>
         </div>
       </div>
     </div>

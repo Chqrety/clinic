@@ -45,3 +45,4 @@ import ToastNotification from '@/components/common/ToastNotification.vue'
   transform: translateY(-4px);
 }
 </style>
+

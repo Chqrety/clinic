@@ -182,3 +182,4 @@ const searchQuery = ref('')
     </div>
   </div>
 </template>
+
