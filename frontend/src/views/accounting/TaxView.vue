@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useTaxStore } from '@/stores/tax'
+import { useTaxStore, type SptMasaType } from '@/stores/tax'
 import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
 import { formatIDR } from '@/utils/currency'
-import StatusBadge from '@/components/common/StatusBadge.vue'
+import { formatDate } from '@/utils/date'
 import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   Calculator,
@@ -23,7 +23,12 @@ import {
   AlertCircle,
   ExternalLink,
   ShieldCheck,
-  BookOpen
+  BookOpen,
+  Plus,
+  X,
+  Printer,
+  Sparkles,
+  Link2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -44,6 +49,64 @@ const ppn = computed(() => taxStore.ppnSummary)
 const txList = computed(() => taxStore.filteredTaxTransactions)
 const summary = computed(() => taxStore.monthlyTaxSummary)
 const annual1771 = computed(() => taxStore.annualTaxReport1771)
+const sptMasaList = computed(() => taxStore.filteredSptMasa)
+const sptMatrix = computed(() => taxStore.monthlySptMasaMatrix)
+
+// Subview under SPT Masa: 'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU'
+const sptMasaSubTab = ref<'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU'>('DOKUMEN_SPT')
+
+// Modals
+const showCreateSptMasaModal = ref(false)
+const showDetailModal = ref(false)
+const selectedSptDetail = ref<any>(null)
+
+// Form for new SPT Masa
+const newSptMasaForm = ref({
+  masaMonth: 11,
+  masaYear: 2026,
+  taxType: 'PPH_23' as SptMasaType,
+  grossAmount: 150000000,
+  dppAmount: 150000000,
+  taxRate: '2%',
+  taxAmount: 3000000,
+  ntpnNumber: '',
+  notes: '',
+  status: 'REPORTED' as 'DRAFT' | 'PAID' | 'REPORTED'
+})
+
+// Auto update suggested tax amount in modal
+function updateSuggestedTaxAmount() {
+  const dpp = Number(newSptMasaForm.value.dppAmount) || 0
+  if (newSptMasaForm.value.taxType === 'PPH_23') {
+    newSptMasaForm.value.taxRate = '2%'
+    newSptMasaForm.value.taxAmount = Math.round(dpp * 0.02)
+  } else if (newSptMasaForm.value.taxType === 'PPH_4_2') {
+    newSptMasaForm.value.taxRate = '10%'
+    newSptMasaForm.value.taxAmount = Math.round(dpp * 0.10)
+  } else if (newSptMasaForm.value.taxType === 'PPH_25') {
+    newSptMasaForm.value.taxRate = 'Angsuran Tetap'
+    newSptMasaForm.value.taxAmount = 13000000
+  } else if (newSptMasaForm.value.taxType === 'PPN') {
+    newSptMasaForm.value.taxRate = '11%'
+    newSptMasaForm.value.taxAmount = Math.round(dpp * 0.11)
+  }
+}
+
+function handleSaveNewSptMasa() {
+  taxStore.createSptMasa({
+    masaMonth: Number(newSptMasaForm.value.masaMonth),
+    masaYear: Number(newSptMasaForm.value.masaYear),
+    taxType: newSptMasaForm.value.taxType,
+    grossAmount: Number(newSptMasaForm.value.grossAmount),
+    dppAmount: Number(newSptMasaForm.value.dppAmount),
+    taxRate: newSptMasaForm.value.taxRate,
+    taxAmount: Number(newSptMasaForm.value.taxAmount),
+    notes: newSptMasaForm.value.notes,
+    ntpnNumber: newSptMasaForm.value.ntpnNumber,
+    status: newSptMasaForm.value.status
+  })
+  showCreateSptMasaModal.value = false
+}
 
 // Selected Account Metadata
 const selectedAccountMeta = computed(() => {
@@ -64,6 +127,11 @@ function handleGenerateNTPNJournal() {
   const amt = summary.value.totalTax || 39249649
   taxStore.generateTaxPaymentJournal(code, name, amt)
 }
+
+function viewSptDetail(item: any) {
+  selectedSptDetail.value = item
+  showDetailModal.value = true
+}
 </script>
 
 <template>
@@ -73,91 +141,107 @@ function handleGenerateNTPNJournal() {
       <div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-            Perpajakan & Kepatuhan Fiskal Terintegrasi COA
+            Perpajakan Terintegrasi COA & DJP
           </span>
-          <span class="text-xs text-slate-400">&bull; PMK 168/2023, PP 58/2023 & UU HPP</span>
+          <span class="text-xs text-slate-400">&bull; Standar SPT Masa & SPT Tahunan 1771</span>
         </div>
-        <h1 class="text-xl font-bold text-slate-900 mt-1">
-          Manajemen Pajak Masa & Pajak Tahunan (SPT 1771)
+        <h1 class="text-2xl font-black text-slate-900 mt-1">
+          Manajemen SPT Masa & SPT Tahunan (Formulir 1771)
         </h1>
         <p class="text-xs text-slate-500 mt-0.5">
-          Perhitungan pajak otomatis dari Chart of Accounts (COA kelompok 25 - Hutang Pajak), Buku Besar (General Ledger), dan Jurnal Transaksi.
+          Pembuatan SPT Masa bulanan terpisah dari SPT Tahunan, di mana hasil SPT Tahunan otomatis mengintegrasikan nilai kredit pajak dari SPT Masa sesuai jenisnya.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5">
         <button
-          @click="taxStore.exportEbupotCSV()"
-          class="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
+          v-if="taxStore.taxPeriodType === 'MASA'"
+          @click="showCreateSptMasaModal = true"
+          class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition"
         >
-          <Download class="w-3.5 h-3.5" />
-          <span>Ekspor e-Bupot CSV (DJP)</span>
+          <Plus class="w-3.5 h-3.5" />
+          <span>+ Buat SPT Masa Baru</span>
         </button>
 
         <button
+          @click="taxStore.exportEbupotCSV()"
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-xs transition"
+        >
+          <Download class="w-3.5 h-3.5" />
+          <span>Ekspor e-Bupot CSV</span>
+        </button>
+
+        <button
+          v-if="taxStore.taxPeriodType === 'MASA'"
           @click="handleGenerateNTPNJournal"
-          class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition"
         >
           <Send class="w-3.5 h-3.5" />
-          <span>Generate Jurnal Setor NTPN</span>
+          <span>Jurnal Setor NTPN</span>
         </button>
       </div>
     </div>
 
-    <!-- Mode Selector Tabs: Pajak Masa vs Pajak Tahunan (SPT 1771) -->
+    <!-- Mode Selector Tabs: SPT Masa vs SPT Tahunan 1771 -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 text-white p-4 rounded-xl shadow-lg border border-slate-800">
       <div class="flex items-center gap-2">
         <div class="flex items-center bg-slate-800 p-1 rounded-lg border border-slate-700">
           <button
             @click="taxStore.taxPeriodType = 'MASA'"
             :class="[
-              'px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5',
+              'px-4 py-2 rounded-md text-xs font-bold transition-all flex items-center gap-2',
               taxStore.taxPeriodType === 'MASA'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'text-slate-400 hover:text-white'
             ]"
           >
             <Calendar class="w-3.5 h-3.5" />
-            <span>Pajak Masa (Bulanan)</span>
+            <span>1. Pembuatan & Kelola SPT Masa (Bulanan)</span>
           </button>
           <button
             @click="taxStore.taxPeriodType = 'TAHUNAN'"
             :class="[
-              'px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5',
+              'px-4 py-2 rounded-md text-xs font-bold transition-all flex items-center gap-2',
               taxStore.taxPeriodType === 'TAHUNAN'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'text-slate-400 hover:text-white'
             ]"
           >
             <Building class="w-3.5 h-3.5" />
-            <span>Pajak Tahunan (SPT Badan 1771)</span>
+            <span>2. SPT Tahunan PPh Badan 1771 (Auto-Credit dari SPT Masa)</span>
           </button>
         </div>
       </div>
 
-      <!-- COA Account Selector Dropdown (When in Pajak Masa Mode) -->
-      <div v-if="taxStore.taxPeriodType === 'MASA'" class="flex items-center gap-3">
-        <span class="text-xs text-slate-300 font-medium">Pilih Akun Pajak di COA:</span>
-        <select
-          v-model="taxStore.selectedTaxAccountCode"
-          class="px-3 py-1.5 bg-slate-800 border border-slate-700 text-white rounded-lg text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer max-w-xs"
-        >
-          <option
-            v-for="opt in taxStore.taxAccountOptions"
-            :key="opt.code"
-            :value="opt.code"
+      <!-- Context Selectors -->
+      <div v-if="taxStore.taxPeriodType === 'MASA'" class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-1 text-xs">
+          <span class="text-slate-400 font-medium">Masa:</span>
+          <select
+            v-model.number="taxStore.selectedMonth"
+            class="px-2.5 py-1.5 bg-slate-800 border border-slate-700 text-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
-            {{ opt.name }}
-          </option>
-        </select>
+            <option v-for="m in 12" :key="m" :value="m">Masa {{ m }}</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1 text-xs">
+          <span class="text-slate-400 font-medium">Tahun:</span>
+          <select
+            v-model.number="taxStore.selectedYear"
+            class="px-2.5 py-1.5 bg-slate-800 border border-slate-700 text-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option :value="2026">2026</option>
+            <option :value="2025">2025</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Fiscal Year (When in Pajak Tahunan Mode) -->
-      <div v-else class="flex items-center gap-3">
-        <span class="text-xs text-slate-300 font-medium">Tahun Pajak (Fiskal):</span>
+      <div v-else class="flex items-center gap-2 text-xs">
+        <span class="text-slate-300 font-medium">Tahun Pajak Fiskal:</span>
         <select
-          v-model="taxStore.selectedYear"
-          class="px-3 py-1.5 bg-slate-800 border border-slate-700 text-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+          v-model.number="taxStore.selectedYear"
+          class="px-3 py-1.5 bg-slate-800 border border-slate-700 text-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
         >
           <option :value="2026">Tahun Pajak 2026</option>
           <option :value="2025">Tahun Pajak 2025</option>
@@ -166,189 +250,210 @@ function handleGenerateNTPNJournal() {
     </div>
 
     <!-- ============================================================== -->
-    <!-- VIEW A: PAJAK MASA (BULANAN) BERBASIS COA & BUKU BESAR -->
+    <!-- VIEW A: PEMBUATAN & PENGELOLAAN SPT MASA (BULANAN) -->
     <!-- ============================================================== -->
     <div v-if="taxStore.taxPeriodType === 'MASA'" class="space-y-6">
-      <!-- Info Banner of Selected Tax Account -->
-      <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 font-bold">
-            <Receipt class="w-5 h-5" />
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 text-sm">{{ selectedAccountMeta.name }}</h4>
-            <p class="text-slate-600 mt-0.5">{{ selectedAccountMeta.description }} &bull; Standar Tarif: <strong>{{ selectedAccountMeta.normalRate }}</strong></p>
-          </div>
-        </div>
+      <!-- Sub-Tabs under SPT Masa -->
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2">
         <div class="flex items-center gap-2">
           <button
-            @click="openLedgerForAccount(taxStore.selectedTaxAccountCode !== 'ALL' ? taxStore.selectedTaxAccountCode : '25')"
-            class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-blue-700 rounded-lg font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+            @click="sptMasaSubTab = 'DOKUMEN_SPT'"
+            :class="[
+              'px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5',
+              sptMasaSubTab === 'DOKUMEN_SPT'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100'
+            ]"
           >
-            <BookOpen class="w-3.5 h-3.5" />
-            <span>Lihat Buku Besar Akun Ini</span>
+            <FileText class="w-3.5 h-3.5" />
+            <span>Daftar Dokumen SPT Masa ({{ sptMasaList.length }})</span>
+          </button>
+
+          <button
+            @click="sptMasaSubTab = 'EBUPOT_DOKTER'"
+            :class="[
+              'px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5',
+              sptMasaSubTab === 'EBUPOT_DOKTER'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100'
+            ]"
+          >
+            <UserCheck class="w-3.5 h-3.5" />
+            <span>e-Bupot PPh 21 Dokter (PMK 168/2023)</span>
+          </button>
+
+          <button
+            @click="sptMasaSubTab = 'BUKU_PEMBANTU'"
+            :class="[
+              'px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5',
+              sptMasaSubTab === 'BUKU_PEMBANTU'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100'
+            ]"
+          >
+            <FileSpreadsheet class="w-3.5 h-3.5" />
+            <span>Buku Pembantu Pajak (Jurnal & GL)</span>
           </button>
         </div>
+
+        <!-- Filter Jenis Pajak -->
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500 font-bold">Jenis:</span>
+          <select
+            v-model="taxStore.selectedSptMasaTypeFilter"
+            class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="ALL">Semua Jenis Pajak</option>
+            <option value="PPH_21">PPh Pasal 21 (Dokter & Staf)</option>
+            <option value="PPH_23">PPh Pasal 23 (Kredit Pajak)</option>
+            <option value="PPH_4_2">PPh Final Pasal 4(2)</option>
+            <option value="PPH_25">PPh Pasal 25 (Angsuran Badan)</option>
+            <option value="PPN">PPN (Keluaran / Masukan)</option>
+          </select>
+        </div>
       </div>
 
-      <!-- KPI Summary Cards for Selected Tax Category -->
+      <!-- KPI Summary Cards for SPT Masa -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
-          <span class="text-xs font-bold text-slate-500 uppercase">Total Bruto Objek Pajak</span>
+          <span class="text-xs font-bold text-slate-500 uppercase">PPh 21 Dokter & Staf (Masa {{ taxStore.selectedMonth }})</span>
           <div class="font-mono text-xl font-bold text-slate-900">
-            {{ formatIDR(summary.totalGross) }}
+            {{ formatIDR(sptMasaList.filter(s => s.taxType === 'PPH_21').reduce((sum, s) => sum + s.taxAmount, 0)) }}
           </div>
-          <p class="text-[11px] text-slate-400">
-            Nilai transaksi sebelum pemotongan
-          </p>
+          <span class="text-[10px] text-slate-400">Withholding Tax Jasa Medis & Payroll</span>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
-          <span class="text-xs font-bold text-slate-500 uppercase">Dasar Pengenaan Pajak (DPP)</span>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1 border-l-4 border-l-blue-600">
+          <span class="text-xs font-bold text-blue-700 uppercase">PPh 23 Terpotong (Kredit 1771)</span>
           <div class="font-mono text-xl font-bold text-blue-700">
-            {{ formatIDR(summary.totalDpp) }}
+            {{ formatIDR(sptMasaList.filter(s => s.taxType === 'PPH_23').reduce((sum, s) => sum + s.taxAmount, 0)) }}
           </div>
-          <p class="text-[11px] text-slate-400">
-            Dasar kalkulasi perkalian tarif
-          </p>
+          <span class="text-[10px] text-blue-600 font-medium">&bull; Otomatis mengalir ke Lampiran III SPT 1771</span>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
-          <span class="text-xs font-bold text-slate-500 uppercase">Pajak Terutang (Buku Besar)</span>
-          <div class="font-mono text-xl font-bold text-rose-700">
-            {{ formatIDR(summary.coaBalance) }}
-          </div>
-          <p class="text-[11px] text-slate-400">
-            Saldo Akun COA Kelompok 25
-          </p>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
-          <div class="flex items-center justify-between text-slate-500 text-xs">
-            <span class="font-bold uppercase">Status Rekonsiliasi</span>
-            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">Sinkron</span>
-          </div>
-          <div class="font-mono text-xl font-bold text-emerald-700 flex items-center gap-1.5">
-            <CheckCircle2 class="w-5 h-5 text-emerald-600 inline" />
-            <span>100% Sesuai</span>
-          </div>
-          <p class="text-[11px] text-slate-400">
-            Jurnal entri cocok dengan buku besar
-          </p>
-        </div>
-      </div>
-
-      <!-- Specific PPN Summary Section if PPN is selected or ALL -->
-      <div v-if="taxStore.selectedTaxAccountCode === 'ALL' || taxStore.selectedTaxAccountCode === '2504' || taxStore.selectedTaxAccountCode === '1504'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
-          <div class="flex items-center justify-between text-slate-500 text-xs">
-            <span class="font-bold uppercase">PPN Keluaran (Akun COA 2504)</span>
-            <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[10px]">Tarif 11%</span>
-          </div>
-          <div class="font-mono text-xl font-bold text-slate-900">
-            {{ formatIDR(ppn.ppnOutputTax) }}
-          </div>
-          <p class="text-[11px] text-slate-400">
-            DPP: {{ formatIDR(ppn.ppnOutputGross) }} (Penjualan Produk Skincare & Estetika)
-          </p>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
-          <div class="flex items-center justify-between text-slate-500 text-xs">
-            <span class="font-bold uppercase">PPN Masukan (Akun COA 1504)</span>
-            <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold text-[10px]">Faktur Masukan</span>
-          </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1 border-l-4 border-l-emerald-600">
+          <span class="text-xs font-bold text-emerald-700 uppercase">PPh 25 Disetor (Angsuran 1771)</span>
           <div class="font-mono text-xl font-bold text-emerald-700">
-            {{ formatIDR(ppn.ppnInputTax) }}
+            {{ formatIDR(sptMasaList.filter(s => s.taxType === 'PPH_25').reduce((sum, s) => sum + s.taxAmount, 0)) }}
           </div>
-          <p class="text-[11px] text-slate-400">
-            DPP: {{ formatIDR(ppn.ppnInputGross) }} (Faktur Pembelian PBF Distributor)
-          </p>
+          <span class="text-[10px] text-emerald-600 font-medium">&bull; Otomatis mengalir ke Induk 10a SPT 1771</span>
         </div>
 
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
-          <div class="flex items-center justify-between text-slate-500 text-xs">
-            <span class="font-bold uppercase">PPN Kurang Bayar (Setoran SPT)</span>
-            <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold text-[10px]">NTPN DJP</span>
+          <span class="text-xs font-bold text-slate-500 uppercase">PPN & PPh Final 4(2)</span>
+          <div class="font-mono text-xl font-bold text-slate-900">
+            {{ formatIDR(sptMasaList.filter(s => s.taxType === 'PPH_4_2' || s.taxType === 'PPN').reduce((sum, s) => sum + s.taxAmount, 0)) }}
           </div>
-          <div class="font-mono text-xl font-bold text-amber-800">
-            {{ formatIDR(ppn.ppnPayableNet) }}
-          </div>
-          <p class="text-[11px] text-slate-400">
-            Kewajiban setor ke Kas Negara sebelum akhir bulan
-          </p>
+          <span class="text-[10px] text-slate-400">Sewa Gedung Ruko & Pajak Bunga</span>
         </div>
       </div>
 
-      <!-- Specific PPh 21 Dokter Progressive Table if 2501 or ALL -->
-      <div v-if="taxStore.selectedTaxAccountCode === 'ALL' || taxStore.selectedTaxAccountCode === '2501.001'" class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-4 p-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+      <!-- TAB 1: Daftar Dokumen SPT Masa -->
+      <div v-if="sptMasaSubTab === 'DOKUMEN_SPT'" class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div class="p-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <UserCheck class="w-4 h-4 text-blue-600" />
-            <h3 class="text-sm font-bold text-slate-900">Rincian Withholding PPh 21 Dokter Tenaga Ahli (PMK 168/2023)</h3>
+            <FileText class="w-4 h-4 text-blue-600" />
+            <h3 class="text-xs font-bold text-slate-800">Daftar Dokumen SPT Masa yang Telah Diterbitkan (Masa {{ taxStore.selectedMonth }}/{{ taxStore.selectedYear }})</h3>
           </div>
-          <span class="text-xs font-semibold text-slate-500">
-            Akun COA: 2501.001 &bull; Rumus: 50% Bruto x Tarif Progresif Pasal 17 UU HPP
-          </span>
+          <span class="text-xs text-slate-500">Total: <strong>{{ sptMasaList.length }}</strong> dokumen SPT</span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                <th class="px-3 py-2.5">Nama Dokter & Spesialisasi</th>
-                <th class="px-3 py-2.5">NPWP / NIK</th>
-                <th class="px-3 py-2.5 text-center">Unit</th>
-                <th class="px-3 py-2.5 text-right">Fee Bruto</th>
-                <th class="px-3 py-2.5 text-right">DPP (50%)</th>
-                <th class="px-3 py-2.5 text-center">Lapisan Tarif</th>
-                <th class="px-3 py-2.5 text-right text-rose-700 font-bold">Potongan PPh 21</th>
-                <th class="px-3 py-2.5 text-right text-emerald-800 font-bold">Netto Diterima</th>
-                <th class="px-3 py-2.5 text-center">No Jurnal</th>
-                <th class="px-3 py-2.5 text-center">No e-Bupot</th>
+                <th class="px-4 py-3">No. Dokumen SPT</th>
+                <th class="px-4 py-3">Masa / Tahun</th>
+                <th class="px-4 py-3">Jenis Pajak</th>
+                <th class="px-4 py-3">Akun COA Terkait</th>
+                <th class="px-4 py-3">Keterangan / Objek</th>
+                <th class="px-4 py-3 text-right">DPP / Bruto</th>
+                <th class="px-4 py-3 text-right font-bold text-rose-700">Pajak Terutang</th>
+                <th class="px-4 py-3">No. NTPN / Ref Setor</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
               <tr
-                v-for="d in doctorTaxRecords"
-                :key="d.id"
-                class="hover:bg-slate-50/50 transition-colors"
+                v-for="spt in sptMasaList"
+                :key="spt.id"
+                class="hover:bg-slate-50/60 transition-colors"
               >
-                <td class="px-3 py-3">
-                  <span class="font-bold text-slate-900 block">{{ d.doctorName }}</span>
-                  <span class="text-[11px] text-slate-400">{{ d.specialty }}</span>
+                <td class="px-4 py-3 font-mono font-bold text-blue-700 whitespace-nowrap">
+                  {{ spt.sptNumber }}
                 </td>
-                <td class="px-3 py-3 font-mono text-[11px] text-slate-600">
-                  <span>{{ d.npwp }}</span>
-                  <span class="block text-slate-400 text-[10px]">NIK: {{ d.nik }}</span>
+                <td class="px-4 py-3 font-mono whitespace-nowrap text-slate-600">
+                  Masa {{ spt.masaMonth }} / {{ spt.masaYear }}
                 </td>
-                <td class="px-3 py-3 text-center">
-                  <StatusBadge :status="d.businessUnit" size="sm" />
-                </td>
-                <td class="px-3 py-3 text-right font-mono font-semibold text-slate-800">
-                  {{ formatIDR(d.grossIncomeCurrentMonth) }}
-                </td>
-                <td class="px-3 py-3 text-right font-mono text-blue-900 font-semibold bg-blue-50/20">
-                  {{ formatIDR(d.dppAmount) }}
-                </td>
-                <td class="px-3 py-3 text-center">
-                  <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200">
-                    {{ d.taxBracketApplied }}
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span
+                    v-if="spt.taxType === 'PPH_23'"
+                    class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200"
+                  >
+                    PPh 23 (Kredit 1771)
+                  </span>
+                  <span
+                    v-else-if="spt.taxType === 'PPH_25'"
+                    class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
+                  >
+                    PPh 25 (Angsuran 1771)
+                  </span>
+                  <span
+                    v-else-if="spt.taxType === 'PPH_21'"
+                    class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200"
+                  >
+                    PPh 21 Medis & Staf
+                  </span>
+                  <span
+                    v-else
+                    class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200"
+                  >
+                    {{ spt.taxType }}
                   </span>
                 </td>
-                <td class="px-3 py-3 text-right font-mono font-bold text-rose-700 bg-rose-50/30">
-                  {{ formatIDR(d.pph21Amount) }}
+                <td class="px-4 py-3 font-mono font-medium text-slate-700">
+                  {{ spt.accountCode }} - {{ spt.accountName }}
                 </td>
-                <td class="px-3 py-3 text-right font-mono font-bold text-emerald-800 bg-emerald-50/30">
-                  {{ formatIDR(d.netPayable) }}
+                <td class="px-4 py-3 text-slate-700 max-w-xs truncate">
+                  {{ spt.notes || '-' }}
                 </td>
-                <td class="px-3 py-3 text-center font-mono text-xs">
-                  <span class="text-blue-600 hover:underline cursor-pointer font-bold" @click="router.push('/journals')">
-                    {{ d.journalNumber }}
+                <td class="px-4 py-3 text-right font-mono text-slate-800">
+                  {{ formatIDR(spt.dppAmount || spt.grossAmount) }}
+                </td>
+                <td class="px-4 py-3 text-right font-mono font-bold text-rose-700">
+                  {{ formatIDR(spt.taxAmount) }}
+                </td>
+                <td class="px-4 py-3 font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                  {{ spt.ntpnNumber || '-' }}
+                </td>
+                <td class="px-4 py-3 text-center whitespace-nowrap">
+                  <span
+                    v-if="spt.status === 'REPORTED'"
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800"
+                  >
+                    Dilaporkan
+                  </span>
+                  <span
+                    v-else-if="spt.status === 'PAID'"
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800"
+                  >
+                    Disetor (NTPN)
+                  </span>
+                  <span
+                    v-else
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800"
+                  >
+                    Draft
                   </span>
                 </td>
-                <td class="px-3 py-3 text-center font-mono text-[10px] text-slate-500">
-                  {{ d.ebupotNumber }}
+                <td class="px-4 py-3 text-center whitespace-nowrap">
+                  <button
+                    @click="viewSptDetail(spt)"
+                    class="px-2.5 py-1 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-md font-bold text-[11px] transition"
+                  >
+                    Detail
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -356,16 +461,68 @@ function handleGenerateNTPNJournal() {
         </div>
       </div>
 
-      <!-- Transaction Line Details directly extracted from General Ledger & Journal Lines -->
-      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-4 p-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-          <div class="flex items-center gap-2">
-            <FileSpreadsheet class="w-4 h-4 text-emerald-600" />
-            <h3 class="text-sm font-bold text-slate-900">Buku Pembantu Pajak (Kalkulasi dari Jurnal Entri & Buku Besar)</h3>
+      <!-- TAB 2: Bukti Potong Dokter e-Bupot PMK 168/2023 -->
+      <div v-else-if="sptMasaSubTab === 'EBUPOT_DOKTER'" class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Perhitungan e-Bupot 21 Tenaga Medis Dokter (PMK 168/2023)</h3>
+            <p class="text-xs text-slate-500 mt-0.5">DPP 50% dari Penghasilan Bruto Jasa Medis & Visite Rumah Sakit / Klinik</p>
           </div>
-          <span class="text-xs text-slate-500">
-            Menampilkan <strong>{{ txList.length }}</strong> transaksi kena pajak periode November 2026
-          </span>
+          <button
+            @click="taxStore.exportEbupotCSV()"
+            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs flex items-center gap-1.5"
+          >
+            <Download class="w-3.5 h-3.5" />
+            <span>Ekspor e-Bupot Format DJP</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <th class="px-3 py-2.5">Nama Dokter</th>
+                <th class="px-3 py-2.5">NPWP / NIK</th>
+                <th class="px-3 py-2.5">Unit</th>
+                <th class="px-3 py-2.5 text-right">Bruto Bulan Ini</th>
+                <th class="px-3 py-2.5 text-right">DPP (50%)</th>
+                <th class="px-3 py-2.5">Lapisan Tarif</th>
+                <th class="px-3 py-2.5 text-right font-bold text-rose-700">PPh 21 Dipotong</th>
+                <th class="px-3 py-2.5 text-right font-bold text-emerald-700">Take Home Pay</th>
+                <th class="px-3 py-2.5 text-center">No. e-Bupot</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr v-for="d in doctorTaxRecords" :key="d.id" class="hover:bg-slate-50/50">
+                <td class="px-3 py-3 font-bold text-slate-900">{{ d.doctorName }}</td>
+                <td class="px-3 py-3 font-mono text-[11px] text-slate-500">{{ d.npwp }}</td>
+                <td class="px-3 py-3 font-bold text-blue-700">{{ d.businessUnit }}</td>
+                <td class="px-3 py-3 text-right font-mono">{{ formatIDR(d.grossIncomeCurrentMonth) }}</td>
+                <td class="px-3 py-3 text-right font-mono text-blue-800 bg-blue-50/20">{{ formatIDR(d.dppAmount) }}</td>
+                <td class="px-3 py-3 text-[11px] text-slate-600">{{ d.taxBracketApplied }}</td>
+                <td class="px-3 py-3 text-right font-mono font-bold text-rose-700 bg-rose-50/30">{{ formatIDR(d.pph21Amount) }}</td>
+                <td class="px-3 py-3 text-right font-mono font-bold text-emerald-700 bg-emerald-50/30">{{ formatIDR(d.netPayable) }}</td>
+                <td class="px-3 py-3 text-center font-mono text-[10px] text-slate-500">{{ d.ebupotNumber }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: Buku Pembantu Pajak (GL & Jurnal) -->
+      <div v-else class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Buku Pembantu Pajak (Sinkronisasi Real-Time Buku Besar)</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Seluruh jurnal pemotongan & pemungutan pajak akun kelompok 25</p>
+          </div>
+          <button
+            @click="openLedgerForAccount('25')"
+            class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-blue-700 rounded-lg text-xs font-bold shadow-2xs flex items-center gap-1.5"
+          >
+            <BookOpen class="w-3.5 h-3.5" />
+            <span>Lihat Buku Besar Akun 25 (Hutang Pajak)</span>
+          </button>
         </div>
 
         <div class="overflow-x-auto">
@@ -374,76 +531,24 @@ function handleGenerateNTPNJournal() {
               <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                 <th class="px-3 py-2.5">Tanggal</th>
                 <th class="px-3 py-2.5">No. Jurnal</th>
-                <th class="px-3 py-2.5">Akun Pajak COA</th>
+                <th class="px-3 py-2.5">Akun Pajak</th>
                 <th class="px-3 py-2.5">Lawan Transaksi</th>
-                <th class="px-3 py-2.5">NPWP / NIK</th>
                 <th class="px-3 py-2.5">Objek Pajak</th>
                 <th class="px-3 py-2.5 text-right">Nilai Bruto</th>
-                <th class="px-3 py-2.5 text-right">DPP</th>
-                <th class="px-3 py-2.5 text-center">Tarif</th>
                 <th class="px-3 py-2.5 text-right font-bold text-rose-700">Pajak Terutang</th>
-                <th class="px-3 py-2.5 text-center">No. Bukti / Faktur</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="tx in txList"
-                :key="tx.id"
-                class="hover:bg-slate-50/50 transition-colors"
-              >
-                <td class="px-3 py-3 font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                  {{ tx.taxDate }}
-                </td>
-                <td class="px-3 py-3 font-mono text-[11px] font-bold text-blue-600 hover:underline cursor-pointer" @click="router.push('/journals')">
-                  {{ tx.journalNumber }}
-                </td>
-                <td class="px-3 py-3 font-mono font-bold text-purple-700">
-                  {{ tx.accountCode }}
-                </td>
-                <td class="px-3 py-3 font-medium text-slate-900">
-                  {{ tx.counterpartyName }}
-                </td>
-                <td class="px-3 py-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                  {{ tx.counterpartyNPWP }}
-                </td>
-                <td class="px-3 py-3 text-[11px] text-slate-600">
-                  {{ tx.objectCode }}
-                </td>
-                <td class="px-3 py-3 text-right font-mono font-medium text-slate-800">
-                  {{ formatIDR(tx.grossAmount) }}
-                </td>
-                <td class="px-3 py-3 text-right font-mono font-medium text-blue-800 bg-blue-50/20">
-                  {{ formatIDR(tx.dppAmount) }}
-                </td>
-                <td class="px-3 py-3 text-center font-mono font-bold text-slate-700">
-                  {{ (tx.taxRate * 100).toFixed(1) }}%
-                </td>
-                <td class="px-3 py-3 text-right font-mono font-bold text-rose-700 bg-rose-50/30">
-                  {{ formatIDR(tx.taxAmount) }}
-                </td>
-                <td class="px-3 py-3 text-center font-mono text-[10px] text-slate-500">
-                  {{ tx.taxNumber }}
-                </td>
+              <tr v-for="tx in txList" :key="tx.id" class="hover:bg-slate-50/50">
+                <td class="px-3 py-3 font-mono text-slate-600">{{ tx.taxDate }}</td>
+                <td class="px-3 py-3 font-mono font-bold text-blue-600">{{ tx.journalNumber }}</td>
+                <td class="px-3 py-3 font-mono font-bold text-purple-700">{{ tx.accountCode }}</td>
+                <td class="px-3 py-3 font-medium text-slate-900">{{ tx.counterpartyName }}</td>
+                <td class="px-3 py-3 text-slate-600">{{ tx.objectCode }}</td>
+                <td class="px-3 py-3 text-right font-mono">{{ formatIDR(tx.grossAmount) }}</td>
+                <td class="px-3 py-3 text-right font-mono font-bold text-rose-700">{{ formatIDR(tx.taxAmount) }}</td>
               </tr>
             </tbody>
-            <tfoot>
-              <tr class="bg-slate-100 font-bold border-t-2 border-slate-300">
-                <td colspan="6" class="px-3 py-2.5 text-right uppercase text-slate-700">
-                  TOTAL KESELURUHAN:
-                </td>
-                <td class="px-3 py-2.5 text-right font-mono">
-                  {{ formatIDR(txList.reduce((s, t) => s + t.grossAmount, 0)) }}
-                </td>
-                <td class="px-3 py-2.5 text-right font-mono text-blue-800">
-                  {{ formatIDR(txList.reduce((s, t) => s + t.dppAmount, 0)) }}
-                </td>
-                <td></td>
-                <td class="px-3 py-2.5 text-right font-mono text-rose-800">
-                  {{ formatIDR(txList.reduce((s, t) => s + t.taxAmount, 0)) }}
-                </td>
-                <td></td>
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>
@@ -451,8 +556,33 @@ function handleGenerateNTPNJournal() {
 
     <!-- ============================================================== -->
     <!-- VIEW B: PAJAK TAHUNAN (SPT TAHUNAN PPH BADAN FORMULIR 1771) -->
+    <!-- MENGAMBIL NILAI KREDIT DARI SPT MASA SESUAI JENISNYA! -->
     <!-- ============================================================== -->
     <div v-else class="space-y-6">
+      <!-- Info Banner: Connected with SPT Masa -->
+      <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+            <Link2 class="w-5 h-5" />
+          </div>
+          <div>
+            <h4 class="font-bold text-blue-950 text-sm">Integrasi Otomatis Kredit Pajak dari Seluruh SPT Masa {{ annual1771.fiscalYear }}</h4>
+            <p class="text-blue-800 mt-0.5">
+              Nilai kredit pajak pada SPT Tahunan 1771 diambil secara otomatis dari <strong>{{ annual1771.linkedSptMasaCount }} dokumen SPT Masa</strong> (PPh 23 Jasa & PPh 25 Angsuran Badan) yang dibuat sepanjang tahun.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            @click="taxStore.taxPeriodType = 'MASA'"
+            class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-blue-300 text-blue-700 rounded-xl font-bold transition shadow-2xs"
+          >
+            <span>Buka & Edit SPT Masa</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Annual Tax Summary Box -->
       <div class="bg-gradient-to-r from-slate-900 to-blue-950 text-white rounded-2xl p-6 shadow-xl border border-slate-800 space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
@@ -463,59 +593,140 @@ function handleGenerateNTPNJournal() {
               </span>
               <span class="text-xs text-slate-400">Tahun Pajak {{ annual1771.fiscalYear }}</span>
             </div>
-            <h2 class="text-lg font-black text-white mt-1">
-              Rekonsiliasi Fiskal & Perhitungan PPh Badan Terutang (Pasal 29)
+            <h2 class="text-xl font-black text-white mt-1">
+              Perhitungan PPh Badan Terutang & PPh Pasal 29 Kurang Bayar
             </h2>
             <p class="text-xs text-slate-400">
-              Dihitung otomatis dari akumulasi Buku Besar Pendapatan (Akun 4 & 6) dan Beban (Akun 5 & 7).
+              Laba Komersial dari Buku Besar, dikurangi total kredit pajak yang dihimpun dari SPT Masa PPh 23 dan PPh 25.
             </p>
           </div>
 
           <div class="text-right">
-            <span class="text-xs text-slate-400 block">PPh Pasal 29 Kurang Bayar:</span>
+            <span class="text-xs text-slate-400 block font-medium">PPh Pasal 29 Kurang Bayar:</span>
             <span class="text-2xl font-black font-mono text-amber-400">
               {{ formatIDR(annual1771.pph29Payable) }}
             </span>
           </div>
         </div>
 
-        <!-- 3 Pillars: Komersial -> Koreksi Fiskal -> Pajak Terutang -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 space-y-1.5">
-            <span class="text-slate-400 font-bold uppercase tracking-wide">1. Laba Bersih Komersial</span>
-            <div class="font-mono text-lg font-bold text-white">
+        <!-- 4 Pillars: Komersial -> PKP -> PPh Terutang -> Kredit Pajak SPT Masa -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 space-y-1">
+            <span class="text-slate-400 font-bold uppercase tracking-wide text-[10px]">1. Laba Bersih Komersial</span>
+            <div class="font-mono text-base font-bold text-white">
               {{ formatIDR(annual1771.commercialNetProfit) }}
             </div>
-            <p class="text-[11px] text-slate-400">
-              Pendapatan: {{ formatIDR(annual1771.commercialRevenue) }} <br/>
-              Beban: {{ formatIDR(annual1771.commercialExpense) }}
-            </p>
+            <p class="text-[10px] text-slate-400">Akun 4 & 6 dikurangi Akun 5 & 7</p>
           </div>
 
-          <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 space-y-1.5">
-            <span class="text-slate-400 font-bold uppercase tracking-wide">2. Koreksi Fiskal Bersih</span>
-            <div class="font-mono text-lg font-bold text-emerald-400">
-              + {{ formatIDR(annual1771.positiveFiscalCorrection - annual1771.negativeFiscalCorrection) }}
-            </div>
-            <p class="text-[11px] text-slate-400">
-              Koreksi Positif: +{{ formatIDR(annual1771.positiveFiscalCorrection) }} <br/>
-              Koreksi Negatif: -{{ formatIDR(annual1771.negativeFiscalCorrection) }}
-            </p>
-          </div>
-
-          <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 space-y-1.5">
-            <span class="text-slate-400 font-bold uppercase tracking-wide">3. Penghasilan Kena Pajak (PKP)</span>
-            <div class="font-mono text-lg font-bold text-amber-300">
+          <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 space-y-1">
+            <span class="text-slate-400 font-bold uppercase tracking-wide text-[10px]">2. Penghasilan Kena Pajak</span>
+            <div class="font-mono text-base font-bold text-amber-300">
               {{ formatIDR(annual1771.taxableIncome) }}
             </div>
-            <p class="text-[11px] text-slate-400">
-              Tarif Efektif Fasilitas 31E: 11% (50% x 22%)
-            </p>
+            <p class="text-[10px] text-slate-400">Setelah Koreksi Fiskal Netto (+Rp 48.95M)</p>
+          </div>
+
+          <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 space-y-1">
+            <span class="text-slate-400 font-bold uppercase tracking-wide text-[10px]">3. PPh Badan Terutang</span>
+            <div class="font-mono text-base font-bold text-white">
+              {{ formatIDR(annual1771.corporateTaxPayable) }}
+            </div>
+            <p class="text-[10px] text-slate-400">Fasilitas Pasal 31E UU PPh (11%)</p>
+          </div>
+
+          <div class="bg-emerald-950/80 rounded-xl p-4 border border-emerald-700/60 space-y-1 text-emerald-100">
+            <span class="text-emerald-400 font-bold uppercase tracking-wide text-[10px]">4. Kredit Pajak dari SPT Masa</span>
+            <div class="font-mono text-base font-bold text-emerald-300">
+              {{ formatIDR(annual1771.taxCredits) }}
+            </div>
+            <p class="text-[10px] text-emerald-400 font-medium">PPh 23 (Rp 32.5M) + PPh 25 (Rp 143M)</p>
           </div>
         </div>
       </div>
 
-      <!-- SPT 1771 Breakdown Table -->
+      <!-- CROSS-RECONCILIATION TABLE: Rekapitulasi Aliran Kredit Pajak dari SPT Masa Jan-Des -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden p-6 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <Sparkles class="w-4 h-4 text-amber-500" />
+              <h3 class="text-sm font-bold text-slate-900">Rekapitulasi Bulanan SPT Masa Sebagai Sumber Kredit Pajak SPT Tahunan 1771</h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Tabel ini membuktikan secara transparan bagaimana setiap SPT Masa bulanan mengalir ke kredit pajak SPT Tahunan.
+            </p>
+          </div>
+          <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
+            Total Kredit Diserap: {{ formatIDR(annual1771.taxCredits) }}
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <th class="px-3 py-2.5">Masa Pajak</th>
+                <th class="px-3 py-2.5 text-right text-blue-800">Kredit PPh 23 (Lampiran III)</th>
+                <th class="px-3 py-2.5 text-right text-emerald-800">Angsuran PPh 25 (Induk 10a)</th>
+                <th class="px-3 py-2.5 text-right text-slate-600">PPh 21 Medis</th>
+                <th class="px-3 py-2.5 text-right text-slate-600">PPh 4(2) Final</th>
+                <th class="px-3 py-2.5 text-right font-bold text-indigo-900 bg-indigo-50/40">Total Kredit SPT 1771</th>
+                <th class="px-3 py-2.5 text-center">Status NTPN</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-mono">
+              <tr v-for="row in sptMatrix" :key="row.monthNum" class="hover:bg-slate-50/50">
+                <td class="px-3 py-2.5 font-bold font-sans text-slate-800">
+                  {{ row.monthName }} (Masa {{ row.monthNum }})
+                </td>
+                <td class="px-3 py-2.5 text-right text-blue-700 font-bold">
+                  {{ row.pph23Amount > 0 ? formatIDR(row.pph23Amount, false) : '-' }}
+                </td>
+                <td class="px-3 py-2.5 text-right text-emerald-700 font-bold">
+                  {{ row.pph25Amount > 0 ? formatIDR(row.pph25Amount, false) : '-' }}
+                </td>
+                <td class="px-3 py-2.5 text-right text-slate-500">
+                  {{ row.pph21Amount > 0 ? formatIDR(row.pph21Amount, false) : '-' }}
+                </td>
+                <td class="px-3 py-2.5 text-right text-slate-500">
+                  {{ row.pph42Amount > 0 ? formatIDR(row.pph42Amount, false) : '-' }}
+                </td>
+                <td class="px-3 py-2.5 text-right font-bold text-indigo-950 bg-indigo-50/40">
+                  {{ row.totalCreditThisMonth > 0 ? formatIDR(row.totalCreditThisMonth, false) : '-' }}
+                </td>
+                <td class="px-3 py-2.5 text-center font-sans">
+                  <span
+                    v-if="row.isReported"
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800"
+                  >
+                    Valid (NTPN)
+                  </span>
+                  <span
+                    v-else
+                    class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500"
+                  >
+                    Belum Ada
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-slate-900 text-white font-bold border-t-2 border-slate-800 font-mono">
+                <td class="px-3 py-3 uppercase font-sans text-amber-400">TOTAL KREDIT PAJAK TAHUNAN:</td>
+                <td class="px-3 py-3 text-right text-blue-300">{{ formatIDR(annual1771.taxCreditPph23) }}</td>
+                <td class="px-3 py-3 text-right text-emerald-300">{{ formatIDR(annual1771.taxCreditPph25) }}</td>
+                <td class="px-3 py-3 text-right text-slate-400">-</td>
+                <td class="px-3 py-3 text-right text-slate-400">-</td>
+                <td class="px-3 py-3 text-right text-amber-300 text-sm font-black bg-slate-800">{{ formatIDR(annual1771.taxCredits) }}</td>
+                <td class="px-3 py-3 text-center text-emerald-400 font-sans text-xs">100% Cocok</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- SPT 1771 Full Breakdown Table -->
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden p-6 space-y-4">
         <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
           <FileText class="w-4 h-4 text-blue-600" />
@@ -527,8 +738,8 @@ function handleGenerateNTPNJournal() {
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                 <th class="px-4 py-3 w-16">No</th>
-                <th class="px-4 py-3">Komponen Perhitungan SPT Tahunan</th>
-                <th class="px-4 py-3">Dasar Hukum & Catatan Akuntansi</th>
+                <th class="px-4 py-3">Komponen Perhitungan SPT Tahunan 1771</th>
+                <th class="px-4 py-3">Dasar Hukum & Sumber Data Akuntansi</th>
                 <th class="px-4 py-3 text-right w-64">Jumlah (IDR)</th>
               </tr>
             </thead>
@@ -536,13 +747,13 @@ function handleGenerateNTPNJournal() {
               <tr class="bg-slate-50/50">
                 <td class="px-4 py-2.5 font-bold">1</td>
                 <td class="px-4 py-2.5 font-bold font-sans">Peredaran Usaha & Pendapatan Bruto (Akun 4 & 6)</td>
-                <td class="px-4 py-2.5 text-slate-500 font-sans">Penjualan Rumah / Pelayanan Medis + Bunga Bank</td>
+                <td class="px-4 py-2.5 text-slate-500 font-sans">Buku Besar: Penjualan Medis & Jasa Giro Bank</td>
                 <td class="px-4 py-2.5 text-right font-bold text-slate-900">{{ formatIDR(annual1771.commercialRevenue) }}</td>
               </tr>
               <tr>
                 <td class="px-4 py-2.5">2</td>
                 <td class="px-4 py-2.5 font-sans">Harga Pokok Penjualan (HPP Akun 51)</td>
-                <td class="px-4 py-2.5 text-slate-500 font-sans">Perolehan Tanah / Bahan Baku & Tindakan Medis</td>
+                <td class="px-4 py-2.5 text-slate-500 font-sans">Persediaan Obat Farmasi & Biaya Medis Langsung</td>
                 <td class="px-4 py-2.5 text-right text-slate-700">({{ formatIDR(9807287775.40) }})</td>
               </tr>
               <tr>
@@ -554,7 +765,7 @@ function handleGenerateNTPNJournal() {
               <tr class="bg-blue-50/30 font-bold">
                 <td class="px-4 py-2.5">4</td>
                 <td class="px-4 py-2.5 font-sans">Penghasilan Netto Komersial Sebelum Pajak</td>
-                <td class="px-4 py-2.5 text-slate-500 font-sans">Laba Buku Besar Komersial</td>
+                <td class="px-4 py-2.5 text-slate-500 font-sans">Laba Bersih Buku Besar Komersial</td>
                 <td class="px-4 py-2.5 text-right text-blue-900">{{ formatIDR(annual1771.commercialNetProfit) }}</td>
               </tr>
               <tr>
@@ -581,12 +792,22 @@ function handleGenerateNTPNJournal() {
                 <td class="px-4 py-2.5 text-slate-500 font-sans">Fasilitas Pasal 31E UU PPh (11% x PKP)</td>
                 <td class="px-4 py-2.5 text-right font-bold text-slate-900">{{ formatIDR(annual1771.corporateTaxPayable) }}</td>
               </tr>
-              <tr>
-                <td class="px-4 py-2.5">9</td>
-                <td class="px-4 py-2.5 font-sans text-emerald-700">Kredit Pajak Dalam Negeri (PPh 23 & PPh 25)</td>
-                <td class="px-4 py-2.5 text-slate-500 font-sans">Kredit Pajak Dibayar di Muka (Akun COA 1504)</td>
-                <td class="px-4 py-2.5 text-right font-bold text-emerald-700">({{ formatIDR(annual1771.taxCredits) }})</td>
+              <!-- LINE 9: KREDIT PAJAK OTOMATIS DARI SPT MASA -->
+              <tr class="bg-emerald-50/50 border border-emerald-200">
+                <td class="px-4 py-3 text-emerald-900 font-bold">9</td>
+                <td class="px-4 py-3 font-sans text-emerald-950">
+                  <div class="font-bold">Kredit Pajak Dalam Negeri (Diambil dari SPT Masa)</div>
+                  <div class="text-[11px] text-emerald-700 mt-0.5">
+                    &bull; PPh 23 dari SPT Masa: {{ formatIDR(annual1771.taxCreditPph23) }} <br/>
+                    &bull; PPh 25 Angsuran Badan dari SPT Masa: {{ formatIDR(annual1771.taxCreditPph25) }}
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-emerald-800 font-sans">
+                  Total akumulasi 11 masa pajak PPh 23 & PPh 25 yang telah dilaporkan/disetor
+                </td>
+                <td class="px-4 py-3 text-right font-bold text-emerald-800 text-sm">({{ formatIDR(annual1771.taxCredits) }})</td>
               </tr>
+              <!-- LINE 10: PPH 29 KURANG BAYAR -->
               <tr class="bg-slate-900 text-white font-bold text-sm">
                 <td class="px-4 py-3 text-amber-400">10</td>
                 <td class="px-4 py-3 font-sans text-white font-bold">PPh Kurang Bayar (PPh Pasal 29) - Setor Kas Negara</td>
@@ -600,7 +821,7 @@ function handleGenerateNTPNJournal() {
         <div class="pt-4 flex items-center justify-end gap-3">
           <button
             @click="taxStore.generateTaxPaymentJournal('2506', 'PPh 29 Tahunan Badan', annual1771.pph29Payable)"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs flex items-center gap-1.5"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5"
           >
             <Send class="w-3.5 h-3.5" />
             <span>Generate Jurnal Pelunasan PPh 29 (Akun 2506)</span>
@@ -611,5 +832,224 @@ function handleGenerateNTPNJournal() {
 
     <!-- Official Report Signature Section matching Image 1 -->
     <ReportSignatures />
+
+    <!-- MODAL: Buat SPT Masa Baru -->
+    <div
+      v-if="showCreateSptMasaModal"
+      class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <Plus class="w-4 h-4 text-blue-400" />
+            <h3 class="text-sm font-bold text-white">Buat Dokumen SPT Masa Baru</h3>
+          </div>
+          <button @click="showCreateSptMasaModal = false" class="text-slate-400 hover:text-white">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <form @submit.prevent="handleSaveNewSptMasa" class="p-6 space-y-4 text-xs">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Jenis Pajak</label>
+              <select
+                v-model="newSptMasaForm.taxType"
+                @change="updateSuggestedTaxAmount"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-bold"
+              >
+                <option value="PPH_23">PPh Pasal 23 (Kredit Pajak SPT 1771)</option>
+                <option value="PPH_25">PPh Pasal 25 (Angsuran PPh Badan)</option>
+                <option value="PPH_21">PPh Pasal 21 (Dokter & Karyawan)</option>
+                <option value="PPH_4_2">PPh Final Pasal 4(2)</option>
+                <option value="PPN">PPN (Pajak Pertambahan Nilai)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Masa Pajak / Bulan</label>
+              <select
+                v-model.number="newSptMasaForm.masaMonth"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option v-for="m in 12" :key="m" :value="m">Masa {{ m }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Tahun Pajak</label>
+              <input
+                v-model.number="newSptMasaForm.masaYear"
+                type="number"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Status Dokumen</label>
+              <select
+                v-model="newSptMasaForm.status"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-semibold"
+              >
+                <option value="REPORTED">Dilaporkan (BPE)</option>
+                <option value="PAID">Disetor (NTPN)</option>
+                <option value="DRAFT">Draft</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">DPP / Nilai Bruto (Rp)</label>
+              <input
+                v-model.number="newSptMasaForm.dppAmount"
+                @input="updateSuggestedTaxAmount"
+                type="number"
+                min="0"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono font-bold"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Pajak Terutang (Rp)</label>
+              <input
+                v-model.number="newSptMasaForm.taxAmount"
+                type="number"
+                min="0"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono font-bold text-rose-700"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nomor NTPN / Bukti Setor DJP (Opsional)</label>
+            <input
+              v-model="newSptMasaForm.ntpnNumber"
+              type="text"
+              placeholder="Contoh: NTPN-DJP-202611-9988"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+            />
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Uraian / Keterangan Objek Pajak</label>
+            <input
+              v-model="newSptMasaForm.notes"
+              type="text"
+              placeholder="Contoh: Jasa kalibrasi alat alkes / Jasa limbah B3"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-[11px] space-y-1">
+            <span class="font-bold block">Integrasi Otomatis ke SPT Tahunan:</span>
+            <p v-if="newSptMasaForm.taxType === 'PPH_23'">
+              Nilai pajak ini akan otomatis menambah <strong>Kredit Pajak PPh 23</strong> di Lampiran III SPT Tahunan 1771.
+            </p>
+            <p v-else-if="newSptMasaForm.taxType === 'PPH_25'">
+              Nilai pajak ini akan otomatis menambah <strong>Angsuran PPh 25</strong> di Formulir Induk No. 10a SPT Tahunan 1771.
+            </p>
+            <p v-else>
+              Dokumen SPT Masa ini tercatat dalam pelaporan kepatuhan pajak bulanan klinik.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+            <button
+              @click="showCreateSptMasaModal = false"
+              type="button"
+              class="px-4 py-2 bg-white border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs"
+            >
+              Simpan SPT Masa
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Detail Dokumen SPT Masa -->
+    <div
+      v-if="showDetailModal && selectedSptDetail"
+      class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden p-6 space-y-4">
+        <div class="flex items-center justify-between border-b pb-3">
+          <div>
+            <span class="text-[10px] font-bold text-blue-600 uppercase">Dokumen SPT Masa DJP</span>
+            <h3 class="text-base font-black text-slate-900">{{ selectedSptDetail.sptNumber }}</h3>
+          </div>
+          <button @click="showDetailModal = false" class="text-slate-400 hover:text-slate-600">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Jenis Pajak:</span>
+            <span class="font-bold text-slate-800">{{ selectedSptDetail.taxType }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Masa / Tahun:</span>
+            <span class="font-bold text-slate-800">Masa {{ selectedSptDetail.masaMonth }} / {{ selectedSptDetail.masaYear }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Akun COA:</span>
+            <span class="font-mono font-bold text-purple-700">{{ selectedSptDetail.accountCode }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Status:</span>
+            <span class="font-bold text-emerald-700">{{ selectedSptDetail.status }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">No. NTPN:</span>
+            <span class="font-mono font-bold text-slate-800">{{ selectedSptDetail.ntpnNumber || '-' }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">No. BPE:</span>
+            <span class="font-mono text-slate-600">{{ selectedSptDetail.bpeNumber || '-' }}</span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
+          <div class="flex justify-between font-mono">
+            <span class="text-slate-600">Nilai Bruto / DPP:</span>
+            <span class="font-bold text-slate-900">{{ formatIDR(selectedSptDetail.dppAmount || selectedSptDetail.grossAmount) }}</span>
+          </div>
+          <div class="flex justify-between font-mono">
+            <span class="text-slate-600">Tarif Pajak:</span>
+            <span class="font-bold text-slate-900">{{ selectedSptDetail.taxRate }}</span>
+          </div>
+          <div class="flex justify-between font-mono pt-1.5 border-t border-slate-200 text-sm">
+            <span class="font-bold text-slate-800">Pajak Terutang:</span>
+            <span class="font-black text-rose-700">{{ formatIDR(selectedSptDetail.taxAmount) }}</span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
+          <span class="font-bold block text-[11px]">Keterangan:</span>
+          <p class="mt-0.5">{{ selectedSptDetail.notes || 'Tidak ada catatan khusus.' }}</p>
+        </div>
+
+        <div class="flex justify-end pt-2 border-t">
+          <button
+            @click="showDetailModal = false"
+            class="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-slate-800"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
