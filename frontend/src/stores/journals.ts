@@ -23,26 +23,26 @@ export const useJournalsStore = defineStore('journals', () => {
       lines: [
         {
           id: 'jl-101-1',
-          accountId: 'acc-1100',
-          accountCode: '1-1100',
-          accountName: 'Kas Operasional Kidinest',
+          accountId: 'acc-1101.001',
+          accountCode: '1101.001',
+          accountName: 'Kas Kasir Kidinest',
           debit: 12500000,
           credit: 0,
           description: 'Penerimaan Kas Kasir Kidinest'
         },
         {
           id: 'jl-101-2',
-          accountId: 'acc-1201',
-          accountCode: '1-1201',
-          accountName: 'Bank BCA Operasional',
+          accountId: 'acc-1102.001',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
           debit: 6000000,
           credit: 0,
           description: 'Penerimaan EDC & QRIS BCA'
         },
         {
           id: 'jl-101-3',
-          accountId: 'acc-4100',
-          accountCode: '4-1100',
+          accountId: 'acc-4101',
+          accountCode: '4101',
           accountName: 'Pendapatan Jasa Medis Kidinest',
           debit: 0,
           credit: 14000000,
@@ -50,8 +50,8 @@ export const useJournalsStore = defineStore('journals', () => {
         },
         {
           id: 'jl-101-4',
-          accountId: 'acc-4200',
-          accountCode: '4-1200',
+          accountId: 'acc-4101',
+          accountCode: '4101',
           accountName: 'Pendapatan Farmasi & Obat',
           debit: 0,
           credit: 4500000,
@@ -88,18 +88,18 @@ export const useJournalsStore = defineStore('journals', () => {
       lines: [
         {
           id: 'jl-102-1',
-          accountId: 'acc-1101',
-          accountCode: '1-1101',
-          accountName: 'Kas Operasional SSC',
+          accountId: 'acc-1101.002',
+          accountCode: '1101.002',
+          accountName: 'Kas Kasir Semarang Skin Center (SSC)',
           debit: 7800000,
           credit: 0,
           description: 'Penerimaan Tunai Kasir SSC'
         },
         {
           id: 'jl-102-2',
-          accountId: 'acc-1201',
-          accountCode: '1-1201',
-          accountName: 'Bank BCA Operasional',
+          accountId: 'acc-1102.001',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
           debit: 20000000,
           credit: 0,
           description: 'Penerimaan Gesek EDC Kartu Kredit & Debit'
@@ -107,7 +107,7 @@ export const useJournalsStore = defineStore('journals', () => {
         {
           id: 'jl-102-3',
           accountId: 'acc-4101',
-          accountCode: '4-1101',
+          accountCode: '4101',
           accountName: 'Pendapatan Jasa Medis SSC',
           debit: 0,
           credit: 18000000,
@@ -115,8 +115,8 @@ export const useJournalsStore = defineStore('journals', () => {
         },
         {
           id: 'jl-102-4',
-          accountId: 'acc-4102',
-          accountCode: '4-1300',
+          accountId: 'acc-4101',
+          accountCode: '4101',
           accountName: 'Pendapatan Skincare & Produk Slimming',
           debit: 0,
           credit: 9800000,
@@ -502,54 +502,66 @@ export const useJournalsStore = defineStore('journals', () => {
   function createManualJournal(data: {
     journalDate: string
     businessUnit: BusinessUnit
-    branchId: string
-    branchName: string
+    branchId?: string
+    branchName?: string
     description: string
+    journalSource?: JournalSource
+    sourceReference?: string
+    status?: JournalStatus
     lines: {
-      accountId: string
+      accountId?: string
       accountCode: string
       accountName: string
       debit: number
       credit: number
-      description: string
+      description?: string
     }[]
   }): JournalEntry {
     const totalDebit = data.lines.reduce((s, l) => s + (l.debit || 0), 0)
     const totalCredit = data.lines.reduce((s, l) => s + (l.credit || 0), 0)
 
-    if (totalDebit !== totalCredit) {
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
       throw new Error(`Total Debit (Rp ${totalDebit}) tidak seimbang dengan Total Kredit (Rp ${totalCredit})`)
     }
 
     const nextSeq = journals.value.length + 1
     const seqStr = String(nextSeq).padStart(3, '0')
     const jNumber = `JV-2026-03-${seqStr}`
+    const st = data.status || 'DRAFT'
 
     const newJournal: JournalEntry = {
       id: 'jv-' + Date.now(),
       journalNumber: jNumber,
       journalDate: data.journalDate,
-      journalSource: 'MANUAL',
-      sourceReference: `MAN-${Date.now().toString().slice(-6)}`,
+      journalSource: data.journalSource || 'MANUAL',
+      sourceReference: data.sourceReference || `MAN-${Date.now().toString().slice(-6)}`,
       businessUnit: data.businessUnit,
-      branchId: data.branchId,
-      branchName: data.branchName,
+      branchId: data.branchId || 'BRANCH-MAIN',
+      branchName: data.branchName || 'Kantor Pusat Semarang',
       description: data.description,
       totalDebit,
       totalCredit,
-      status: 'DRAFT',
+      status: st,
       lines: data.lines.map((l, idx) => ({
         id: `jl-${idx}-${Date.now()}`,
-        ...l
+        accountId: l.accountId || `acc-${l.accountCode}`,
+        accountCode: l.accountCode,
+        accountName: l.accountName,
+        debit: l.debit || 0,
+        credit: l.credit || 0,
+        description: l.description || data.description
       })),
       createdBy: accountingStore.currentUserEmail,
       createdByName: accountingStore.currentUserName,
       createdAt: new Date().toISOString(),
+      postedBy: st === 'POSTED' ? accountingStore.currentUserEmail : undefined,
+      postedByName: st === 'POSTED' ? accountingStore.currentUserName : undefined,
+      postedAt: st === 'POSTED' ? new Date().toISOString() : undefined,
       isManual: true
     }
 
     journals.value.unshift(newJournal)
-    accountingStore.showToast(`Draft jurnal manual ${jNumber} berhasil dibuat!`, 'success')
+    accountingStore.showToast(`Jurnal ${jNumber} berhasil dibuat (${st})!`, 'success')
     return newJournal
   }
 

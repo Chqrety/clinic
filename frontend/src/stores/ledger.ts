@@ -269,7 +269,8 @@ export const useLedgerStore = defineStore('ledger', () => {
     if (!account) return { account: null, entries: [], openingBalance: 0, endingBalance: 0 }
 
     const isDebitNormal = account.normalBalance === 'DEBIT'
-    let currentBalance = 0
+    const openingBalance = account.currentBalance || 0
+    let currentBalance = openingBalance
 
     const entries = generalLedgerEntries.value
       .filter(e => e.accountCode === accountCode)
@@ -288,7 +289,7 @@ export const useLedgerStore = defineStore('ledger', () => {
     return {
       account,
       entries,
-      openingBalance: 0,
+      openingBalance,
       endingBalance: currentBalance
     }
   }

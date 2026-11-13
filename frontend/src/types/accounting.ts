@@ -245,3 +245,27 @@ export interface AuditLog {
   ipAddress: string
   userAgent: string
 }
+
+// Cash & Bank Management Types (BKM, BKK, Transfer Antar Rekening)
+export type CashBankTransactionType = 'CASH_IN' | 'CASH_OUT' | 'TRANSFER'
+
+export interface CashBankTransaction {
+  id: string
+  transactionNumber: string
+  date: string
+  type: CashBankTransactionType
+  accountCode: string
+  accountName: string
+  counterpartAccountCode: string
+  counterpartAccountName: string
+  amount: number
+  adminFee?: number
+  description: string
+  referenceNo?: string
+  recipientOrPayer?: string
+  businessUnit: BusinessUnit
+  journalId?: string
+  journalNumber?: string
+  createdAt: string
+  createdBy: string
+}
