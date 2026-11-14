@@ -581,3 +581,4 @@ Berikut dokumentasi masalah teknis yang telah diselesaikan selama pengembangan:
 ## 10. PENUTUP & RINGKASAN REPOSITORI
 
 Dokumentasi ini mencakup keseluruhan spesifikasi sistem SIMKlinik & ERP Akuntansi PT. Brayo Cipta Sejahtera. Setiap pembaruan kode pada modul backend atau frontend harus tetap mematuhi prinsip *double-entry balance*, integritas referensial database PostgreSQL, dan ketentuan fiskal perpajakan yang telah dirumuskan dalam dokumen ini.
+

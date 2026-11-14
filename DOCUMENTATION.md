@@ -25,3 +25,4 @@ Silakan membaca dokumen lengkap pada:
    - Persistensi data murni ke database PostgreSQL (bebas data hardcoded).
 8. **Panduan Operasional & Menjalankan Sistem (Native Local Run):** Cara menjalankan PostgreSQL, Go Backend, Vue Frontend dev & build secara native tanpa Docker.
 9. **Jejak Perbaikan, Troubleshooting & Solusi Teknis:** Solusi FK constraint `branch_id`, pencegahan tabrakan nomor jurnal (`journal_number`), dan penegakan isolasi docs dari router UI.
+
