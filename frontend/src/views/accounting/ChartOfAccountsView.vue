@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
@@ -18,12 +18,17 @@ import {
   FileText,
   BookOpen,
   Receipt,
-  Layers
+  Layers,
+  Database
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const ledgerStore = useLedgerStore()
 const accountingStore = useAccountingStore()
+
+onMounted(() => {
+  ledgerStore.fetchAccounts()
+})
 
 const searchQuery = ref('')
 const selectedType = ref<string>('ALL')

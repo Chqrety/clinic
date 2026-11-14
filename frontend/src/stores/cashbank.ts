@@ -4,6 +4,7 @@ import type { CashBankTransaction, CashBankTransactionType, BusinessUnit, Accoun
 import { useAccountingStore } from './accounting'
 import { useLedgerStore } from './ledger'
 import { useJournalsStore } from './journals'
+import { accountingApi, type BackendCashBankAccount, type BackendCashBankTransaction } from '@/api/accounting'
 
 export const useCashBankStore = defineStore('cashbank', () => {
   const accountingStore = useAccountingStore()
@@ -146,6 +147,58 @@ export const useCashBankStore = defineStore('cashbank', () => {
       createdBy: 'Rian Pratama, S.Ak.'
     }
   ])
+
+  const isLoading = ref(false)
+  const registeredCashBankAccounts = ref<BackendCashBankAccount[]>([])
+
+  // Fetch Cash & Bank accounts & transactions directly from PostgreSQL database
+  async function fetchCashBankData() {
+    try {
+      isLoading.value = true
+      const [backendCba, backendTxs] = await Promise.all([
+        accountingApi.getCashBankAccounts(),
+        accountingApi.getCashBankTransactions({ limit: 200 })
+      ])
+
+      if (backendCba && backendCba.length > 0) {
+        registeredCashBankAccounts.value = backendCba
+      }
+
+      if (backendTxs && backendTxs.length > 0) {
+        transactions.value = backendTxs.map(t => {
+          const cba = registeredCashBankAccounts.value.find(c => c.id === t.cash_bank_account_id)
+          const accCode = t.cash_bank_account_code || cba?.account_code || '1102.001'
+          const accName = t.cash_bank_account_name || cba?.name || 'Kas / Bank Operasional'
+
+          return {
+            id: t.id,
+            transactionNumber: t.transaction_number,
+            date: t.transaction_date,
+            type: t.transaction_type,
+            accountCode: accCode,
+            accountName: accName,
+            counterpartAccountCode: t.counterpart_code || '',
+            counterpartAccountName: t.counterpart_name || 'Kontra Akun',
+            amount: Number(t.amount),
+            description: t.description,
+            referenceNo: t.reference_no || '-',
+            recipientOrPayer: t.counterpart_name || '-',
+            businessUnit: 'ALL',
+            journalId: t.journal_id,
+            createdAt: t.created_at,
+            createdBy: 'Rian Pratama, S.Ak.'
+          }
+        })
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch cash bank data from database:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Initial load
+  fetchCashBankData()
 
   // Get all cash accounts (parentCode === '1101' or startsWith '1101')
   const cashAccounts = computed(() => {
@@ -414,8 +467,8 @@ export const useCashBankStore = defineStore('cashbank', () => {
     return newTx
   }
 
-  // Action: Buat Buku Kas / Rekening Bank Baru (Tambah ke COA)
-  function createCashBankAccount(data: {
+  // Action: Buat Buku Kas / Rekening Bank Baru (Tambah ke COA & Database)
+  async function createCashBankAccount(data: {
     category: 'CASH' | 'BANK'
     code: string
     name: string
@@ -425,8 +478,8 @@ export const useCashBankStore = defineStore('cashbank', () => {
   }) {
     const parentCode = data.category === 'CASH' ? '1101' : '1102'
 
-    // Add account to COA
-    ledgerStore.addAccount({
+    // Add account to COA in PostgreSQL database
+    const acc = await ledgerStore.addAccount({
       code: data.code,
       name: data.name,
       type: 'ASSET',
@@ -436,6 +489,22 @@ export const useCashBankStore = defineStore('cashbank', () => {
       description: data.description || (data.category === 'CASH' ? 'Buku Kas Operasional' : 'Rekening Bank Operasional'),
       parentCode
     })
+
+    // Register in cash_bank_accounts table in database
+    try {
+      const cbaCode = (data.category === 'CASH' ? 'KAS-' : 'BANK-') + data.code.replace('.', '-')
+      await accountingApi.createCashBankAccount({
+        account_id: acc.id,
+        code: cbaCode,
+        name: data.name,
+        type: data.category,
+        bank_name: data.category === 'BANK' ? data.name : undefined,
+        account_number: data.category === 'BANK' ? data.code : undefined
+      })
+      await fetchCashBankData()
+    } catch (err: any) {
+      console.warn('Note: Registered locally, backend CBA sync:', err.message)
+    }
 
     // If opening balance > 0, create opening balance journal
     if (data.openingBalance > 0) {
@@ -467,14 +536,17 @@ export const useCashBankStore = defineStore('cashbank', () => {
       })
     }
 
-    accountingStore.showToast(`Buku ${data.category === 'CASH' ? 'Kas' : 'Bank'} ${data.code} - ${data.name} berhasil dibuat!`, 'success')
+    accountingStore.showToast(`Buku ${data.category === 'CASH' ? 'Kas' : 'Bank'} ${data.code} - ${data.name} berhasil disimpan ke database!`, 'success')
   }
 
   return {
     transactions,
+    isLoading,
+    registeredCashBankAccounts,
     cashAccounts,
     bankAccounts,
     allCashBankAccounts,
+    fetchCashBankData,
     recordCashIn,
     recordCashOut,
     recordTransfer,

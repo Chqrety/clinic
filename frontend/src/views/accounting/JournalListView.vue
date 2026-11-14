@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useJournalsStore } from '@/stores/journals'
 import { useAccountingStore } from '@/stores/accounting'
@@ -19,12 +19,17 @@ import {
   CheckCircle2,
   FileCheck2,
   Send,
-  RotateCcw
+  RotateCcw,
+  Database
 } from 'lucide-vue-next'
 
 const route = useRoute()
 const journalsStore = useJournalsStore()
 const accountingStore = useAccountingStore()
+
+onMounted(() => {
+  journalsStore.fetchJournals()
+})
 
 // URL query support (e.g. ?status=DRAFT)
 const initialStatus = (route.query.status as string) || 'ALL'

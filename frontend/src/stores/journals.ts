@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { JournalEntry, JournalStatus, BusinessUnit, JournalSource } from '@/types/accounting'
 import { useAccountingStore } from './accounting'
+import { accountingApi, type BackendJournal } from '@/api/accounting'
 
 export const useJournalsStore = defineStore('journals', () => {
   const accountingStore = useAccountingStore()
@@ -562,13 +563,80 @@ export const useJournalsStore = defineStore('journals', () => {
 
     journals.value.unshift(newJournal)
     accountingStore.showToast(`Jurnal ${jNumber} berhasil dibuat (${st})!`, 'success')
+
+    // Persist to PostgreSQL database asynchronously
+    accountingApi.createJournal({
+      journal_type: 'GENERAL',
+      transaction_date: data.journalDate,
+      reference_type: data.journalSource || 'MANUAL',
+      reference_id: data.sourceReference || jNumber,
+      description: data.description,
+      auto_post: st === 'POSTED',
+      lines: data.lines.map(l => ({
+        account_code: l.accountCode,
+        debit: l.debit || 0,
+        credit: l.credit || 0,
+        description: l.description || data.description
+      }))
+    }).catch(err => {
+      console.warn('Note: Journal created in memory, DB sync response:', err.message)
+    })
+
     return newJournal
   }
 
+  const isLoading = ref(false)
+
+  // Fetch journals directly from PostgreSQL database via Go API
+  async function fetchJournals() {
+    try {
+      isLoading.value = true
+      const backendJournals = await accountingApi.getJournals({ limit: 100 })
+      if (backendJournals && backendJournals.length > 0) {
+        journals.value = backendJournals.map(j => ({
+          id: j.id,
+          journalNumber: j.journal_number,
+          journalDate: j.transaction_date,
+          journalSource: (j.reference_type as JournalSource) || 'MANUAL',
+          sourceReference: j.reference_id || j.journal_number,
+          businessUnit: 'ALL',
+          branchId: j.branch_id || 'BRANCH-MAIN',
+          branchName: 'Kantor Pusat Semarang',
+          description: j.description,
+          totalDebit: Number(j.total_debit),
+          totalCredit: Number(j.total_credit),
+          status: (j.status as JournalStatus) || 'POSTED',
+          lines: (j.lines || []).map((l, idx) => ({
+            id: l.id || `jl-${idx}`,
+            accountId: l.account_id,
+            accountCode: l.account_code,
+            accountName: l.account_name,
+            debit: Number(l.debit),
+            credit: Number(l.credit),
+            description: l.description || j.description
+          })),
+          createdBy: accountingStore.currentUserEmail,
+          createdByName: accountingStore.currentUserName,
+          createdAt: j.created_at || new Date().toISOString(),
+          isManual: true
+        }))
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch journals from database:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Initial load
+  fetchJournals()
+
   return {
     journals,
+    isLoading,
     filteredJournals,
     stats,
+    fetchJournals,
     getJournalById,
     submitDraft,
     reviewJournal,

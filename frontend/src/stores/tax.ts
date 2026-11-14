@@ -5,6 +5,7 @@ import { useAccountingStore } from './accounting'
 import { useLedgerStore } from './ledger'
 import { useJournalsStore } from './journals'
 import { exportToCSV } from '@/utils/export'
+import { accountingApi, type BackendTaxWithholding } from '@/api/accounting'
 
 export type TaxPeriodType = 'MASA' | 'TAHUNAN'
 
@@ -584,8 +585,90 @@ export const useTaxStore = defineStore('tax', () => {
 
     sptMasaRecords.value.unshift(newRecord)
     accountingStore.showToast(`Dokumen SPT Masa ${sptNum} via ${bankName} berhasil dibuat & disimpan!`, 'success')
+
+    // Persist to PostgreSQL database asynchronously
+    let backendTaxType = 'PPH23'
+    if (data.taxType === 'PPH_21') backendTaxType = 'PPH21_DOCTOR'
+    else if (data.taxType === 'PPH_4_2') backendTaxType = 'PPH4_2'
+    else if (data.taxType === 'PPH_25') backendTaxType = 'PPH25'
+    else if (data.taxType === 'PPN') backendTaxType = 'PPN_OUTPUT'
+
+    const parsedRate = parseFloat(data.taxRate.replace('%', '')) / 100 || 0.02
+
+    accountingApi.createTaxWithholding({
+      tax_type: backendTaxType,
+      taxpayer_name: `SPT Masa ${typeLabel} - ${bankName}`,
+      object_code: data.taxType === 'PPH_21' ? '21-100-07' : '28-100-02',
+      gross_amount: data.grossAmount,
+      dpp_amount: data.dppAmount,
+      tax_rate: parsedRate,
+      tax_amount: data.taxAmount,
+      period_year: data.masaYear,
+      period_month: data.masaMonth
+    }).catch(err => {
+      console.warn('Note: SPT Masa created in state, DB sync response:', err.message)
+    })
+
     return newRecord
   }
+
+  const isLoading = ref(false)
+
+  // Fetch Tax records directly from PostgreSQL database via Go API
+  async function fetchTaxRecords() {
+    try {
+      isLoading.value = true
+      const backendWithholdings = await accountingApi.getTaxWithholdings({ limit: 100 })
+      if (backendWithholdings && backendWithholdings.length > 0) {
+        const dbRecords: SptMasaRecord[] = backendWithholdings.map(tw => {
+          let sptType: SptMasaType = 'PPH_23'
+          if (tw.tax_type === 'PPH21_DOCTOR' || tw.tax_type === 'PPH21_EMPLOYEE') sptType = 'PPH_21'
+          else if (tw.tax_type === 'PPH23') sptType = 'PPH_23'
+          else if (tw.tax_type === 'PPH4_2') sptType = 'PPH_4_2'
+          else if (tw.tax_type === 'PPH25') sptType = 'PPH_25'
+          else if (tw.tax_type === 'PPN_OUTPUT') sptType = 'PPN'
+
+          return {
+            id: tw.id,
+            sptNumber: tw.bupot_number,
+            masaMonth: tw.period_month,
+            masaYear: tw.period_year,
+            taxType: sptType,
+            accountCode: sptType === 'PPH_23' ? '2502' : sptType === 'PPH_25' ? '2505' : '2501',
+            accountName: tw.taxpayer_name,
+            bankAccountCode: '1102.001',
+            bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+            paymentChannel: 'BANK_EBILLING',
+            isBankVerified: true,
+            grossAmount: Number(tw.gross_amount),
+            dppAmount: Number(tw.dpp_amount),
+            taxRate: `${Number(tw.tax_rate) * 100}%`,
+            taxAmount: Number(tw.tax_amount),
+            ntpnNumber: `NTPN-${tw.bupot_number.slice(-8)}`,
+            bpeNumber: `BPE-${tw.bupot_number.slice(-8)}`,
+            paymentDate: `${tw.period_year}-${String(tw.period_month).padStart(2, '0')}-28`,
+            status: tw.is_reported ? 'REPORTED' : 'PAID',
+            notes: `Wajib Pajak: ${tw.taxpayer_name} (NPWP: ${tw.taxpayer_npwp || '-'})`,
+            businessUnit: 'ALL',
+            createdAt: tw.created_at || new Date().toISOString(),
+            createdBy: 'Rian Pratama, S.Ak.'
+          }
+        })
+
+        // Merge database records with default records
+        const dbNumbers = new Set(dbRecords.map(r => r.sptNumber))
+        const remainingInitial = sptMasaRecords.value.filter(r => !dbNumbers.has(r.sptNumber))
+        sptMasaRecords.value = [...dbRecords, ...remainingInitial]
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch tax records from database:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Initial load
+  fetchTaxRecords()
 
   // =========================================================================
   // 2. MATRIX KREDIT PAJAK DARI SPT MASA (Januari - Desember)
@@ -1079,6 +1162,8 @@ export const useTaxStore = defineStore('tax', () => {
   }
 
   return {
+    isLoading,
+    fetchTaxRecords,
     taxPeriodType,
     selectedTaxAccountCode,
     selectedMonth,

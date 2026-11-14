@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
 import { useJournalsStore } from '@/stores/journals'
@@ -22,13 +22,22 @@ import {
   FolderPlus,
   Calendar,
   Building2,
-  FileText
+  FileText,
+  Database
 } from 'lucide-vue-next'
 
 const ledgerStore = useLedgerStore()
 const accountingStore = useAccountingStore()
 const journalsStore = useJournalsStore()
 const cashBankStore = useCashBankStore()
+
+onMounted(async () => {
+  await Promise.all([
+    ledgerStore.fetchAccounts(),
+    cashBankStore.fetchCashBankData(),
+    journalsStore.fetchJournals()
+  ])
+})
 
 const activeTab = ref<'CASH' | 'BANK'>('CASH')
 const selectedAccountCode = ref<string>('1101.001')

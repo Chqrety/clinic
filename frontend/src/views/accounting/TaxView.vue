@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTaxStore, type SptMasaType } from '@/stores/tax'
 import { useAccountingStore } from '@/stores/accounting'
@@ -29,13 +29,21 @@ import {
   Printer,
   Sparkles,
   Link2,
-  Landmark
+  Landmark,
+  Database
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const taxStore = useTaxStore()
 const accountingStore = useAccountingStore()
 const ledgerStore = useLedgerStore()
+
+onMounted(async () => {
+  await Promise.all([
+    taxStore.fetchTaxRecords(),
+    ledgerStore.fetchAccounts()
+  ])
+})
 
 // Read query params if any
 const route = router.currentRoute.value

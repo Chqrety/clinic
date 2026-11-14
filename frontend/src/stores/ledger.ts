@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { Account, LedgerEntry, TrialBalanceRow, AccountingPeriod } from '@/types/accounting'
 import { useJournalsStore } from './journals'
 import { useAccountingStore } from './accounting'
+import { accountingApi } from '@/api/accounting'
 
 export const useLedgerStore = defineStore('ledger', () => {
   const journalsStore = useJournalsStore()
@@ -358,22 +359,101 @@ export const useLedgerStore = defineStore('ledger', () => {
     )
   })
 
-  function addAccount(newAcc: Partial<Account>) {
-    const created: Account = {
-      id: 'acc-' + Date.now(),
-      code: newAcc.code || '',
-      name: newAcc.name || '',
-      type: newAcc.type || 'EXPENSE',
-      normalBalance: newAcc.normalBalance || 'DEBIT',
-      level: newAcc.level || 2,
-      isHeader: false,
-      isActive: true,
-      businessUnit: newAcc.businessUnit || 'ALL',
-      description: newAcc.description,
-      parentCode: newAcc.parentCode
+  const isLoading = ref(false)
+
+  // Fetch Accounts directly from PostgreSQL database via Go API
+  async function fetchAccounts() {
+    try {
+      isLoading.value = true
+      const backendAccounts = await accountingApi.getAccounts({ limit: 250 })
+      if (backendAccounts && backendAccounts.length > 0) {
+        // Map id to code for parent lookup
+        const idToCode = new Map<string, string>()
+        backendAccounts.forEach(b => idToCode.set(b.id, b.code))
+
+        // Cache existing calculated balances
+        const balanceMap = new Map<string, number>()
+        accounts.value.forEach(a => {
+          if (a.currentBalance !== undefined) {
+            balanceMap.set(a.code, a.currentBalance)
+          }
+        })
+
+        accounts.value = backendAccounts.map(b => {
+          const parentCode = b.parent_id ? idToCode.get(b.parent_id) : undefined
+          let bu: 'ALL' | 'KIDINEST' | 'SSC' = 'ALL'
+          if (b.name.includes('Kidinest') || b.code.endsWith('.001')) bu = 'KIDINEST'
+          else if (b.name.includes('SSC') || b.name.includes('Skin Center') || b.code.endsWith('.002')) bu = 'SSC'
+
+          return {
+            id: b.id,
+            code: b.code,
+            name: b.name,
+            type: b.type,
+            normalBalance: b.normal_balance,
+            level: b.level,
+            isHeader: b.is_header,
+            isActive: b.is_active,
+            businessUnit: bu,
+            parentCode,
+            description: b.description,
+            currentBalance: balanceMap.get(b.code) || 0
+          }
+        })
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch accounts from database:', err)
+    } finally {
+      isLoading.value = false
     }
-    accounts.value.push(created)
-    accountingStore.showToast(`Akun ${created.code} - ${created.name} berhasil ditambahkan`, 'success')
+  }
+
+  // Initial load from database
+  fetchAccounts()
+
+  async function addAccount(newAcc: Partial<Account>) {
+    try {
+      isLoading.value = true
+      let parentId: string | undefined = undefined
+      if (newAcc.parentCode) {
+        const parent = accounts.value.find(a => a.code === newAcc.parentCode)
+        if (parent) parentId = parent.id
+      }
+
+      const createdBackend = await accountingApi.createAccount({
+        code: newAcc.code || '',
+        name: newAcc.name || '',
+        type: newAcc.type || 'EXPENSE',
+        normal_balance: newAcc.normalBalance || 'DEBIT',
+        parent_id: parentId,
+        level: newAcc.level || 2,
+        is_header: newAcc.isHeader || false,
+        description: newAcc.description
+      })
+
+      const created: Account = {
+        id: createdBackend.id,
+        code: createdBackend.code,
+        name: createdBackend.name,
+        type: createdBackend.type,
+        normalBalance: createdBackend.normal_balance,
+        level: createdBackend.level,
+        isHeader: createdBackend.is_header,
+        isActive: createdBackend.is_active,
+        businessUnit: newAcc.businessUnit || 'ALL',
+        description: createdBackend.description,
+        parentCode: newAcc.parentCode,
+        currentBalance: 0
+      }
+      accounts.value.push(created)
+      accountingStore.showToast(`Akun ${created.code} - ${created.name} berhasil disimpan ke database!`, 'success')
+      return created
+    } catch (err: any) {
+      accountingStore.showToast(`Gagal menyimpan akun ke database: ${err.message}`, 'error')
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   function lockPeriod(periodId: string) {
@@ -389,9 +469,11 @@ export const useLedgerStore = defineStore('ledger', () => {
   return {
     accounts,
     periods,
+    isLoading,
     generalLedgerEntries,
     trialBalanceRows,
     trialBalanceTotals,
+    fetchAccounts,
     getAccountLedger,
     addAccount,
     lockPeriod

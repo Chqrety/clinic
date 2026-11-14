@@ -97,6 +97,11 @@ const searchQuery = ref('')
 const startDate = ref('01-11-2026')
 const endDate = ref('30-11-2026')
 
+onMounted(() => {
+  ledgerStore.fetchAccounts()
+  journalsStore.fetchJournals()
+})
+
 watch(
   () => route.query.account,
   (newAcc) => {
