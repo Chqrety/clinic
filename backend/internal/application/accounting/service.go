@@ -360,6 +360,6 @@ func (s *Service) generateJournalNumber(jType domain.JournalType, date time.Time
 		prefix = "JR"
 	}
 
-	nano := time.Now().UnixNano() % 100000
-	return fmt.Sprintf("%s-%s-%05d", prefix, date.Format("20060102"), nano)
+	nano := time.Now().UnixNano() % 10000000
+	return fmt.Sprintf("%s-%s-%07d", prefix, date.Format("20060102"), nano)
 }

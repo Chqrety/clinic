@@ -19,7 +19,8 @@ import {
   BookOpen,
   Receipt,
   Layers,
-  Database
+  Database,
+  BookmarkCheck
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -126,6 +127,14 @@ function openTaxModule(taxCategory?: string) {
       </div>
 
       <div class="flex items-center gap-2.5">
+        <button
+          @click="router.push('/opening-balance')"
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
+        >
+          <BookmarkCheck class="w-4 h-4" />
+          <span>Atur Saldo Awal</span>
+        </button>
+
         <button
           @click="showAddModal = true"
           class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"

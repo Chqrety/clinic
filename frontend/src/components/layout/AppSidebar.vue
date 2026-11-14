@@ -19,7 +19,8 @@ import {
   Coins,
   History,
   Scale,
-  CalendarCheck
+  CalendarCheck,
+  BookmarkCheck
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -88,6 +89,7 @@ const navGroups = computed<NavGroup[]>(() => [
       { name: 'Buku Kas & Bank', to: '/cash-bank', icon: Coins },
       { name: 'Neraca Saldo (Trial Balance)', to: '/trial-balance', icon: Scale },
       { name: 'Bagan Akun (COA)', to: '/chart-of-accounts', icon: FileSpreadsheet },
+      { name: 'Saldo Awal Akuntansi', to: '/opening-balance', icon: BookmarkCheck },
       { name: 'Tutup Buku Periode', to: '/periods', icon: CalendarCheck }
     ]
   },

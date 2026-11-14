@@ -59,6 +59,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Bagan Akun (COA)' }
       },
       {
+        path: 'opening-balance',
+        name: 'OpeningBalance',
+        component: () => import('@/views/accounting/OpeningBalanceView.vue'),
+        meta: { title: 'Pembuatan Saldo Awal Akuntansi' }
+      },
+      {
         path: 'periods',
         name: 'AccountingPeriods',
         component: () => import('@/views/accounting/AccountingPeriodView.vue'),

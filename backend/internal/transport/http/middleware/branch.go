@@ -27,13 +27,16 @@ type UserSession struct {
 	IsSuperAdmin         bool
 }
 
+var DefaultBranchID = uuid.MustParse("11111111-1111-1111-1111-111111111111")
+
 // BranchContext extracts and validates the X-Branch-ID header for multi-branch accounting isolation.
 func BranchContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		branchHeader := r.Header.Get("X-Branch-ID")
 		if branchHeader == "" {
-			// In development or single-branch clinic, proceed with default context
-			next.ServeHTTP(w, r)
+			// In development or single-branch clinic, proceed with default branch context
+			ctx := context.WithValue(r.Context(), BranchIDKey, DefaultBranchID)
+			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 

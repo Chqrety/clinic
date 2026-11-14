@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Account, LedgerEntry, TrialBalanceRow, AccountingPeriod } from '@/types/accounting'
+import type { Account, LedgerEntry, TrialBalanceRow, AccountingPeriod, BusinessUnit } from '@/types/accounting'
 import { useJournalsStore } from './journals'
 import { useAccountingStore } from './accounting'
 import { accountingApi } from '@/api/accounting'
@@ -466,6 +466,76 @@ export const useLedgerStore = defineStore('ledger', () => {
     }
   }
 
+  // Save and post official Opening Balance Journal to PostgreSQL database
+  async function saveOpeningBalance(payload: {
+    cutOffDate: string
+    referenceNo: string
+    businessUnit: BusinessUnit
+    description: string
+    lines: Array<{
+      accountCode: string
+      accountName: string
+      debit: number
+      credit: number
+      description?: string
+    }>
+  }) {
+    const validLines = payload.lines.filter(l => (l.debit > 0 || l.credit > 0))
+    if (validLines.length === 0) {
+      throw new Error('Harap masukkan minimal satu akun dengan saldo awal debit atau kredit!')
+    }
+
+    const totalDebit = validLines.reduce((s, l) => s + (l.debit || 0), 0)
+    const totalCredit = validLines.reduce((s, l) => s + (l.credit || 0), 0)
+
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+      throw new Error(`Total Debit (Rp ${totalDebit.toLocaleString('id-ID')}) tidak seimbang dengan Total Kredit (Rp ${totalCredit.toLocaleString('id-ID')}). Selisih: Rp ${Math.abs(totalDebit - totalCredit).toLocaleString('id-ID')}. Harap seimbangkan terlebih dahulu!`)
+    }
+
+    try {
+      isLoading.value = true
+
+      // 1. Create Opening Balance Journal in PostgreSQL database
+      const journalRes = await accountingApi.createJournal({
+        journal_type: 'GENERAL',
+        transaction_date: payload.cutOffDate,
+        reference_type: 'OPENING_BALANCE',
+        reference_id: payload.referenceNo || `OP-${payload.cutOffDate.replace(/-/g, '')}`,
+        description: payload.description || `Saldo Awal Pembukuan Akuntansi BCS per ${payload.cutOffDate}`,
+        auto_post: true,
+        lines: validLines.map(l => ({
+          account_code: l.accountCode,
+          debit: l.debit || 0,
+          credit: l.credit || 0,
+          description: l.description || `Saldo Awal ${l.accountCode} - ${l.accountName}`
+        }))
+      })
+
+      // 2. Update local account balances
+      const balanceMap = new Map<string, number>()
+      validLines.forEach(l => {
+        balanceMap.set(l.accountCode, l.debit > 0 ? l.debit : l.credit)
+      })
+
+      accounts.value.forEach(a => {
+        if (balanceMap.has(a.code)) {
+          a.currentBalance = balanceMap.get(a.code)
+        }
+      })
+
+      // 3. Refresh journals store
+      await journalsStore.fetchJournals()
+
+      accountingStore.showToast(`Saldo Awal Akuntansi (${journalRes.journal_number}) berhasil disimpan & diposting ke database!`, 'success')
+      return journalRes
+    } catch (err: any) {
+      accountingStore.showToast(`Gagal menyimpan Saldo Awal: ${err.message}`, 'error')
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     accounts,
     periods,
@@ -476,6 +546,7 @@ export const useLedgerStore = defineStore('ledger', () => {
     fetchAccounts,
     getAccountLedger,
     addAccount,
-    lockPeriod
+    lockPeriod,
+    saveOpeningBalance
   }
 })

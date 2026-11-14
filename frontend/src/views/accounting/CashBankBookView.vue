@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
 import { useJournalsStore } from '@/stores/journals'
@@ -23,9 +24,11 @@ import {
   Calendar,
   Building2,
   FileText,
-  Database
+  Database,
+  BookmarkCheck
 } from 'lucide-vue-next'
 
+const router = useRouter()
 const ledgerStore = useLedgerStore()
 const accountingStore = useAccountingStore()
 const journalsStore = useJournalsStore()
@@ -357,6 +360,15 @@ function terbilang(n: number): string {
 
       <!-- Quick Action Buttons -->
       <div class="flex flex-wrap items-center gap-2">
+        <!-- Atur Saldo Awal -->
+        <button
+          @click="router.push('/opening-balance')"
+          class="flex items-center gap-1.5 px-3 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold transition shadow-xs"
+        >
+          <BookmarkCheck class="w-3.5 h-3.5" />
+          <span>Atur Saldo Awal</span>
+        </button>
+
         <!-- Buat Buku Kas / Rekening Baru -->
         <button
           @click="showAddAccountModal = true"
