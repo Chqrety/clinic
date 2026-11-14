@@ -481,3 +481,4 @@ export const useCashBankStore = defineStore('cashbank', () => {
     createCashBankAccount
   }
 })
+

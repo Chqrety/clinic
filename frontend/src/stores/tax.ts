@@ -18,6 +18,11 @@ export interface SptMasaRecord {
   taxType: SptMasaType
   accountCode: string
   accountName: string
+  // Strictly Bank Account Only (Non-Cash)
+  bankAccountCode: string // misal 1102.001 (Bank BCA) atau 1102.002 (Bank Mandiri)
+  bankAccountName: string
+  paymentChannel: 'BANK_TRANSFER' | 'BANK_EBILLING' | 'BANK_GIRO'
+  isBankVerified: boolean
   grossAmount: number
   dppAmount: number
   taxRate: string
@@ -39,6 +44,7 @@ export interface DoctorTaxRecord {
   npwp: string
   nik: string
   businessUnit: BusinessUnit
+  bankAccountTarget: string // Transfer via Bank
   grossIncomeCurrentMonth: number
   grossIncomeCumulativeYear: number
   dppPercentage: number // 50% for non-pegawai dokter (PMK 168/2023)
@@ -72,11 +78,13 @@ export interface AnnualTaxReport1771 {
   taxableIncome: number // Penghasilan Kena Pajak (PKP)
   corporateTaxRate: number // 22% (UU HPP)
   corporateTaxPayable: number // PPh Terutang
-  taxCreditPph23: number // Otomatis dari akumulasi SPT Masa PPh 23
-  taxCreditPph25: number // Otomatis dari akumulasi SPT Masa PPh 25
+  // Kredit Pajak murni bersumber dari mutasi perbankan (SPT Masa)
+  taxCreditPph23: number // Otomatis dari akumulasi SPT Masa PPh 23 via Bank
+  taxCreditPph25: number // Otomatis dari akumulasi SPT Masa PPh 25 via e-Billing Bank
   taxCredits: number // Total Kredit Pajak (PPh 23 + PPh 25)
   pph29Payable: number // PPh Kurang Bayar Pasal 29
   linkedSptMasaCount: number
+  bankReconciliationVerified: boolean
 }
 
 export const useTaxStore = defineStore('tax', () => {
@@ -106,12 +114,21 @@ export const useTaxStore = defineStore('tax', () => {
     ]
   })
 
+  // Available Bank Accounts in COA (STRICTLY BANK ONLY, KAS FISIK EXCLUDED)
+  const availableBankAccounts = computed(() => {
+    return ledgerStore.accounts.filter(a => {
+      if (a.isHeader) return false
+      // Only include accounts under 1102 (Bank Operasional & Kliring) or 1103 (Bank Transit), EXCLUDING 1101 (Kas Fisik)
+      return a.code.startsWith('1102') || a.code.startsWith('1103') || a.parentCode === '1102'
+    })
+  })
+
   // =========================================================================
   // 1. REKAPITULASI DOKUMEN SPT MASA (Januari - November 2026)
-  // Dipisah pembuatannya dari SPT Tahunan!
+  // Strictly Berbasis Rekening Bank Operasional (Bukan Kas Tunai)
   // =========================================================================
   const sptMasaRecords = ref<SptMasaRecord[]>([
-    // --- PPH 23 (KREDIT PAJAK LAMPIRAN III SPT 1771) ---
+    // --- PPH 23 (KREDIT PAJAK LAMPIRAN III SPT 1771 - VIA TRANSFER BANK) ---
     {
       id: 'spt-23-01',
       sptNumber: 'SPT-MASA-23-2026-01',
@@ -120,15 +137,19 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: 'PPH_23',
       accountCode: '2502',
       accountName: 'PPh 23 Jasa Pengolahan Limbah Medis & IT',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 120000000,
       dppAmount: 120000000,
       taxRate: '2%',
       taxAmount: 2400000,
-      ntpnNumber: 'NTPN-DJP-20260128-01',
+      ntpnNumber: 'NTPN-BCA-20260128-01',
       bpeNumber: 'BPE-23-202601-9901',
       paymentDate: '2026-01-28',
       status: 'REPORTED',
-      notes: 'Jasa limbah B3 PT Wastec & maintenance server SIMKlinik',
+      notes: 'Transfer Bank BCA: Jasa limbah B3 PT Wastec & maintenance SIMRS',
       businessUnit: 'ALL',
       createdAt: '2026-01-28 10:00:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -141,15 +162,19 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: 'PPH_23',
       accountCode: '2502',
       accountName: 'PPh 23 Jasa Kalibrasi Alat Medis Laser SSC',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 150000000,
       dppAmount: 150000000,
       taxRate: '2%',
       taxAmount: 3000000,
-      ntpnNumber: 'NTPN-DJP-20260228-02',
+      ntpnNumber: 'NTPN-BCA-20260228-02',
       bpeNumber: 'BPE-23-202602-9902',
       paymentDate: '2026-02-28',
       status: 'REPORTED',
-      notes: 'Kalibrasi laser Nd:YAG & USG 4D Kidinest',
+      notes: 'Transfer Bank BCA: Kalibrasi laser Nd:YAG & USG 4D Kidinest',
       businessUnit: 'SSC',
       createdAt: '2026-02-28 11:00:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -162,15 +187,19 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: 'PPH_23',
       accountCode: '2502',
       accountName: 'PPh 23 Jasa Kebersihan Medis & Sanitasi',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 160000000,
       dppAmount: 160000000,
       taxRate: '2%',
       taxAmount: 3200000,
-      ntpnNumber: 'NTPN-DJP-20260328-03',
+      ntpnNumber: 'NTPN-BCA-20260328-03',
       bpeNumber: 'BPE-23-202603-9903',
       paymentDate: '2026-03-28',
       status: 'REPORTED',
-      notes: 'Outsourcing cleaning service ruang steril & poli anak',
+      notes: 'Transfer Bank BCA: Outsourcing cleaning service ruang steril',
       businessUnit: 'ALL',
       createdAt: '2026-03-28 14:00:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -182,16 +211,20 @@ export const useTaxStore = defineStore('tax', () => {
       masaYear: 2026,
       taxType: 'PPH_23',
       accountCode: '2502',
-      accountName: 'PPh 23 Jasa Konsultasi Hukum & Manajemen Medis',
+      accountName: 'PPh 23 Jasa Konsultasi Manajemen Medis',
+      bankAccountCode: '1102.002',
+      bankAccountName: 'Bank Mandiri Operasional & Payroll',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 140000000,
       dppAmount: 140000000,
       taxRate: '2%',
       taxAmount: 2800000,
-      ntpnNumber: 'NTPN-DJP-20260428-04',
+      ntpnNumber: 'NTPN-MDR-20260428-04',
       bpeNumber: 'BPE-23-202604-9904',
       paymentDate: '2026-04-28',
       status: 'REPORTED',
-      notes: 'Konsultasi akreditasi klinik Paripurna Kemenkes',
+      notes: 'Transfer Bank Mandiri: Konsultasi akreditasi Paripurna Kemenkes',
       businessUnit: 'ALL',
       createdAt: '2026-04-28 09:30:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -204,15 +237,19 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: 'PPH_23',
       accountCode: '2502',
       accountName: 'PPh 23 Jasa Limbah B3 & Maintenance Alkes',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 155000000,
       dppAmount: 155000000,
       taxRate: '2%',
       taxAmount: 3100000,
-      ntpnNumber: 'NTPN-DJP-20260528-05',
+      ntpnNumber: 'NTPN-BCA-20260528-05',
       bpeNumber: 'BPE-23-202605-9905',
       paymentDate: '2026-05-28',
       status: 'REPORTED',
-      notes: 'Maintenance rutin autoklaf & sterilisator bedah',
+      notes: 'Transfer Bank BCA: Maintenance berkala autoklaf & sterilisator',
       businessUnit: 'ALL',
       createdAt: '2026-05-28 15:00:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -225,15 +262,19 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: 'PPH_23',
       accountCode: '2502',
       accountName: 'PPh 23 Jasa Sewa Kendaraan Logistik Vaksin',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 145000000,
       dppAmount: 145000000,
       taxRate: '2%',
       taxAmount: 2900000,
-      ntpnNumber: 'NTPN-DJP-20260628-06',
+      ntpnNumber: 'NTPN-BCA-20260628-06',
       bpeNumber: 'BPE-23-202606-9906',
       paymentDate: '2026-06-28',
       status: 'REPORTED',
-      notes: 'Sewa mobil cold chain distribusi vaksin Kidinest',
+      notes: 'Transfer Bank BCA: Sewa mobil cold-chain distribusi vaksin',
       businessUnit: 'KIDINEST',
       createdAt: '2026-06-28 11:20:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -245,16 +286,20 @@ export const useTaxStore = defineStore('tax', () => {
       masaYear: 2026,
       taxType: 'PPH_23',
       accountCode: '2502',
-      accountName: 'PPh 23 Jasa Service & Maintenance HVAC Ruang Operasi',
+      accountName: 'PPh 23 Jasa Service HVAC Ruang Operasi SSC',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 165000000,
       dppAmount: 165000000,
       taxRate: '2%',
       taxAmount: 3300000,
-      ntpnNumber: 'NTPN-DJP-20260728-07',
+      ntpnNumber: 'NTPN-BCA-20260728-07',
       bpeNumber: 'BPE-23-202607-9907',
       paymentDate: '2026-07-28',
       status: 'REPORTED',
-      notes: 'Service HEPA filter & AC sentral ruang tindakan medis',
+      notes: 'Transfer Bank BCA: Service HEPA filter & AC sentral steril',
       businessUnit: 'SSC',
       createdAt: '2026-07-28 10:15:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -267,15 +312,19 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: 'PPH_23',
       accountCode: '2502',
       accountName: 'PPh 23 Jasa IT Cloud & Cyber Security SIMRS',
+      bankAccountCode: '1102.002',
+      bankAccountName: 'Bank Mandiri Operasional & Payroll',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 150000000,
       dppAmount: 150000000,
       taxRate: '2%',
       taxAmount: 3000000,
-      ntpnNumber: 'NTPN-DJP-20260828-08',
+      ntpnNumber: 'NTPN-MDR-20260828-08',
       bpeNumber: 'BPE-23-202608-9908',
       paymentDate: '2026-08-28',
       status: 'REPORTED',
-      notes: 'Integrasi bridging SATUSEHAT Kemenkes & BPJS',
+      notes: 'Transfer Bank Mandiri: Bridging SATUSEHAT & hosting server',
       businessUnit: 'ALL',
       createdAt: '2026-08-28 16:00:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -287,16 +336,20 @@ export const useTaxStore = defineStore('tax', () => {
       masaYear: 2026,
       taxType: 'PPH_23',
       accountCode: '2502',
-      accountName: 'PPh 23 Jasa Limbah Medis B3 Periode September',
+      accountName: 'PPh 23 Jasa Limbah Medis B3 September',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 140000000,
       dppAmount: 140000000,
       taxRate: '2%',
       taxAmount: 2800000,
-      ntpnNumber: 'NTPN-DJP-20260928-09',
+      ntpnNumber: 'NTPN-BCA-20260928-09',
       bpeNumber: 'BPE-23-202609-9909',
       paymentDate: '2026-09-28',
       status: 'REPORTED',
-      notes: 'Pengolahan jarum suntik, spuit & residu klinis',
+      notes: 'Transfer Bank BCA: Pengolahan limbah jarum & residu',
       businessUnit: 'ALL',
       createdAt: '2026-09-28 13:45:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -308,16 +361,20 @@ export const useTaxStore = defineStore('tax', () => {
       masaYear: 2026,
       taxType: 'PPH_23',
       accountCode: '2502',
-      accountName: 'PPh 23 Jasa Kalibrasi Tensimeter & Alkes Diagnostik',
+      accountName: 'PPh 23 Jasa Kalibrasi Tensimeter & Alkes',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 150000000,
       dppAmount: 150000000,
       taxRate: '2%',
       taxAmount: 3000000,
-      ntpnNumber: 'NTPN-DJP-20261028-10',
+      ntpnNumber: 'NTPN-BCA-20261028-10',
       bpeNumber: 'BPE-23-202610-9910',
       paymentDate: '2026-10-28',
       status: 'REPORTED',
-      notes: 'Sertifikasi kalibrasi tahunan BPFK Kemenkes',
+      notes: 'Transfer Bank BCA: Sertifikasi kalibrasi BPFK Kemenkes',
       businessUnit: 'ALL',
       createdAt: '2026-10-28 11:30:00',
       createdBy: 'Rian Pratama, S.Ak.'
@@ -330,22 +387,26 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: 'PPH_23',
       accountCode: '2502',
       accountName: 'PPh 23 Jasa Vendor Limbah B3 & Maintenance AC',
+      bankAccountCode: '1102.001',
+      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+      paymentChannel: 'BANK_TRANSFER',
+      isBankVerified: true,
       grossAmount: 150000000,
       dppAmount: 150000000,
       taxRate: '2%',
       taxAmount: 3000000,
-      ntpnNumber: 'NTPN-DJP-20261128-11',
+      ntpnNumber: 'NTPN-BCA-20261128-11',
       bpeNumber: 'BPE-23-202611-9911',
       paymentDate: '2026-11-28',
       status: 'PAID',
-      notes: 'Disetor ke Kas Negara via BCA Internet Banking',
+      notes: 'Internet Banking Bank BCA: Disetor ke Kas Negara via DJP',
       businessUnit: 'ALL',
       createdAt: '2026-11-28 14:10:00',
       createdBy: 'Rian Pratama, S.Ak.'
     },
 
-    // --- PPH 25 (ANGSURAN BULANAN PPH BADAN - INDUK 10A SPT 1771) ---
-    // Rp 13.000.000 per bulan x 11 bulan = Rp 143.000.000
+    // --- PPH 25 (ANGSURAN BULANAN PPH BADAN - SETOR VIA E-BILLING BANK) ---
+    // Rp 13.000.000 per bulan x 11 bulan = Rp 143.000.000 (Semua via Bank BCA/Mandiri)
     ...Array.from({ length: 11 }, (_, i) => {
       const m = i + 1
       const mStr = String(m).padStart(2, '0')
@@ -357,22 +418,26 @@ export const useTaxStore = defineStore('tax', () => {
         taxType: 'PPH_25' as SptMasaType,
         accountCode: '2505',
         accountName: 'PPh 25 Angsuran Pajak Penghasilan Badan',
+        bankAccountCode: '1102.001',
+        bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+        paymentChannel: 'BANK_EBILLING' as const,
+        isBankVerified: true,
         grossAmount: 0,
         dppAmount: 0,
         taxRate: 'Angsuran Tetap SKP/SPT',
         taxAmount: 13000000,
-        ntpnNumber: `NTPN-PPH25-2026${mStr}15`,
+        ntpnNumber: `NTPN-BCA-PPH25-${mStr}`,
         bpeNumber: `BPE-25-2026${mStr}-0021`,
         paymentDate: `2026-${mStr}-15`,
         status: 'REPORTED' as const,
-        notes: `Setoran Angsuran Masa ${mStr}/2026 PPh Badan BCS`,
+        notes: `e-Billing Bank BCA: Setoran Angsuran Masa ${mStr}/2026 PPh Badan BCS`,
         businessUnit: 'ALL' as BusinessUnit,
         createdAt: `2026-${mStr}-15 08:30:00`,
         createdBy: 'Rian Pratama, S.Ak.'
       }
     }),
 
-    // --- PPH 21 (TENAGA AHLI DOKTER & KARYAWAN) ---
+    // --- PPH 21 (TENAGA AHLI DOKTER & KARYAWAN - TRANSFER BANK MANDIRI / BCA) ---
     ...Array.from({ length: 11 }, (_, i) => {
       const m = i + 1
       const mStr = String(m).padStart(2, '0')
@@ -384,22 +449,26 @@ export const useTaxStore = defineStore('tax', () => {
         taxType: 'PPH_21' as SptMasaType,
         accountCode: '2501.001',
         accountName: 'PPh 21 Tenaga Medis Dokter & Karyawan',
+        bankAccountCode: '1102.002',
+        bankAccountName: 'Bank Mandiri Operasional & Payroll',
+        paymentChannel: 'BANK_TRANSFER' as const,
+        isBankVerified: true,
         grossAmount: 435000000,
         dppAmount: 310000000,
         taxRate: 'PMK 168 / TER',
         taxAmount: 13750000,
-        ntpnNumber: `NTPN-PPH21-2026${mStr}10`,
+        ntpnNumber: `NTPN-MDR-PPH21-${mStr}`,
         bpeNumber: `BPE-21-2026${mStr}-8819`,
         paymentDate: `2026-${mStr}-10`,
         status: 'REPORTED' as const,
-        notes: `Withholding e-Bupot 21 Dokter & TER Staf Masa ${mStr}`,
+        notes: `Payroll Bank Mandiri: Withholding 21 Dokter & TER Staf Masa ${mStr}`,
         businessUnit: 'ALL' as BusinessUnit,
         createdAt: `2026-${mStr}-10 16:00:00`,
         createdBy: 'Rian Pratama, S.Ak.'
       }
     }),
 
-    // --- PPH 4(2) FINAL (SEWA GEDUNG & BUNGA BANK) ---
+    // --- PPH 4(2) FINAL (SEWA GEDUNG & BUNGA BANK - MUTASI REKENING GIRO) ---
     ...Array.from({ length: 11 }, (_, i) => {
       const m = i + 1
       const mStr = String(m).padStart(2, '0')
@@ -411,15 +480,19 @@ export const useTaxStore = defineStore('tax', () => {
         taxType: 'PPH_4_2' as SptMasaType,
         accountCode: '2503',
         accountName: 'PPh Final Pasal 4(2) Persewaan & Bunga',
+        bankAccountCode: '1102.001',
+        bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+        paymentChannel: 'BANK_TRANSFER' as const,
+        isBankVerified: true,
         grossAmount: 50000000,
         dppAmount: 50000000,
         taxRate: '10%',
         taxAmount: 5000000,
-        ntpnNumber: `NTPN-4-2-2026${mStr}12`,
+        ntpnNumber: `NTPN-BCA-4-2-${mStr}`,
         bpeNumber: `BPE-4-2-2026${mStr}-4412`,
         paymentDate: `2026-${mStr}-12`,
         status: 'REPORTED' as const,
-        notes: `PPh Final sewa ruko lantai 2 & bunga jasa giro`,
+        notes: `Transfer Bank BCA: PPh Final sewa ruko & pemotongan bunga jasa giro`,
         businessUnit: 'ALL' as BusinessUnit,
         createdAt: `2026-${mStr}-12 11:00:00`,
         createdBy: 'Rian Pratama, S.Ak.'
@@ -427,21 +500,23 @@ export const useTaxStore = defineStore('tax', () => {
     })
   ])
 
-  // Filtered SPT Masa Records
+  // Filtered SPT Masa Records (STRICTLY BANK VERIFIED)
   const filteredSptMasa = computed(() => {
     return sptMasaRecords.value.filter(s => {
       if (s.masaYear !== selectedYear.value) return false
       if (selectedMonth.value && s.masaMonth !== selectedMonth.value) return false
       if (selectedSptMasaTypeFilter.value !== 'ALL' && s.taxType !== selectedSptMasaTypeFilter.value) return false
-      return true
+      // STRICTLY REQUIRE BANK VERIFICATION
+      return s.isBankVerified !== false
     })
   })
 
-  // Action: Buat Dokumen SPT Masa Baru
+  // Action: Buat Dokumen SPT Masa Baru (STRICTLY REKening BANK ONLY, NO CASH)
   function createSptMasa(data: {
     masaMonth: number
     masaYear: number
     taxType: SptMasaType
+    bankAccountCode: string // REQUIRED: Strictly Bank Account
     grossAmount: number
     dppAmount: number
     taxRate: string
@@ -451,9 +526,17 @@ export const useTaxStore = defineStore('tax', () => {
     status?: 'DRAFT' | 'PAID' | 'REPORTED'
     businessUnit?: BusinessUnit
   }) {
+    // Validation: Deny any cash account (1101)
+    if (!data.bankAccountCode || data.bankAccountCode.startsWith('1101')) {
+      throw new Error('Pembuatan SPT Masa hanya dapat menggunakan Rekening Bank resmi DJP, bukan akun kas fisik/tunai!')
+    }
+
+    const bankAcc = availableBankAccounts.value.find(b => b.code === data.bankAccountCode) || availableBankAccounts.value[0]
+    const bankCode = bankAcc?.code || '1102.001'
+    const bankName = bankAcc?.name || 'Bank BCA Operasional (Giro & EDC)'
+
     const mStr = String(data.masaMonth).padStart(2, '0')
     const typeLabel = data.taxType.replace('_', ' ')
-    const count = sptMasaRecords.value.filter(r => r.taxType === data.taxType && r.masaYear === data.masaYear).length + 1
     const sptNum = `SPT-${data.taxType}-${data.masaYear}-${mStr}`
 
     let accCode = '2501.001'
@@ -481,6 +564,10 @@ export const useTaxStore = defineStore('tax', () => {
       taxType: data.taxType,
       accountCode: accCode,
       accountName: accName,
+      bankAccountCode: bankCode,
+      bankAccountName: bankName,
+      paymentChannel: 'BANK_EBILLING',
+      isBankVerified: true,
       grossAmount: data.grossAmount,
       dppAmount: data.dppAmount,
       taxRate: data.taxRate,
@@ -489,20 +576,20 @@ export const useTaxStore = defineStore('tax', () => {
       bpeNumber: `BPE-${data.taxType}-${data.masaYear}${mStr}-${Date.now().toString().slice(-4)}`,
       paymentDate: `${data.masaYear}-${mStr}-20`,
       status: st,
-      notes: data.notes || `SPT Masa ${typeLabel} Masa ${mStr}/${data.masaYear}`,
+      notes: data.notes || `SPT Masa ${typeLabel} Masa ${mStr}/${data.masaYear} via ${bankName}`,
       businessUnit: data.businessUnit || accountingStore.businessUnit,
       createdAt: new Date().toISOString(),
       createdBy: accountingStore.currentUserName
     }
 
     sptMasaRecords.value.unshift(newRecord)
-    accountingStore.showToast(`Dokumen SPT Masa ${sptNum} berhasil dibuat & disimpan!`, 'success')
+    accountingStore.showToast(`Dokumen SPT Masa ${sptNum} via ${bankName} berhasil dibuat & disimpan!`, 'success')
     return newRecord
   }
 
   // =========================================================================
   // 2. MATRIX KREDIT PAJAK DARI SPT MASA (Januari - Desember)
-  // Menghubungkan secara transparan nilai SPT Masa ke SPT Tahunan 1771
+  // Menampilkan verifikasi rekening Bank pembayar per bulan
   // =========================================================================
   const monthlySptMasaMatrix = computed(() => {
     const months = [
@@ -513,7 +600,7 @@ export const useTaxStore = defineStore('tax', () => {
     return months.map((monthName, idx) => {
       const monthNum = idx + 1
       const recordsThisMonth = sptMasaRecords.value.filter(
-        r => r.masaYear === selectedYear.value && r.masaMonth === monthNum
+        r => r.masaYear === selectedYear.value && r.masaMonth === monthNum && r.isBankVerified !== false
       )
 
       const pph21Record = recordsThisMonth.find(r => r.taxType === 'PPH_21')
@@ -526,8 +613,10 @@ export const useTaxStore = defineStore('tax', () => {
       const pph42Amount = pph42Record?.taxAmount || 0
       const pph25Amount = pph25Record?.taxAmount || 0
 
-      // Kredit Pajak untuk SPT 1771 = PPh 23 + PPh 25
+      // Kredit Pajak untuk SPT 1771 = PPh 23 (Bank) + PPh 25 (Bank)
       const totalCreditThisMonth = pph23Amount + pph25Amount
+
+      const bankUsed = pph25Record?.bankAccountName || pph23Record?.bankAccountName || 'Bank BCA Operasional'
 
       return {
         monthNum,
@@ -541,13 +630,14 @@ export const useTaxStore = defineStore('tax', () => {
         pph25Record,
         pph25Amount,
         totalCreditThisMonth,
+        bankUsed,
         isReported: (pph23Record?.status === 'REPORTED' || pph25Record?.status === 'REPORTED'),
         ntpn: pph25Record?.ntpnNumber || pph23Record?.ntpnNumber || '-'
       }
     })
   })
 
-  // Doctor Tax Calculations per PMK 168/2023
+  // Doctor Tax Calculations per PMK 168/2023 (Semua ditransfer via Bank)
   const doctorTaxRecords = ref<DoctorTaxRecord[]>([
     {
       id: 'dt-1',
@@ -556,6 +646,7 @@ export const useTaxStore = defineStore('tax', () => {
       npwp: '08.123.456.7-012.000',
       nik: '3171012304850001',
       businessUnit: 'KIDINEST',
+      bankAccountTarget: 'Bank BCA: 883-019-2811 a.n Hendra Wijaya',
       grossIncomeCurrentMonth: 48500000,
       grossIncomeCumulativeYear: 142000000,
       dppPercentage: 0.5,
@@ -574,6 +665,7 @@ export const useTaxStore = defineStore('tax', () => {
       npwp: '09.345.678.9-015.000',
       nik: '3174055208880003',
       businessUnit: 'SSC',
+      bankAccountTarget: 'Bank BCA: 009-441-8922 a.n Maya Sandria',
       grossIncomeCurrentMonth: 82500000,
       grossIncomeCumulativeYear: 245000000,
       dppPercentage: 0.5,
@@ -592,6 +684,7 @@ export const useTaxStore = defineStore('tax', () => {
       npwp: '12.876.543.2-021.000',
       nik: '3276014407910005',
       businessUnit: 'SSC',
+      bankAccountTarget: 'Bank Mandiri: 137-00-19828-1 a.n Nadia Kirana',
       grossIncomeCurrentMonth: 54000000,
       grossIncomeCumulativeYear: 165000000,
       dppPercentage: 0.5,
@@ -610,6 +703,7 @@ export const useTaxStore = defineStore('tax', () => {
       npwp: '14.567.890.1-018.000',
       nik: '3172081206770002',
       businessUnit: 'KIDINEST',
+      bankAccountTarget: 'Bank BCA: 883-991-0129 a.n Bambang Soeprapto',
       grossIncomeCurrentMonth: 65000000,
       grossIncomeCumulativeYear: 198000000,
       dppPercentage: 0.5,
@@ -623,7 +717,7 @@ export const useTaxStore = defineStore('tax', () => {
     }
   ])
 
-  // Comprehensive Tax Transactions List linked with COA Account Codes & General Ledger
+  // Tax Transactions (Hanya mencatat transaksi berbasis Rekening Bank)
   const taxTransactions = ref<TaxTransaction[]>([
     {
       id: 'tx-21-01',
@@ -633,7 +727,7 @@ export const useTaxStore = defineStore('tax', () => {
       taxCategory: 'PPH_21',
       accountCode: '2501.001',
       journalNumber: 'JU-2026-0004',
-      counterpartyName: 'dr. Hendra Wijaya, Sp.A',
+      counterpartyName: 'dr. Hendra Wijaya, Sp.A (Transfer BCA)',
       counterpartyNPWP: '08.123.456.7-012.000',
       counterpartyNIK: '3171012304850001',
       objectCode: '21-100-07 (Tenaga Ahli - Dokter)',
@@ -641,7 +735,7 @@ export const useTaxStore = defineStore('tax', () => {
       dppAmount: 24250000,
       taxRate: 0.05,
       taxAmount: 1212500,
-      documentReference: 'FEE-DOC-KID-202611-01',
+      documentReference: 'TRF-BCA-DOC-202611-01',
       reconciliationStatus: 'RECONCILED',
       isReported: false,
       periodMonth: 11,
@@ -655,7 +749,7 @@ export const useTaxStore = defineStore('tax', () => {
       taxCategory: 'PPH_21',
       accountCode: '2501.001',
       journalNumber: 'JU-2026-0005',
-      counterpartyName: 'dr. Maya Sandria, Sp.KK, FINSDV',
+      counterpartyName: 'dr. Maya Sandria, Sp.KK (Transfer BCA)',
       counterpartyNPWP: '09.345.678.9-015.000',
       counterpartyNIK: '3174055208880003',
       objectCode: '21-100-07 (Tenaga Ahli - Dokter)',
@@ -663,7 +757,7 @@ export const useTaxStore = defineStore('tax', () => {
       dppAmount: 41250000,
       taxRate: 0.05,
       taxAmount: 2062500,
-      documentReference: 'FEE-DOC-SSC-202611-02',
+      documentReference: 'TRF-BCA-DOC-202611-02',
       reconciliationStatus: 'RECONCILED',
       isReported: false,
       periodMonth: 11,
@@ -677,7 +771,7 @@ export const useTaxStore = defineStore('tax', () => {
       taxCategory: 'PPH_21',
       accountCode: '2501.002',
       journalNumber: 'JU-2026-0008',
-      counterpartyName: 'Rekapitulasi 24 Staf, Perawat & Apoteker (TER PP 58)',
+      counterpartyName: 'Payroll Pegawai Tetap & Apoteker (Transfer Mandiri)',
       counterpartyNPWP: '01.234.567.8-091.000',
       counterpartyNIK: '3374019901900001',
       objectCode: '21-100-01 (Pegawai Tetap)',
@@ -685,7 +779,7 @@ export const useTaxStore = defineStore('tax', () => {
       dppAmount: 185000000,
       taxRate: 0.0405,
       taxAmount: 7500000,
-      documentReference: 'PAYROLL-RECAP-202611',
+      documentReference: 'PAYROLL-MDR-202611',
       reconciliationStatus: 'RECONCILED',
       isReported: false,
       periodMonth: 11,
@@ -699,14 +793,14 @@ export const useTaxStore = defineStore('tax', () => {
       taxCategory: 'PPH_23',
       accountCode: '2502',
       journalNumber: 'JU-2026-0002',
-      counterpartyName: 'PT Wastec International (Jasa Limbah Medis B3)',
+      counterpartyName: 'PT Wastec International (Transfer Bank BCA)',
       counterpartyNPWP: '01.554.219.8-032.000',
-      objectCode: '24-104-01 (Jasa Pengolahan Limbah)',
+      objectCode: '24-104-01 (Jasa Pengolahan Limbah Medis B3)',
       grossAmount: 45000000,
       dppAmount: 45000000,
       taxRate: 0.02,
       taxAmount: 900000,
-      documentReference: 'INV-WST-8891',
+      documentReference: 'TRF-BCA-WST-8891',
       reconciliationStatus: 'RECONCILED',
       isReported: false,
       periodMonth: 11,
@@ -720,14 +814,14 @@ export const useTaxStore = defineStore('tax', () => {
       taxCategory: 'PPH_23',
       accountCode: '2502',
       journalNumber: 'JU-2026-0003',
-      counterpartyName: 'PT Medika Laser Servis (Maintenance Alkes Estetika)',
+      counterpartyName: 'PT Medika Laser Servis (Transfer Bank BCA)',
       counterpartyNPWP: '02.881.902.1-014.000',
-      objectCode: '24-104-02 (Jasa Perawatan Mesin)',
+      objectCode: '24-104-02 (Maintenance Alkes Laser)',
       grossAmount: 75000000,
       dppAmount: 75000000,
       taxRate: 0.02,
       taxAmount: 1500000,
-      documentReference: 'INV-MLS-2026',
+      documentReference: 'TRF-BCA-MLS-2026',
       reconciliationStatus: 'RECONCILED',
       isReported: false,
       periodMonth: 11,
@@ -741,14 +835,14 @@ export const useTaxStore = defineStore('tax', () => {
       taxCategory: 'PPH_4_2',
       accountCode: '2503',
       journalNumber: 'JU-2026-0001',
-      counterpartyName: 'Hj. Siti Nurhaliza (Sewa Ruko Klinik Kidinest)',
+      counterpartyName: 'Hj. Siti Nurhaliza (Sewa Ruko Transfer BCA)',
       counterpartyNPWP: '07.991.234.5-011.000',
-      objectCode: '28-403-01 (Persewaan Tanah dan/atau Bangunan)',
+      objectCode: '28-403-01 (Persewaan Gedung Ruko)',
       grossAmount: 50000000,
       dppAmount: 50000000,
       taxRate: 0.10,
       taxAmount: 5000000,
-      documentReference: 'KWT-SEWA-202611',
+      documentReference: 'TRF-BCA-SEWA-202611',
       reconciliationStatus: 'RECONCILED',
       isReported: false,
       periodMonth: 11,
@@ -762,14 +856,14 @@ export const useTaxStore = defineStore('tax', () => {
       taxCategory: 'PPN_OUTPUT',
       accountCode: '2504',
       journalNumber: 'JU-2026-0010',
-      counterpartyName: 'Pelanggan Skincare & Kosmetika SSC (Rekap Faktur Digunggung)',
+      counterpartyName: 'Pelanggan Produk Skincare (Settlement EDC & QRIS Bank)',
       counterpartyNPWP: '00.000.000.0-000.000',
       objectCode: 'Penyerahan BKP Produk Estetika',
       grossAmount: 95596409,
       dppAmount: 86122880,
       taxRate: 0.11,
       taxAmount: 9475055,
-      documentReference: 'FP-RECAP-202611',
+      documentReference: 'EDC-BCA-RECAP-202611',
       reconciliationStatus: 'RECONCILED',
       isReported: false,
       periodMonth: 11,
@@ -815,7 +909,6 @@ export const useTaxStore = defineStore('tax', () => {
     const totalDpp = list.reduce((s, t) => s + t.dppAmount, 0)
     const totalTax = list.reduce((s, t) => s + t.taxAmount, 0)
     
-    // Check COA balance for selected account
     let coaBalance = 0
     if (selectedTaxAccountCode.value === 'ALL') {
       const taxAccs = ledgerStore.accounts.filter(a => a.code.startsWith('25'))
@@ -836,7 +929,7 @@ export const useTaxStore = defineStore('tax', () => {
 
   // =========================================================================
   // 3. ANNUAL TAX CALCULATION (SPT TAHUNAN PPH BADAN FORMULIR 1771)
-  // MENGAMBIL NILAI KREDIT PAJAK DARI SPT MASA SESUAI JENISNYA!
+  // MENGAMBIL NILAI KREDIT PAJAK HANYA DARI BANK (BUKAN KAS)
   // =========================================================================
   const annualTaxReport1771 = computed<AnnualTaxReport1771>(() => {
     // 1. Commercial Revenues (Akun 4 + Akun 6)
@@ -863,22 +956,21 @@ export const useTaxStore = defineStore('tax', () => {
 
     // 6. Corporate Tax Rate 22% & Fasilitas 31E UU PPh
     const corporateTaxRate = 0.22
-    const corporateTaxPayable = Math.round(taxableIncome * 0.11) // Efektif fasilitas 31E (50% x 22% = 11%)
+    const corporateTaxPayable = Math.round(taxableIncome * 0.11)
 
-    // 7. KREDIT PAJAK OTOMATIS DARI SPT MASA SESUAI JENISNYA:
-    // a. Kredit Pajak PPh 23 = Sum of SPT Masa PPh 23 untuk tahun berjalan
+    // 7. KREDIT PAJAK OTOMATIS DARI SPT MASA SESUAI JENISNYA (STRICTLY BANK ONLY):
+    // Hanya mengakui kredit pajak yang dipotong/disetor via Rekening Bank resmi
     const sptMasaPph23Records = sptMasaRecords.value.filter(
-      r => r.masaYear === selectedYear.value && r.taxType === 'PPH_23'
+      r => r.masaYear === selectedYear.value && r.taxType === 'PPH_23' && r.isBankVerified !== false
     )
     const taxCreditPph23 = sptMasaPph23Records.reduce((sum, r) => sum + r.taxAmount, 0)
 
-    // b. Kredit Pajak PPh 25 = Sum of SPT Masa PPh 25 (Angsuran Badan) untuk tahun berjalan
     const sptMasaPph25Records = sptMasaRecords.value.filter(
-      r => r.masaYear === selectedYear.value && r.taxType === 'PPH_25'
+      r => r.masaYear === selectedYear.value && r.taxType === 'PPH_25' && r.isBankVerified !== false
     )
     const taxCreditPph25 = sptMasaPph25Records.reduce((sum, r) => sum + r.taxAmount, 0)
 
-    // c. Total Kredit Pajak (PPh 23 + PPh 25)
+    // Total Kredit Pajak (PPh 23 + PPh 25)
     const taxCredits = taxCreditPph23 + taxCreditPph25
 
     // 8. PPh 29 Kurang Bayar yang harus disetor ke Kas Negara
@@ -901,7 +993,8 @@ export const useTaxStore = defineStore('tax', () => {
       taxCreditPph25,
       taxCredits,
       pph29Payable,
-      linkedSptMasaCount: sptMasaPph23Records.length + sptMasaPph25Records.length
+      linkedSptMasaCount: sptMasaPph23Records.length + sptMasaPph25Records.length,
+      bankReconciliationVerified: true
     }
   })
 
@@ -915,14 +1008,29 @@ export const useTaxStore = defineStore('tax', () => {
     })
   })
 
-  // Action: Generate Jurnal Pembayaran / Penyetoran Pajak NTPN
-  function generateTaxPaymentJournal(taxAccountCode: string, taxName: string, amount: number) {
+  // Action: Generate Jurnal Pembayaran / Penyetoran Pajak NTPN (STRICTLY VIA BANK, BUKAN KAS)
+  function generateTaxPaymentJournal(
+    taxAccountCode: string,
+    taxName: string,
+    amount: number,
+    bankAccountCode: string = '1102.001'
+  ) {
+    // Validate: Only bank accounts allowed
+    if (bankAccountCode.startsWith('1101')) {
+      accountingStore.showToast('Penyetoran pajak negara hanya dapat dilakukan via rekening Bank, bukan kas fisik!', 'error')
+      return
+    }
+
+    const bankAcc = availableBankAccounts.value.find(b => b.code === bankAccountCode) || availableBankAccounts.value[0]
+    const selectedBankCode = bankAcc?.code || '1102.001'
+    const selectedBankName = bankAcc?.name || 'Bank BCA Operasional (Giro & EDC)'
+
     const journal = journalsStore.createManualJournal({
       journalDate: `${selectedYear.value}-${String(selectedMonth.value).padStart(2, '0')}-28`,
       businessUnit: accountingStore.businessUnit,
       branchId: 'BRANCH-MAIN',
       branchName: 'Kantor Pusat Semarang',
-      description: `Penyetoran NTPN Kas Negara: ${taxName} Periode ${selectedMonth.value}/${selectedYear.value} (Ref: NTPN-DJP-${Date.now().toString().slice(-8)})`,
+      description: `Penyetoran NTPN Kas Negara via ${selectedBankName}: ${taxName} Periode ${selectedMonth.value}/${selectedYear.value} (Ref: NTPN-DJP-${Date.now().toString().slice(-8)})`,
       status: 'POSTED',
       journalSource: 'MANUAL',
       sourceReference: `NTPN-${Date.now().toString().slice(-8)}`,
@@ -936,17 +1044,17 @@ export const useTaxStore = defineStore('tax', () => {
           description: `Pelunasan Hutang Pajak ${taxName}`
         },
         {
-          accountId: 'acc-1102.001',
-          accountCode: '1102.001',
-          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          accountId: `acc-${selectedBankCode}`,
+          accountCode: selectedBankCode,
+          accountName: selectedBankName,
           debit: 0,
           credit: amount,
-          description: `Pembayaran via Internet Banking Pajak DJP`
+          description: `Pembayaran Pajak DJP via Internet Banking ${selectedBankName}`
         }
       ]
     })
 
-    accountingStore.showToast(`Draft Jurnal Pembayaran Pajak ${journal.journalNumber} berhasil dibuat!`, 'success')
+    accountingStore.showToast(`Jurnal Penyetoran Pajak via ${selectedBankName} (${journal.journalNumber}) berhasil dibuat!`, 'success')
   }
 
   // Action: Export DJP e-Bupot CSV Format
@@ -956,6 +1064,7 @@ export const useTaxStore = defineStore('tax', () => {
       'NAMA_PENERIMA_PENGHASILAN': d.doctorName,
       'NPWP': d.npwp,
       'NIK': d.nik,
+      'METODE_TRANSFER': d.bankAccountTarget,
       'PENGHASILAN_BRUTO': d.grossIncomeCurrentMonth,
       'TARIF': (d.taxRate * 100) + '%',
       'DPP': d.dppAmount,
@@ -976,6 +1085,7 @@ export const useTaxStore = defineStore('tax', () => {
     selectedYear,
     selectedSptMasaTypeFilter,
     taxAccountOptions,
+    availableBankAccounts,
     sptMasaRecords,
     filteredSptMasa,
     createSptMasa,
