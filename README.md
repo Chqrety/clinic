@@ -1,7 +1,14 @@
-# 🏥 Klinik Sehat Modern (Smart Clinic OS)
+# 🏥 Klinik Sehat Modern & ERP Akuntansi BCS (Smart Clinic OS)
 
-> **Sistem Informasi Manajemen Klinik Mandiri (SIMKlinik Pratama & Apotek Terpadu)**  
-> Dibangun dengan arsitektur **Modular Monolith (Go + SQLite)** dan antarmuka web modern berestetika **Brandlos / Nordic Modern (Vue 3 + Tailwind CSS)**. Siap akreditasi Kemenkes RI & operasional harian.
+> **Sistem Informasi Manajemen Klinik Mandiri (SIMKlinik Pratama & Apotek Terpadu) & ERP Akuntansi Keuangan PT. Brayo Cipta Sejahtera (BCS)**  
+> Dibangun dengan arsitektur **Modular Monolith (Go 1.22+ & PostgreSQL 14)** dan antarmuka web modern berestetika **Brandlos / Nordic Modern (Vue 3 + Tailwind CSS + Pinia)**. Siap operasional harian, akreditasi Kemenkes RI, dan kepatuhan perpajakan DJP.
+
+---
+
+## 📚 Dokumentasi Lengkap Sistem
+Dokumentasi teknis menyeluruh mencakup arsitektur backend, database PostgreSQL, 106 akun COA BCS, katalog REST API, arsitektur frontend, modul saldo awal, dan perpajakan bank-only dapat diakses di:
+👉 **[DOKUMENTASI SISTEM LENGKAP (docs/SYSTEM_DOCUMENTATION.md)](file:///Users/macbookpro/Documents/project-11/clinic/docs/SYSTEM_DOCUMENTATION.md)**  
+👉 **[RINGKASAN TEKNIS REPOSITORI (DOCUMENTATION.md)](file:///Users/macbookpro/Documents/project-11/clinic/DOCUMENTATION.md)**
 
 ---
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	authRepo "clinic-api/internal/auth/repository"
 	authUsecase "clinic-api/internal/auth/usecase"
 	"clinic-api/internal/billing"
+	"clinic-api/internal/bootstrap"
 	cashierHttp "clinic-api/internal/cashier/delivery/http"
 	cashierRepo "clinic-api/internal/cashier/repository"
 	cashierUsecase "clinic-api/internal/cashier/usecase"
@@ -40,6 +42,7 @@ import (
 	staffHttp "clinic-api/internal/staff/delivery/http"
 	staffRepo "clinic-api/internal/staff/repository"
 	staffUsecase "clinic-api/internal/staff/usecase"
+	accRoutes "clinic-api/internal/transport/http/routes"
 	legacyDb "clinic-api/pkg/database"
 
 	"github.com/go-chi/chi/v5"
@@ -241,6 +244,11 @@ func main() {
 		// Dev & Demo God Mode (Guarded: Dev only)
 		devHandler := dev.NewDevHandler(pgDB)
 		dev.RegisterDevRoutes(r, devHandler)
+
+		// Bounded Context: Accounting & Financial ERP (Dual Mount on /api/accounting)
+		accContainer := bootstrap.BuildContainer(pgDB)
+		accRoutes.MountAccountingRoutes(r, accContainer.Handlers)
+		log.Printf("[ACCOUNTING] Accounting API mounted at /api/accounting")
 	}
 
 	// 4. Register Fallback Legacy Modules jika PostgreSQL tidak tersedia (Offline / Mock Mode)
@@ -266,6 +274,7 @@ func main() {
 	log.Printf("   Health: http://localhost:%s/health", port)
 	log.Printf("   Auth: http://localhost:%s/api/auth/login", port)
 	log.Printf("   Staff Admin: http://localhost:%s/api/admin/staff", port)
+	log.Printf("   Accounting: http://localhost:%s/api/accounting", port)
 	log.Printf("==================================================")
 
 	if err := http.ListenAndServe(":"+port, r); err != nil {
@@ -275,5 +284,5 @@ func main() {
 
 func jsonResponse(w http.ResponseWriter, status int, data interface{}) error {
 	w.WriteHeader(status)
-	return nil
+	return json.NewEncoder(w).Encode(data)
 }

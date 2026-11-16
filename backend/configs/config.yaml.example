@@ -1,0 +1,53 @@
+app:
+  name: "clinic-erp-backend"
+  env: "production" # development, staging, production
+  port: 8080
+  shutdown_timeout_seconds: 15
+  log_level: "info" # debug, info, warn, error
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "strong_password"
+  dbname: "clinic_accounting"
+  sslmode: "disable"
+  max_open_conns: 50
+  max_idle_conns: 25
+  conn_max_lifetime_minutes: 30
+  conn_max_idle_time_minutes: 5
+
+redis:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
+
+worker:
+  concurrency: 10
+  queues:
+    critical: 6
+    default: 3
+    low: 1
+
+auth:
+  jwt_secret: "change_in_production_super_secret_key"
+  access_token_expiry_minutes: 60
+  refresh_token_expiry_days: 7
+
+accounting:
+  base_currency: "IDR"
+  fiscal_year_start_month: 1
+  auto_posting: true
+  allow_negative_inventory: false
+
+# [POSTPONED / DITUNDA] Payment Gateway Configuration
+# Diaktifkan pada fase integrasi payment gateway berikutnya
+payment_gateway:
+  enabled: false # Status: Ditunda
+  provider: "midtrans" # midtrans / xendit (future)
+  server_key: ""
+  client_key: ""
+  webhook_secret: ""
+  is_production: false
+
