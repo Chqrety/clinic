@@ -147,6 +147,17 @@ function setTab(tab: 'CASH' | 'BANK') {
   }
 }
 
+// Ensure selected account is valid when business unit filter changes
+watch(
+  () => [accountingStore.businessUnit, relevantAccounts.value],
+  () => {
+    const list = relevantAccounts.value
+    if (list.length > 0 && !list.some(a => a.code === selectedAccountCode.value)) {
+      selectedAccountCode.value = list[0].code
+    }
+  }
+)
+
 // Watch new account category to generate recommended code
 watch(
   () => newAccountForm.value.category,
@@ -181,6 +192,7 @@ const combinedEntries = computed(() => {
       type: matchedTx?.type || (entry.debit > 0 ? 'CASH_IN' : 'CASH_OUT'),
       counterpart: matchedTx?.counterpartAccountName || (entry.debit > 0 ? 'Kasir / Lawan Akun' : 'Operasional'),
       counterpartyName: matchedTx?.recipientOrPayer || (entry.debit > 0 ? 'Pasien / Kasir' : 'Vendor / Staf'),
+      businessUnit: matchedTx?.businessUnit || entry.businessUnit || 'ALL',
       rawTx: matchedTx
     }
   })
@@ -189,6 +201,16 @@ const combinedEntries = computed(() => {
 // Filtered entries
 const filteredEntries = computed(() => {
   return combinedEntries.value.filter(item => {
+    if (accountingStore.businessUnit !== 'ALL' && item.businessUnit && item.businessUnit !== 'ALL' && item.businessUnit !== accountingStore.businessUnit) {
+      return false
+    }
+    if (accountingStore.fiscalMonth && item.date) {
+      const parts = item.date.split('-')
+      if (parts.length >= 2) {
+        const m = parseInt(parts[1], 10)
+        if (m !== accountingStore.fiscalMonth) return false
+      }
+    }
     if (selectedTypeFilter.value !== 'ALL' && item.type !== selectedTypeFilter.value) {
       return false
     }

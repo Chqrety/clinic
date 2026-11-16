@@ -504,6 +504,9 @@ export const useTaxStore = defineStore('tax', () => {
   // Filtered SPT Masa Records (STRICTLY BANK VERIFIED)
   const filteredSptMasa = computed(() => {
     return sptMasaRecords.value.filter(s => {
+      if (accountingStore.businessUnit !== 'ALL' && s.businessUnit && s.businessUnit !== 'ALL' && s.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
       if (s.masaYear !== selectedYear.value) return false
       if (selectedMonth.value && s.masaMonth !== selectedMonth.value) return false
       if (selectedSptMasaTypeFilter.value !== 'ALL' && s.taxType !== selectedSptMasaTypeFilter.value) return false
@@ -974,6 +977,9 @@ export const useTaxStore = defineStore('tax', () => {
   // Filtered Tax Transactions based on selected Tax Account
   const filteredTaxTransactions = computed(() => {
     return taxTransactions.value.filter(tx => {
+      if (accountingStore.businessUnit !== 'ALL' && tx.businessUnit && tx.businessUnit !== 'ALL' && tx.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
       if (selectedTaxAccountCode.value !== 'ALL') {
         if (selectedTaxAccountCode.value === '2501.001' && tx.accountCode !== '2501.001') return false
         if (selectedTaxAccountCode.value === '2501.002' && tx.accountCode !== '2501.002') return false
@@ -1084,7 +1090,7 @@ export const useTaxStore = defineStore('tax', () => {
   // Filtered doctor tax records
   const filteredDoctorTax = computed(() => {
     return doctorTaxRecords.value.filter(d => {
-      if (accountingStore.businessUnit !== 'ALL' && d.businessUnit !== accountingStore.businessUnit) {
+      if (accountingStore.businessUnit !== 'ALL' && d.businessUnit && d.businessUnit !== 'ALL' && d.businessUnit !== accountingStore.businessUnit) {
         return false
       }
       return true

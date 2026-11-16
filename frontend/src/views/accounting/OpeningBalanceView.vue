@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
@@ -35,8 +35,12 @@ const journalsStore = useJournalsStore()
 // Opening Balance Header Form
 const cutOffDate = ref('2026-01-01')
 const referenceNo = ref('OP-20260101-CLINIC')
-const selectedUnit = ref<BusinessUnit>('ALL')
+const selectedUnit = ref<BusinessUnit>(accountingStore.businessUnit || 'ALL')
 const description = ref('Saldo Awal Pembukuan Akuntansi & Neraca Migrasi Klinik Kidinest & SSC per 1 Januari 2026')
+
+watch(() => accountingStore.businessUnit, (unit) => {
+  if (unit) selectedUnit.value = unit
+})
 
 // Search & Filter
 const searchQuery = ref('')
@@ -51,6 +55,7 @@ interface OpeningBalanceRowState {
   level: number
   isHeader: boolean
   parentCode?: string
+  businessUnit?: BusinessUnit
   debit: number
   credit: number
   notes: string
@@ -82,6 +87,7 @@ function initializeRows() {
         level: a.level,
         isHeader: a.isHeader,
         parentCode: a.parentCode,
+        businessUnit: a.businessUnit,
         debit: d,
         credit: c,
         notes: ''
@@ -100,6 +106,11 @@ onMounted(async () => {
 // Filtered Accounts
 const filteredRows = computed(() => {
   return balanceRows.value.filter(r => {
+    // Business Unit filter
+    if (accountingStore.businessUnit !== 'ALL' && r.businessUnit && r.businessUnit !== 'ALL' && r.businessUnit !== accountingStore.businessUnit) {
+      return false
+    }
+
     // Category filter
     if (selectedCategory.value === 'ASSET' && r.type !== 'ASSET') return false
     if (selectedCategory.value === 'LIABILITY' && r.type !== 'LIABILITY') return false

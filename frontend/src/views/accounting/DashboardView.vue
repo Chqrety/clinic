@@ -46,12 +46,12 @@ const balance = computed(() => reportsStore.balanceSheet)
 
 // Recent posted journals
 const recentJournals = computed(() => {
-  return journalsStore.journals.slice(0, 5)
+  return journalsStore.filteredJournals.slice(0, 5)
 })
 
 // Unprocessed transactions preview
 const unprocessedTransactions = computed(() => {
-  return transactionsStore.transactions.filter(t => t.journalStatus === 'UNPROCESSED').slice(0, 4)
+  return transactionsStore.filteredTransactions.filter(t => t.journalStatus === 'UNPROCESSED').slice(0, 4)
 })
 </script>
 

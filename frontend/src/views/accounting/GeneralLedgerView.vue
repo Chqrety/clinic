@@ -186,12 +186,33 @@ function inspectJournalByNumber(jNumber: string) {
 }
 
 const nonHeaderAccounts = computed(() => {
-  return ledgerStore.accounts.filter(a => !a.isHeader)
+  return ledgerStore.accounts.filter(a => {
+    if (a.isHeader) return false
+    if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
+      return false
+    }
+    return true
+  })
 })
 
 const allAccountsGrouped = computed(() => {
-  return ledgerStore.accounts
+  return ledgerStore.accounts.filter(a => {
+    if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
+      return false
+    }
+    return true
+  })
 })
+
+watch(
+  () => accountingStore.businessUnit,
+  () => {
+    const list = nonHeaderAccounts.value
+    if (list.length > 0 && !list.some(a => a.code === selectedAccountCode.value)) {
+      selectedAccountCode.value = list[0].code
+    }
+  }
+)
 
 const activeAccount = computed(() => {
   const code = selectedAccountCode.value
@@ -311,14 +332,20 @@ const accountLedgerEntries = computed<SubsidiaryLedgerItem[]>(() => {
 })
 
 const filteredLedgerEntries = computed(() => {
-  if (!searchQuery.value.trim()) return accountLedgerEntries.value
-  const q = searchQuery.value.toLowerCase().trim()
-  return accountLedgerEntries.value.filter(e =>
-    e.journalNumber.toLowerCase().includes(q) ||
-    e.description.toLowerCase().includes(q) ||
-    e.source.toLowerCase().includes(q) ||
-    e.date.includes(q)
-  )
+  return accountLedgerEntries.value.filter(e => {
+    if (accountingStore.businessUnit !== 'ALL' && e.businessUnit && e.businessUnit !== 'ALL' && e.businessUnit !== accountingStore.businessUnit) {
+      return false
+    }
+    if (searchQuery.value.trim()) {
+      const q = searchQuery.value.toLowerCase().trim()
+      const match = e.journalNumber.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q) ||
+        e.source.toLowerCase().includes(q) ||
+        e.date.includes(q)
+      if (!match) return false
+    }
+    return true
+  })
 })
 
 const totalDebit = computed(() => filteredLedgerEntries.value.reduce((s, e) => s + e.debit, 0))

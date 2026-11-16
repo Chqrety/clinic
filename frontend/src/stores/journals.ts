@@ -366,11 +366,18 @@ export const useJournalsStore = defineStore('journals', () => {
     }
   ])
 
-  // Filtered journals based on global filters (Pure Unit Filter)
+  // Filtered journals based on global filters (Business Unit & Fiscal Month)
   const filteredJournals = computed(() => {
     return journals.value.filter(j => {
       if (accountingStore.businessUnit !== 'ALL' && j.businessUnit !== 'ALL' && j.businessUnit !== accountingStore.businessUnit) {
         return false
+      }
+      if (accountingStore.fiscalMonth && j.journalDate) {
+        const parts = j.journalDate.split('-')
+        if (parts.length >= 2) {
+          const m = parseInt(parts[1], 10)
+          if (m !== accountingStore.fiscalMonth) return false
+        }
       }
       return true
     })
@@ -590,33 +597,40 @@ export const useJournalsStore = defineStore('journals', () => {
       isLoading.value = true
       const backendJournals = await accountingApi.getJournals({ limit: 100 })
       if (backendJournals && backendJournals.length > 0) {
-        journals.value = backendJournals.map(j => ({
-          id: j.id,
-          journalNumber: j.journal_number,
-          journalDate: j.transaction_date,
-          journalSource: (j.reference_type as JournalSource) || 'MANUAL',
-          sourceReference: j.reference_id || j.journal_number,
-          businessUnit: 'ALL',
-          branchId: j.branch_id || 'BRANCH-MAIN',
-          branchName: 'Kantor Pusat Semarang',
-          description: j.description,
-          totalDebit: Number(j.total_debit),
-          totalCredit: Number(j.total_credit),
-          status: (j.status as JournalStatus) || 'POSTED',
-          lines: (j.lines || []).map((l, idx) => ({
-            id: l.id || `jl-${idx}`,
-            accountId: l.account_id,
-            accountCode: l.account_code,
-            accountName: l.account_name,
-            debit: Number(l.debit),
-            credit: Number(l.credit),
-            description: l.description || j.description
-          })),
-          createdBy: accountingStore.currentUserEmail,
-          createdByName: accountingStore.currentUserName,
-          createdAt: j.created_at || new Date().toISOString(),
-          isManual: true
-        }))
+        journals.value = backendJournals.map(j => {
+          let bu: BusinessUnit = 'ALL'
+          const descUpper = (j.description || '').toUpperCase()
+          if (descUpper.includes('KIDINEST')) bu = 'KIDINEST'
+          else if (descUpper.includes('SSC') || descUpper.includes('SEMARANG SKIN CENTER')) bu = 'SSC'
+
+          return {
+            id: j.id,
+            journalNumber: j.journal_number,
+            journalDate: j.transaction_date,
+            journalSource: (j.reference_type as JournalSource) || 'MANUAL',
+            sourceReference: j.reference_id || j.journal_number,
+            businessUnit: bu,
+            branchId: j.branch_id || 'BRANCH-MAIN',
+            branchName: 'Kantor Pusat Semarang',
+            description: j.description,
+            totalDebit: Number(j.total_debit),
+            totalCredit: Number(j.total_credit),
+            status: (j.status as JournalStatus) || 'POSTED',
+            lines: (j.lines || []).map((l, idx) => ({
+              id: l.id || `jl-${idx}`,
+              accountId: l.account_id,
+              accountCode: l.account_code,
+              accountName: l.account_name,
+              debit: Number(l.debit),
+              credit: Number(l.credit),
+              description: l.description || j.description
+            })),
+            createdBy: accountingStore.currentUserEmail,
+            createdByName: accountingStore.currentUserName,
+            createdAt: j.created_at || new Date().toISOString(),
+            isManual: true
+          }
+        })
       }
     } catch (err: any) {
       console.error('Failed to fetch journals from database:', err)

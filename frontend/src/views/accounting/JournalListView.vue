@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useJournalsStore } from '@/stores/journals'
 import { useLedgerStore } from '@/stores/ledger'
@@ -60,9 +60,18 @@ interface InlineRow {
 }
 
 const newJournalDate = ref(new Date().toISOString().split('T')[0])
-const newJournalUnit = ref<BusinessUnit>('KIDINEST')
+const newJournalUnit = ref<BusinessUnit>(accountingStore.businessUnit === 'SSC' ? 'SSC' : 'KIDINEST')
 const newJournalRef = ref('')
 const newJournalDesc = ref('')
+
+watch(
+  () => accountingStore.businessUnit,
+  (unit) => {
+    if (unit === 'KIDINEST' || unit === 'SSC') {
+      newJournalUnit.value = unit
+    }
+  }
+)
 
 const inlineRows = ref<InlineRow[]>([
   {
@@ -245,7 +254,7 @@ function handleExportExcel() {
     'Diposting Oleh': j.postedByName || '-'
   }))
 
-  exportToExcel(data, `Daftar_Jurnal_${accountingStore.businessUnit}_2026-03`, 'Jurnal Umum')
+  exportToExcel(data, `Daftar_Jurnal_${accountingStore.businessUnit}_2026-${String(accountingStore.fiscalMonth).padStart(2, '0')}`, 'Jurnal Umum')
   accountingStore.showToast('Data jurnal berhasil diekspor ke Excel (.xlsx)', 'success')
 }
 </script>

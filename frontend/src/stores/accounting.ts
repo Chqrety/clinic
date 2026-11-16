@@ -99,6 +99,13 @@ export const useAccountingStore = defineStore('accounting', () => {
 
   function setBusinessUnit(unit: BusinessUnit) {
     businessUnit.value = unit
+    showToast(`Filter Unit Bisnis: ${unit === 'ALL' ? 'Semua Unit (Konsolidasi)' : unit}`, 'info')
+  }
+
+  function setFiscalMonth(month: number) {
+    fiscalMonth.value = month
+    const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+    showToast(`Periode Fiskal: ${monthNames[month] || month} ${fiscalYear.value}`, 'info')
   }
 
   function setBranch(branch: BranchCode) {
@@ -174,6 +181,7 @@ export const useAccountingStore = defineStore('accounting', () => {
     showToast,
     markAllNotificationsRead,
     setBusinessUnit,
+    setFiscalMonth,
     setBranch,
     setRole,
     canCreateDraft,

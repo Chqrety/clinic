@@ -122,6 +122,9 @@ const typeOptions = [
 
 const filteredAccounts = computed(() => {
   return ledgerStore.accounts.filter(a => {
+    if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
+      return false
+    }
     if (selectedType.value !== 'ALL') {
       if (selectedType.value === 'REVENUE' && (a.type !== 'REVENUE')) return false
       else if (selectedType.value === 'EXPENSE' && (a.type !== 'EXPENSE')) return false

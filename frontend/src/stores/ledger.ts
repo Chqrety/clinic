@@ -157,6 +157,13 @@ export const useLedgerStore = defineStore('ledger', () => {
       if (accountingStore.businessUnit !== 'ALL' && journal.businessUnit !== 'ALL' && journal.businessUnit !== accountingStore.businessUnit) {
         continue
       }
+      if (accountingStore.fiscalMonth && journal.journalDate) {
+        const parts = journal.journalDate.split('-')
+        if (parts.length >= 2) {
+          const m = parseInt(parts[1], 10)
+          if (m !== accountingStore.fiscalMonth) continue
+        }
+      }
 
       for (const line of journal.lines) {
         list.push({
@@ -214,7 +221,13 @@ export const useLedgerStore = defineStore('ledger', () => {
 
   // Compute Trial Balance Rows dynamically
   const trialBalanceRows = computed<TrialBalanceRow[]>(() => {
-    const nonHeaderAccounts = accounts.value.filter(a => !a.isHeader)
+    const nonHeaderAccounts = accounts.value.filter(a => {
+      if (a.isHeader) return false
+      if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
+      return true
+    })
     const rows: TrialBalanceRow[] = []
 
     for (const acc of nonHeaderAccounts) {

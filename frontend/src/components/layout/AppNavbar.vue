@@ -60,7 +60,7 @@ async function handleLogout() {
         </div>
         <select
           :value="store.fiscalMonth"
-          @change="(e: any) => store.fiscalMonth = Number(e.target.value)"
+          @change="(e: any) => store.setFiscalMonth(Number(e.target.value))"
           class="pl-8 pr-7 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-900 text-xs rounded-xl font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none appearance-none cursor-pointer"
         >
           <option :value="3">Maret 2026 (Open)</option>

@@ -204,6 +204,9 @@ export const useCashBankStore = defineStore('cashbank', () => {
   const cashAccounts = computed(() => {
     return ledgerStore.accounts.filter(a => {
       if (a.isHeader) return false
+      if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
       return a.parentCode === '1101' || a.code.startsWith('1101.') || a.code === '1101'
     })
   })
@@ -212,6 +215,9 @@ export const useCashBankStore = defineStore('cashbank', () => {
   const bankAccounts = computed(() => {
     return ledgerStore.accounts.filter(a => {
       if (a.isHeader) return false
+      if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
       return (
         a.parentCode === '1102' ||
         a.parentCode === '1103' ||
