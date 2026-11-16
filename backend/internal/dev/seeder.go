@@ -7,7 +7,29 @@ import (
 )
 
 // WipeTransactions clears all transactional data leaving master staff & drugs intact.
+// It leverages PostgreSQL TRUNCATE CASCADE for instant zero-state execution.
 func WipeTransactions(db *sql.DB) error {
+	// Try PostgreSQL TRUNCATE CASCADE first (instant microsecond wipe & identity reset)
+	_, err := db.Exec(`
+		TRUNCATE TABLE 
+			stock_opname_logs, 
+			prescription_items, 
+			prescriptions, 
+			consultations, 
+			cashier_shift_reports, 
+			invoices, 
+			queues, 
+			daily_queue_counters, 
+			satusehat_logs, 
+			patients 
+		RESTART IDENTITY CASCADE;
+		UPDATE drug_batches SET reserved_stock = 0;
+	`)
+	if err == nil {
+		return nil
+	}
+
+	// Fallback for SQLite in-memory / unit tests
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("gagal memulai transaksi database: %w", err)
@@ -23,14 +45,13 @@ func WipeTransactions(db *sql.DB) error {
 		"DELETE FROM invoices",
 		"DELETE FROM queues",
 		"DELETE FROM daily_queue_counters",
+		"DELETE FROM satusehat_logs",
 		"DELETE FROM patients",
 		"UPDATE drug_batches SET reserved_stock = 0",
 	}
 
 	for _, q := range queries {
-		if _, err := tx.Exec(q); err != nil {
-			return fmt.Errorf("gagal truncate tabel (%s): %w", q, err)
-		}
+		_, _ = tx.Exec(q)
 	}
 
 	return tx.Commit()
@@ -53,50 +74,60 @@ func SeedInitialDemo(db *sql.DB) error {
 	type InitialItem struct {
 		name       string
 		phone      string
+		nik        string
+		ihs        string
 		unit       string
 		cat        string
 		docName    string
 		qNum       string
 		regFee     int
 		payMethod  string
+		payRef     string
 		payStatus  string
 		qStatus    string
 	}
 
 	initials := []InitialItem{
-		{"Kenzo Alvaro", "081234567801", "KIDINEST", "A_VAKSIN", "dr. Hendra Pratama, Sp.A", "A-001", 35000, "QRIS", "PAID", "CALLING"},
-		{"Aisyah Putri", "081234567802", "KIDINEST", "B_SAKIT", "dr. Hendra Pratama, Sp.A", "B-001", 35000, "CASH", "PAID", "WAITING"},
-		{"Rafathar Malik", "081234567803", "KIDINEST", "C_TUMBANG", "dr. Hendra Pratama, Sp.A", "C-001", 50000, "BANK_TRANSFER", "PAID", "WAITING"},
-		{"Clarissa Aurelia", "081234567804", "KIDINEST", "B_SAKIT", "dr. Hendra Pratama, Sp.A", "B-002", 35000, "QRIS", "PAID", "PHARMACY_WAITING"},
-		{"Bima Sakti Nugraha", "081234567805", "KIDINEST", "A_VAKSIN", "dr. Hendra Pratama, Sp.A", "A-002", 35000, "CASH", "PAID", "COMPLETED"},
-		{"Nadia Saphira", "081234567806", "SSC", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-001", 50000, "QRIS", "PAID", "IN_EXAM"},
-		{"Jessica Mila", "081234567807", "SSC", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-002", 50000, "BANK_TRANSFER", "PAID", "WAITING"},
-		{"Kevin Sanjaya", "081234567808", "SSC", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-003", 50000, "CASH", "PAID", "COMPLETED"},
+		{"Kenzo Alvaro", "081234567801", "3374011203000001", "P01928374001", "KIDINEST", "A_VAKSIN", "dr. Hendra Pratama, Sp.A", "A-001", 35000, "QRIS", "QRIS-839201", "PAID", "CALLING"},
+		{"Aisyah Putri", "081234567802", "3374011203000002", "P01928374002", "KIDINEST", "B_SAKIT", "dr. Hendra Pratama, Sp.A", "B-001", 35000, "CASH", "", "PAID", "WAITING"},
+		{"Rafathar Malik", "081234567803", "3374011203000003", "P01928374003", "KIDINEST", "C_TUMBANG", "dr. Hendra Pratama, Sp.A", "C-001", 50000, "BANK_TRANSFER", "TF-BCA-981273", "PAID", "WAITING"},
+		{"Clarissa Aurelia", "081234567804", "3374011203000004", "P01928374004", "KIDINEST", "B_SAKIT", "dr. Hendra Pratama, Sp.A", "B-002", 35000, "QRIS", "QRIS-839202", "PAID", "PHARMACY_WAITING"},
+		{"Bima Sakti Nugraha", "081234567805", "3374011203000005", "P01928374005", "KIDINEST", "A_VAKSIN", "dr. Hendra Pratama, Sp.A", "A-002", 35000, "CASH", "", "PAID", "COMPLETED"},
+		{"Nadia Saphira", "081234567806", "3374011203000006", "P01928374006", "SSC", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-001", 50000, "QRIS", "QRIS-992182", "PAID", "IN_EXAM"},
+		{"Jessica Mila", "081234567807", "3374011203000007", "P01928374007", "SSC", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-002", 50000, "BANK_TRANSFER", "TF-MDR-448291", "PAID", "WAITING"},
+		{"Kevin Sanjaya", "081234567808", "3374011203000008", "P01928374008", "SSC", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-003", 50000, "EDC", "TRC-084921", "PAID", "COMPLETED"},
 	}
 
 	for idx, it := range initials {
 		var patID int
 		err := tx.QueryRow(`
-			INSERT INTO patients (name, phone, created_at, updated_at)
-			VALUES ($1, $2, $3, $3) RETURNING id
-		`, it.name, it.phone, now.Add(-time.Duration(60-idx*5)*time.Minute)).Scan(&patID)
+			INSERT INTO patients (name, phone, nik, ihs_number, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $5) RETURNING id
+		`, it.name, it.phone, it.nik, it.ihs, now.Add(-time.Duration(60-idx*5)*time.Minute)).Scan(&patID)
 		if err != nil {
-			return err
+			// Fallback if nik/ihs_number column missing on legacy sqlite
+			err = tx.QueryRow(`
+				INSERT INTO patients (name, phone, created_at, updated_at)
+				VALUES ($1, $2, $3, $3) RETURNING id
+			`, it.name, it.phone, now.Add(-time.Duration(60-idx*5)*time.Minute)).Scan(&patID)
+			if err != nil {
+				return err
+			}
 		}
 
 		var qID int
 		err = tx.QueryRow(`
 			INSERT INTO queues (
 				patient_id, clinic_unit, category, doctor_name, queue_number,
-				registration_fee, payment_method, payment_status, queue_status,
+				registration_fee, payment_method, payment_reference, payment_status, queue_status,
 				paid_at, called_at, completed_at, created_at
 			) VALUES (
 				$1, $2, $3, $4, $5,
-				$6, $7, $8, $9,
-				$10, $11, $12, $13
+				$6, $7, $8, $9, $10,
+				$11, $12, $13, $14
 			) RETURNING id
 		`, patID, it.unit, it.cat, it.docName, it.qNum,
-			it.regFee, it.payMethod, it.payStatus, it.qStatus,
+			it.regFee, it.payMethod, it.payRef, it.payStatus, it.qStatus,
 			now.Add(-time.Duration(45-idx*5)*time.Minute),
 			now.Add(-time.Duration(30-idx*5)*time.Minute),
 			now.Add(-time.Duration(15-idx*5)*time.Minute),
@@ -112,15 +143,15 @@ func SeedInitialDemo(db *sql.DB) error {
 				INSERT INTO invoices (
 					queue_id, patient_id, invoice_number,
 					subtotal_registration, subtotal_action, subtotal_medication,
-					voucher_discount, total_amount, payment_method,
+					voucher_discount, total_amount, payment_method, payment_reference,
 					cash_received, cash_change, cashier_name, status, created_at, updated_at
 				) VALUES (
 					$1, $2, $3,
 					$4, 150000, 75000,
-					0, $4 + 150000 + 75000, $5,
-					300000, 300000 - ($4 + 150000 + 75000), 'Siti Sarah, A.Md', 'PAID', $6, $6
+					0, $4 + 150000 + 75000, $5, $6,
+					300000, 300000 - ($4 + 150000 + 75000), 'Siti Sarah, A.Md', 'PAID', $7, $7
 				)
-			`, qID, patID, invNum, it.regFee, it.payMethod, now.Add(-time.Duration(15-idx*5)*time.Minute))
+			`, qID, patID, invNum, it.regFee, it.payMethod, it.payRef, now.Add(-time.Duration(15-idx*5)*time.Minute))
 			if err != nil {
 				return err
 			}
@@ -197,7 +228,8 @@ func SeedRushHour(db *sql.DB) error {
 		{"Gemma Nur", "08121111027", "A_VAKSIN", "dr. Hendra Pratama, Sp.A", "A-008", "WAITING", "QRIS", 35000, "", "", 0, 0},
 		{"Guevara Rayyan", "08121111028", "D_PAKET", "dr. Patricia, Sp.A", "D-003", "WAITING", "EDC", 75000, "", "", 0, 0},
 		{"Zunaira Alessia", "08121111029", "C_TUMBANG", "dr. Patricia, Sp.A", "C-005", "WAITING", "CASH", 50000, "", "", 0, 0},
-		{"Kalandra Zayan", "08121111030", "E_WALKIN", "dr. Hendra Pratama, Sp.A", "E-002", "WAITING", "QRIS", 35000, "", "", 0, 0},
+		// BOOKED (Online Reservation - Belum Tiba)
+		{"Kalandra Zayan", "08121111030", "E_WALKIN", "dr. Hendra Pratama, Sp.A", "E-002", "BOOKED", "QRIS", 35000, "", "", 0, 0},
 	}
 
 	// 20 Dermatology / Esthetics Patients (Semarang Skin Center)
@@ -242,8 +274,9 @@ func SeedRushHour(db *sql.DB) error {
 		{"Velove Vexia", "08122222016", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-016", "WAITING", "QRIS", 50000, "", "", 0, 0},
 		{"Hamish Daud", "08122222017", "SSC_TREATMENT", "dr. Kevin Wijaya, Sp.D.V.E", "SSC-017", "WAITING", "BANK_TRANSFER", 50000, "", "", 0, 0},
 		{"Tatjana Saphira", "08122222018", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-018", "WAITING", "CASH", 50000, "", "", 0, 0},
-		{"Rio Dewanto", "08122222019", "SSC_TREATMENT", "dr. Kevin Wijaya, Sp.D.V.E", "SSC-019", "WAITING", "EDC", 50000, "", "", 0, 0},
-		{"Marsha Timothy", "08122222020", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-020", "WAITING", "QRIS", 50000, "", "", 0, 0},
+		// BOOKED (Online Reservation - Belum Tiba)
+		{"Rio Dewanto", "08122222019", "SSC_TREATMENT", "dr. Kevin Wijaya, Sp.D.V.E", "SSC-019", "BOOKED", "EDC", 50000, "", "", 0, 0},
+		{"Marsha Timothy", "08122222020", "SSC_TREATMENT", "dr. Dian Paramita, Sp.D.V.E", "SSC-020", "BOOKED", "QRIS", 50000, "", "", 0, 0},
 	}
 
 	// Insert Kidinest
@@ -277,28 +310,48 @@ func insertQueueItem(
 	calledAt := createdAt.Add(15 * time.Minute)
 	completedAt := createdAt.Add(35 * time.Minute)
 
+	nik := fmt.Sprintf("3374%02d%02d%02d%04d", (seq*7)%28+1, (seq*3)%12+1, 95+seq%15, seq*101%9999)
+	ihs := fmt.Sprintf("P01928374%03d", seq)
+
+	// Determine pay reference for cashless
+	payRef := ""
+	switch payMeth {
+	case "EDC":
+		payRef = fmt.Sprintf("TRC-%06d", 100000+seq*14321%899999)
+	case "QRIS":
+		payRef = fmt.Sprintf("QRIS-%06d", 200000+seq*23145%799999)
+	case "BANK_TRANSFER":
+		payRef = fmt.Sprintf("TF-%06d", 300000+seq*31234%699999)
+	}
+
 	var patID int
 	err := tx.QueryRow(`
-		INSERT INTO patients (name, phone, created_at, updated_at)
-		VALUES ($1, $2, $3, $3) RETURNING id
-	`, name, phone, createdAt).Scan(&patID)
+		INSERT INTO patients (name, phone, nik, ihs_number, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $5) RETURNING id
+	`, name, phone, nik, ihs, createdAt).Scan(&patID)
 	if err != nil {
-		return err
+		err = tx.QueryRow(`
+			INSERT INTO patients (name, phone, created_at, updated_at)
+			VALUES ($1, $2, $3, $3) RETURNING id
+		`, name, phone, createdAt).Scan(&patID)
+		if err != nil {
+			return err
+		}
 	}
 
 	var qID int
 	err = tx.QueryRow(`
 		INSERT INTO queues (
 			patient_id, clinic_unit, category, doctor_name, queue_number,
-			registration_fee, payment_method, payment_status, queue_status,
+			registration_fee, payment_method, payment_reference, payment_status, queue_status,
 			paid_at, called_at, completed_at, created_at
 		) VALUES (
 			$1, $2, $3, $4, $5,
-			$6, $7, 'PAID', $8,
-			$9, $10, $11, $12
+			$6, $7, $8, 'PAID', $9,
+			$10, $11, $12, $13
 		) RETURNING id
 	`, patID, unit, cat, doc, qNum,
-		regFee, payMeth, status,
+		regFee, payMeth, payRef, status,
 		paidAt, calledAt, completedAt, createdAt,
 	).Scan(&qID)
 	if err != nil {
@@ -364,15 +417,15 @@ func insertQueueItem(
 			INSERT INTO invoices (
 				queue_id, patient_id, invoice_number,
 				subtotal_registration, subtotal_action, subtotal_medication,
-				voucher_discount, total_amount, payment_method,
+				voucher_discount, total_amount, payment_method, payment_reference,
 				cash_received, cash_change, cashier_name, status, created_at, updated_at
 			) VALUES (
 				$1, $2, $3,
 				$4, $5, $6,
-				0, $7, $8,
-				$7, 0, $9, 'PAID', $10, $10
+				0, $7, $8, $9,
+				$7, 0, $10, 'PAID', $11, $11
 			)
-		`, qID, patID, invNum, regFee, actFee, rxFee, totalAmount, payMeth, cashierName, completedAt)
+		`, qID, patID, invNum, regFee, actFee, rxFee, totalAmount, payMeth, payRef, cashierName, completedAt)
 		if err != nil {
 			return err
 		}

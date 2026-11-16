@@ -23,6 +23,10 @@ func (m *mockInvoiceRepo) Create(ctx context.Context, inv *domain.Invoice) error
 	return nil
 }
 
+func (m *mockInvoiceRepo) SettleInvoice(ctx context.Context, inv *domain.Invoice, queueID int64) error {
+	return m.Create(ctx, inv)
+}
+
 func (m *mockInvoiceRepo) GetByID(ctx context.Context, id int64) (*domain.Invoice, error) {
 	for _, inv := range m.invoices {
 		if inv.ID == id {
@@ -272,6 +276,26 @@ func TestPayBillCalculationAndVoucher(t *testing.T) {
 	}
 	if inv.Status != domain.InvoiceStatusPaid {
 		t.Errorf("expected status PAID, got %s", inv.Status)
+	}
+
+	// 4. Exact 100% voucher discount (Zero net payable edge case)
+	invZero, err := uc.PayBill(ctx, &domain.PayBillRequest{
+		QueueID:              10,
+		SubtotalRegistration: 50000,
+		SubtotalAction:       100000,
+		SubtotalMedication:   50000,
+		VoucherDiscount:      200000, // 100% discount, net = 0
+		PaymentMethod:        domain.PaymentMethodCash,
+		CashReceived:         0,
+	}, 4, "Siti Sarah")
+	if err != nil {
+		t.Fatalf("unexpected error on 100%% voucher: %v", err)
+	}
+	if invZero.TotalAmount != 0 {
+		t.Errorf("expected 0 net amount, got %d", invZero.TotalAmount)
+	}
+	if invZero.CashChange != 0 {
+		t.Errorf("expected 0 change, got %d", invZero.CashChange)
 	}
 }
 

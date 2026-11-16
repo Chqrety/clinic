@@ -169,7 +169,7 @@ func (r *PostgresPharmacyRepository) DispensePrescriptionTx(ctx context.Context,
 	}
 
 	// Fetch items
-	rows, err := tx.QueryContext(ctx, `SELECT drug_id, is_manual, quantity FROM prescription_items WHERE prescription_id = $1`, id)
+	rows, err := tx.QueryContext(ctx, `SELECT drug_id, batch_id, is_manual, quantity FROM prescription_items WHERE prescription_id = $1`, id)
 	if err != nil {
 		return err
 	}
@@ -177,17 +177,24 @@ func (r *PostgresPharmacyRepository) DispensePrescriptionTx(ctx context.Context,
 
 	type rxDeduct struct {
 		drugID   int64
+		batchID  *int64
 		quantity int
 	}
 	var deducts []rxDeduct
 
 	for rows.Next() {
 		var drugID sql.NullInt64
+		var batchID sql.NullInt64
 		var isManual bool
 		var qty int
-		if err := rows.Scan(&drugID, &isManual, &qty); err == nil {
+		if err := rows.Scan(&drugID, &batchID, &isManual, &qty); err == nil {
 			if !isManual && drugID.Valid {
-				deducts = append(deducts, rxDeduct{drugID: drugID.Int64, quantity: qty})
+				var bPtr *int64
+				if batchID.Valid {
+					val := batchID.Int64
+					bPtr = &val
+				}
+				deducts = append(deducts, rxDeduct{drugID: drugID.Int64, batchID: bPtr, quantity: qty})
 			}
 		}
 	}
@@ -195,31 +202,47 @@ func (r *PostgresPharmacyRepository) DispensePrescriptionTx(ctx context.Context,
 
 	// Invariant deduction on drug_batches
 	for _, d := range deducts {
-		// Cut physical and release reserved
-		updateQuery := `
-			UPDATE drug_batches
-			SET physical_stock = physical_stock - $1,
-			    reserved_stock = reserved_stock - $1
-			WHERE id = (
-				SELECT id FROM drug_batches
-				WHERE drug_id = $2 AND physical_stock >= $1
-				ORDER BY expired_date ASC LIMIT 1
-			)
-		`
-		res, err := tx.ExecContext(ctx, updateQuery, d.quantity, d.drugID)
-		if err != nil {
-			return fmt.Errorf("gagal potong stok fisik obat ID %d: %w", d.drugID, err)
-		}
-		rowsAff, _ := res.RowsAffected()
-		if rowsAff == 0 {
-			// Fallback: update any active batch for this drug
-			fallbackQuery := `
+		var rowsAff int64
+		if d.batchID != nil {
+			// Direct deduction on the exact reserved batch
+			directQuery := `
 				UPDATE drug_batches
 				SET physical_stock = GREATEST(physical_stock - $1, 0),
 				    reserved_stock = GREATEST(reserved_stock - $1, 0)
-				WHERE drug_id = $2
+				WHERE id = $2
 			`
-			_, _ = tx.ExecContext(ctx, fallbackQuery, d.quantity, d.drugID)
+			res, err := tx.ExecContext(ctx, directQuery, d.quantity, *d.batchID)
+			if err == nil {
+				rowsAff, _ = res.RowsAffected()
+			}
+		}
+
+		if rowsAff == 0 {
+			// Fallback: FEFO deduction on earliest expiring active batch
+			updateQuery := `
+				UPDATE drug_batches
+				SET physical_stock = physical_stock - $1,
+				    reserved_stock = reserved_stock - $1
+				WHERE id = (
+					SELECT id FROM drug_batches
+					WHERE drug_id = $2 AND physical_stock >= $1
+					ORDER BY expired_date ASC LIMIT 1
+				)
+			`
+			res, err := tx.ExecContext(ctx, updateQuery, d.quantity, d.drugID)
+			if err != nil {
+				return fmt.Errorf("gagal potong stok fisik obat ID %d: %w", d.drugID, err)
+			}
+			rowsAff, _ = res.RowsAffected()
+			if rowsAff == 0 {
+				fallbackQuery := `
+					UPDATE drug_batches
+					SET physical_stock = GREATEST(physical_stock - $1, 0),
+					    reserved_stock = GREATEST(reserved_stock - $1, 0)
+					WHERE drug_id = $2
+				`
+				_, _ = tx.ExecContext(ctx, fallbackQuery, d.quantity, d.drugID)
+			}
 		}
 	}
 
@@ -270,7 +293,7 @@ func (r *PostgresPharmacyRepository) CancelPrescriptionTx(ctx context.Context, i
 	}
 
 	// Fetch items
-	rows, err := tx.QueryContext(ctx, `SELECT drug_id, is_manual, quantity FROM prescription_items WHERE prescription_id = $1`, id)
+	rows, err := tx.QueryContext(ctx, `SELECT drug_id, batch_id, is_manual, quantity FROM prescription_items WHERE prescription_id = $1`, id)
 	if err != nil {
 		return err
 	}
@@ -278,17 +301,27 @@ func (r *PostgresPharmacyRepository) CancelPrescriptionTx(ctx context.Context, i
 
 	for rows.Next() {
 		var drugID sql.NullInt64
+		var batchID sql.NullInt64
 		var isManual bool
 		var qty int
-		if err := rows.Scan(&drugID, &isManual, &qty); err == nil {
+		if err := rows.Scan(&drugID, &batchID, &isManual, &qty); err == nil {
 			if !isManual && drugID.Valid {
-				// Release reserved stock only
-				releaseQuery := `
-					UPDATE drug_batches
-					SET reserved_stock = GREATEST(reserved_stock - $1, 0)
-					WHERE drug_id = $2
-				`
-				_, _ = tx.ExecContext(ctx, releaseQuery, qty, drugID.Int64)
+				if batchID.Valid {
+					// Direct release on the exact batch
+					_, _ = tx.ExecContext(ctx, `
+						UPDATE drug_batches
+						SET reserved_stock = GREATEST(reserved_stock - $1, 0)
+						WHERE id = $2
+					`, qty, batchID.Int64)
+				} else {
+					// Fallback
+					releaseQuery := `
+						UPDATE drug_batches
+						SET reserved_stock = GREATEST(reserved_stock - $1, 0)
+						WHERE drug_id = $2
+					`
+					_, _ = tx.ExecContext(ctx, releaseQuery, qty, drugID.Int64)
+				}
 			}
 		}
 	}

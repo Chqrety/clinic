@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useClinicStore } from '../stores/clinic'
 import { useAuthStore } from '../stores/auth'
 import AdminSidebar from '../components/AdminSidebar.vue'
@@ -18,10 +18,44 @@ const emit = defineEmits<{
 const store = useClinicStore()
 const auth = useAuthStore()
 
+const validRoles = ['owner', 'doctor', 'pharmacy', 'cashier', 'inventory', 'billing', 'satusehat']
+
+function getRoleFromHash(): string | null {
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase()
+  return validRoles.includes(hash) ? hash : null
+}
+
+function syncRoleFromHash() {
+  const roleFromHash = getRoleFromHash()
+  if (roleFromHash && store.currentRole !== roleFromHash) {
+    store.setRole(roleFromHash as any)
+  }
+}
+
+// Inisialisasi awal role secara langsung saat setup agar F5 tidak reset ke kasir
+const initialRole = getRoleFromHash()
+if (initialRole) {
+  store.setRole(initialRole as any)
+}
+
+watch(() => store.currentRole, (newRole) => {
+  if (getRoleFromHash() !== newRole) {
+    window.location.hash = newRole
+  }
+})
+
 onMounted(async () => {
+  if (!window.location.hash) {
+    window.location.hash = store.currentRole || 'cashier'
+  }
+  window.addEventListener('hashchange', syncRoleFromHash)
   if (auth.token && !auth.user) {
     await auth.fetchMe()
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('hashchange', syncRoleFromHash)
 })
 
 const currentWorkstation = computed(() => {

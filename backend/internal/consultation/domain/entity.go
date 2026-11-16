@@ -40,6 +40,7 @@ type PrescriptionItem struct {
 	ID                int64     `json:"id"`
 	PrescriptionID    int64     `json:"prescription_id"`
 	DrugID            *int64    `json:"drug_id,omitempty"`
+	BatchID           *int64    `json:"batch_id,omitempty"`
 	ItemName          string    `json:"item_name"`
 	IsManual          bool      `json:"is_manual"`
 	Quantity          int       `json:"quantity"`

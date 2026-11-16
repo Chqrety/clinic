@@ -214,16 +214,9 @@ func (uc *CashierUsecase) PayBill(ctx context.Context, req *domain.PayBillReques
 		Notes:                req.Notes,
 	}
 
-	if err := uc.invoiceRepo.Create(ctx, invoice); err != nil {
-		return nil, fmt.Errorf("gagal membuat invoice kasir: %w", err)
+	if err := uc.invoiceRepo.SettleInvoice(ctx, invoice, req.QueueID); err != nil {
+		return nil, fmt.Errorf("gagal memproses transaksi kasir: %w", err)
 	}
-
-	// Update queue status
-	nextStatus := "WAITING"
-	if bill.QueueStatus == "IN_EXAM" || bill.QueueStatus == "PHARMACY_WAITING" || bill.QueueStatus == "COMPLETED" {
-		nextStatus = "COMPLETED"
-	}
-	_ = uc.cashierQRepo.UpdatePaymentAndQueueStatus(ctx, req.QueueID, "PAID", nextStatus)
 
 	return invoice, nil
 }

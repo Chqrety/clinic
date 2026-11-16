@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -29,7 +30,7 @@ func (r *PostgresConsultationRepository) ListDoctorQueues(ctx context.Context, d
 		WHERE (
 			-- Only paid queues or SSC booking
 			(q.payment_status = 'PAID' OR q.payment_method = 'UNPAID_BOOKING')
-			AND q.queue_status NOT IN ('COMPLETED', 'CANCELLED')
+			AND q.queue_status IN ('WAITING', 'CALLING', 'IN_EXAM')
 		)
 	`
 	var args []any
@@ -271,7 +272,7 @@ func (r *PostgresConsultationRepository) SaveConsultationTx(ctx context.Context,
 
 			// Invariant: Reserve physical stock for non-manual catalog drugs
 			if !items[i].IsManual && items[i].DrugID != nil {
-				// Atomically increment reserved_stock on the latest active batch
+				// Atomically increment reserved_stock on the earliest expiring active batch
 				resQuery := `
 					UPDATE drug_batches
 					SET reserved_stock = reserved_stock + $1
@@ -280,15 +281,19 @@ func (r *PostgresConsultationRepository) SaveConsultationTx(ctx context.Context,
 						WHERE drug_id = $2 AND (physical_stock - reserved_stock) >= $1
 						ORDER BY expired_date ASC LIMIT 1
 					)
+					RETURNING id
 				`
-				res, err := tx.ExecContext(ctx, resQuery, items[i].Quantity, *items[i].DrugID)
+				var batchID int64
+				err := tx.QueryRowContext(ctx, resQuery, items[i].Quantity, *items[i].DrugID).Scan(&batchID)
 				if err != nil {
+					if errors.Is(err, sql.ErrNoRows) {
+						return domain.ErrInsufficientStock
+					}
 					return fmt.Errorf("gagal update reserved stock obat: %w", err)
 				}
-				rowsAff, _ := res.RowsAffected()
-				if rowsAff == 0 {
-					return domain.ErrInsufficientStock
-				}
+				// Link exact batch_id to prescription item for precise FEFO dispensing
+				items[i].BatchID = &batchID
+				_, _ = tx.ExecContext(ctx, `UPDATE prescription_items SET batch_id = $1 WHERE id = $2`, batchID, items[i].ID)
 			}
 		}
 		c.Prescription.Items = items

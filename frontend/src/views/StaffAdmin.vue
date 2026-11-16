@@ -15,7 +15,8 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
-  X
+  X,
+  RefreshCw
 } from 'lucide-vue-next'
 
 interface StaffUser {
@@ -296,117 +297,147 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-6 sm:px-10 py-8 space-y-8">
-    <!-- Top Bar: Title & Primary Action -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="py-6 px-4 sm:px-8 max-w-[1600px] mx-auto space-y-5 font-['Plus_Jakarta_Sans',sans-serif]">
+    <!-- TOP CLINICAL BAR -->
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-zinc-200/80">
       <div>
         <div class="flex items-center gap-2 mb-1">
-          <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold bg-zinc-950 text-white">
-            <ShieldCheck class="w-3 h-3" /> Modul Kendali Atasan
+          <span class="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
+            Meja Direksi & Manajemen • Semarang Medical Group
           </span>
-          <span class="text-xs font-semibold text-zinc-500">Internal SCMS</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-medium text-emerald-700">Kontrol Atasan Aktif</span>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950">
-          Manajemen Staf & Akses Klinik
-        </h1>
-        <p class="text-xs sm:text-sm text-zinc-600">
-          Kelola Nomor Induk Karyawan (NIK), alokasi unit praktik, dan reset kata sandi staf langsung dari kontrol Atasan.
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl sm:text-2xl font-black tracking-tight text-zinc-950">
+            Manajemen Staf & Hak Akses Klinik
+          </h1>
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-zinc-900 text-white shadow-2xs">
+            Owner Portal
+          </span>
+        </div>
+        <p class="text-xs text-zinc-500 mt-1">
+          Kelola Nomor Induk Karyawan (NIK), unit praktik, status aktif, dan reset kata sandi staf.
         </p>
       </div>
 
-      <button
-        @click="showAddModal = true"
-        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-sm transition-all duration-150 active:scale-95"
-      >
-        <UserPlus class="w-4 h-4" />
-        <span>Tambah Karyawan Baru</span>
-      </button>
-    </div>
+      <div class="flex items-center gap-2.5">
+        <button
+          type="button"
+          @click="fetchStaffs"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-700 transition-all shadow-2xs cursor-pointer"
+          title="Segarkan data staf"
+        >
+          <Loader2 v-if="isLoading" class="w-3.5 h-3.5 animate-spin text-zinc-500" />
+          <RefreshCw v-else class="w-3.5 h-3.5 text-zinc-500" />
+          <span>Sync</span>
+        </button>
+        <button
+          @click="showAddModal = true"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
+        >
+          <UserPlus class="w-3.5 h-3.5" />
+          <span>Tambah Karyawan</span>
+        </button>
+      </div>
+    </header>
 
     <!-- Feedback Banner -->
     <div
       v-if="successMessage"
-      class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200"
+      class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200 shadow-2xs"
     >
       <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
       <span>{{ successMessage }}</span>
     </div>
     <div
       v-if="errorMessage"
-      class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200"
+      class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200 shadow-2xs"
     >
       <AlertCircle class="w-4 h-4 text-rose-600 shrink-0" />
       <span>{{ errorMessage }}</span>
     </div>
 
-    <!-- Stat Cards (Nordic Grid) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <div class="p-5 rounded-3xl bg-white border border-zinc-200/80 shadow-xs space-y-1">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Total Karyawan</span>
-        <div class="text-2xl sm:text-3xl font-black text-zinc-950">{{ stats.total }}</div>
-        <div class="text-[11px] text-zinc-500 font-medium">{{ stats.active }} akun berstatus aktif</div>
+    <!-- 1-ROW HAIRLINE METRIC TICKER STRIP -->
+    <section class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/90 border border-zinc-200/90 rounded-2xl bg-white shadow-2xs overflow-hidden">
+      <div class="p-4 sm:p-5">
+        <div class="flex items-center justify-between text-zinc-500 mb-1">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Total Karyawan</span>
+          <Users class="w-4 h-4 text-zinc-400" />
+        </div>
+        <div class="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight tabular-nums">{{ stats.total }}</div>
+        <div class="text-[11px] text-zinc-500 font-medium mt-0.5">{{ stats.active }} akun aktif</div>
       </div>
 
-      <div class="p-5 rounded-3xl bg-white border border-zinc-200/80 shadow-xs space-y-1">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Dokter Praktik</span>
+      <div class="p-4 sm:p-5">
+        <div class="flex items-center justify-between text-zinc-500 mb-1">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Dokter Praktik</span>
           <Stethoscope class="w-4 h-4 text-emerald-600" />
         </div>
-        <div class="text-2xl sm:text-3xl font-black text-emerald-950">{{ stats.doctors }}</div>
-        <div class="text-[11px] text-zinc-500 font-medium">Kidinest & Semarang Skin Center</div>
+        <div class="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight tabular-nums">{{ stats.doctors }}</div>
+        <div class="text-[11px] text-emerald-700 font-medium mt-0.5">Kidinest & SSC</div>
       </div>
 
-      <div class="p-5 rounded-3xl bg-white border border-zinc-200/80 shadow-xs space-y-1">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Meja Depan & Kasir</span>
+      <div class="p-4 sm:p-5">
+        <div class="flex items-center justify-between text-zinc-500 mb-1">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Meja Depan & Kasir</span>
           <CreditCard class="w-4 h-4 text-amber-600" />
         </div>
-        <div class="text-2xl sm:text-3xl font-black text-amber-950">{{ stats.cashiers }}</div>
-        <div class="text-[11px] text-zinc-500 font-medium">Operasional GRO loket & invoice</div>
+        <div class="text-2xl sm:text-3xl font-black text-amber-950 tracking-tight tabular-nums">{{ stats.cashiers }}</div>
+        <div class="text-[11px] text-amber-700 font-medium mt-0.5">GRO loket & invoice</div>
       </div>
 
-      <div class="p-5 rounded-3xl bg-white border border-zinc-200/80 shadow-xs space-y-1">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700">Tim Farmasi</span>
+      <div class="p-4 sm:p-5">
+        <div class="flex items-center justify-between text-zinc-500 mb-1">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Tim Farmasi</span>
           <Pill class="w-4 h-4 text-blue-600" />
         </div>
-        <div class="text-2xl sm:text-3xl font-black text-blue-950">{{ stats.pharmacists }}</div>
-        <div class="text-[11px] text-zinc-500 font-medium">Apotek & stok opnam obat</div>
+        <div class="text-2xl sm:text-3xl font-black text-blue-950 tracking-tight tabular-nums">{{ stats.pharmacists }}</div>
+        <div class="text-[11px] text-blue-700 font-medium mt-0.5">Apotek & stok opnam</div>
       </div>
-    </div>
+
+      <div class="p-4 sm:p-5 hidden lg:block">
+        <div class="flex items-center justify-between text-zinc-500 mb-1">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Integritas Akun</span>
+          <ShieldCheck class="w-4 h-4 text-purple-600" />
+        </div>
+        <div class="text-2xl sm:text-3xl font-black text-purple-950 tracking-tight tabular-nums">100%</div>
+        <div class="text-[11px] text-purple-700 font-medium mt-0.5">RBAC & audit aktif</div>
+      </div>
+    </section>
 
     <!-- Filter & Search Toolbar -->
-    <div class="p-4 rounded-3xl bg-white border border-zinc-200/80 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="p-3.5 rounded-2xl bg-white border border-zinc-200/90 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
       <!-- Search Input -->
       <div class="relative w-full md:w-80">
-        <Search class="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
           v-model="searchQuery"
           type="text"
           placeholder="Cari nama atau NIK staf..."
-          class="w-full pl-10 pr-4 py-2 rounded-full border border-zinc-200 text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900"
+          class="w-full pl-9 pr-4 py-1.5 rounded-xl border border-zinc-200 text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
         />
       </div>
 
       <!-- Filters Pill Bar -->
       <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
         <!-- Unit Filter -->
-        <div class="flex items-center p-1 bg-stone-100 rounded-full text-xs font-semibold text-zinc-600">
+        <div class="flex items-center p-1 bg-zinc-100 rounded-xl text-[11px] font-bold text-zinc-600">
           <button
             @click="filterUnit = 'ALL'"
-            :class="['px-3 py-1 rounded-full transition-colors', filterUnit === 'ALL' ? 'bg-white text-zinc-950 font-bold shadow-xs' : 'hover:text-zinc-950']"
+            :class="['px-3 py-1 rounded-lg transition-all cursor-pointer', filterUnit === 'ALL' ? 'bg-white text-zinc-950 shadow-2xs' : 'hover:text-zinc-950']"
           >
             Semua Unit
           </button>
           <button
             @click="filterUnit = 'KIDINEST'"
-            :class="['px-3 py-1 rounded-full transition-colors', filterUnit === 'KIDINEST' ? 'bg-white text-zinc-950 font-bold shadow-xs' : 'hover:text-zinc-950']"
+            :class="['px-3 py-1 rounded-lg transition-all cursor-pointer', filterUnit === 'KIDINEST' ? 'bg-white text-zinc-950 shadow-2xs' : 'hover:text-zinc-950']"
           >
             Kidinest
           </button>
           <button
             @click="filterUnit = 'SSC'"
-            :class="['px-3 py-1 rounded-full transition-colors', filterUnit === 'SSC' ? 'bg-white text-zinc-950 font-bold shadow-xs' : 'hover:text-zinc-950']"
+            :class="['px-3 py-1 rounded-lg transition-all cursor-pointer', filterUnit === 'SSC' ? 'bg-white text-zinc-950 shadow-2xs' : 'hover:text-zinc-950']"
           >
             SSC
           </button>
@@ -415,7 +446,7 @@ onMounted(() => {
         <!-- Role Filter Dropdown -->
         <select
           v-model="filterRole"
-          class="px-3.5 py-1.5 rounded-full border border-zinc-200 text-xs font-bold text-zinc-800 bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
+          class="px-3 py-1.5 rounded-xl border border-zinc-200 text-xs font-bold text-zinc-800 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 cursor-pointer shadow-2xs"
         >
           <option value="ALL">Semua Peran</option>
           <option value="SUPERADMIN_OWNER">Owner / Atasan</option>
@@ -426,8 +457,8 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Staff Table Container -->
-    <div class="rounded-3xl bg-white border border-zinc-200/80 shadow-xs overflow-hidden">
+    <!-- Staff Table Container (Hairline Borders) -->
+    <div class="rounded-2xl bg-white border border-zinc-200/90 shadow-2xs overflow-hidden">
       <div v-if="isLoading" class="p-12 text-center text-zinc-500 space-y-2">
         <Loader2 class="w-6 h-6 animate-spin mx-auto text-zinc-900" />
         <p class="text-xs font-semibold">Memuat daftar staf klinik...</p>
@@ -442,51 +473,51 @@ onMounted(() => {
       <div v-else class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="border-b border-zinc-200/70 bg-stone-50/50 text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
-              <th class="py-3.5 px-6">NIK Karyawan</th>
-              <th class="py-3.5 px-6">Nama Lengkap</th>
-              <th class="py-3.5 px-6">Peran & Akses</th>
-              <th class="py-3.5 px-6">Unit Klinik</th>
-              <th class="py-3.5 px-6">Status Akun</th>
-              <th class="py-3.5 px-6 text-right">Aksi Atasan</th>
+            <tr class="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
+              <th class="py-3 px-5">NIK Karyawan</th>
+              <th class="py-3 px-5">Nama Lengkap</th>
+              <th class="py-3 px-5">Peran & Akses</th>
+              <th class="py-3 px-5">Unit Klinik</th>
+              <th class="py-3 px-5">Status Akun</th>
+              <th class="py-3 px-5 text-right">Aksi Atasan</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-zinc-200/60 font-medium text-zinc-900">
             <tr
               v-for="staff in filteredStaffs"
               :key="staff.id"
-              class="hover:bg-stone-50/70 transition-colors"
+              class="hover:bg-zinc-50/70 transition-colors"
             >
               <!-- NIK Karyawan -->
-              <td class="py-4 px-6 font-mono font-bold text-zinc-950">
+              <td class="py-3 px-5 font-mono font-bold text-zinc-950">
                 {{ staff.employee_number }}
               </td>
 
               <!-- Name -->
-              <td class="py-4 px-6 font-bold text-zinc-950">
+              <td class="py-3 px-5 font-bold text-zinc-950">
                 {{ staff.name }}
               </td>
 
               <!-- Role -->
-              <td class="py-4 px-6">
+              <td class="py-3 px-5">
                 <span :class="['inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border', getRoleBadge(staff.role).bg]">
                   {{ getRoleBadge(staff.role).text }}
                 </span>
               </td>
 
               <!-- Clinic Unit -->
-              <td class="py-4 px-6">
+              <td class="py-3 px-5">
                 <span :class="['inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border', getUnitBadge(staff.clinic_unit).bg]">
                   {{ getUnitBadge(staff.clinic_unit).text }}
                 </span>
               </td>
 
               <!-- Status Toggle -->
-              <td class="py-4 px-6">
+              <td class="py-3 px-5">
                 <button
                   @click="toggleActiveStatus(staff)"
                   :class="[
-                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all',
+                    'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer',
                     staff.is_active
                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
                       : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:bg-zinc-200'
@@ -499,12 +530,12 @@ onMounted(() => {
               </td>
 
               <!-- Actions -->
-              <td class="py-4 px-6 text-right">
+              <td class="py-3 px-5 text-right">
                 <button
                   @click="openResetModal(staff)"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-zinc-200 hover:border-zinc-900 bg-white hover:bg-zinc-950 hover:text-white text-[11px] font-bold text-zinc-800 transition-all duration-150 active:scale-95 shadow-2xs"
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border border-zinc-200 hover:border-zinc-900 bg-white hover:bg-zinc-950 hover:text-white text-[11px] font-bold text-zinc-800 transition-all shadow-2xs cursor-pointer active:scale-95"
                 >
-                  <KeyRound class="w-3.5 h-3.5" />
+                  <KeyRound class="w-3 h-3" />
                   <span>Reset Password</span>
                 </button>
               </td>
@@ -519,17 +550,17 @@ onMounted(() => {
       v-if="showAddModal"
       class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
-      <div class="bg-white rounded-3xl border border-zinc-200/80 shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-6">
+      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xl max-w-lg w-full p-6 space-y-5 font-['Plus_Jakarta_Sans',sans-serif]">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-          <div class="flex items-center gap-2">
-            <span class="p-2 rounded-2xl bg-zinc-100 text-zinc-900"><UserPlus class="w-4 h-4" /></span>
+          <div class="flex items-center gap-2.5">
+            <span class="p-2 rounded-xl bg-zinc-100 text-zinc-900"><UserPlus class="w-4 h-4" /></span>
             <div>
-              <h3 class="text-base font-extrabold text-zinc-950">Tambah Karyawan Baru</h3>
+              <h3 class="text-sm font-extrabold text-zinc-950">Tambah Karyawan Baru</h3>
               <p class="text-[11px] text-zinc-500 font-medium">Akun internal untuk operasional staf klinik</p>
             </div>
           </div>
-          <button @click="showAddModal = false" class="p-1 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100">
-            <X class="w-5 h-5" />
+          <button @click="showAddModal = false" class="p-1 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 cursor-pointer">
+            <X class="w-4 h-4" />
           </button>
         </div>
 
@@ -543,7 +574,7 @@ onMounted(() => {
               type="text"
               required
               placeholder="Contoh: DOC-KID-02 atau GRO-02"
-              class="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900"
+              class="w-full px-3.5 py-2 rounded-xl border border-zinc-200 text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
             />
           </div>
 
@@ -556,18 +587,18 @@ onMounted(() => {
               type="text"
               required
               placeholder="Contoh: dr. Anisa Putri, Sp.A"
-              class="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900"
+              class="w-full px-3.5 py-2 rounded-xl border border-zinc-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 mb-1">
                 Peran Pengguna
               </label>
               <select
                 v-model="newStaff.role"
-                class="w-full px-3.5 py-2.5 rounded-2xl border border-zinc-200 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900"
+                class="w-full px-3 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
               >
                 <option value="DOCTOR">Dokter</option>
                 <option value="GRO_CASHIER">Kasir / GRO</option>
@@ -582,7 +613,7 @@ onMounted(() => {
               </label>
               <select
                 v-model="newStaff.clinic_unit"
-                class="w-full px-3.5 py-2.5 rounded-2xl border border-zinc-200 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900"
+                class="w-full px-3 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
               >
                 <option value="KIDINEST">Kidinest</option>
                 <option value="SSC">Semarang Skin Center</option>
@@ -600,22 +631,22 @@ onMounted(() => {
               type="password"
               required
               placeholder="Minimal 6 karakter"
-              class="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900"
+              class="w-full px-3.5 py-2 rounded-xl border border-zinc-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
             />
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-100">
             <button
               type="button"
               @click="showAddModal = false"
-              class="px-4 py-2 rounded-full border border-zinc-200 text-xs font-bold text-zinc-600 hover:bg-stone-100 transition-colors"
+              class="px-3.5 py-1.5 rounded-xl border border-zinc-200 text-xs font-bold text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+              class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Loader2 v-if="isSubmitting" class="w-3.5 h-3.5 animate-spin" />
               <span>Simpan Karyawan</span>
@@ -630,22 +661,22 @@ onMounted(() => {
       v-if="showResetModal && selectedStaff"
       class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
-      <div class="bg-white rounded-3xl border border-zinc-200/80 shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6">
+      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xl max-w-md w-full p-6 space-y-5 font-['Plus_Jakarta_Sans',sans-serif]">
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-          <div class="flex items-center gap-2">
-            <span class="p-2 rounded-2xl bg-amber-100 text-amber-900"><KeyRound class="w-4 h-4" /></span>
+          <div class="flex items-center gap-2.5">
+            <span class="p-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200"><KeyRound class="w-4 h-4 text-amber-700" /></span>
             <div>
-              <h3 class="text-base font-extrabold text-zinc-950">Reset Password Staf</h3>
+              <h3 class="text-sm font-extrabold text-zinc-950">Reset Password Staf</h3>
               <p class="text-[11px] text-zinc-500 font-medium">Tetapkan kata sandi baru secara langsung</p>
             </div>
           </div>
-          <button @click="showResetModal = false" class="p-1 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100">
-            <X class="w-5 h-5" />
+          <button @click="showResetModal = false" class="p-1 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 cursor-pointer">
+            <X class="w-4 h-4" />
           </button>
         </div>
 
         <form @submit.prevent="handleResetPassword" class="space-y-4">
-          <div class="p-3 rounded-2xl bg-stone-50 border border-zinc-200/60 text-xs space-y-1">
+          <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-200/70 text-xs space-y-1">
             <div class="text-zinc-500 font-medium">Staf yang direset:</div>
             <div class="font-extrabold text-zinc-950">{{ selectedStaff.name }}</div>
             <div class="font-mono text-zinc-600 text-[11px] font-bold">NIK: {{ selectedStaff.employee_number }}</div>
@@ -660,22 +691,22 @@ onMounted(() => {
               type="password"
               required
               placeholder="Masukkan password baru..."
-              class="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900"
+              class="w-full px-3.5 py-2 rounded-xl border border-zinc-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
             />
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-3 border-t border-zinc-100">
+          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-100">
             <button
               type="button"
               @click="showResetModal = false"
-              class="px-4 py-2 rounded-full border border-zinc-200 text-xs font-bold text-zinc-600 hover:bg-stone-100 transition-colors"
+              class="px-3.5 py-1.5 rounded-xl border border-zinc-200 text-xs font-bold text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+              class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Loader2 v-if="isSubmitting" class="w-3.5 h-3.5 animate-spin" />
               <span>Perbarui Password</span>

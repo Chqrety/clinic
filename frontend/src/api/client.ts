@@ -4,14 +4,19 @@ export interface QueueItem {
   id: number
   patient_id: number
   patient_name: string
-  patient_nik: string
-  patient_phone: string
+  patient_nik?: string
+  patient_phone?: string
+  phone?: string
   patient_ihs?: string
   queue_number: string
-  complaint: string
-  payment_method: 'QRIS' | 'CASH'
-  payment_status: 'PENDING' | 'PAID'
-  queue_status: 'WAITING' | 'CALLING' | 'IN_EXAM' | 'COMPLETED' | 'CANCELLED'
+  complaint?: string
+  clinic_unit?: 'KIDINEST' | 'SSC'
+  doctor_id?: number
+  doctor_name?: string
+  registration_fee?: number
+  payment_method?: string
+  payment_status?: string
+  queue_status: 'BOOKED' | 'WAITING' | 'CALLING' | 'IN_EXAM' | 'PHARMACY_WAITING' | 'COMPLETED' | 'CANCELLED'
   paid_at?: string
   created_at: string
 }
@@ -97,6 +102,7 @@ export interface Invoice {
   total_amount: number
   payment_method: string
   payment_status: string
+  payment_reference?: string
   items?: PrescriptionItem[]
   doctor_share: number
   clinic_share: number
@@ -230,6 +236,26 @@ export interface DoctorQueuePatient {
   created_at: string
 }
 
+export interface DoctorRoomStatus {
+  doctor_name: string
+  clinic_unit: 'KIDINEST' | 'SSC'
+  room_name: string
+  status: 'READY' | 'BUSY'
+  current_patient?: {
+    id: number
+    queue_number: string
+    patient_name: string
+    created_at: string
+  }
+  waiting_count: number
+  next_patient?: {
+    id: number
+    queue_number: string
+    patient_name: string
+    created_at: string
+  }
+}
+
 export interface DoctorCatalogDrug {
   id: number
   clinic_unit: string
@@ -349,50 +375,15 @@ export interface PharmacyOpnameLog {
 }
 
 export const api = {
-  // Queue
-  getQueues: () => request<QueueItem[]>('/queues'),
-  createQueue: (data: {
-    nik: string
-    name: string
-    phone: string
-    birth_date?: string
-    gender?: string
-    complaint: string
-    payment_method: 'QRIS' | 'CASH'
-  }) => request<QueueItem>('/queues', { method: 'POST', body: JSON.stringify(data) }),
-  payQueue: (id: number) => request<void>(`/queues/${id}/pay`, { method: 'POST' }),
-  updateQueueStatus: (id: number, status: string) =>
-    request<void>(`/queues/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+  // Queue & Reception (Staff GRO)
+  getReservations: (unit = '') =>
+    request<QueueItem[]>(`/queues/reservations?unit=${encodeURIComponent(unit)}`),
+  checkInQueue: (queueId: number) =>
+    request<QueueItem>(`/queues/${queueId}/checkin`, { method: 'POST' }),
+  getDoctorRoomsStatus: () =>
+    request<DoctorRoomStatus[]>('/queues/rooms/status'),
 
-  // Pharmacy
-  getDrugs: () => request<Drug[]>('/drugs'),
-  getDrugDetail: (id: number) => request<Drug>(`/drugs/${id}`),
-  createDrug: (data: {
-    name: string
-    kfa_code: string
-    unit: string
-    category: string
-    min_stock_alert: number
-    sell_price: number
-  }) => request<Drug>('/drugs', { method: 'POST', body: JSON.stringify(data) }),
-  restockDrug: (id: number, data: { batch_number: string; expired_date: string; quantity: number; buy_price: number }) =>
-    request<void>(`/drugs/${id}/restock`, { method: 'POST', body: JSON.stringify(data) }),
-
-  // Consultation & Prescriptions
-  getConsultationByQueue: (queueId: number) => request<Consultation>(`/consultations/queue/${queueId}`),
-  saveConsultation: (data: {
-    queue_id: number
-    doctor_name: string
-    anamnesis: string
-    diagnosis: string
-    icd10_code: string
-    prescription: Array<{ drug_id: number; quantity: number; dosage_instruction: string }>
-  }) => request<Consultation>('/consultations', { method: 'POST', body: JSON.stringify(data) }),
-  getPrescriptions: () => request<Prescription[]>('/prescriptions'),
-  dispensePrescription: (id: number) => request<void>(`/prescriptions/${id}/dispense`, { method: 'POST' }),
-  cancelPrescription: (id: number) => request<void>(`/prescriptions/${id}/cancel`, { method: 'POST' }),
-
-  // Billing
+  // Billing & Reports
   getInvoices: () => request<Invoice[]>('/invoices'),
   getInvoiceByQueue: (queueId: number) => request<Invoice[]>(`/invoices/queue/${queueId}`),
 
@@ -404,7 +395,7 @@ export const api = {
     subtotal_action: number
     subtotal_medication: number
     voucher_discount: number
-    payment_method: 'CASH' | 'BANK_TRANSFER' | 'EDC'
+    payment_method: 'CASH' | 'BANK_TRANSFER' | 'EDC' | 'QRIS'
     cash_received: number
     payment_reference?: string
     notes?: string
@@ -494,6 +485,19 @@ export const api = {
     data: { batch_number: string; expired_date: string; quantity: number; buy_price: number }
   ) => request<any>(`/pharmacy/drugs/${drugId}/restock`, { method: 'POST', body: JSON.stringify(data) }),
   getPharmacyOpnameLogs: () => request<PharmacyOpnameLog[]>('/pharmacy/opname/logs'),
+  exportPharmacyOpnameCSV: async (unit?: string): Promise<Blob> => {
+    const token = localStorage.getItem('clinic_token')
+    const q = unit && unit !== 'ALL' ? `?unit=${encodeURIComponent(unit)}` : ''
+    const res = await fetch(`/api/pharmacy/opname/export${q}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    if (!res.ok) {
+      throw new Error('Gagal mengunduh lembar stok opnam CSV')
+    }
+    return await res.blob()
+  },
   importPharmacyOpnameCSV: (csvText: string) =>
     request<any>('/pharmacy/opname/import', {
       method: 'POST',
@@ -505,4 +509,44 @@ export const api = {
   getSatusehatStats: () => request<SatusehatStats>('/satusehat/stats'),
   getSatusehatEncounter: (queueId: number) => request<any>(`/satusehat/encounter/${queueId}`),
   syncSatusehat: (queueId: number) => request<void>(`/satusehat/sync/${queueId}`, { method: 'POST' }),
+
+  // Doctor Schedule & Leave Management
+  getDoctorWeeklySchedules: (doctorId: number) =>
+    request<any[]>(`/doctor/schedules/${doctorId}/weekly`),
+  getDoctorLeaves: (doctorId: number) =>
+    request<any[]>(`/doctor/schedules/${doctorId}/leaves`),
+  addDoctorLeave: (data: { doctor_id: number; date: string; reason: string }) =>
+    request<any>('/doctor/schedules/leave', { method: 'POST', body: JSON.stringify(data) }),
+  cancelDoctorLeave: (data: { doctor_id: number; date: string }) =>
+    request<any>('/doctor/schedules/leave/cancel', { method: 'POST', body: JSON.stringify(data) }),
+  updateDoctorSchedule: (data: {
+    id?: number
+    doctor_id: number
+    doctor_name: string
+    clinic_unit: string
+    day_of_week: number
+    shift_name: string
+    start_time: string
+    end_time: string
+    slot_minutes?: number
+    quota_per_slot?: number
+    is_active: boolean
+  }) => request<any>('/doctor/schedules/update', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Cashier Refund Management
+  getRefundRequests: (unit = '') =>
+    request<any[]>(`/queues/refunds?unit=${encodeURIComponent(unit)}`),
+  processRefund: (data: { queue_id: number; status: 'APPROVED' | 'REJECTED'; notes: string }) =>
+    request<any>('/queues/refund/process', { method: 'POST', body: JSON.stringify(data) }),
+}
+
+export function triggerBlobDownload(blob: Blob, filename: string) {
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  window.URL.revokeObjectURL(url)
+  document.body.removeChild(a)
 }

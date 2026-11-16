@@ -39,11 +39,22 @@ type SatusehatStats struct {
 func (s *Service) HandleGetStats(w http.ResponseWriter, r *http.Request) {
 	var totalP, verP, totalD, mapD, syncedL int
 
-	_ = s.db.QueryRow("SELECT count(*) FROM patients").Scan(&totalP)
-	_ = s.db.QueryRow("SELECT count(*) FROM patients WHERE ihs_number IS NOT NULL AND ihs_number != ''").Scan(&verP)
-	_ = s.db.QueryRow("SELECT count(*) FROM drugs").Scan(&totalD)
-	_ = s.db.QueryRow("SELECT count(*) FROM drugs WHERE kfa_code IS NOT NULL AND kfa_code != ''").Scan(&mapD)
-	_ = s.db.QueryRow("SELECT count(*) FROM satusehat_logs WHERE status = 'SYNCED'").Scan(&syncedL)
+	err := s.db.QueryRow(`
+		SELECT 
+			(SELECT count(*) FROM patients),
+			(SELECT count(*) FROM patients WHERE ihs_number IS NOT NULL AND ihs_number != ''),
+			(SELECT count(*) FROM drugs),
+			(SELECT count(*) FROM drugs WHERE kfa_code IS NOT NULL AND kfa_code != ''),
+			(SELECT count(*) FROM satusehat_logs WHERE status = 'SYNCED')
+	`).Scan(&totalP, &verP, &totalD, &mapD, &syncedL)
+
+	if err != nil {
+		_ = s.db.QueryRow("SELECT count(*) FROM patients").Scan(&totalP)
+		_ = s.db.QueryRow("SELECT count(*) FROM patients WHERE ihs_number IS NOT NULL AND ihs_number != ''").Scan(&verP)
+		_ = s.db.QueryRow("SELECT count(*) FROM drugs").Scan(&totalD)
+		_ = s.db.QueryRow("SELECT count(*) FROM drugs WHERE kfa_code IS NOT NULL AND kfa_code != ''").Scan(&mapD)
+		_ = s.db.QueryRow("SELECT count(*) FROM satusehat_logs WHERE status = 'SYNCED'").Scan(&syncedL)
+	}
 
 	stats := SatusehatStats{
 		IsReady:          true,
@@ -120,7 +131,7 @@ func (s *Service) HandleSync(w http.ResponseWriter, r *http.Request) {
 
 	_, err := s.db.Exec(`
 		INSERT INTO satusehat_logs (resource_type, entity_id, status, fhir_payload, synced_at)
-		VALUES ('Encounter', ?, 'SYNCED', '{"status":"OK","code":200}', CURRENT_TIMESTAMP)
+		VALUES ('Encounter', $1, 'SYNCED', '{"status":"OK","code":200}', CURRENT_TIMESTAMP)
 	`, qStr)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, err.Error())

@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import {
   Volume2,
   VolumeX,
   Clock,
-  Tv,
   ArrowLeft,
   Users,
   Stethoscope,
   Building2,
   Sparkles,
   Baby,
-  ShieldCheck
+  ShieldCheck,
+  CheckCircle2,
+  Radio,
+  DoorOpen,
 } from 'lucide-vue-next'
+import { announcePatientCall } from '../utils/audioAnnouncement'
 
 const emit = defineEmits<{
   (e: 'navigate', view: 'landing' | 'kiosk' | 'login'): void
@@ -34,7 +37,20 @@ interface MonitorData {
   clinic_unit: string
 }
 
+interface DoctorRoomLive {
+  doctor_name: string
+  clinic_unit: string
+  room_name: string
+  status: string
+  current_patient?: QueueItem
+  waiting_count: number
+  next_patient?: QueueItem
+}
+
 const selectedUnit = ref<'ALL' | 'KIDINEST' | 'SSC'>('ALL')
+const soundEnabled = ref(true)
+const userInteracted = ref(false)
+
 const monitorData = ref<MonitorData>({
   currently_calling: {
     id: 1,
@@ -51,7 +67,7 @@ const monitorData = ref<MonitorData>({
       patient_name: 'Clarissa W*****',
       clinic_unit: 'SSC',
       category: 'SSC_TREATMENT',
-      doctor_name: 'dr. Nadia Kusuma, Sp.KK',
+      doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
       queue_number: 'S-001',
       queue_status: 'WAITING',
     },
@@ -69,7 +85,7 @@ const monitorData = ref<MonitorData>({
       patient_name: 'Siti R*******',
       clinic_unit: 'KIDINEST',
       category: 'A_VAKSIN',
-      doctor_name: 'dr. Hendra Pratama, Sp.A',
+      doctor_name: 'dr. Patricia Vanessa, Sp.A',
       queue_number: 'A-002',
       queue_status: 'WAITING',
     },
@@ -77,35 +93,61 @@ const monitorData = ref<MonitorData>({
   clinic_unit: 'ALL',
 })
 
+const doctorRooms = ref<DoctorRoomLive[]>([
+  {
+    doctor_name: 'dr. Hendra Pratama, Sp.A',
+    clinic_unit: 'KIDINEST',
+    room_name: 'Ruang Poli Anak 1',
+    status: 'BUSY',
+    waiting_count: 3,
+  },
+  {
+    doctor_name: 'dr. Patricia Vanessa, Sp.A',
+    clinic_unit: 'KIDINEST',
+    room_name: 'Ruang Poli Anak 2',
+    status: 'READY',
+    waiting_count: 2,
+  },
+  {
+    doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
+    clinic_unit: 'SSC',
+    room_name: 'Ruang Tindakan Laser 1',
+    status: 'BUSY',
+    waiting_count: 1,
+  },
+])
+
 const currentTime = ref('')
-const soundEnabled = ref(true)
+const currentDate = ref('')
 let clockInterval: any = null
 let eventSource: EventSource | null = null
 let pollInterval: any = null
+const lastCalledQueueNumber = ref('')
 
 function updateClock() {
   const now = new Date()
   currentTime.value = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  currentDate.value = now.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
-function playAudioChime() {
-  if (!soundEnabled.value) return
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = 'sine'
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15) // A5
-    gain.gain.setValueAtTime(0.2, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6)
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.start()
-    osc.stop(ctx.currentTime + 0.6)
-  } catch {
-    // Autoplay policy fallback
+function resolveRoomName(item: QueueItem): string {
+  if (item.clinic_unit === 'SSC') {
+    return 'Ruang Tindakan Estetika 1'
   }
+  if (item.doctor_name.includes('Patricia')) {
+    return 'Ruang Poli Anak 2'
+  }
+  return 'Ruang Poli Anak 1'
+}
+
+async function triggerVoiceCall(item: QueueItem) {
+  const roomName = resolveRoomName(item)
+  await announcePatientCall(item.queue_number, roomName, item.doctor_name, soundEnabled.value)
 }
 
 async function fetchMonitorData() {
@@ -114,13 +156,27 @@ async function fetchMonitorData() {
     const res = await fetch(`/api/public/queue/monitor${unitParam}`)
     const data = await res.json()
     if (res.ok && data.success && data.data) {
-      if (
-        data.data.currently_calling &&
-        monitorData.value.currently_calling?.queue_number !== data.data.currently_calling.queue_number
-      ) {
-        playAudioChime()
+      const calling = data.data.currently_calling
+      if (calling) {
+        if (calling.queue_number !== lastCalledQueueNumber.value || calling.queue_status === 'CALLING') {
+          if (calling.queue_number !== lastCalledQueueNumber.value) {
+            triggerVoiceCall(calling)
+            lastCalledQueueNumber.value = calling.queue_number
+          }
+        }
       }
       monitorData.value = data.data
+    }
+  } catch {
+    // Keep local fallback
+  }
+
+  // Fetch live doctor rooms
+  try {
+    const rRes = await fetch('/api/public/queue/rooms/status')
+    const rData = await rRes.json()
+    if (rRes.ok && rData.success && rData.data) {
+      doctorRooms.value = rData.data
     }
   } catch {
     // Keep local state
@@ -138,12 +194,11 @@ function initSSE() {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-        if (data) {
-          if (
-            data.currently_calling &&
-            monitorData.value.currently_calling?.queue_number !== data.currently_calling.queue_number
-          ) {
-            playAudioChime()
+        if (data && data.currently_calling) {
+          const calling = data.currently_calling
+          if (calling.queue_number !== lastCalledQueueNumber.value) {
+            triggerVoiceCall(calling)
+            lastCalledQueueNumber.value = calling.queue_number
           }
           monitorData.value = data
         }
@@ -160,6 +215,14 @@ function initSSE() {
   }
 }
 
+function enableAudioInteraction() {
+  userInteracted.value = true
+  soundEnabled.value = true
+  if (monitorData.value.currently_calling) {
+    triggerVoiceCall(monitorData.value.currently_calling)
+  }
+}
+
 watch(selectedUnit, () => {
   fetchMonitorData()
   initSSE()
@@ -170,7 +233,14 @@ onMounted(() => {
   clockInterval = setInterval(updateClock, 1000)
   fetchMonitorData()
   initSSE()
-  pollInterval = setInterval(fetchMonitorData, 4000)
+  pollInterval = setInterval(fetchMonitorData, 3000)
+
+  // Listen for browser click to unlock audio
+  const unlockAudio = () => {
+    userInteracted.value = true
+    window.removeEventListener('click', unlockAudio)
+  }
+  window.addEventListener('click', unlockAudio)
 })
 
 onUnmounted(() => {
@@ -181,14 +251,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F9F9F7] text-zinc-950 flex flex-col justify-between p-6 sm:p-10 font-['Plus_Jakarta_Sans',sans-serif] selection:bg-amber-300">
-    <!-- Top Header Display -->
-    <header class="w-full flex items-center justify-between pb-6 border-b border-zinc-200/80">
-      <!-- Left: Clinic Brand & Back -->
-      <div class="flex items-center gap-4">
+  <div class="min-h-screen bg-[#FAF8F5] text-zinc-950 flex flex-col justify-between p-4 sm:p-8 lg:p-10 font-['Plus_Jakarta_Sans',sans-serif] selection:bg-amber-300">
+    
+    <!-- TOP HEADER BAR (Minimal Nordic Editorial) -->
+    <header class="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-zinc-200/80">
+      
+      <!-- Brand & Status Tag -->
+      <div class="flex items-center gap-3.5">
         <button
           @click="emit('navigate', 'landing')"
-          class="p-2 rounded-2xl bg-white border border-zinc-200/80 hover:bg-stone-100 text-zinc-500 hover:text-zinc-950 transition-colors shadow-2xs"
+          class="p-2.5 rounded-2xl bg-white border border-zinc-200/90 hover:bg-zinc-100 text-zinc-600 hover:text-zinc-950 transition-colors shadow-2xs cursor-pointer"
           title="Kembali ke Beranda"
         >
           <ArrowLeft class="w-4 h-4" />
@@ -196,180 +268,288 @@ onUnmounted(() => {
 
         <div>
           <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Layar Antrian Live Ruang Tunggu</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-900 border border-emerald-200/70">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Queue Display
+            </span>
+            <span class="text-xs text-zinc-400">•</span>
+            <span class="text-xs font-semibold text-zinc-500 font-mono">Semarang Medical Group</span>
           </div>
-          <h1 class="text-xl sm:text-2xl font-black text-zinc-950 tracking-tight">
-            Kidinest & Semarang Skin Center
+          <h1 class="text-lg sm:text-2xl font-black text-zinc-950 tracking-tight mt-0.5">
+            Kidinest Pediatric Care & Semarang Skin Center
           </h1>
         </div>
       </div>
 
-      <!-- Center: TV Filter Pill Bar -->
-      <div class="hidden md:flex items-center p-1 bg-stone-200/60 rounded-full text-xs font-bold text-zinc-600">
+      <!-- Unit Filter Pills -->
+      <div class="flex items-center p-1 bg-stone-200/60 rounded-full text-xs font-bold text-zinc-600 self-start md:self-auto shadow-2xs">
         <button
           @click="selectedUnit = 'ALL'"
-          :class="['px-4 py-1.5 rounded-full transition-all', selectedUnit === 'ALL' ? 'bg-white text-zinc-950 shadow-xs' : 'hover:text-zinc-950']"
+          :class="['px-4 py-1.5 rounded-full transition-all cursor-pointer', selectedUnit === 'ALL' ? 'bg-white text-zinc-950 shadow-xs' : 'hover:text-zinc-950']"
         >
           Semua Layanan
         </button>
         <button
           @click="selectedUnit = 'KIDINEST'"
-          :class="['px-4 py-1.5 rounded-full transition-all', selectedUnit === 'KIDINEST' ? 'bg-white text-zinc-950 shadow-xs' : 'hover:text-zinc-950']"
+          :class="['px-4 py-1.5 rounded-full transition-all cursor-pointer', selectedUnit === 'KIDINEST' ? 'bg-white text-zinc-950 shadow-xs' : 'hover:text-zinc-950']"
         >
           Kidinest (Poli Anak)
         </button>
         <button
           @click="selectedUnit = 'SSC'"
-          :class="['px-4 py-1.5 rounded-full transition-all', selectedUnit === 'SSC' ? 'bg-white text-zinc-950 shadow-xs' : 'hover:text-zinc-950']"
+          :class="['px-4 py-1.5 rounded-full transition-all cursor-pointer', selectedUnit === 'SSC' ? 'bg-white text-zinc-950 shadow-xs' : 'hover:text-zinc-950']"
         >
           SSC (Estetika Kulit)
         </button>
       </div>
 
-      <!-- Right: Clock & Audio -->
-      <div class="flex items-center gap-3">
+      <!-- Audio Toggle & Clock -->
+      <div class="flex items-center gap-3 self-end md:self-auto">
         <button
-          @click="soundEnabled = !soundEnabled"
-          :title="soundEnabled ? 'Lonceng Pemanggilan Aktif' : 'Lonceng Senyap'"
-          class="p-2.5 rounded-2xl bg-white border border-zinc-200/80 text-zinc-600 hover:text-zinc-950 transition-colors shadow-2xs"
+          @click="soundEnabled = !soundEnabled; userInteracted = true"
+          :title="soundEnabled ? 'Suara Pemanggilan Aktif' : 'Suara Senyap'"
+          class="p-2.5 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:text-zinc-950 transition-colors shadow-2xs cursor-pointer flex items-center gap-2"
         >
           <Volume2 v-if="soundEnabled" class="w-4 h-4 text-emerald-600" />
           <VolumeX v-else class="w-4 h-4 text-zinc-400" />
+          <span class="text-[11px] font-bold hidden sm:inline">{{ soundEnabled ? 'Suara Aktif' : 'Mute' }}</span>
         </button>
 
-        <div class="px-4 py-2 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs text-right">
-          <div class="font-mono text-base font-black text-zinc-950">{{ currentTime }}</div>
-          <div class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">WIB • Online</div>
+        <div class="px-4 py-2 rounded-2xl bg-white border border-zinc-200/90 shadow-2xs text-right">
+          <div class="font-mono text-base font-black text-zinc-950 leading-tight">{{ currentTime }}</div>
+          <div class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">{{ currentDate }}</div>
         </div>
       </div>
     </header>
 
-    <!-- Main Live Screen (12 cols) -->
-    <main class="flex-1 py-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
+    <!-- UNMUTED NOTIFICATION BANNER (if browser audio blocked) -->
+    <div
+      v-if="!userInteracted && soundEnabled"
+      @click="enableAudioInteraction"
+      class="mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 font-semibold flex items-center justify-between cursor-pointer hover:bg-amber-100/70 transition-all shadow-2xs"
+    >
+      <div class="flex items-center gap-2">
+        <Volume2 class="w-4 h-4 text-amber-700 animate-bounce" />
+        <span>Klik di sini sekali untuk mengaktifkan pemanggilan suara otomatis (Audio Synthesizer).</span>
+      </div>
+      <span class="px-2.5 py-1 rounded-xl bg-amber-200/60 text-[10px] font-bold uppercase">Aktifkan Suara</span>
+    </div>
 
-      <!-- HERO LEFT: CURRENTLY CALLING (7 cols) -->
-      <div class="md:col-span-7 bg-white p-8 sm:p-12 rounded-3xl border border-zinc-200/80 shadow-xs flex flex-col justify-between text-center relative overflow-hidden">
-        <!-- Top Status Indicator -->
-        <div class="flex items-center justify-center gap-2">
-          <span class="inline-flex items-center gap-2 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-zinc-950 text-white shadow-xs">
+    <!-- MAIN MONITOR DISPLAY GRID (12 Cols) -->
+    <main class="flex-1 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+
+      <!-- HERO LEFT: GIANT ACTIVE CALL CARD (7 Cols) -->
+      <div class="lg:col-span-7 bg-white p-6 sm:p-10 rounded-3xl border border-zinc-200/90 shadow-xs flex flex-col justify-between text-center relative overflow-hidden min-h-[500px]">
+        
+        <!-- Status Pill Indicator -->
+        <div class="flex items-center justify-between w-full">
+          <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-zinc-950 text-white shadow-xs">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
             Sedang Dipanggil
+          </span>
+
+          <span
+            v-if="monitorData.currently_calling"
+            :class="[
+              'px-3 py-1 rounded-full text-xs font-extrabold border',
+              monitorData.currently_calling.clinic_unit === 'KIDINEST'
+                ? 'bg-amber-50 text-amber-900 border-amber-200'
+                : 'bg-rose-50 text-rose-900 border-rose-200'
+            ]"
+          >
+            {{ monitorData.currently_calling.clinic_unit === 'KIDINEST' ? 'Lantai 1 • Poli Anak' : 'Lantai 2 • Estetika Medis' }}
           </span>
         </div>
 
         <!-- Giant Queue Number -->
-        <div v-if="monitorData.currently_calling" class="py-6 space-y-4">
-          <div class="text-7xl sm:text-9xl font-black font-mono tracking-tight text-zinc-950 leading-none">
+        <div v-if="monitorData.currently_calling" class="py-6 sm:py-8 space-y-4">
+          <div class="text-7xl sm:text-9xl md:text-[10rem] font-black font-mono tracking-tight text-zinc-950 leading-none select-all transition-transform">
             {{ monitorData.currently_calling.queue_number }}
           </div>
 
-          <!-- Masked Name -->
-          <div class="space-y-1">
-            <div class="text-xl sm:text-2xl font-extrabold text-zinc-800">
+          <!-- Patient Name (Masked for Privacy) -->
+          <div class="space-y-1.5">
+            <div class="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
               {{ monitorData.currently_calling.patient_name }}
             </div>
-            <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100/80 text-[11px] font-semibold text-zinc-600">
               <ShieldCheck class="w-3.5 h-3.5 text-emerald-600" />
-              <span>Identitas disamarkan untuk privasi</span>
+              <span>Privasi Terjaga • Nama belakang disamarkan</span>
             </div>
           </div>
         </div>
 
-        <div v-else class="py-16 text-zinc-400 space-y-2">
-          <Users class="w-12 h-12 mx-auto text-zinc-300" />
-          <div class="text-base font-bold text-zinc-600">Belum Ada Panggilan Aktif</div>
-          <div class="text-xs">Pasien berikutnya harap bersiap di ruang tunggu.</div>
+        <!-- Empty / Standby State -->
+        <div v-else class="py-16 text-zinc-400 space-y-3">
+          <Users class="w-14 h-14 mx-auto text-zinc-300" />
+          <h2 class="text-lg font-bold text-zinc-700">Ruang Pemeriksaan Siap Melayani</h2>
+          <p class="text-xs max-w-sm mx-auto text-zinc-500">
+            Pasien dengan nomor antrian berikutnya harap bersiap di ruang tunggu depan poliklinik.
+          </p>
         </div>
 
-        <!-- Doctor & Room Banner -->
-        <div v-if="monitorData.currently_calling" class="p-4 sm:p-5 rounded-2xl bg-stone-50 border border-zinc-200/80 flex items-center justify-between text-left">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-white border border-zinc-200 text-zinc-900 shrink-0">
-              <Stethoscope class="w-5 h-5" />
+        <!-- Destination Room & Doctor Footer Card -->
+        <div
+          v-if="monitorData.currently_calling"
+          class="p-4 sm:p-5 rounded-2xl bg-stone-50/80 border border-zinc-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left"
+        >
+          <div class="flex items-center gap-3.5">
+            <div class="p-3 rounded-2xl bg-white border border-zinc-200 text-zinc-900 shadow-2xs shrink-0">
+              <Stethoscope class="w-6 h-6 text-[#0C3B36]" />
             </div>
             <div>
-              <div class="text-xs font-extrabold text-zinc-950">
+              <div class="text-xs text-zinc-400 font-semibold uppercase tracking-wider">Dokter Pemeriksa</div>
+              <div class="text-sm sm:text-base font-extrabold text-zinc-950">
                 {{ monitorData.currently_calling.doctor_name }}
-              </div>
-              <div class="text-[11px] text-zinc-500 font-medium">
-                {{ monitorData.currently_calling.clinic_unit === 'KIDINEST' ? 'Ruang Pemeriksaan Poli Anak' : 'Ruang Tindakan Estetika Kulit' }}
               </div>
             </div>
           </div>
 
-          <span class="px-3 py-1 rounded-full text-xs font-black bg-zinc-950 text-white font-mono">
-            RUANG 1
-          </span>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <div class="px-4 py-2 rounded-2xl bg-zinc-950 text-white font-mono font-black text-xs sm:text-sm tracking-wide shadow-xs flex items-center gap-2">
+              <DoorOpen class="w-4 h-4 text-emerald-400" />
+              <span>{{ resolveRoomName(monitorData.currently_calling).toUpperCase() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standby Hint -->
+        <div v-else class="p-3 rounded-2xl bg-stone-50 border border-zinc-200/80 text-xs text-zinc-500">
+          💡 TV Monitor diperbarui otomatis secara real-time via Server-Sent Events.
         </div>
       </div>
 
-      <!-- UPCOMING QUEUE LIST (5 cols) -->
-      <div class="md:col-span-5 bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200/80 shadow-xs flex flex-col justify-between space-y-4">
-        <div>
-          <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-            <div>
-              <h2 class="text-sm font-extrabold text-zinc-950">Antrian Berikutnya</h2>
-              <p class="text-[10px] text-zinc-400 font-medium">Harap bersiap di dekat pintu ruang periksa</p>
+      <!-- RIGHT SIDE: MULTI-ROOM STATUS & NEXT QUEUES (5 Cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-6">
+
+        <!-- 1. LIVE DOCTOR ROOMS STATUS -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl border border-zinc-200/90 shadow-xs space-y-3">
+          <div class="flex items-center justify-between pb-2.5 border-b border-zinc-100">
+            <div class="flex items-center gap-2">
+              <Building2 class="w-4 h-4 text-zinc-600" />
+              <h2 class="text-xs font-black uppercase tracking-wider text-zinc-900">Status Ruang Periksa</h2>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-zinc-700">
-              {{ monitorData.upcoming_queue.length }} Menunggu
-            </span>
+            <span class="text-[10px] font-bold text-zinc-400">Live Status</span>
           </div>
 
-          <!-- List Items -->
-          <div v-if="monitorData.upcoming_queue.length === 0" class="py-12 text-center text-zinc-400 space-y-1">
-            <Clock class="w-8 h-8 mx-auto text-zinc-300" />
-            <p class="text-xs font-bold text-zinc-600">Tidak ada antrian menunggu</p>
-          </div>
-
-          <div v-else class="divide-y divide-zinc-100 mt-2">
+          <div class="space-y-2.5">
             <div
-              v-for="(item, idx) in monitorData.upcoming_queue"
-              :key="item.id"
-              class="py-3 flex items-center justify-between gap-3"
+              v-for="(room, idx) in doctorRooms"
+              :key="idx"
+              class="p-3 rounded-2xl border border-zinc-200/80 bg-[#FAF8F5] flex items-center justify-between gap-2.5"
             >
-              <div class="flex items-center gap-3">
-                <span class="w-6 h-6 rounded-full bg-stone-100 text-zinc-500 flex items-center justify-center text-xs font-black">
-                  {{ idx + 1 }}
-                </span>
-                <div>
-                  <div class="font-mono text-base font-black text-zinc-950 leading-tight">
-                    {{ item.queue_number }}
-                  </div>
-                  <div class="text-[11px] font-bold text-zinc-700">
-                    {{ item.patient_name }}
-                  </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-white border border-zinc-200 text-zinc-800">
+                    {{ room.room_name }}
+                  </span>
+                  <span
+                    :class="[
+                      'w-2 h-2 rounded-full',
+                      room.status === 'BUSY' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+                    ]"
+                  ></span>
+                </div>
+                <div class="text-xs font-extrabold text-zinc-900 truncate mt-1">
+                  {{ room.doctor_name }}
                 </div>
               </div>
 
-              <div class="text-right">
-                <span :class="[
-                  'px-2 py-0.5 rounded-full text-[9px] font-bold border',
-                  item.clinic_unit === 'KIDINEST'
-                    ? 'bg-sky-50 text-sky-800 border-sky-200'
-                    : 'bg-rose-50 text-rose-800 border-rose-200'
-                ]">
-                  {{ item.clinic_unit === 'KIDINEST' ? 'Kidinest' : 'SSC' }}
+              <div class="text-right shrink-0">
+                <span
+                  :class="[
+                    'px-2.5 py-1 rounded-full text-[10px] font-bold border font-mono',
+                    room.status === 'BUSY'
+                      ? 'bg-amber-50 text-amber-900 border-amber-200'
+                      : 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                  ]"
+                >
+                  {{ room.status === 'BUSY' ? 'Sedang Periksa' : 'Siap / Kosong' }}
                 </span>
-                <div class="text-[9px] text-zinc-400 font-medium mt-0.5">Menunggu</div>
+                <div class="text-[10px] text-zinc-400 mt-0.5 font-medium">
+                  {{ room.waiting_count }} Pasien Antri
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Bottom Running Info -->
-        <div class="p-3.5 rounded-2xl bg-[#F9F9F7] border border-zinc-200/80 text-[10px] text-zinc-500 font-medium text-center">
-          💡 Pasien yang telah dipanggil 3 kali tanpa konfirmasi akan dialihkan ke antrian toleransi.
+        <!-- 2. UPCOMING QUEUE LIST -->
+        <div class="bg-white p-5 sm:p-6 rounded-3xl border border-zinc-200/90 shadow-xs flex-1 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <div>
+                <h2 class="text-xs font-black uppercase tracking-wider text-zinc-900">Antrian Berikutnya</h2>
+                <p class="text-[10px] text-zinc-400 font-medium">Harap bersiap di depan pintu ruang periksa</p>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-zinc-700 font-mono">
+                {{ monitorData.upcoming_queue.length }} Menunggu
+              </span>
+            </div>
+
+            <!-- List Items -->
+            <div v-if="monitorData.upcoming_queue.length === 0" class="py-8 text-center text-zinc-400 space-y-1">
+              <Clock class="w-7 h-7 mx-auto text-zinc-300" />
+              <p class="text-xs font-bold text-zinc-600">Tidak ada antrian menunggu</p>
+            </div>
+
+            <div v-else class="divide-y divide-zinc-100 mt-1">
+              <div
+                v-for="(item, idx) in monitorData.upcoming_queue"
+                :key="item.id"
+                class="py-3 flex items-center justify-between gap-3 hover:bg-stone-50/60 rounded-xl px-1.5 transition-colors"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="w-6 h-6 rounded-full bg-stone-100 text-zinc-600 flex items-center justify-center text-xs font-mono font-bold shrink-0">
+                    {{ idx + 1 }}
+                  </span>
+                  <div class="min-w-0">
+                    <div class="font-mono text-base font-black text-zinc-950 leading-tight">
+                      {{ item.queue_number }}
+                    </div>
+                    <div class="text-xs font-bold text-zinc-800 truncate">
+                      {{ item.patient_name }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-right shrink-0">
+                  <span
+                    :class="[
+                      'px-2 py-0.5 rounded-full text-[9px] font-extrabold border uppercase tracking-wider',
+                      item.clinic_unit === 'KIDINEST'
+                        ? 'bg-amber-50 text-amber-900 border-amber-200'
+                        : 'bg-rose-50 text-rose-900 border-rose-200'
+                    ]"
+                  >
+                    {{ item.clinic_unit === 'KIDINEST' ? 'Kidinest' : 'SSC' }}
+                  </span>
+                  <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Menunggu Panggilan</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Warning / Policy -->
+          <div class="p-3 rounded-2xl bg-[#FAF8F5] border border-zinc-200/80 text-[11px] text-zinc-500 font-medium text-center">
+            💡 Pasien yang telah dipanggil 3 kali tanpa kehadiran akan dialihkan ke antrian toleransi meja kasir.
+          </div>
         </div>
+
       </div>
 
     </main>
 
-    <!-- TV Footer Ticker -->
-    <footer class="w-full pt-4 border-t border-zinc-200/60 flex items-center justify-between text-xs text-zinc-400">
-      <div>Sistem Antrian Berkeadilan (FIFO) • Paperless Smart Clinic Management</div>
-      <div class="font-mono text-[11px] text-zinc-500 font-bold">Kidinest &amp; Semarang Skin Center</div>
+    <!-- TV FOOTER TICKER -->
+    <footer class="w-full pt-4 border-t border-zinc-200/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span>Sistem Antrian Berkeadilan (FIFO) • Paperless Smart Clinic Management</span>
+      </div>
+      <div class="font-mono text-[11px] text-zinc-500 font-bold">
+        Kidinest Pediatric Care & Semarang Skin Center
+      </div>
     </footer>
+
   </div>
 </template>

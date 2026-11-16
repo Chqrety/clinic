@@ -29,8 +29,14 @@ import (
 	queueRepo "clinic-api/internal/queue/repository"
 	queueUsecase "clinic-api/internal/queue/usecase"
 	"clinic-api/internal/satusehat"
+	scheduleHttp "clinic-api/internal/schedule/delivery/http"
+	scheduleRepo "clinic-api/internal/schedule/repository"
+	scheduleUsecase "clinic-api/internal/schedule/usecase"
 	sharedDb "clinic-api/internal/shared/database"
+	"clinic-api/internal/shared/midtrans"
 	sharedMw "clinic-api/internal/shared/middleware"
+	"clinic-api/internal/shared/tripay"
+	"clinic-api/internal/shared/whatsapp"
 	staffHttp "clinic-api/internal/staff/delivery/http"
 	staffRepo "clinic-api/internal/staff/repository"
 	staffUsecase "clinic-api/internal/staff/usecase"
@@ -74,6 +80,9 @@ func main() {
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
+		if os.Getenv("ENV") == "production" {
+			log.Fatalf("[SERVER] FATAL: JWT_SECRET environment variable wajib diisi di mode production!")
+		}
 		jwtSecret = "clinic-dev-secret-key-at-least-32-chars-long"
 	}
 
@@ -139,16 +148,59 @@ func main() {
 		staffHandler := staffHttp.NewStaffHandler(staffUc)
 		staffHttp.RegisterStaffRoutes(r, staffHandler, authMiddleware, ownerMiddleware)
 
+		// Payment Gateway: Tripay Client
+		tripayCfg := tripay.Config{
+			APIKey:       os.Getenv("TRIPAY_API_KEY"),
+			PrivateKey:   os.Getenv("TRIPAY_PRIVATE_KEY"),
+			MerchantCode: os.Getenv("TRIPAY_MERCHANT_CODE"),
+			IsSandbox:    os.Getenv("TRIPAY_IS_SANDBOX") != "false",
+			CallbackURL:  os.Getenv("TRIPAY_CALLBACK_URL"),
+			ReturnURL:    os.Getenv("TRIPAY_RETURN_URL"),
+		}
+		tripayClient := tripay.NewClient(tripayCfg)
+		if tripayClient.IsConfigured() {
+			log.Printf("[TRIPAY] Gateway active (Sandbox: %v, Merchant: %s)", tripayCfg.IsSandbox, tripayCfg.MerchantCode)
+		} else {
+			log.Printf("[TRIPAY] No credentials configured, running in Simulated Mode")
+		}
+
+		// Payment Gateway: Midtrans Client (QRIS & Snap)
+		midtransCfg := midtrans.Config{
+			ServerKey:       os.Getenv("MIDTRANS_SERVER_KEY"),
+			ClientKey:       os.Getenv("MIDTRANS_CLIENT_KEY"),
+			SignatureSecret: os.Getenv("MIDTRANS_SIGNATURE_KEY"),
+			IsProduction:    os.Getenv("MIDTRANS_IS_PRODUCTION") == "true",
+		}
+		midtransClient := midtrans.NewClient(midtransCfg)
+		if midtransClient.IsConfigured() {
+			log.Printf("[MIDTRANS] Gateway active (Production: %v, ServerKey set)", midtransClient.IsProduction())
+		} else {
+			log.Printf("[MIDTRANS] No credentials configured, running in Simulated Mode")
+		}
+
+		// WhatsApp Gateway Service
+		waCfg := whatsapp.Config{
+			Provider: os.Getenv("WA_GATEWAY_PROVIDER"),
+			APIURL:   os.Getenv("WA_GATEWAY_API_URL"),
+			APIToken: os.Getenv("WA_GATEWAY_API_TOKEN"),
+		}
+		waService := whatsapp.NewService(waCfg)
+		if waService.IsLive() {
+			log.Printf("[WHATSAPP] Gateway active (Provider: %s)", waCfg.Provider)
+		} else {
+			log.Printf("[WHATSAPP] No API token configured, running in Simulated/Mock Mode")
+		}
+
 		// Bounded Context: Queue & Patient Portal (DDD)
 		queueRepository := queueRepo.NewPostgresQueueRepository(pgDB)
-		waAdapter := queueUsecase.NewMockWhatsAppAdapter()
-		queueUc := queueUsecase.NewQueueUsecase(queueRepository, queueRepository, waAdapter, "http://localhost:5173")
+		queueUc := queueUsecase.NewQueueUsecase(queueRepository, queueRepository, waService, tripayClient, midtransClient, "http://localhost:5173")
 		queueHandler := queueHttp.NewQueueHandler(queueUc)
 		queueHttp.RegisterPublicQueueRoutes(r, queueHandler)
+		queueHttp.RegisterStaffQueueRoutes(r, queueHandler, authMiddleware)
 
 		// Bounded Context: Cashier & Frontdesk GRO (DDD)
 		cashierRepository := cashierRepo.NewPostgresCashierRepository(pgDB)
-		cashierUc := cashierUsecase.NewCashierUsecase(cashierRepository, cashierRepository, cashierRepository, queueRepository, waAdapter, "http://localhost:5173")
+		cashierUc := cashierUsecase.NewCashierUsecase(cashierRepository, cashierRepository, cashierRepository, queueRepository, waService, "http://localhost:5173")
 		cashierHandler := cashierHttp.NewCashierHandler(cashierUc)
 		cashierHttp.RegisterCashierRoutes(r, cashierHandler, authMiddleware)
 
@@ -164,13 +216,35 @@ func main() {
 		pharmHandler := pharmacyHttp.NewPharmacyHandler(pharmUc)
 		pharmacyHttp.RegisterPharmacyRoutes(r, pharmHandler, authMiddleware)
 
+		// Bounded Context: Doctor Schedules & Booking Availability (DDD)
+		schedRepository := scheduleRepo.NewPostgresScheduleRepository(pgDB)
+		schedUc := scheduleUsecase.NewScheduleUsecase(schedRepository)
+		schedHandler := scheduleHttp.NewScheduleHandler(schedUc)
+		r.Route("/api/public", func(pr chi.Router) {
+			scheduleHttp.RegisterPublicScheduleRoutes(pr, schedHandler)
+		})
+		r.Group(func(dr chi.Router) {
+			dr.Use(authMiddleware)
+			dr.Route("/api/doctor", func(dar chi.Router) {
+				scheduleHttp.RegisterDoctorScheduleRoutes(dar, schedHandler)
+			})
+		})
+
+		// Bounded Context: Billing & SATUSEHAT (PostgreSQL Single Source of Truth)
+		billingSvc := billing.NewService(pgDB)
+		satusehatSvc := satusehat.NewService(pgDB)
+		r.Route("/api", func(api chi.Router) {
+			billing.RegisterRoutes(api, billingSvc)
+			satusehat.RegisterRoutes(api, satusehatSvc)
+		})
+
 		// Dev & Demo God Mode (Guarded: Dev only)
 		devHandler := dev.NewDevHandler(pgDB)
 		dev.RegisterDevRoutes(r, devHandler)
 	}
 
-	// 4. Register Legacy Modules (Fase sebelum Bagian 3-5 dimigrasikan)
-	if legacySqlite != nil {
+	// 4. Register Fallback Legacy Modules jika PostgreSQL tidak tersedia (Offline / Mock Mode)
+	if pgDB == nil && legacySqlite != nil {
 		queueSvc := legacyQueue.NewService(legacySqlite)
 		pharmacySvc := legacyPharmacy.NewService(legacySqlite)
 		consultationSvc := legacyConsultation.NewService(legacySqlite)

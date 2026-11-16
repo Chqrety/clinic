@@ -46,6 +46,7 @@ Font keluarga:
 | **Editorial Accent** | `font-serif italic font-normal` | Digunakan untuk 1–2 kata penegas kemewahan di SSC. |
 | **Pill Badge** | `text-xs font-bold tracking-wide uppercase` | `rounded-full px-3.5 py-1` warna mustard atau dusty rose. |
 | **Body & Penjelasan** | `text-sm sm:text-base font-normal leading-relaxed` | Spasi baris lega (*line-height 1.6*), warna abu gelap netral. |
+| **Nominal & Finansial** | `tabular-nums font-bold` / `tabular-nums font-extrabold tracking-tight` | **WAJIB tabular-nums** (Plus Jakarta Sans). DILARANG `font-mono` untuk harga/uang. `font-mono` hanya untuk ID/NIK/Batch/No Antrian. |
 
 ---
 
@@ -151,13 +152,76 @@ Menghindari jebakan klise AI (*floating card box* di sisi kanan hero):
 
 ---
 
-## 5. Standar Antarmuka Admin Minimalist (*Workstation Ergonomics*)
+## 5. Standar Antarmuka Admin & Workstation Minimalist (*Workstation Ergonomics*)
 
-Untuk operasional internal staf (Meja Kasir, Dokter, Apotek, Gudang):
-1. **Sidebar Kiri Tetap (Fixed 240px):**
-   * Latar gelap minimalis (`bg-zinc-950`), icon rapi, label ringkas.
-   * Modul cepat: Kasir & GRO, Ruang Dokter, Farmasi Resep, Gudang Stok, Billing Shift, SATUSEHAT.
-   * Role Switcher instan di bagian profil atas untuk kemudahan demo klien.
-2. **Kepadatan Data Tinggi (*High-Density Table*):**
-   * Font 12–13px, padding 8–10px, angka monospaced tabular.
-   * Tanpa grafik dekoratif yang tidak perlu; utamakan status antrian, nama pasien, dan aksi klinis langsung.
+Semua modul internal klinik (Kasir, Dokter, Farmasi, Gudang, Billing, Owner, SATUSEHAT) **WAJIB** merujuk pada standar arsitektur dan ergonomi visual yang telah diterapkan pada **`#cashier` (`CashierView.vue`)**.
+
+### A. Anatomical Anatomy Layar Workstation (Standar #cashier)
+Setiap halaman workstation memiliki susunan visual yang konsisten:
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. Minimalist Clinical Header (Breadcrumb, Title, Duty Badge, Sync)     │
+├────────────────────────────────────────────────────────────────────────┤
+│ 2. Compact Financial / Operational Ticker Strip (1-Row Hairline Grid)  │
+├────────────────────────────────────────────────────────────────────────┤
+│ 3. Navigation Tabs & Segmented Filters (Pill Tabs + Monospace Counters) │
+├────────────────────────────────────────────────────────────────────────┤
+│ 4. Master-Detail Two-Pane Grid (lg:grid-cols-12 gap-6)                 │
+│   ├── Left Pane (Queue / Catalog Feed, 5-7 Cols)                       │
+│   └── Right Pane (Active Action / Execution Drawer, 5-7 Cols Sticky)   │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Wadah Utama (Canvas Container):**
+   * Kelas wajib: `py-6 px-4 sm:px-8 max-w-[1600px] mx-auto space-y-5 font-['Plus_Jakarta_Sans',sans-serif]`.
+   * Ruang pandang lega tanpa batasan sempit `max-w-7xl`, menghindari horizontal scroll pada monitor desktop klinik (1080p ke atas).
+
+2. **Header Klinis Minimalis (Top Bar):**
+   * **Breadcrumb Institusi:** `text-xs font-semibold text-zinc-500 uppercase tracking-wider` dengan titik pembatas `text-zinc-300` (contoh: `Meja Depan & Kasir • Semarang Medical Group`).
+   * **Judul Utama:** `text-2xl font-bold text-zinc-950 tracking-tight mt-0.5`.
+   * **Duty Badge:** Sisi kanan menampilkan `Petugas Bertugas` (font 10px uppercase zinc-400) dan nama user yang sedang login dalam `text-xs font-bold text-zinc-900`.
+   * **Tombol Aksi Sinkronisasi:** Tombol `Sync` dengan ikon `RefreshCw` berotasi saat loading (`border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-800 shadow-2xs rounded-xl`).
+
+3. **1-Row Compact KPI Ticker Strip (Hairline Grid):**
+   * Menggantikan kotak-kotak card besar berbayang tebal. Menggunakan satu baris bersambung dengan garis pembagi 1px:
+   * Kelas pembungkus: `grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/90 border border-zinc-200/90 rounded-2xl bg-white shadow-2xs overflow-hidden`.
+   * Tiap sel metrik:
+     * Padding proporsional: `p-3.5`.
+     * Label: `text-[10px] font-bold uppercase tracking-wider text-zinc-500`.
+     * Nilai: `text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5`.
+     * Sel summary/total akhir: `bg-stone-50/90 border-l border-zinc-200/90 text-lg font-extrabold text-zinc-950`.
+
+4. **Navigasi Tab Sub-Modul:**
+   * Tombol tab bergaya pill netral:
+     * Aktif: `bg-zinc-950 text-white shadow-2xs`.
+     * Tidak aktif: `text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100`.
+   * Badge angka counter: `px-1.5 py-0.2 rounded-md text-[10px] tabular-nums font-bold` (`bg-zinc-800 text-zinc-200` saat aktif, `bg-stone-200 text-zinc-800` saat pasif).
+
+5. **Tata Letak Master-Detail (Two-Pane Workspace):**
+   * Grid desktop: `grid grid-cols-1 lg:grid-cols-12 gap-6 items-start`.
+   * **Left Pane (5 atau 7 kolom):** Daftar antrean atau katalog barang, dilengkapi pencarian dan filter unit (`ALL`, `KIDINEST`, `SSC`).
+   * **Right Pane (7 atau 5 kolom):** Panel eksekusi tindakan (input resep, bayar tagihan, telaah obat, atau audit) dengan posisi `sticky top-6`.
+
+---
+
+## 6. Standar Komponen & Status Medis (*Design Tokens*)
+
+### A. Palet Warna Status Medis (Standardized Semantic Tokens)
+Hindari pemakaian warna-warna neon acak. Gunakan palet desaturated clinical:
+* **Ready / Selesai / Lunas:** Emerald/Zinc tint (`bg-emerald-50 text-emerald-900 border-emerald-200` atau bullet `bg-emerald-500`).
+* **In-Progress / Sedang Diperiksa / Racik:** Amber tint (`bg-amber-50 text-amber-950 border-amber-200/90`, border aktif `border-l-2 border-l-amber-500`, bullet `bg-amber-500`).
+* **Waiting / Standby / Antre:** Zinc/Stone tint (`bg-zinc-100 text-zinc-800 border-zinc-200`).
+* **Alert / Batal / Refund / Overdue:** Rose tint (`bg-rose-50 text-rose-900 border-rose-200`, teks `text-rose-700`).
+* **Brand Kidinest Unit Tag:** `bg-amber-50 text-amber-900 border-amber-200/80`.
+* **Brand SSC Unit Tag:** `bg-rose-50 text-rose-900 border-rose-200/80`.
+
+### B. Kotak Kontainer Card & Hairline Dividers
+* Seluruh kontainer data menggunakan: `border border-zinc-200/90 rounded-2xl bg-white shadow-2xs`.
+* DILARANG menggunakan bayangan besar seperti `shadow-xl` atau `shadow-2xl` pada card halaman statis (hanya boleh pada dialog modal melayang).
+* Pemisah baris item di dalam list: `divide-y divide-zinc-100` dengan baris interaktif `hover:bg-zinc-50/70 transition-colors`.
+
+### C. Modal Dialog Standar
+* Backdrop: `fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4`.
+* Modal Box: `w-full max-w-lg bg-white rounded-3xl border border-zinc-200/80 shadow-2xl overflow-hidden`.
+* Header Modal: `p-5 border-b border-zinc-100 flex items-center justify-between`.
+* Footer Aksi: `p-4 border-t border-zinc-100 bg-zinc-50/70 flex items-center justify-end gap-2.5`.

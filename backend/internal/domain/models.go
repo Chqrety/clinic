@@ -110,6 +110,7 @@ type Invoice struct {
 	TotalAmount     int                `json:"total_amount"`
 	PaymentMethod   string             `json:"payment_method"`
 	PaymentStatus   string             `json:"payment_status"`
+	PaymentReference string            `json:"payment_reference,omitempty"`
 	Items           []PrescriptionItem `json:"items,omitempty"`
 	// Internal Breakdown (Audit / Klinik)
 	DoctorShare int       `json:"doctor_share"` // 70% jasa konsultasi

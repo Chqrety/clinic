@@ -134,6 +134,7 @@ type CloseShiftRequest struct {
 
 type InvoiceRepository interface {
 	Create(ctx context.Context, invoice *Invoice) error
+	SettleInvoice(ctx context.Context, invoice *Invoice, queueID int64) error
 	GetByID(ctx context.Context, id int64) (*Invoice, error)
 	GetByQueueID(ctx context.Context, queueID int64) (*Invoice, error)
 	List(ctx context.Context, limit, offset int) ([]*Invoice, error)

@@ -36,9 +36,9 @@ const isDemoMode = ref(false)
 
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search)
-  isDemoMode.value = 
-    urlParams.has('demo') || 
-    urlParams.has('dev') || 
+  isDemoMode.value =
+    urlParams.has('demo') ||
+    urlParams.has('dev') ||
     window.location.hash.includes('demo')
 
   // Prefill hanya jika mode demo aktif

@@ -24,7 +24,29 @@ export type AppRoute =
   | 'monitor'
   | 'landing'
 
-const currentRoute = ref<AppRoute>('kidinest')
+function parseRouteFromPath(): AppRoute {
+  const path = window.location.pathname.toLowerCase().replace(/^\/+/, '')
+  if (path === 'ssc') {
+    return 'ssc'
+  } else if (path === 'kiosk-ssc' || path === 'kiosk/ssc') {
+    return 'kiosk-ssc'
+  } else if (path.startsWith('kiosk')) {
+    return 'kiosk-kidinest'
+  } else if (path === 'login-ssc' || path === 'login/ssc') {
+    return 'login-ssc'
+  } else if (path.startsWith('login')) {
+    return 'login-kidinest'
+  } else if (path.startsWith('admin')) {
+    return 'admin'
+  } else if (path.startsWith('monitor')) {
+    return 'monitor'
+  } else {
+    return 'kidinest'
+  }
+}
+
+// Inisialisasi rute langsung secara sinkron dari URL browser (mencegah flash/reload ke kidinest)
+const currentRoute = ref<AppRoute>(parseRouteFromPath())
 const showDemoNav = ref(false)
 
 const store = useClinicStore()
@@ -43,24 +65,7 @@ const activeBrand = computed<'kidinest' | 'ssc'>(() => {
 })
 
 function syncRouteFromPath() {
-  const path = window.location.pathname.toLowerCase().replace(/^\/+/, '')
-  if (path === 'ssc') {
-    currentRoute.value = 'ssc'
-  } else if (path === 'kiosk-ssc' || path === 'kiosk/ssc') {
-    currentRoute.value = 'kiosk-ssc'
-  } else if (path === 'kiosk-kidinest' || path === 'kiosk/kidinest' || path === 'kiosk') {
-    currentRoute.value = 'kiosk-kidinest'
-  } else if (path === 'login-ssc' || path === 'login/ssc') {
-    currentRoute.value = 'login-ssc'
-  } else if (path === 'login-kidinest' || path === 'login/kidinest' || path === 'login') {
-    currentRoute.value = 'login-kidinest'
-  } else if (path === 'admin') {
-    currentRoute.value = 'admin'
-  } else if (path === 'monitor') {
-    currentRoute.value = 'monitor'
-  } else {
-    currentRoute.value = 'kidinest'
-  }
+  currentRoute.value = parseRouteFromPath()
 }
 
 function navigateTo(route: string) {
@@ -79,11 +84,10 @@ function navigateTo(route: string) {
 }
 
 onMounted(async () => {
+  window.addEventListener('popstate', syncRouteFromPath)
   if (auth.token && !auth.user) {
     await auth.fetchMe()
   }
-  syncRouteFromPath()
-  window.addEventListener('popstate', syncRouteFromPath)
 })
 
 const activeComponent = computed(() => {

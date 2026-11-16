@@ -90,8 +90,16 @@ func InitPostgres(cfg Config) (*sql.DB, error) {
 		return nil, fmt.Errorf("gagal migrasi skema consultation: %w", err)
 	}
 
+	if err := MigrateDoctorScheduleSchema(db); err != nil {
+		return nil, fmt.Errorf("gagal migrasi skema jadwal dokter: %w", err)
+	}
+
 	if err := SeedInitialStaff(db); err != nil {
 		log.Printf("[DB] Peringatan: Seeding data staf gagal: %v", err)
+	}
+
+	if err := SeedInitialDoctorSchedules(db); err != nil {
+		log.Printf("[DB] Peringatan: Seeding data jadwal dokter gagal: %v", err)
 	}
 
 	if err := SeedInitialDrugs(db); err != nil {
@@ -154,11 +162,11 @@ func MigrateQueueSchema(db *sql.DB) error {
 		queue_number VARCHAR(20) NOT NULL,
 		registration_fee INTEGER NOT NULL DEFAULT 0,
 		payment_method VARCHAR(30) NOT NULL CHECK (payment_method IN (
-			'QRIS', 'BANK_TRANSFER', 'CASH', 'UNPAID_BOOKING'
+			'QRIS', 'BANK_TRANSFER', 'CASH', 'UNPAID_BOOKING', 'EDC'
 		)),
 		payment_status VARCHAR(20) NOT NULL CHECK (payment_status IN ('PENDING', 'PAID', 'REFUNDED')),
 		queue_status VARCHAR(30) NOT NULL CHECK (queue_status IN (
-			'WAITING', 'CALLING', 'IN_EXAM', 'PHARMACY_WAITING', 'COMPLETED', 'CANCELLED'
+			'BOOKED', 'WAITING', 'CALLING', 'IN_EXAM', 'PHARMACY_WAITING', 'COMPLETED', 'CANCELLED'
 		)),
 		paid_at TIMESTAMP WITH TIME ZONE,
 		called_at TIMESTAMP WITH TIME ZONE,
@@ -167,6 +175,37 @@ func MigrateQueueSchema(db *sql.DB) error {
 	);
 	CREATE INDEX IF NOT EXISTS idx_queues_unit_status ON queues(clinic_unit, queue_status);
 	CREATE INDEX IF NOT EXISTS idx_queues_created_at ON queues(created_at);
+
+	ALTER TABLE queues DROP CONSTRAINT IF EXISTS queues_payment_method_check;
+	ALTER TABLE queues ADD CONSTRAINT queues_payment_method_check CHECK (payment_method IN (
+		'QRIS', 'BANK_TRANSFER', 'CASH', 'UNPAID_BOOKING', 'EDC'
+	));
+
+	ALTER TABLE queues DROP CONSTRAINT IF EXISTS queues_queue_status_check;
+	ALTER TABLE queues ADD CONSTRAINT queues_queue_status_check CHECK (queue_status IN (
+		'BOOKED', 'WAITING', 'CALLING', 'IN_EXAM', 'PHARMACY_WAITING', 'COMPLETED', 'CANCELLED'
+	));
+
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(100);
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS payment_url TEXT;
+	CREATE INDEX IF NOT EXISTS idx_queues_payment_ref ON queues(payment_reference);
+
+	ALTER TABLE patients ADD COLUMN IF NOT EXISTS nik VARCHAR(20);
+	ALTER TABLE patients ADD COLUMN IF NOT EXISTS ihs_number VARCHAR(50);
+	ALTER TABLE patients ADD COLUMN IF NOT EXISTS birth_date DATE;
+	ALTER TABLE patients ADD COLUMN IF NOT EXISTS gender VARCHAR(10);
+	CREATE INDEX IF NOT EXISTS idx_patients_nik ON patients(nik);
+
+	CREATE TABLE IF NOT EXISTS satusehat_logs (
+		id SERIAL PRIMARY KEY,
+		resource_type VARCHAR(50) NOT NULL,
+		entity_id VARCHAR(50) NOT NULL,
+		status VARCHAR(20) NOT NULL,
+		fhir_payload TEXT NOT NULL,
+		synced_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+	CREATE INDEX IF NOT EXISTS idx_satusehat_logs_status ON satusehat_logs(status);
 	`
 	_, err := db.Exec(schema)
 	return err
@@ -226,15 +265,6 @@ func MigrateCashierSchema(db *sql.DB) error {
 }
 
 func SeedInitialStaff(db *sql.DB) error {
-	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM staff_users").Scan(&count)
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-
 	// Default demo password for all staff: "klinik123"
 	defaultHash, err := bcrypt.GenerateFromPassword([]byte("klinik123"), bcrypt.DefaultCost)
 	if err != nil {
@@ -248,8 +278,10 @@ func SeedInitialStaff(db *sql.DB) error {
 		unit   string
 	}{
 		{"OWNER-01", "dr. Ratna Paramita, M.Kes", "SUPERADMIN_OWNER", "ALL"},
-		{"DOC-KID-01", "dr. Hendra Pratama, Sp.A", "DOCTOR", "KIDINEST"},
-		{"DOC-SSC-01", "dr. Nadia Kusuma, Sp.KK", "DOCTOR", "SSC"},
+		{"DOC-KID-01", "dr. Patricia Vanessa A., Sp.A", "DOCTOR", "KIDINEST"},
+		{"DOC-KID-02", "dr. Hendra Pratama, Sp.A", "DOCTOR", "KIDINEST"},
+		{"DOC-SSC-01", "dr. Dian Paramita, Sp.D.V.E", "DOCTOR", "SSC"},
+		{"DOC-SSC-02", "dr. Kevin Wijaya, Sp.D.V.E", "DOCTOR", "SSC"},
 		{"GRO-01", "Siti Sarah, A.Md", "GRO_CASHIER", "ALL"},
 		{"FARMASI-01", "Apt. Dimas Wicaksono, S.Farm", "PHARMACIST", "ALL"},
 	}
@@ -257,7 +289,9 @@ func SeedInitialStaff(db *sql.DB) error {
 	query := `
 	INSERT INTO staff_users (employee_number, name, role, clinic_unit, password_hash, is_active)
 	VALUES ($1, $2, $3, $4, $5, TRUE)
-	ON CONFLICT (employee_number) DO NOTHING;
+	ON CONFLICT (employee_number) DO UPDATE SET
+		name = EXCLUDED.name,
+		clinic_unit = EXCLUDED.clinic_unit;
 	`
 
 	for _, s := range seeds {
@@ -266,7 +300,7 @@ func SeedInitialStaff(db *sql.DB) error {
 		}
 	}
 
-	log.Printf("[DB] Berhasil melakukan seed 5 akun staf demo awal.")
+	log.Printf("[DB] Berhasil menyelaraskan 7 akun staf demo (4 Dokter Spesialis Kidinest & SSC).")
 	return nil
 }
 
@@ -413,5 +447,112 @@ func SeedInitialDrugs(db *sql.DB) error {
 	}
 
 	log.Printf("[DB] Berhasil melakukan seed 10 master obat & batch awal untuk Kidinest & SSC.")
+	return nil
+}
+
+func MigrateDoctorScheduleSchema(db *sql.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS doctor_schedules (
+		id SERIAL PRIMARY KEY,
+		doctor_id INTEGER NOT NULL REFERENCES staff_users(id) ON DELETE CASCADE,
+		doctor_name VARCHAR(150) NOT NULL,
+		clinic_unit VARCHAR(50) NOT NULL,
+		day_of_week INT NOT NULL,
+		shift_name VARCHAR(50) NOT NULL,
+		start_time VARCHAR(10) NOT NULL,
+		end_time VARCHAR(10) NOT NULL,
+		slot_minutes INT NOT NULL DEFAULT 30,
+		quota_per_slot INT NOT NULL DEFAULT 3,
+		is_active BOOLEAN NOT NULL DEFAULT TRUE,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+	CREATE INDEX IF NOT EXISTS idx_doc_schedules_doc ON doctor_schedules(doctor_id, day_of_week, is_active);
+
+	CREATE TABLE IF NOT EXISTS doctor_schedule_overrides (
+		id SERIAL PRIMARY KEY,
+		doctor_id INTEGER NOT NULL REFERENCES staff_users(id) ON DELETE CASCADE,
+		override_date DATE NOT NULL,
+		is_cancelled BOOLEAN NOT NULL DEFAULT TRUE,
+		reason VARCHAR(255),
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+	CREATE INDEX IF NOT EXISTS idx_doc_overrides_date ON doctor_schedule_overrides(doctor_id, override_date);
+
+	-- Perluasan tabel queues untuk booking tanggal masa depan & refund kasir
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS appointment_date DATE NOT NULL DEFAULT CURRENT_DATE;
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS appointment_time VARCHAR(30) NOT NULL DEFAULT '09:00 - 09:30';
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS patient_type VARCHAR(20) NOT NULL DEFAULT 'NEW';
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS reschedule_count INT NOT NULL DEFAULT 0;
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS refund_status VARCHAR(30) NOT NULL DEFAULT 'NONE';
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS refund_notes TEXT;
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS refund_bank VARCHAR(50);
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS refund_account_number VARCHAR(50);
+	ALTER TABLE queues ADD COLUMN IF NOT EXISTS refund_account_name VARCHAR(150);
+
+	CREATE INDEX IF NOT EXISTS idx_queues_appointment ON queues(appointment_date, doctor_id, queue_status);
+	`
+	_, err := db.Exec(schema)
+	return err
+}
+
+func SeedInitialDoctorSchedules(db *sql.DB) error {
+	var count int
+	_ = db.QueryRow("SELECT COUNT(*) FROM doctor_schedules").Scan(&count)
+	if count > 0 {
+		return nil
+	}
+
+	// Ambil ID dokter dari staff_users
+	docRows, err := db.Query("SELECT id, employee_number, name, clinic_unit FROM staff_users WHERE role = 'DOCTOR'")
+	if err != nil {
+		return err
+	}
+	defer docRows.Close()
+
+	type docEntry struct {
+		id     int64
+		empNum string
+		name   string
+		unit   string
+	}
+	var docs []docEntry
+	for docRows.Next() {
+		var d docEntry
+		if err := docRows.Scan(&d.id, &d.empNum, &d.name, &d.unit); err == nil {
+			docs = append(docs, d)
+		}
+	}
+
+	insertSched := `
+	INSERT INTO doctor_schedules (doctor_id, doctor_name, clinic_unit, day_of_week, shift_name, start_time, end_time, slot_minutes, quota_per_slot, is_active)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, 30, $8, TRUE);
+	`
+
+	for _, d := range docs {
+		switch d.empNum {
+		case "DOC-KID-01": // dr. Patricia Vanessa A., Sp.A (Senin - Jumat Pagi 08:30 - 12:00)
+			for day := 1; day <= 5; day++ {
+				_, _ = db.Exec(insertSched, d.id, d.name, d.unit, day, "PAGI", "08:30", "12:00", 1)
+			}
+		case "DOC-KID-02": // dr. Hendra Pratama, Sp.A (Senin - Sabtu Sore 16:00 - 19:30)
+			for day := 1; day <= 6; day++ {
+				_, _ = db.Exec(insertSched, d.id, d.name, d.unit, day, "SORE", "16:00", "19:30", 1)
+			}
+		case "DOC-SSC-01": // dr. Dian Paramita, Sp.D.V.E (Senin - Jumat Pagi 09:00 - 13:00)
+			for day := 1; day <= 5; day++ {
+				_, _ = db.Exec(insertSched, d.id, d.name, d.unit, day, "PAGI", "09:00", "13:00", 1)
+			}
+		case "DOC-SSC-02": // dr. Kevin Wijaya, Sp.D.V.E (Senin - Sabtu Sore 15:00 - 19:00)
+			for day := 1; day <= 6; day++ {
+				_, _ = db.Exec(insertSched, d.id, d.name, d.unit, day, "SORE", "15:00", "19:00", 1)
+			}
+		}
+	}
+
+	// Update record yang sudah ter-seed agar quota_per_slot = 1
+	_, _ = db.Exec("UPDATE doctor_schedules SET quota_per_slot = 1 WHERE quota_per_slot > 1")
+
+	log.Printf("[DB] Berhasil melakukan seed jadwal rutin praktek 4 dokter spesialis.")
 	return nil
 }

@@ -57,6 +57,54 @@ func (r *PostgresCashierRepository) Create(ctx context.Context, inv *domain.Invo
 	).Scan(&inv.ID, &inv.CreatedAt, &inv.UpdatedAt)
 }
 
+func (r *PostgresCashierRepository) SettleInvoice(ctx context.Context, inv *domain.Invoice, queueID int64) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `
+		INSERT INTO invoices (
+			queue_id, patient_id, invoice_number,
+			subtotal_registration, subtotal_action, subtotal_medication,
+			voucher_discount, total_amount, payment_method,
+			cash_received, cash_change, payment_reference,
+			cashier_staff_id, cashier_name, status, notes,
+			created_at, updated_at
+		) VALUES (
+			$1, $2, $3,
+			$4, $5, $6,
+			$7, $8, $9,
+			$10, $11, $12,
+			$13, $14, $15, $16,
+			CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+		) RETURNING id, created_at, updated_at
+	`
+	err = tx.QueryRowContext(
+		ctx, query,
+		inv.QueueID, inv.PatientID, inv.InvoiceNumber,
+		inv.SubtotalRegistration, inv.SubtotalAction, inv.SubtotalMedication,
+		inv.VoucherDiscount, inv.TotalAmount, string(inv.PaymentMethod),
+		inv.CashReceived, inv.CashChange, inv.PaymentReference,
+		inv.CashierStaffID, inv.CashierName, string(inv.Status), inv.Notes,
+	).Scan(&inv.ID, &inv.CreatedAt, &inv.UpdatedAt)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE queues
+		SET payment_status = 'PAID', queue_status = 'COMPLETED', paid_at = CURRENT_TIMESTAMP
+		WHERE id = $1
+	`, queueID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func (r *PostgresCashierRepository) GetByID(ctx context.Context, id int64) (*domain.Invoice, error) {
 	query := `
 		SELECT 
@@ -228,14 +276,14 @@ func (r *PostgresCashierRepository) GetShiftSummary(ctx context.Context, date st
 
 	query := `
 		SELECT 
-			COUNT(id) AS total_transactions,
+			COALESCE(COUNT(CASE WHEN status = 'PAID' THEN 1 END), 0) AS total_transactions,
 			COALESCE(SUM(CASE WHEN payment_method = 'CASH' AND status = 'PAID' THEN total_amount ELSE 0 END), 0) AS total_cash,
-			COALESCE(SUM(CASE WHEN payment_method = 'BANK_TRANSFER' AND status = 'PAID' THEN total_amount ELSE 0 END), 0) AS total_transfer,
+			COALESCE(SUM(CASE WHEN (payment_method = 'BANK_TRANSFER' OR payment_method = 'QRIS') AND status = 'PAID' THEN total_amount ELSE 0 END), 0) AS total_transfer,
 			COALESCE(SUM(CASE WHEN payment_method = 'EDC' AND status = 'PAID' THEN total_amount ELSE 0 END), 0) AS total_edc,
 			COALESCE(SUM(voucher_discount), 0) AS total_voucher,
 			COALESCE(SUM(CASE WHEN status = 'REFUNDED' THEN total_amount ELSE 0 END), 0) AS total_refund
 		FROM invoices
-		WHERE DATE(created_at) = $1
+		WHERE DATE(created_at AT TIME ZONE 'Asia/Jakarta') = $1 OR DATE(created_at) = $1
 	`
 	var sum domain.ShiftSummary
 	sum.ShiftDate = date
