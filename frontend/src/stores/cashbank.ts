@@ -200,10 +200,10 @@ export const useCashBankStore = defineStore('cashbank', () => {
   // Initial load
   fetchCashBankData()
 
-  // Get all cash accounts (parentCode === '1101' or startsWith '1101')
+  // Get all active cash accounts (parentCode === '1101' or startsWith '1101')
   const cashAccounts = computed(() => {
     return ledgerStore.accounts.filter(a => {
-      if (a.isHeader) return false
+      if (a.isHeader || a.isActive === false) return false
       if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
         return false
       }
@@ -211,10 +211,10 @@ export const useCashBankStore = defineStore('cashbank', () => {
     })
   })
 
-  // Get all bank accounts (parentCode === '1102' or startsWith '1102' or '1103')
+  // Get all active bank accounts (parentCode === '1102' or startsWith '1102' or '1103')
   const bankAccounts = computed(() => {
     return ledgerStore.accounts.filter(a => {
-      if (a.isHeader) return false
+      if (a.isHeader || a.isActive === false) return false
       if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
         return false
       }

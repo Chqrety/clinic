@@ -63,10 +63,10 @@ interface OpeningBalanceRowState {
 
 const balanceRows = ref<OpeningBalanceRowState[]>([])
 
-// Populate rows from ledgerStore.accounts
+// Populate rows from ledgerStore.accounts (only active leaf accounts)
 function initializeRows() {
   balanceRows.value = ledgerStore.accounts
-    .filter(a => !a.isHeader) // Only leaf accounts can take opening balance
+    .filter(a => !a.isHeader && a.isActive !== false) // Only active leaf accounts can take opening balance
     .map(a => {
       const cur = a.currentBalance || 0
       let d = 0

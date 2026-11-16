@@ -36,6 +36,7 @@ onMounted(() => {
 const searchQuery = ref('')
 const selectedType = ref<string>('ALL')
 const selectedLevel = ref<number | 'ALL'>('ALL')
+const selectedStatus = ref<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL')
 
 // Add account modal
 const showAddModal = ref(false)
@@ -131,6 +132,12 @@ const filteredAccounts = computed(() => {
       else if (selectedType.value !== 'REVENUE' && selectedType.value !== 'EXPENSE' && a.type !== selectedType.value) return false
     }
     if (selectedLevel.value !== 'ALL' && a.level !== selectedLevel.value) {
+      return false
+    }
+    if (selectedStatus.value === 'ACTIVE' && a.isActive === false) {
+      return false
+    }
+    if (selectedStatus.value === 'INACTIVE' && a.isActive !== false) {
       return false
     }
     if (searchQuery.value) {
@@ -271,6 +278,37 @@ function openTaxModule(taxCategory?: string) {
             Lvl 4 (Detail)
           </button>
         </div>
+
+        <!-- Status Filter: Semua / Aktif / Nonaktif -->
+        <div class="flex items-center bg-zinc-100 p-0.5 rounded-xl border border-zinc-200/90 text-xs">
+          <button
+            @click="selectedStatus = 'ALL'"
+            :class="[
+              'px-2.5 py-1 rounded-lg font-bold transition-all',
+              selectedStatus === 'ALL' ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
+            ]"
+          >
+            Semua
+          </button>
+          <button
+            @click="selectedStatus = 'ACTIVE'"
+            :class="[
+              'px-2.5 py-1 rounded-lg font-bold transition-all',
+              selectedStatus === 'ACTIVE' ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
+            ]"
+          >
+            Aktif
+          </button>
+          <button
+            @click="selectedStatus = 'INACTIVE'"
+            :class="[
+              'px-2.5 py-1 rounded-lg font-bold transition-all',
+              selectedStatus === 'INACTIVE' ? 'bg-rose-600 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
+            ]"
+          >
+            Nonaktif
+          </button>
+        </div>
       </div>
 
       <div class="text-xs text-zinc-500 font-medium">
@@ -328,12 +366,17 @@ function openTaxModule(taxCategory?: string) {
                 >
                   <Folder v-if="acc.isHeader" :class="['w-4 h-4 shrink-0', acc.level === 1 ? 'text-amber-400' : 'text-amber-500']" />
                   <FileText v-else class="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                  <span :class="[acc.level === 1 ? 'font-extrabold text-white text-xs tracking-wide' : acc.level === 2 ? 'font-bold text-zinc-950' : 'font-medium']">
+                  <span
+                    :class="[
+                      acc.level === 1 ? 'font-extrabold text-white text-xs tracking-wide' : acc.level === 2 ? 'font-bold text-zinc-950' : 'font-medium',
+                      acc.isActive === false ? 'line-through text-zinc-400' : ''
+                    ]"
+                  >
                     {{ acc.name }}
                   </span>
                   <span
                     v-if="acc.isActive === false"
-                    class="ml-2 px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
+                    class="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider"
                   >
                     Nonaktif
                   </span>
@@ -427,7 +470,7 @@ function openTaxModule(taxCategory?: string) {
                       'p-1.5 rounded-lg transition-colors border shadow-2xs cursor-pointer',
                       acc.isActive !== false
                         ? 'bg-white hover:bg-rose-50 text-zinc-500 hover:text-rose-600 border-zinc-200'
-                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
                     ]"
                     :title="acc.isActive !== false ? 'Nonaktifkan Akun' : 'Aktifkan Kembali Akun'"
                   >

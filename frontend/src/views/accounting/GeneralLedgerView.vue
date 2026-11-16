@@ -187,7 +187,7 @@ function inspectJournalByNumber(jNumber: string) {
 
 const nonHeaderAccounts = computed(() => {
   return ledgerStore.accounts.filter(a => {
-    if (a.isHeader) return false
+    if (a.isHeader || a.isActive === false) return false
     if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
       return false
     }

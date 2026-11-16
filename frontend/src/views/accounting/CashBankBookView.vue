@@ -133,9 +133,9 @@ const totalCreditMutation = computed(() => {
   return ledgerData.value.entries.reduce((sum, e) => sum + e.credit, 0)
 })
 
-// Accounts for counterpart selection in forms (non-header accounts)
+// Accounts for counterpart selection in forms (non-header active accounts)
 const counterpartAccounts = computed(() => {
-  return ledgerStore.accounts.filter(a => !a.isHeader)
+  return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
 })
 
 // Auto switch selected account when switching tab

@@ -15,6 +15,7 @@ func RegisterAccountingRoutes(r chi.Router, h *handler.AccountingHandler) {
 		acc.Get("/", h.HandleListAccounts)
 		acc.Post("/", h.HandleCreateAccount)
 		acc.Get("/{id}", h.HandleGetAccountByID)
+		acc.Put("/{id}", h.HandleUpdateAccount)
 	})
 }
 

@@ -291,6 +291,44 @@ export const useLedgerStore = defineStore('ledger', () => {
 
   const isLoading = ref(false)
 
+  // Local persistence for custom edits/deactivations across refreshes
+  const LOCAL_STORAGE_KEY = 'clinic_coa_overrides'
+
+  function loadLocalOverrides() {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (!raw) return
+      const overrides: Record<string, { name?: string; isActive?: boolean; description?: string }> = JSON.parse(raw)
+      accounts.value.forEach(a => {
+        const o = overrides[a.code] || overrides[a.id]
+        if (o) {
+          if (o.isActive !== undefined) a.isActive = o.isActive
+          if (o.name !== undefined) a.name = o.name
+          if (o.description !== undefined) a.description = o.description
+        }
+      })
+    } catch {}
+  }
+
+  function saveLocalOverrides() {
+    try {
+      const overrides: Record<string, { name?: string; isActive?: boolean; description?: string }> = {}
+      accounts.value.forEach(a => {
+        if (a.isActive === false || a.name || a.description) {
+          overrides[a.code] = {
+            name: a.name,
+            isActive: a.isActive,
+            description: a.description
+          }
+        }
+      })
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(overrides))
+    } catch {}
+  }
+
+  // Load initial overrides on store creation
+  loadLocalOverrides()
+
   // Fetch Accounts directly from PostgreSQL database via Go API
   async function fetchAccounts() {
     try {
@@ -330,6 +368,9 @@ export const useLedgerStore = defineStore('ledger', () => {
             currentBalance: balanceMap.get(b.code) || 0
           }
         })
+
+        // Re-apply local overrides after fetching backend accounts
+        loadLocalOverrides()
       }
     } catch (err: any) {
       console.error('Failed to fetch accounts from database:', err)
@@ -400,11 +441,12 @@ export const useLedgerStore = defineStore('ledger', () => {
         // Fallback local if offline/mock
       }
 
-      const idx = accounts.value.findIndex(a => a.id === id || (updatedBackend && a.code === updatedBackend.code))
+      const idx = accounts.value.findIndex(a => a.id === id || a.code === id || (updatedBackend && a.code === updatedBackend.code))
       if (idx !== -1) {
         if (payload.name) accounts.value[idx].name = payload.name
         if (payload.isActive !== undefined) accounts.value[idx].isActive = payload.isActive
         if (payload.description !== undefined) accounts.value[idx].description = payload.description
+        saveLocalOverrides()
       }
 
       const actionName = payload.isActive === false ? 'dinonaktifkan' : payload.isActive === true ? 'diaktifkan kembali' : 'diperbarui'

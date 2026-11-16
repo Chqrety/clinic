@@ -141,21 +141,24 @@ func (h *AccountingHandler) HandleGetAccountByID(w http.ResponseWriter, r *http.
 
 func (h *AccountingHandler) HandleUpdateAccount(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		response.BadRequest(w, "Invalid account ID UUID", nil)
+	var acc *domain.Account
+	var err error
+
+	id, parseErr := uuid.Parse(idStr)
+	if parseErr == nil {
+		acc, err = h.service.GetAccountByID(r.Context(), id)
+	} else {
+		acc, err = h.service.GetAccountByCode(r.Context(), idStr)
+	}
+
+	if err != nil || acc == nil {
+		response.NotFound(w, "Account not found")
 		return
 	}
 
 	var req dto.UpdateAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.BadRequest(w, "Invalid JSON payload", err.Error())
-		return
-	}
-
-	acc, err := h.service.GetAccountByID(r.Context(), id)
-	if err != nil {
-		response.NotFound(w, "Account not found")
 		return
 	}
 

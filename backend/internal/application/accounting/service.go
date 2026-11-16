@@ -284,6 +284,11 @@ func (s *Service) GetAccountByID(ctx context.Context, id uuid.UUID) (*domain.Acc
 	return s.accountRepo.GetByID(ctx, id)
 }
 
+// GetAccountByCode returns an account by its unique code.
+func (s *Service) GetAccountByCode(ctx context.Context, code string) (*domain.Account, error) {
+	return s.accountRepo.GetByCode(ctx, code)
+}
+
 // CreateAccount creates a new account in the Chart of Accounts.
 func (s *Service) CreateAccount(ctx context.Context, acc *domain.Account) error {
 	return s.accountRepo.Create(ctx, acc)

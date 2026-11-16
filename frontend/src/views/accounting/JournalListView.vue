@@ -93,7 +93,7 @@ const inlineRows = ref<InlineRow[]>([
 ])
 
 const availableAccounts = computed(() => {
-  return ledgerStore.accounts.filter(a => !a.isHeader)
+  return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
 })
 
 function onAccountSelect(index: number, code: string) {
