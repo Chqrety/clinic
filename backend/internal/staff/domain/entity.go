@@ -12,6 +12,7 @@ const (
 	RoleDoctor     Role = "DOCTOR"
 	RoleCashier    Role = "GRO_CASHIER"
 	RolePharmacist Role = "PHARMACIST"
+	RoleFinance    Role = "FINANCE"
 )
 
 type ClinicUnit string

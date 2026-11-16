@@ -366,13 +366,10 @@ export const useJournalsStore = defineStore('journals', () => {
     }
   ])
 
-  // Filtered journals based on global filters
+  // Filtered journals based on global filters (Pure Unit Filter)
   const filteredJournals = computed(() => {
     return journals.value.filter(j => {
       if (accountingStore.businessUnit !== 'ALL' && j.businessUnit !== 'ALL' && j.businessUnit !== accountingStore.businessUnit) {
-        return false
-      }
-      if (accountingStore.branchCode !== 'ALL' && j.branchId !== accountingStore.branchCode) {
         return false
       }
       return true

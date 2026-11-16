@@ -31,6 +31,7 @@ func (h *AccountingHandler) RegisterRoutes(r chi.Router) {
 		acc.Get("/", h.HandleListAccounts)
 		acc.Post("/", h.HandleCreateAccount)
 		acc.Get("/{id}", h.HandleGetAccountByID)
+		acc.Put("/{id}", h.HandleUpdateAccount)
 	})
 
 	r.Route("/journals", func(j chi.Router) {
@@ -125,6 +126,55 @@ func (h *AccountingHandler) HandleGetAccountByID(w http.ResponseWriter, r *http.
 	}
 
 	response.OK(w, "Account retrieved successfully", dto.AccountResponse{
+		ID:            acc.ID,
+		Code:          acc.Code,
+		Name:          acc.Name,
+		Type:          acc.Type,
+		NormalBalance: acc.NormalBalance,
+		ParentID:      acc.ParentID,
+		Level:         acc.Level,
+		IsHeader:      acc.IsHeader,
+		IsActive:      acc.IsActive,
+		Description:   acc.Description,
+	}, nil)
+}
+
+func (h *AccountingHandler) HandleUpdateAccount(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		response.BadRequest(w, "Invalid account ID UUID", nil)
+		return
+	}
+
+	var req dto.UpdateAccountRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid JSON payload", err.Error())
+		return
+	}
+
+	acc, err := h.service.GetAccountByID(r.Context(), id)
+	if err != nil {
+		response.NotFound(w, "Account not found")
+		return
+	}
+
+	if req.Name != "" {
+		acc.Name = req.Name
+	}
+	if req.IsActive != nil {
+		acc.IsActive = *req.IsActive
+	}
+	if req.Description != "" {
+		acc.Description = req.Description
+	}
+
+	if err := h.service.UpdateAccount(r.Context(), acc); err != nil {
+		response.BadRequest(w, err.Error(), nil)
+		return
+	}
+
+	response.OK(w, "Account updated successfully", dto.AccountResponse{
 		ID:            acc.ID,
 		Code:          acc.Code,
 		Name:          acc.Name,

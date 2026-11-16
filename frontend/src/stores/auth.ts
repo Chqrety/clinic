@@ -5,7 +5,7 @@ export interface AuthUser {
   id: number
   employee_number: string
   name: string
-  role: 'SUPERADMIN_OWNER' | 'DOCTOR' | 'GRO_CASHIER' | 'PHARMACIST'
+  role: 'SUPERADMIN_OWNER' | 'DOCTOR' | 'GRO_CASHIER' | 'PHARMACIST' | 'FINANCE'
   clinic_unit: 'KIDINEST' | 'SSC' | 'ALL'
 }
 
@@ -24,6 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isDoctor = computed(() => user.value?.role === 'DOCTOR')
   const isCashier = computed(() => user.value?.role === 'GRO_CASHIER')
   const isPharmacist = computed(() => user.value?.role === 'PHARMACIST')
+  const isFinance = computed(() => user.value?.role === 'FINANCE')
 
   function setAuth(newToken: string, newUser: AuthUser) {
     token.value = newToken

@@ -20,7 +20,9 @@ import {
   Receipt,
   Layers,
   Database,
-  BookmarkCheck
+  BookmarkCheck,
+  Edit3,
+  Power
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -67,13 +69,54 @@ function handleSaveAccount() {
   newDescription.value = ''
 }
 
+// Edit account modal & handlers
+const showEditModal = ref(false)
+const editingAccount = ref<any>(null)
+const editName = ref('')
+const editDescription = ref('')
+
+function openEditModal(acc: any) {
+  editingAccount.value = acc
+  editName.value = acc.name
+  editDescription.value = acc.description || ''
+  showEditModal.value = true
+}
+
+async function handleUpdateAccount() {
+  if (!editName.value.trim() || !editingAccount.value) {
+    accountingStore.showToast('Nama Akun wajib diisi!', 'error')
+    return
+  }
+
+  await ledgerStore.updateAccount(editingAccount.value.id, {
+    name: editName.value.trim(),
+    description: editDescription.value.trim()
+  })
+
+  showEditModal.value = false
+  editingAccount.value = null
+}
+
+async function handleToggleActive(acc: any) {
+  const newStatus = acc.isActive === false ? true : false
+  const promptText = newStatus
+    ? `Aktifkan kembali akun ${acc.code} - ${acc.name}?`
+    : `Nonaktifkan akun ${acc.code} - ${acc.name}? Akun tidak akan muncul di pilihan transaksi baru.`
+
+  if (confirm(promptText)) {
+    await ledgerStore.updateAccount(acc.id, {
+      isActive: newStatus
+    })
+  }
+}
+
 const typeOptions = [
   { value: 'ALL', label: 'Semua Kategori (1 - 7)' },
-  { value: 'ASSET', label: '1 - ASET - BCS' },
-  { value: 'LIABILITY', label: '2 - KEWAJIBAN - BCS' },
-  { value: 'EQUITY', label: '3 - EKUITAS - BCS' },
+  { value: 'ASSET', label: '1 - ASET' },
+  { value: 'LIABILITY', label: '2 - KEWAJIBAN' },
+  { value: 'EQUITY', label: '3 - EKUITAS' },
   { value: 'REVENUE', label: '4 - PENDAPATAN & 6 - NON USAHA' },
-  { value: 'COGS', label: '5 - HPP - BCS' },
+  { value: 'COGS', label: '5 - HPP' },
   { value: 'EXPENSE', label: '52 - BEBAN OPERASIONAL & 7 - NON USAHA' }
 ]
 
@@ -108,54 +151,52 @@ function openTaxModule(taxCategory?: string) {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
+  <div class="space-y-5 font-['Plus_Jakarta_Sans',sans-serif]">
+    <!-- Minimalist Clinical Header -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
       <div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-            Master Data Bagan Akun
+          <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            Bagan Akun Standar
           </span>
-          <span class="text-xs text-slate-400">&bull; Standar Akuntansi Indonesia (PSAK & Tiered Indexing)</span>
+          <span class="text-zinc-300">•</span>
+          <span class="text-xs text-zinc-400 font-medium">PSAK & Hierarki Akuntansi Klinik</span>
         </div>
-        <h1 class="text-xl font-bold text-slate-900 mt-1">
-          Bagan Akun Standar (Chart of Accounts - BCS)
+        <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
+          Chart of Accounts (COA)
         </h1>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Struktur berjenjang Index (Level 1), Sub-Index (Level 2), Sub-Index ke-2 (Level 3), dan Leaf Detail (Level 4) dengan integrasi otomatis ke modul Perpajakan.
-        </p>
       </div>
 
       <div class="flex items-center gap-2.5">
         <button
           @click="router.push('/accounting/opening-balance')"
-          class="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
-          <BookmarkCheck class="w-4 h-4" />
+          <BookmarkCheck class="w-3.5 h-3.5 text-zinc-600" />
           <span>Atur Saldo Awal</span>
         </button>
 
         <button
           @click="showAddModal = true"
-          class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors"
+          class="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
-          <Plus class="w-4 h-4" />
+          <Plus class="w-3.5 h-3.5" />
           <span>Tambah Akun Baru</span>
         </button>
       </div>
-    </div>
+    </header>
 
     <!-- Toolbar Filters & Search & Level Selectors -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+    <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
       <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
         <!-- Search -->
         <div class="relative w-full md:w-72">
-          <Search class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+          <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Cari kode akun, nama, atau jenis pajak..."
-            class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            class="w-full pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
           />
         </div>
 
@@ -163,7 +204,7 @@ function openTaxModule(taxCategory?: string) {
         <div class="relative">
           <select
             v-model="selectedType"
-            class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+            class="px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-800 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
           >
             <option
               v-for="opt in typeOptions"
@@ -175,13 +216,13 @@ function openTaxModule(taxCategory?: string) {
           </select>
         </div>
 
-        <!-- Tiered Index Level Selector Buttons matching user request -->
-        <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+        <!-- Tiered Index Level Selector Buttons -->
+        <div class="flex items-center bg-zinc-100 p-0.5 rounded-xl border border-zinc-200/90">
           <button
             @click="selectedLevel = 'ALL'"
             :class="[
-              'px-2.5 py-1 rounded text-xs font-bold transition-all',
-              selectedLevel === 'ALL' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              'px-2.5 py-1 rounded-lg text-xs font-bold transition-all',
+              selectedLevel === 'ALL' ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
           >
             Semua
@@ -189,8 +230,8 @@ function openTaxModule(taxCategory?: string) {
           <button
             @click="selectedLevel = 1"
             :class="[
-              'px-2.5 py-1 rounded text-xs font-bold transition-all',
-              selectedLevel === 1 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              'px-2.5 py-1 rounded-lg text-xs font-bold transition-all',
+              selectedLevel === 1 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
             title="Index Utama (Aset, Kewajiban, Ekuitas, Pendapatan, Beban)"
           >
@@ -199,8 +240,8 @@ function openTaxModule(taxCategory?: string) {
           <button
             @click="selectedLevel = 2"
             :class="[
-              'px-2.5 py-1 rounded text-xs font-bold transition-all',
-              selectedLevel === 2 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              'px-2.5 py-1 rounded-lg text-xs font-bold transition-all',
+              selectedLevel === 2 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
             title="Sub-Index Kelompok (Kas & Bank, Piutang, Hutang Pajak, dll.)"
           >
@@ -209,18 +250,18 @@ function openTaxModule(taxCategory?: string) {
           <button
             @click="selectedLevel = 3"
             :class="[
-              'px-2.5 py-1 rounded text-xs font-bold transition-all',
-              selectedLevel === 3 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              'px-2.5 py-1 rounded-lg text-xs font-bold transition-all',
+              selectedLevel === 3 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
-            title="Sub-Index dari Sub-Index (Kasir, Bank BCA, PPh 21, PPh 23, dll.)"
+            title="Sub-Index ke-2 (Kasir, Bank BCA, PPh 21, PPh 23, dll.)"
           >
             Lvl 3
           </button>
           <button
             @click="selectedLevel = 4"
             :class="[
-              'px-2.5 py-1 rounded text-xs font-bold transition-all',
-              selectedLevel === 4 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              'px-2.5 py-1 rounded-lg text-xs font-bold transition-all',
+              selectedLevel === 4 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
             title="Rincian Detail Rekening Buku Besar"
           >
@@ -229,17 +270,17 @@ function openTaxModule(taxCategory?: string) {
         </div>
       </div>
 
-      <div class="text-xs text-slate-500 font-medium">
+      <div class="text-xs text-zinc-500 font-medium">
         Menampilkan <strong>{{ filteredAccounts.length }}</strong> akun
       </div>
     </div>
 
-    <!-- Tree-like Table -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+    <!-- Tree-like Table with Clear Visual Hierarchy -->
+    <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            <tr class="bg-zinc-50 border-b border-zinc-200/90 text-[11px] font-bold text-zinc-600 uppercase tracking-wider">
               <th class="px-4 py-3 w-36">Kode Akun</th>
               <th class="px-4 py-3">Nama Akun (Hierarki COA)</th>
               <th class="px-4 py-3 text-center w-20">Level</th>
@@ -248,27 +289,28 @@ function openTaxModule(taxCategory?: string) {
               <th class="px-4 py-3 text-center">Unit Bisnis</th>
               <th class="px-4 py-3 text-right">Saldo Saat Ini (Rp)</th>
               <th class="px-4 py-3 text-center w-28">Integrasi Pajak</th>
-              <th class="px-4 py-3 text-center w-24">Aksi</th>
+              <th class="px-4 py-3 text-center w-32">Aksi</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-zinc-100">
             <tr
               v-for="acc in filteredAccounts"
               :key="acc.id"
               :class="[
                 'transition-colors',
+                acc.isActive === false ? 'opacity-50 bg-zinc-50/50' : '',
                 acc.level === 1
-                  ? 'bg-slate-900 text-white font-black hover:bg-slate-800'
+                  ? 'bg-zinc-900 text-white font-black hover:bg-zinc-800'
                   : acc.level === 2
-                  ? 'bg-slate-100/90 font-bold text-slate-900 hover:bg-slate-200/70'
+                  ? 'bg-zinc-100/90 font-bold text-zinc-950 hover:bg-zinc-200/70'
                   : acc.level === 3
-                  ? 'bg-slate-50/50 font-semibold text-slate-800 hover:bg-slate-100/80'
-                  : 'hover:bg-blue-50/40 text-slate-700'
+                  ? 'bg-zinc-50/60 font-semibold text-zinc-900 hover:bg-zinc-100/80'
+                  : 'hover:bg-zinc-50/70 text-zinc-700'
               ]"
             >
               <!-- Kode Akun -->
               <td class="px-4 py-2.5 font-mono font-bold whitespace-nowrap">
-                <span :class="acc.level === 1 ? 'text-amber-400 font-extrabold text-sm' : acc.level === 2 ? 'text-blue-700 font-bold' : 'text-slate-700'">
+                <span :class="acc.level === 1 ? 'text-amber-400 font-extrabold text-sm' : acc.level === 2 ? 'text-zinc-900 font-bold' : 'text-zinc-600'">
                   {{ acc.code }}
                 </span>
               </td>
@@ -282,9 +324,15 @@ function openTaxModule(taxCategory?: string) {
                   ]"
                 >
                   <Folder v-if="acc.isHeader" :class="['w-4 h-4 shrink-0', acc.level === 1 ? 'text-amber-400' : 'text-amber-500']" />
-                  <FileText v-else class="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span :class="[acc.level === 1 ? 'font-extrabold text-white text-xs tracking-wide' : acc.level === 2 ? 'font-bold text-slate-900' : 'font-medium']">
+                  <FileText v-else class="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span :class="[acc.level === 1 ? 'font-extrabold text-white text-xs tracking-wide' : acc.level === 2 ? 'font-bold text-zinc-950' : 'font-medium']">
                     {{ acc.name }}
+                  </span>
+                  <span
+                    v-if="acc.isActive === false"
+                    class="ml-2 px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200"
+                  >
+                    Nonaktif
                   </span>
                 </div>
               </td>
@@ -295,9 +343,9 @@ function openTaxModule(taxCategory?: string) {
                   :class="[
                     'px-2 py-0.5 rounded text-[10px] font-bold',
                     acc.level === 1 ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40' :
-                    acc.level === 2 ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                    acc.level === 3 ? 'bg-purple-100 text-purple-800 border border-purple-200' :
-                    'bg-slate-100 text-slate-600'
+                    acc.level === 2 ? 'bg-zinc-200 text-zinc-800' :
+                    acc.level === 3 ? 'bg-zinc-100 text-zinc-700' :
+                    'bg-zinc-50 text-zinc-500'
                   ]"
                 >
                   L{{ acc.level }}
@@ -306,7 +354,7 @@ function openTaxModule(taxCategory?: string) {
 
               <!-- Tipe Klasifikasi -->
               <td class="px-4 py-2.5">
-                <span :class="['text-[11px] font-semibold', acc.level === 1 ? 'text-slate-300' : 'text-slate-600']">
+                <span :class="['text-[11px] font-semibold', acc.level === 1 ? 'text-zinc-300' : 'text-zinc-600']">
                   {{ acc.type }}
                 </span>
               </td>
@@ -317,8 +365,8 @@ function openTaxModule(taxCategory?: string) {
                   :class="[
                     'px-2 py-0.5 rounded text-[10px] font-bold',
                     acc.normalBalance === 'DEBIT'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-800 border border-rose-200'
                   ]"
                 >
                   {{ acc.normalBalance }}
@@ -330,8 +378,8 @@ function openTaxModule(taxCategory?: string) {
                 <StatusBadge :status="acc.businessUnit" size="sm" />
               </td>
 
-              <!-- Saldo Saat Ini -->
-              <td :class="['px-4 py-2.5 text-right font-mono font-semibold whitespace-nowrap', acc.level === 1 ? 'text-white font-bold' : 'text-slate-800']">
+              <!-- Saldo Saat Ini (Strict Tabular Nums) -->
+              <td :class="['px-4 py-2.5 text-right tabular-nums font-bold whitespace-nowrap', acc.level === 1 ? 'text-white' : 'text-zinc-950']">
                 {{ acc.currentBalance !== undefined ? formatIDR(acc.currentBalance) : '-' }}
               </td>
 
@@ -340,25 +388,49 @@ function openTaxModule(taxCategory?: string) {
                 <button
                   v-if="acc.taxCategory"
                   @click="openTaxModule(acc.taxCategory)"
-                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 text-[10px] font-bold transition-colors cursor-pointer"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-[10px] font-bold transition-colors cursor-pointer border border-emerald-200"
                   title="Klik untuk membuka kalkulasi pajak otomatis di Modul Pajak"
                 >
                   <Receipt class="w-2.5 h-2.5" />
                   <span>{{ acc.taxCategory }}</span>
                 </button>
-                <span v-else class="text-slate-300 text-[11px]">-</span>
+                <span v-else class="text-zinc-300 text-[11px]">-</span>
               </td>
 
-              <!-- Aksi (Buku Besar / Ledger) -->
+              <!-- Aksi (Buku Besar, Edit, Nonaktifkan) -->
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openLedgerForAccount(acc.code)"
-                  class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-md text-[11px] font-semibold transition-colors border border-slate-200"
-                  title="Lihat Buku Besar (General Ledger)"
-                >
-                  <BookOpen class="w-3 h-3" />
-                  <span>Buku Besar</span>
-                </button>
+                <div class="flex items-center justify-center gap-1.5">
+                  <button
+                    @click="openLedgerForAccount(acc.code)"
+                    class="p-1.5 bg-white hover:bg-zinc-100 text-zinc-600 hover:text-zinc-950 rounded-lg transition-colors border border-zinc-200 shadow-2xs cursor-pointer"
+                    title="Buku Besar (General Ledger)"
+                  >
+                    <BookOpen class="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    v-if="!acc.isHeader"
+                    @click="openEditModal(acc)"
+                    class="p-1.5 bg-white hover:bg-zinc-100 text-zinc-600 hover:text-zinc-950 rounded-lg transition-colors border border-zinc-200 shadow-2xs cursor-pointer"
+                    title="Edit Nama / Keterangan Akun"
+                  >
+                    <Edit3 class="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    v-if="!acc.isHeader"
+                    @click="handleToggleActive(acc)"
+                    :class="[
+                      'p-1.5 rounded-lg transition-colors border shadow-2xs cursor-pointer',
+                      acc.isActive !== false
+                        ? 'bg-white hover:bg-rose-50 text-zinc-500 hover:text-rose-600 border-zinc-200'
+                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
+                    ]"
+                    :title="acc.isActive !== false ? 'Nonaktifkan Akun' : 'Aktifkan Kembali Akun'"
+                  >
+                    <Power class="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -366,51 +438,51 @@ function openTaxModule(taxCategory?: string) {
       </div>
     </div>
 
-    <!-- Approval Signature Section matching Image 1 -->
+    <!-- Approval Signature Section -->
     <ReportSignatures />
 
-    <!-- Add Account Modal -->
+    <!-- Add Account Modal (Official Clinical Modal Specification) -->
     <div
       v-if="showAddModal"
-      class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+      class="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-          <h3 class="text-sm font-bold text-white">Tambah Akun Bagan Baru (COA)</h3>
-          <button @click="showAddModal = false" class="text-slate-400 hover:text-white">
+      <div class="bg-white rounded-3xl shadow-2xl border border-zinc-200/80 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-5 border-b border-zinc-100 flex items-center justify-between">
+          <h3 class="text-sm font-bold text-zinc-950">Tambah Akun Bagan Baru (COA)</h3>
+          <button @click="showAddModal = false" class="p-1.5 text-zinc-400 hover:text-zinc-700 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer">
             <X class="w-4 h-4" />
           </button>
         </div>
 
         <form @submit.prevent="handleSaveAccount" class="p-6 space-y-4 text-xs">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Kode Akun</label>
+            <label class="block font-bold text-zinc-800 mb-1">Kode Akun</label>
             <input
               v-model="newCode"
               type="text"
-              placeholder="Contoh: 2501.003"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Contoh: 2-1130 atau 2501.003"
+              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-mono font-bold focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Nama Akun</label>
+            <label class="block font-bold text-zinc-800 mb-1">Nama Akun</label>
             <input
               v-model="newName"
               type="text"
               placeholder="Contoh: Hutang PPh 21 Tenaga Medis Konsultan"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               required
             />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Level Hierarki</label>
+              <label class="block font-bold text-zinc-800 mb-1">Level Hierarki</label>
               <select
                 v-model.number="newLevel"
-                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               >
                 <option :value="1">Level 1 (Index Utama)</option>
                 <option :value="2">Level 2 (Sub-Index)</option>
@@ -420,10 +492,10 @@ function openTaxModule(taxCategory?: string) {
             </div>
 
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Unit Bisnis</label>
+              <label class="block font-bold text-zinc-800 mb-1">Unit Bisnis</label>
               <select
                 v-model="newUnit"
-                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               >
                 <option value="ALL">Semua Unit (Konsolidasi)</option>
                 <option value="KIDINEST">Kidinest</option>
@@ -434,10 +506,10 @@ function openTaxModule(taxCategory?: string) {
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Tipe Klasifikasi</label>
+              <label class="block font-bold text-zinc-800 mb-1">Tipe Klasifikasi</label>
               <select
                 v-model="newType"
-                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               >
                 <option value="ASSET">1 - ASET</option>
                 <option value="LIABILITY">2 - KEWAJIBAN</option>
@@ -449,10 +521,10 @@ function openTaxModule(taxCategory?: string) {
             </div>
 
             <div>
-              <label class="block font-bold text-slate-700 mb-1">Saldo Normal</label>
+              <label class="block font-bold text-zinc-800 mb-1">Saldo Normal</label>
               <select
                 v-model="newNormalBalance"
-                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               >
                 <option value="DEBIT">DEBIT (Dr)</option>
                 <option value="CREDIT">CREDIT (Cr)</option>
@@ -461,28 +533,96 @@ function openTaxModule(taxCategory?: string) {
           </div>
 
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Keterangan / Catatan</label>
+            <label class="block font-bold text-zinc-800 mb-1">Keterangan / Catatan</label>
             <textarea
               v-model="newDescription"
               rows="2"
               placeholder="Deskripsi peruntukan akun buku besar..."
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
             ></textarea>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div class="p-4 border-t border-zinc-100 bg-zinc-50/70 -mx-6 -mb-6 mt-4 flex items-center justify-end gap-2.5">
             <button
               type="button"
               @click="showAddModal = false"
-              class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-lg font-bold"
+              class="px-4 py-2 border border-zinc-200 hover:bg-zinc-100 text-zinc-700 rounded-xl font-bold cursor-pointer transition-colors shadow-2xs"
             >
               Batal
             </button>
             <button
               type="submit"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs"
+              class="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl font-bold shadow-2xs cursor-pointer active:scale-95 transition-all"
             >
               Simpan Akun
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Account Modal (Official Clinical Modal Specification) -->
+    <div
+      v-if="showEditModal && editingAccount"
+      class="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl border border-zinc-200/80 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-5 border-b border-zinc-100 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-zinc-950">Edit Akun COA</h3>
+            <p class="text-[11px] font-mono text-zinc-500 mt-0.5">{{ editingAccount.code }} &bull; Level {{ editingAccount.level }}</p>
+          </div>
+          <button
+            @click="showEditModal = false"
+            class="p-1.5 text-zinc-400 hover:text-zinc-700 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <form @submit.prevent="handleUpdateAccount" class="p-6 space-y-4 text-xs">
+          <div>
+            <label class="block font-bold text-zinc-800 mb-1">Kode Akun</label>
+            <input
+              :value="editingAccount.code"
+              disabled
+              class="w-full px-3 py-2 bg-zinc-100 border border-zinc-200 rounded-xl text-xs font-mono font-bold text-zinc-500 cursor-not-allowed"
+            />
+            <p class="text-[10px] text-zinc-400 mt-1">*Kode akun dikunci untuk menjaga integritas riwayat jurnal</p>
+          </div>
+
+          <div>
+            <label class="block font-bold text-zinc-800 mb-1">Nama Akun <span class="text-rose-500">*</span></label>
+            <input
+              v-model="editName"
+              required
+              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block font-bold text-zinc-800 mb-1">Keterangan / Catatan</label>
+            <textarea
+              v-model="editDescription"
+              rows="3"
+              placeholder="Peruntukan akun buku besar..."
+              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+            ></textarea>
+          </div>
+
+          <div class="p-4 border-t border-zinc-100 bg-zinc-50/70 -mx-6 -mb-6 mt-4 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              @click="showEditModal = false"
+              class="px-4 py-2 border border-zinc-200 hover:bg-zinc-100 text-zinc-700 rounded-xl font-bold cursor-pointer transition-colors shadow-2xs"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl font-bold shadow-2xs cursor-pointer active:scale-95 transition-all"
+            >
+              Simpan Perubahan
             </button>
           </div>
         </form>

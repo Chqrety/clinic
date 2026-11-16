@@ -1,141 +1,116 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
-import type { BusinessUnit, BranchCode, UserRole } from '@/types/accounting'
+import { useAuthStore } from '@/stores/auth'
+import type { BusinessUnit } from '@/types/accounting'
 import {
   Bell,
-  Building,
   Calendar,
-  Check,
-  UserCheck,
-  Layers,
-  ChevronDown
+  ChevronDown,
+  LogOut,
+  ShieldCheck,
+  Stethoscope
 } from 'lucide-vue-next'
 
+const router = useRouter()
 const store = useAccountingStore()
+const authStore = useAuthStore()
+
 const showNotifications = ref(false)
-const showRoleMenu = ref(false)
 
-function onUnitChange(e: Event) {
-  const target = e.target as HTMLSelectElement
-  store.setBusinessUnit(target.value as BusinessUnit)
-}
-
-function onBranchChange(e: Event) {
-  const target = e.target as HTMLSelectElement
-  store.setBranch(target.value as BranchCode)
-}
-
-function selectRole(role: UserRole) {
-  store.setRole(role)
-  showRoleMenu.value = false
-  store.showToast(`Role aktif berganti ke: ${role.replace('_', ' ').toUpperCase()}`, 'info')
+async function handleLogout() {
+  await authStore.logout()
+  store.showToast('Berhasil logout dari sistem akuntansi', 'info')
+  router.push('/login')
 }
 </script>
 
 <template>
   <header
-    class="h-16 bg-white border-b border-slate-200/90 px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs"
+    class="h-16 bg-white border-b border-zinc-200/90 px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs"
   >
-    <!-- Left: Global Entity & Branch Controls -->
+    <!-- Left: Global Entity (Unit Bisnis) & Fiscal Controls -->
     <div class="flex items-center gap-3">
-      <!-- Business Unit Selector -->
-      <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+      <!-- Business Unit Selector (Semantic Dual-Brand Tokens) -->
+      <div class="flex items-center bg-zinc-100 p-0.5 rounded-xl border border-zinc-200/90">
         <button
           v-for="unit in store.unitOptions"
           :key="unit.code"
           @click="store.setBusinessUnit(unit.code as BusinessUnit)"
           :class="[
-            'px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-150',
+            'px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150',
             store.businessUnit === unit.code
-              ? 'bg-white text-blue-700 shadow-xs border border-slate-200/60'
-              : 'text-slate-600 hover:text-slate-900'
+              ? unit.code === 'KIDINEST'
+                ? 'bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs'
+                : unit.code === 'SSC'
+                ? 'bg-rose-100 text-rose-950 border border-rose-300 shadow-2xs'
+                : 'bg-zinc-950 text-white shadow-2xs'
+              : 'text-zinc-600 hover:text-zinc-950'
           ]"
         >
           {{ unit.badge }}: {{ unit.code === 'ALL' ? 'Konsolidasi' : unit.code }}
         </button>
       </div>
 
-      <!-- Branch Dropdown -->
-      <div class="relative flex items-center">
-        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-          <Building class="w-3.5 h-3.5" />
-        </div>
-        <select
-          :value="store.branchCode"
-          @change="onBranchChange"
-          class="pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none cursor-pointer"
-        >
-          <option
-            v-for="branch in store.branchOptions"
-            :key="branch.code"
-            :value="branch.code"
-          >
-            {{ branch.name }}
-          </option>
-        </select>
-        <ChevronDown class="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none" />
-      </div>
-
       <!-- Fiscal Period Selector -->
       <div class="relative flex items-center">
-        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-zinc-400">
           <Calendar class="w-3.5 h-3.5" />
         </div>
         <select
           :value="store.fiscalMonth"
           @change="(e: any) => store.fiscalMonth = Number(e.target.value)"
-          class="pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none cursor-pointer"
+          class="pl-8 pr-7 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-900 text-xs rounded-xl font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none appearance-none cursor-pointer"
         >
           <option :value="3">Maret 2026 (Open)</option>
           <option :value="2">Februari 2026 (Locked)</option>
           <option :value="1">Januari 2026 (Locked)</option>
         </select>
-        <ChevronDown class="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none" />
+        <ChevronDown class="w-3.5 h-3.5 text-zinc-400 absolute right-2 pointer-events-none" />
       </div>
     </div>
 
-    <!-- Right: Role Switcher & Notifications -->
+    <!-- Right: Authenticated User Profile & Logout -->
     <div class="flex items-center gap-3">
-      <!-- Role Simulation Selector -->
-      <div class="relative">
-        <button
-          @click="showRoleMenu = !showRoleMenu"
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition-colors"
-        >
-          <UserCheck class="w-3.5 h-3.5 text-blue-600" />
-          <span class="max-w-[130px] truncate">{{ store.roleOptions.find(r => r.role === store.currentUserRole)?.label.split(' ')[0] }}</span>
-          <ChevronDown class="w-3 h-3 text-slate-400" />
-        </button>
+      <!-- Shortcut to Clinic Admin Workstation -->
+      <router-link
+        to="/admin"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-bold transition-colors shadow-2xs"
+        title="Buka Workstation Medis Klinik"
+      >
+        <Stethoscope class="w-3.5 h-3.5 text-zinc-700" />
+        <span>Workstation Medis</span>
+      </router-link>
 
-        <!-- Role Dropdown Menu -->
-        <div
-          v-if="showRoleMenu"
-          class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs font-normal"
-        >
-          <div class="px-3 py-2 border-b border-slate-100">
-            <p class="font-bold text-slate-900">Simulasi Hak Akses (Role)</p>
-            <p class="text-[11px] text-slate-500">Uji coba permission approval, posting & audit</p>
-          </div>
-          <button
-            v-for="r in store.roleOptions"
-            :key="r.role"
-            @click="selectRole(r.role)"
-            class="w-full text-left px-3 py-2 hover:bg-blue-50 flex items-center justify-between text-slate-700 hover:text-blue-700 transition-colors"
-          >
-            <span :class="{'font-bold text-blue-700': store.currentUserRole === r.role}">
-              {{ r.label }}
-            </span>
-            <Check v-if="store.currentUserRole === r.role" class="w-4 h-4 text-blue-600" />
-          </button>
+      <!-- Authenticated User Identity (Production Locked) -->
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs">
+        <ShieldCheck class="w-4 h-4 text-emerald-600" />
+        <div class="text-left">
+          <span class="block font-bold text-zinc-950 leading-none">
+            {{ authStore.user?.name || store.currentUserName }}
+          </span>
+          <span class="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">
+            Finance & Accounting Manager
+          </span>
         </div>
       </div>
+
+      <!-- Logout Button -->
+      <button
+        @click="handleLogout"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-rose-50 hover:border-rose-200 text-zinc-700 hover:text-rose-700 text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+        title="Logout dari Sistem Akuntansi"
+      >
+        <LogOut class="w-3.5 h-3.5" />
+        <span>Keluar</span>
+      </button>
 
       <!-- Notifications Bell -->
       <div class="relative">
         <button
           @click="showNotifications = !showNotifications"
-          class="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          class="relative p-2 rounded-xl text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
           aria-label="Notifikasi"
         >
           <Bell class="w-4 h-4" />
@@ -148,13 +123,13 @@ function selectRole(role: UserRole) {
         <!-- Notifications Dropdown -->
         <div
           v-if="showNotifications"
-          class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 p-3 z-50 text-xs"
+          class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-zinc-200/90 p-3.5 z-50 text-xs"
         >
-          <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
-            <h4 class="font-bold text-slate-900">Pemberitahuan Sistem</h4>
+          <div class="flex items-center justify-between pb-2 border-b border-zinc-100 mb-2">
+            <h4 class="font-bold text-zinc-950">Pemberitahuan Sistem</h4>
             <button
               @click="store.markAllNotificationsRead()"
-              class="text-[11px] text-blue-600 hover:underline"
+              class="text-[11px] text-zinc-600 hover:text-zinc-950 font-semibold hover:underline"
             >
               Tandai Dibaca
             </button>
@@ -164,13 +139,13 @@ function selectRole(role: UserRole) {
             <div
               v-for="notif in store.notifications"
               :key="notif.id"
-              class="p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100 space-y-1"
+              class="p-2.5 rounded-xl bg-zinc-50 hover:bg-zinc-100/80 transition-colors border border-zinc-100 space-y-1"
             >
               <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-800">{{ notif.title }}</span>
-                <span class="text-[10px] text-slate-400">{{ notif.timestamp }}</span>
+                <span class="font-bold text-zinc-900">{{ notif.title }}</span>
+                <span class="text-[10px] text-zinc-400">{{ notif.timestamp }}</span>
               </div>
-              <p class="text-slate-600 text-[11px] leading-relaxed">{{ notif.message }}</p>
+              <p class="text-zinc-600 text-[11px] leading-relaxed">{{ notif.message }}</p>
             </div>
           </div>
         </div>

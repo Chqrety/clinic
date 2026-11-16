@@ -38,7 +38,7 @@ export const useAccountingStore = defineStore('accounting', () => {
     {
       id: 'notif-2',
       title: 'Transaksi Kasir Baru',
-      message: 'Closing kasir SSC Cabang Kebayoran telah masuk dari modul kasir.',
+      message: 'Closing kasir Unit SSC telah masuk dari modul kasir.',
       type: 'info',
       timestamp: '25 menit yang lalu',
       read: false,
@@ -67,18 +67,16 @@ export const useAccountingStore = defineStore('accounting', () => {
     }, 4000)
   }
 
-  // Branch names mapping
+  // Branch names mapping (Default single branch context in background)
   const branchOptions = [
-    { code: 'ALL', name: 'Semua Cabang' },
-    { code: 'BRANCH-MAIN', name: 'Kebayoran Baru (Pusat)' },
-    { code: 'BRANCH-JAKSEL', name: 'Pondok Indah' },
-    { code: 'BRANCH-SBY', name: 'Surabaya Barat' }
+    { code: 'ALL', name: 'Semua Unit' },
+    { code: 'BRANCH-MAIN', name: 'Unit Utama' }
   ]
 
   const unitOptions = [
     { code: 'ALL', name: 'Semua Unit (Konsolidasi)', badge: 'ALL' },
-    { code: 'KIDINEST', name: 'Kidinest (Klinik Anak)', badge: 'KID' },
-    { code: 'SSC', name: 'SSC (Skin & Slimming)', badge: 'SSC' }
+    { code: 'KIDINEST', name: 'Kidinest (Klinik Anak)', badge: 'KIDINEST' },
+    { code: 'SSC', name: 'Semarang Skin Center (SSC)', badge: 'SSC' }
   ]
 
   const roleOptions: { role: UserRole; label: string }[] = [

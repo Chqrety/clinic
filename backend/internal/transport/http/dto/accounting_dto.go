@@ -20,6 +20,12 @@ type CreateAccountRequest struct {
 	Description   string                   `json:"description,omitempty"`
 }
 
+type UpdateAccountRequest struct {
+	Name        string `json:"name,omitempty"`
+	IsActive    *bool  `json:"is_active,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
 type AccountResponse struct {
 	ID            uuid.UUID                `json:"id"`
 	Code          string                   `json:"code"`

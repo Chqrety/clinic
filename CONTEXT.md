@@ -11,7 +11,7 @@ Dibangun menggunakan arsitektur **Modular Monolith** dengan backend **Go (Golang
 > * **Privacy-First:** Pendaftaran pasien tidak meminta Nomor KTP/NIK. Identitas di monitor antrian publik disamarkan otomatis (`Budi P****`).
 > * **Paperless Queue:** Tiket antrian dikirimkan via WhatsApp dan dipantau live melalui web. Pasien *walk-in* tetap didaftarkan lewat web oleh GRO meja depan tanpa struk fisik.
 > * **Invarian Stok Obat:** `available_stock = physical_stock - reserved_stock`. Stok otomatis terkunci (*reserved*) saat dokter meresepkan dan terpotong permanen saat diserahkan apoteker.
-> * **Bebas Embel-Embel Akuntansi & SATUSEHAT:** Modul akuntansi umum (jurnal/pajak) dan integrasi bridging Kemenkes SATUSEHAT resmi berada di luar lingkup rilis ini (*Out of Scope*).
+> * **Integrasi Akuntansi Keuangan SMG:** Modul akuntansi keuangan internal terintegrasi langsung dengan pelunasan kasir (*event-driven cashier settlement auto-journaling*), Bagan Akun (COA 4 level), Jurnal Umum, Buku Kas & Bank, hingga Manajemen Pajak SPT Masa & SPT Tahunan 1771. Bridging SATUSEHAT tetap di luar lingkup.
 
 ---
 
@@ -97,6 +97,23 @@ Dibangun menggunakan arsitektur **Modular Monolith** dengan backend **Go (Golang
   * `created_at`
 * **CashierShiftReport:**
   * `id`, `staff_id`, `shift_date`, `total_cash`, `total_transfer`, `total_voucher`, `total_refund`, `sent_to_owner_at`
+
+### F. Accounting & Financial Management (SMG Finance)
+* **CoaAccount (Bagan Akun):**
+  * `id`, `code`, `name`, `type` (`ASSET`, `LIABILITY`, `EQUITY`, `REVENUE`, `EXPENSE`)
+  * `level` (1=Induk, 2=Golongan, 3=Sub-golongan, 4=Posting/Leaf)
+  * `parent_id`, `normal_balance` (`DEBIT`, `CREDIT`), `business_unit` (`ALL`, `KIDINEST`, `SSC`)
+  * `is_active`, `opening_balance`
+* **JournalEntry & JournalItem (Jurnal Umum Double-Entry):**
+  * `id`, `entry_number`, `entry_date`, `source` (`CASHIER`, `MANUAL`, `PAYROLL`, `TAX_PAYMENT`, `CLOSING`)
+  * `reference_type`, `reference_id`, `notes`, `status` (`DRAFT`, `POSTED`, `REVERSED`)
+  * `items`: `id`, `journal_id`, `account_id`, `debit`, `credit`, `description`
+* **CashBankTransaction (Buku Kas & Rekening Bank):**
+  * `id`, `account_id`, `tx_type` (`CASH_IN`, `CASH_OUT`, `TRANSFER`), `amount`
+  * `reference_no`, `counterparty_name`, `description`, `created_by`
+* **TaxRecord & SptMasa (Perpajakan Berbasis Bank):**
+  * `id`, `tax_type` (`PPH_21`, `PPH_23`, `PPH_4_2`, `PPH_25`, `PPN`), `period_month`, `period_year`
+  * `dpp_amount`, `tax_rate`, `tax_amount`, `ntpn_number`, `bank_account_id`, `status` (`DRAFT`, `PAID`, `REPORTED`)
 
 ---
 
@@ -208,11 +225,16 @@ clinic/
 │   │   │   ├── usecase/        # DispenseDrug, StockOpnameImportExport
 │   │   │   ├── repository/     # Postgres drug batch & atomic stock queries
 │   │   │   └── delivery/http/  # Pharmacy room & inventory handlers
-│   │   └── cashier/            # Bounded Context: Kasir GRO & Tagihan
-│   │       ├── domain/         # Invoice, Payment, ShiftReport entity
-│   │       ├── usecase/        # ProcessPayment, CloseShiftReport, Refund
-│   │       ├── repository/     # Postgres invoice & payment queries
-│   │       └── delivery/http/  # Cashier frontdesk handler & thermal receipt
+│   │   ├── cashier/            # Bounded Context: Kasir GRO & Tagihan
+│   │   │   ├── domain/         # Invoice, Payment, ShiftReport entity
+│   │   │   ├── usecase/        # ProcessPayment, CloseShiftReport, Refund
+│   │   │   ├── repository/     # Postgres invoice & payment queries
+│   │   │   └── delivery/http/  # Cashier frontdesk handler & thermal receipt
+│   │   ├── journal/            # Bounded Context: Jurnal Otomatis & Cashier Listener
+│   │   ├── application/        # Application Services: accounting, cashbank, ledger, tax
+│   │   └── transport/http/     # HTTP Handlers & Routes: accounting, journal, reporting
+│   ├── seeds/
+│   │   └── bcs_coa_and_accounting_seed.sql # Seed resmi COA SMG, saldo awal & master rekening
 ├── frontend/
 │   ├── src/
 │   │   ├── views/              # Halaman berbasis Peran Pengguna
@@ -223,7 +245,16 @@ clinic/
 │   │   │   ├── CashierView.vue   # Meja depan GRO: walk-in, bayar, struk, tutup shift
 │   │   │   ├── DoctorRoom.vue    # Layar periksa dokter: antrian FIFO & e-resep tabel
 │   │   │   ├── PharmacyRoom.vue  # Layar apotek: resep live chime & dispensing
-│   │   │   └── InventoryView.vue # Gudang obat: master obat & stok opnam Excel
+│   │   │   ├── InventoryView.vue # Gudang obat: master obat & stok opnam Excel
+│   │   │   └── accounting/       # Modul Akuntansi & Keuangan SMG
+│   │   │       ├── DashboardView.vue      # Ringkasan KPI Finansial & Ticker Strip
+│   │   │       ├── ChartOfAccountsView.vue# Bagan Akun L1-L4 & Edit Nama/Nonaktifkan
+│   │   │       ├── OpeningBalanceView.vue # Saldo Awal & Sticky Balance Dock
+│   │   │       ├── JournalListView.vue    # Daftar Jurnal & Entri Cepat Auto-Balance
+│   │   │       ├── GeneralLedgerView.vue  # Buku Besar per Akun COA
+│   │   │       ├── CashBankBookView.vue   # Buku Kas & Rekening Bank Operasional
+│   │   │       ├── TaxView.vue            # Manajemen SPT Masa & Rekonsiliasi 1771
+│   │   │       └── reports/               # Laporan Neraca & Arus Kas
 │   │   ├── components/
 │   │   │   ├── ui/               # PillBadge.vue, ModalDialog.vue, StatCard.vue
 │   │   │   └── RoleSwitcher.vue  # Floating bar demo switcher

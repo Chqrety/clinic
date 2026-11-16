@@ -223,5 +223,40 @@ Hindari pemakaian warna-warna neon acak. Gunakan palet desaturated clinical:
 ### C. Modal Dialog Standar
 * Backdrop: `fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4`.
 * Modal Box: `w-full max-w-lg bg-white rounded-3xl border border-zinc-200/80 shadow-2xl overflow-hidden`.
-* Header Modal: `p-5 border-b border-zinc-100 flex items-center justify-between`.
+* Header Modal: `p-5 border-b border-zinc-100 flex items-center justify-between` (atau dark header `px-6 py-4 bg-zinc-950 text-white`).
 * Footer Aksi: `p-4 border-t border-zinc-100 bg-zinc-50/70 flex items-center justify-end gap-2.5`.
+
+---
+
+## 7. Standar Desain Modul Akuntansi & Keuangan (Finance & Accounting)
+
+Modul Akuntansi (`/accounting/*`) diselaraskan penuh dengan standar workstation medis SMG guna mengeliminasi estetika "AI Slop" dan blue SaaS generic:
+
+1. **Kanvas & Navigasi:**
+   - Kanvas kerja: `py-6 px-4 sm:px-8 max-w-[1600px] mx-auto space-y-5 bg-slate-50 text-zinc-950 font-['Plus_Jakarta_Sans',sans-serif]`.
+   - Sidebar: Monokrom `bg-zinc-950 text-zinc-300 border-r border-zinc-800` dengan identitas resmi `SMG Finance & Accounting`.
+   - Dual-brand pills pada Navbar: Kidinest (`bg-amber-50 text-amber-900 border-amber-200/80`), SSC (`bg-rose-50 text-rose-900 border-rose-200/80`), Konsolidasi (`bg-zinc-100 text-zinc-800 border-zinc-200`).
+
+2. **Minimalist Clinical Header Akuntansi:**
+   - Breadcrumb: `text-[11px] font-bold text-zinc-400 tracking-wider uppercase` (`Akuntansi & Keuangan • Semarang Medical Group`).
+   - Judul H1: `text-2xl font-black text-zinc-950 tracking-tight`.
+   - Action buttons: Menggunakan `bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl shadow-xs`.
+
+3. **1-Row Compact Hairline KPI Ticker:**
+   - Diterapkan pada Dashboard, Buku Kas & Bank, dan Manajemen Pajak:
+   - `grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-zinc-200/90 border border-zinc-200/90 rounded-2xl bg-white shadow-2xs overflow-hidden`.
+   - Seluruh nominal moneter diformat dengan `tabular-nums font-bold text-zinc-950`.
+
+4. **Hierarki Bagan Akun (COA):**
+   - Level 1 (Akun Induk): `bg-zinc-900 text-white font-bold tracking-wider uppercase` atau `bg-zinc-100 font-bold`.
+   - Level 2–3 (Golongan/Sub-golongan): Indentasi bertahap `pl-6` dan `pl-10`.
+   - Level 4 (Leaf / Akun Posting): Indentasi `pl-14`, nomor akun `font-mono`, saldo `tabular-nums font-bold text-right`.
+
+5. **Sticky Bottom Balance Dock:**
+   - Pada lembar kerja panjang (seperti Saldo Awal dan Jurnal Penyesuaian), pasang dock melayang di bawah:
+   - `fixed bottom-4 left-68 right-8 z-30 bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200/90 p-4 shadow-xl flex items-center justify-between`.
+   - Menampilkan total debit vs kredit secara instan dengan indikator status seimbang (Emerald) atau selisih (Rose).
+
+6. **Ergonomi Input Jurnal:**
+   - Mode entri cepat (*Direct Fast-Entry*) langsung pada baris tabel dengan auto-balancing baris penyeimbang kredit.
+   - Form modal standar: Wadah `rounded-3xl border border-zinc-200/80 shadow-2xl`, tombol solid `zinc-950`, dan preview mutasi jurnal otomatis.

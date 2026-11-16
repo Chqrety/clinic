@@ -10,14 +10,54 @@ const showDemoNav = ref(false)
 
 function navigateTo(path: string) {
   showDemoNav.value = false
-  router.push(path)
+  switch (path) {
+    case 'landing':
+    case 'kidinest':
+      router.push('/')
+      break
+    case 'ssc':
+      router.push('/ssc')
+      break
+    case 'kiosk':
+    case 'kiosk-kidinest':
+      router.push('/kiosk-kidinest')
+      break
+    case 'kiosk-ssc':
+      router.push('/kiosk-ssc')
+      break
+    case 'login':
+    case 'login-kidinest':
+      router.push('/login-kidinest')
+      break
+    case 'login-ssc':
+      router.push('/login-ssc')
+      break
+    case 'admin':
+      router.push('/admin')
+      break
+    case 'monitor':
+      router.push('/monitor')
+      break
+    case 'accounting':
+      router.push('/accounting')
+      break
+    default:
+      if (path.startsWith('/')) {
+        router.push(path)
+      } else {
+        router.push('/' + path)
+      }
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 </script>
 
 <template>
   <div class="min-h-screen bg-[#F9F9F7] text-zinc-950 font-['Plus_Jakarta_Sans',sans-serif] selection:bg-amber-300">
-    <!-- Vue Router View: Handles both Clinic and Isolated Accounting -->
-    <router-view />
+    <!-- Vue Router View: Handles both Clinic and Isolated Accounting with @navigate handler -->
+    <router-view v-slot="{ Component }">
+      <component :is="Component" @navigate="navigateTo" />
+    </router-view>
 
     <!-- Discreet Presenter Quick Jump Pill (Bottom-Right, hidden on accounting) -->
     <div v-if="!route.path.startsWith('/accounting')" class="fixed bottom-4 right-4 z-50">

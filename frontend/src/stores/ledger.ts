@@ -9,174 +9,91 @@ export const useLedgerStore = defineStore('ledger', () => {
   const journalsStore = useJournalsStore()
   const accountingStore = useAccountingStore()
 
-  // Standard Chart of Accounts (COA) with 4-Tier Indexing Structure & Tax Integration (BCS)
+  // Official Dual-Brand Clinic COA (Kidinest Pediatric & Semarang Skin Center)
   const accounts = ref<Account[]>([
     // ==========================================
-    // 1 - ASET - BCS (Rp 26.461.564.553,84 Dr)
+    // 1. AKTIVA / ASSETS (DEBIT)
     // ==========================================
-    { id: '1', code: '1', name: 'ASET - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 26461564553.84 },
-    
-    // 11 - KAS DAN BANK - BCS (Rp 1.277.929.020,88 Dr)
-    { id: '11', code: '11', name: 'KAS DAN BANK - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1', currentBalance: 1277929020.88 },
-    { id: '1101', code: '1101', name: 'Kas Kasir & Operasional - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '11', currentBalance: 88600000 },
-    { id: '1101.001', code: '1101.001', name: 'Kas Kasir Kidinest', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '1101', currentBalance: 45200000 },
-    { id: '1101.002', code: '1101.002', name: 'Kas Kasir Semarang Skin Center (SSC)', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '1101', currentBalance: 38400000 },
-    { id: '1101.003', code: '1101.003', name: 'Kas Kecil (Petty Cash Operasional)', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1101', currentBalance: 5000000 },
-    { id: '1102', code: '1102', name: 'Bank Operasional & Kliring - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '11', currentBalance: 1189329020.88 },
-    { id: '1102.001', code: '1102.001', name: 'Bank BCA Operasional (Giro & EDC)', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1102', currentBalance: 680964487.55 },
-    { id: '1102.002', code: '1102.002', name: 'Bank Mandiri Operasional & Payroll', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1102', currentBalance: 493864533.33 },
-    { id: '1102.003', code: '1102.003', name: 'Settlement QRIS & Payment Gateway Transit', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1102', currentBalance: 14500000 },
+    { id: '1-0000', code: '1-0000', name: 'AKTIVA / ASSETS', type: 'ASSET', normalBalance: 'DEBIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 0 },
+    { id: '1-1000', code: '1-1000', name: 'Aset Lancar', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1-0000', currentBalance: 0 },
+    { id: '1-1110', code: '1-1110', name: 'Kas Kecil (Petty Cash Operasional)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1-1000', currentBalance: 0 },
+    { id: '1-1111', code: '1-1111', name: 'Kas Kasir Kidinest', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '1-1000', currentBalance: 0 },
+    { id: '1-1112', code: '1-1112', name: 'Kas Kasir Semarang Skin Center (SSC)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '1-1000', currentBalance: 0 },
+    { id: '1-1113', code: '1-1113', name: 'Bank BCA Operasional (Giro & EDC)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1-1000', currentBalance: 0 },
+    { id: '1-1114', code: '1-1114', name: 'Bank Mandiri Operasional & Payroll', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1-1000', currentBalance: 0 },
+    { id: '1-1120', code: '1-1120', name: 'Kliring Payment Gateway (QRIS/Tripay/Midtrans)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1-1000', currentBalance: 0 },
 
-    // 12 - PIUTANG - BCS (Rp 1.568.434.065,00 Dr)
-    { id: '12', code: '12', name: 'PIUTANG - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1', currentBalance: 1568434065 },
-    { id: '1201', code: '1201', name: 'Piutang Pasien Perawatan Rawat Jalan & Treatment', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '12', currentBalance: 485600000 },
-    { id: '1202', code: '1202', name: 'Piutang Klaim Asuransi & Korporat', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '12', currentBalance: 1097834065 },
-    { id: '1202.001', code: '1202.001', name: 'Piutang Asuransi Sinarmas', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '1202', currentBalance: 420000000 },
-    { id: '1202.002', code: '1202.002', name: 'Piutang Asuransi Prudential', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '1202', currentBalance: 465000000 },
-    { id: '1202.003', code: '1202.003', name: 'Piutang MCU Eksekutif Korporat', type: 'ASSET', normalBalance: 'DEBIT', level: 4, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '1202', currentBalance: 212834065 },
-    { id: '1203', code: '1203', name: 'Cadangan Kerugian Piutang Tak Tertagih', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '12', currentBalance: -15000000 },
+    { id: '1-1200', code: '1-1200', name: 'Piutang Pasien & Klaim Asuransi', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1-1000', currentBalance: 0 },
+    { id: '1-1210', code: '1-1210', name: 'Piutang Klaim BPJS Kesehatan', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1-1000', currentBalance: 0 },
 
-    // 13 - Persediaan - BCS (Rp 19.335.748.296,88 Dr)
-    { id: '13', code: '13', name: 'Persediaan - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1', currentBalance: 19335748296.88 },
-    { id: '1301', code: '1301', name: 'Persediaan Obat Resep & Paten Farmasi Kidinest', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '13', currentBalance: 4885000000 },
-    { id: '1302', code: '1302', name: 'Persediaan Produk Skincare & Kosmetika SSC', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '13', currentBalance: 6442748296.88 },
-    { id: '1303', code: '1303', name: 'Persediaan Bahan Medis Habis Pakai (BMHP)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '13', currentBalance: 3208000000 },
-    { id: '1304', code: '1304', name: 'Persediaan Vaksin & Serum Imunisasi Anak', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '13', currentBalance: 4800000000 },
+    { id: '1-1300', code: '1-1300', name: 'Persediaan Farmasi & Medis', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1-0000', currentBalance: 0 },
+    { id: '1-1310', code: '1-1310', name: 'Persediaan Obat & Sirup Anak (Kidinest)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '1-1300', currentBalance: 0 },
+    { id: '1-1320', code: '1-1320', name: 'Persediaan Vaksin & Imunisasi Anak (Kidinest)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '1-1300', currentBalance: 0 },
+    { id: '1-1330', code: '1-1330', name: 'Persediaan Produk Skincare & Sunscreen (SSC)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '1-1300', currentBalance: 0 },
+    { id: '1-1340', code: '1-1340', name: 'Persediaan BMHP Estetika & Facial (SSC)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '1-1300', currentBalance: 0 },
 
-    // 14 - INVESTASI - BCS (Rp 3.234.375.045,00 Dr)
-    { id: '14', code: '14', name: 'INVESTASI - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1', currentBalance: 3234375045 },
-    { id: '1401', code: '1401', name: 'Investasi Tanah & Bangunan Cabang Baru', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '14', currentBalance: 2500000000 },
-    { id: '1402', code: '1402', name: 'Investasi Pengembangan Riset Formulasi Skincare', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '14', currentBalance: 734375045 },
-
-    // 15 - BIAYA DIBAYAR DI MUKA - BCS (Rp 2.250.000,00 Dr)
-    { id: '15', code: '15', name: 'BIAYA DIBAYAR DI MUKA - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1', currentBalance: 2250000 },
-    { id: '1501', code: '1501', name: 'Sewa Ruko & Fasilitas Dibayar di Muka', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '15', currentBalance: 2250000 },
-    { id: '1504', code: '1504', name: 'Uang Muka PPh 25 & Pajak Masukan (Kredit Pajak)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '15', currentBalance: 0, taxCategory: 'PPH_25' },
-
-    // 16 - AKTIVA TETAP - BCS (Rp 1.042.828.126,08 Dr)
-    { id: '16', code: '16', name: 'AKTIVA TETAP - BCS', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1', currentBalance: 1042828126.08 },
-    { id: '1601', code: '1601', name: 'Bangunan & Renovasi Interior Klinik', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '16', currentBalance: 350000000 },
-    { id: '1602', code: '1602', name: 'Mesin Laser Nd:YAG & Alkes Estetika SSC', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '16', currentBalance: 500000000 },
-    { id: '1603', code: '1603', name: 'Peralatan USG 4D & Poli Anak Kidinest', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '16', currentBalance: 250000000 },
-    { id: '1604', code: '1604', name: 'Inventaris Komputer, POS Kasir & Jaringan', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '16', currentBalance: 97828126.08 },
-    { id: '1606', code: '1606', name: 'Akumulasi Penyusutan Aktiva Tetap', type: 'ASSET', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '16', currentBalance: 155000000 },
-    { id: '1999', code: '1999', name: 'Temporary Opening - BCS', type: 'ASSET', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1', currentBalance: 0 },
+    { id: '1-2000', code: '1-2000', name: 'Aset Tetap & Peralatan Medis', type: 'ASSET', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '1-0000', currentBalance: 0 },
+    { id: '1-2100', code: '1-2100', name: 'Peralatan Medis & USG 4D (Kidinest)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '1-2000', currentBalance: 0 },
+    { id: '1-2200', code: '1-2200', name: 'Mesin Laser Nd:YAG & Alkes Estetika (SSC)', type: 'ASSET', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '1-2000', currentBalance: 0 },
+    { id: '1-2300', code: '1-2300', name: 'Akumulasi Penyusutan Aset Tetap', type: 'ASSET', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '1-2000', currentBalance: 0 },
 
     // ==========================================
-    // 2 - KEWAJIBAN - BCS (Rp 9.962.073.223,05 Cr)
+    // 2. KEWAJIBAN / LIABILITIES (CREDIT)
     // ==========================================
-    { id: '2', code: '2', name: 'KEWAJIBAN - BCS', type: 'LIABILITY', normalBalance: 'CREDIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 9962073223.05 },
-    
-    // 21 - UANG MUKA & TITIPAN - BCS (Rp 2.147.099.360,00 Cr)
-    { id: '21', code: '21', name: 'UANG MUKA & TITIPAN - BCS', type: 'LIABILITY', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '2', currentBalance: 2147099360 },
-    { id: '2101', code: '2101', name: 'UANG TANDA JADI', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '21', currentBalance: 35500000 },
-    { id: '2101.001', code: '2101.001', name: 'Uang Muka Reservasi Poli Spesialis Anak Kidinest', type: 'LIABILITY', normalBalance: 'CREDIT', level: 4, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '2101', currentBalance: 15500000 },
-    { id: '2101.002', code: '2101.002', name: 'Down Payment Treatment Laser & Estetika SSC', type: 'LIABILITY', normalBalance: 'CREDIT', level: 4, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '2101', currentBalance: 20000000 },
-    { id: '2102', code: '2102', name: 'UANG MUKA PENJUALAN', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '21', currentBalance: 1904190360 },
-    { id: '2102.001', code: '2102.001', name: 'Deposit Pasien Paket Facial & Skincare SSC', type: 'LIABILITY', normalBalance: 'CREDIT', level: 4, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '2102', currentBalance: 980190360 },
-    { id: '2102.002', code: '2102.002', name: 'Deposit Pasien Terapi Tumbuh Kembang Kidinest', type: 'LIABILITY', normalBalance: 'CREDIT', level: 4, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '2102', currentBalance: 924000000 },
-    { id: '2103', code: '2103', name: 'TITIPAN BIAYA', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '21', currentBalance: 207409000 },
-
-    // 22 - HUTANG DAGANG - BCS (Rp 4.300.000,00 Cr)
-    { id: '22', code: '22', name: 'HUTANG DAGANG - BCS', type: 'LIABILITY', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '2', currentBalance: 4300000 },
-    { id: '2201', code: '2201', name: 'Hutang PBF Distributor Farmasi & Obat', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '22', currentBalance: 2800000 },
-    { id: '2202', code: '2202', name: 'Hutang Supplier Kosmetika & Skincare SSC', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '22', currentBalance: 1500000 },
-
-    // 23 - HUTANG BANK - BCS (Rp 6.245.750.462,00 Cr)
-    { id: '23', code: '23', name: 'HUTANG BANK - BCS', type: 'LIABILITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2', currentBalance: 6245750462 },
-
-    // 24 - HUTANG PIHAK KETIGA - BCS (Rp 1.363.725.333,01 Cr)
-    { id: '24', code: '24', name: 'HUTANG PIHAK KETIGA - BCS', type: 'LIABILITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2', currentBalance: 1363725333.01 },
-
-    // 25 - HUTANG PAJAK - BCS (Rp 39.249.649,00 Cr)
-    // Directly integrated with Tax Engine!
-    { id: '25', code: '25', name: 'HUTANG PAJAK - BCS', type: 'LIABILITY', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '2', currentBalance: 39249649 },
-    { id: '2501', code: '2501', name: 'Hutang PPh 21 (Dokter & Karyawan)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '25', currentBalance: 22374594, taxCategory: 'PPH_21' },
-    { id: '2501.001', code: '2501.001', name: 'PPh 21 Dokter Tenaga Medis Ahli (PMK 168/2023)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 4, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2501', currentBalance: 14874594, taxCategory: 'PPH_21' },
-    { id: '2501.002', code: '2501.002', name: 'PPh 21 Karyawan & Staf Tetap (TER PP 58)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 4, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2501', currentBalance: 7500000, taxCategory: 'PPH_21' },
-    { id: '2502', code: '2502', name: 'Hutang PPh 23 (Jasa Medis, B3 & Maintenance Alkes)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '25', currentBalance: 2400000, taxCategory: 'PPH_23' },
-    { id: '2503', code: '2503', name: 'Hutang PPh Final Pasal 4(2) (Sewa Gedung Ruko)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '25', currentBalance: 5000000, taxCategory: 'PPH_4_2' },
-    { id: '2504', code: '2504', name: 'Hutang PPN Keluaran (Penjualan Kosmetika & Skincare)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '25', currentBalance: 9475055, taxCategory: 'PPN_OUT' },
-    { id: '2505', code: '2505', name: 'Hutang PPh 25 (Angsuran Pajak Penghasilan Badan)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '25', currentBalance: 0, taxCategory: 'PPH_25' },
-    { id: '2506', code: '2506', name: 'Hutang PPh 29 (SPT Tahunan PPh Badan 1771)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '25', currentBalance: 0, taxCategory: 'PPH_29' },
-
-    // 26 - HUTANG PEMBEBANAN HPP - BCS (Rp 161.948.419,04 Cr)
-    { id: '26', code: '26', name: 'HUTANG PEMBEBANAN HPP - BCS', type: 'LIABILITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2', currentBalance: 161948419.04 },
+    { id: '2-0000', code: '2-0000', name: 'KEWAJIBAN / LIABILITIES', type: 'LIABILITY', normalBalance: 'CREDIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 0 },
+    { id: '2-1000', code: '2-1000', name: 'Hutang Lancar', type: 'LIABILITY', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '2-0000', currentBalance: 0 },
+    { id: '2-1110', code: '2-1110', name: 'Hutang Supplier Obat & Vaksin (Kidinest)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '2-1000', currentBalance: 0 },
+    { id: '2-1115', code: '2-1115', name: 'Hutang Supplier Skincare & BMHP (SSC)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '2-1000', currentBalance: 0 },
+    { id: '2-1120', code: '2-1120', name: 'Hutang Jasa Medis Dokter Anak (Sp.A)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '2-1000', currentBalance: 0 },
+    { id: '2-1125', code: '2-1125', name: 'Hutang Jasa Medis Dokter Kulit & Terapis (SSC)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '2-1000', currentBalance: 0 },
+    { id: '2-1130', code: '2-1130', name: 'Hutang Gaji & Karyawan', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0 },
+    { id: '2-1140', code: '2-1140', name: 'Uang Muka Pasien / Deposit Tindakan', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0 },
+    { id: '2-1500', code: '2-1500', name: 'Hutang Pajak (PPh 21, 23, Final 4(2), PPN)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0, taxCategory: 'PPH_21' },
 
     // ==========================================
-    // 3 - EKUITAS - BCS (Rp 13.864.303.991,93 Cr)
+    // 3. EKUITAS / EQUITY (CREDIT)
     // ==========================================
-    { id: '3', code: '3', name: 'EKUITAS - BCS', type: 'EQUITY', normalBalance: 'CREDIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 13864303991.93 },
-    
-    // 31 - MODAL - BCS (Rp 2.367.382.942,15 Cr)
-    { id: '31', code: '31', name: 'MODAL - BCS', type: 'EQUITY', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '3', currentBalance: 2367382942.15 },
-    { id: '3101', code: '3101', name: 'Modal Disetor Pemilik Klinik Kidinest & SSC', type: 'EQUITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '31', currentBalance: 2367382942.15 },
-
-    // 32 - LABA AKUMULASI - BCS (Rp 11.496.921.049,78 Cr)
-    { id: '32', code: '32', name: 'LABA AKUMULASI - BCS', type: 'EQUITY', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '3', currentBalance: 11496921049.78 },
-    { id: '3201', code: '3201', name: 'Laba Ditahan (Retained Earnings)', type: 'EQUITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '32', currentBalance: 9818921049.78 },
-    { id: '3202', code: '3202', name: 'Laba Periode Berjalan', type: 'EQUITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '32', currentBalance: 1678000000.00 },
-    { id: '3999', code: '3999', name: 'Opening Balance Equity - BCS', type: 'EQUITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '3', currentBalance: 0 },
+    { id: '3-0000', code: '3-0000', name: 'MODAL / EQUITY', type: 'EQUITY', normalBalance: 'CREDIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 0 },
+    { id: '3-1100', code: '3-1100', name: 'Modal Disetor Pemilik Klinik', type: 'EQUITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '3-0000', currentBalance: 0 },
+    { id: '3-1200', code: '3-1200', name: 'Laba Ditahan (Retained Earnings)', type: 'EQUITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '3-0000', currentBalance: 0 },
+    { id: '3-1300', code: '3-1300', name: 'Laba Periode Berjalan', type: 'EQUITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '3-0000', currentBalance: 0 },
+    { id: '3-9999', code: '3-9999', name: 'Akun Penyeimbang Saldo Awal (Equity Balancing)', type: 'EQUITY', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '3-0000', currentBalance: 0 },
 
     // ==========================================
-    // 4 - PENDAPATAN - BCS (Rp 15.860.537.440,00 Cr)
+    // 4. PENDAPATAN / REVENUE (CREDIT)
     // ==========================================
-    { id: '4', code: '4', name: 'PENDAPATAN - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 15860537440 },
-    { id: '41', code: '41', name: 'PENDAPATAN USAHA - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '4', currentBalance: 15860537440 },
-    { id: '4101', code: '4101', name: 'PENJUALAN RUMAH / TINDAKAN UTAMA - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '41', currentBalance: 15860537440 },
-    { id: '4102', code: '4102', name: 'PENJUALAN RUKO & KIOS - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '41', currentBalance: 0 },
-    { id: '4103', code: '4103', name: 'PENJUALAN KAVLING / KELEBIHAN TANAH - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '41', currentBalance: 0 },
-    { id: '4999', code: '4999', name: 'Opening Balance Income - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '4', currentBalance: 0 },
+    { id: '4-0000', code: '4-0000', name: 'PENDAPATAN / REVENUE', type: 'REVENUE', normalBalance: 'CREDIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 0 },
+    { id: '4-1000', code: '4-1000', name: 'PENDAPATAN UNIT KIDINEST (ANAK)', type: 'REVENUE', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'KIDINEST', parentCode: '4-0000', currentBalance: 0 },
+    { id: '4-1100', code: '4-1100', name: 'Pendapatan Pendaftaran & Skrining Anak', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '4-1000', currentBalance: 0 },
+    { id: '4-1200', code: '4-1200', name: 'Pendapatan Jasa Dokter Spesialis Anak (Sp.A)', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '4-1000', currentBalance: 0 },
+    { id: '4-1300', code: '4-1300', name: 'Pendapatan Vaksinasi & Imunisasi Anak', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '4-1000', currentBalance: 0 },
+    { id: '4-1400', code: '4-1400', name: 'Pendapatan Pemantauan Tumbuh Kembang Anak', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '4-1000', currentBalance: 0 },
+    { id: '4-1500', code: '4-1500', name: 'Pendapatan Penjualan Obat & Racikan Anak', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '4-1000', currentBalance: 0 },
+
+    { id: '4-2000', code: '4-2000', name: 'PENDAPATAN SEMARANG SKIN CENTER (SSC)', type: 'REVENUE', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'SSC', parentCode: '4-0000', currentBalance: 0 },
+    { id: '4-2100', code: '4-2100', name: 'Pendapatan Konsultasi Dokter Spesialis Kulit (Sp.DVE)', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '4-2000', currentBalance: 0 },
+    { id: '4-2200', code: '4-2200', name: 'Pendapatan Treatment Facial & Estetika Medis', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '4-2000', currentBalance: 0 },
+    { id: '4-2300', code: '4-2300', name: 'Pendapatan Tindakan Laser, Cauter & Peeling', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '4-2000', currentBalance: 0 },
+    { id: '4-2400', code: '4-2400', name: 'Pendapatan Penjualan Produk Skincare & Sunscreen', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '4-2000', currentBalance: 0 },
 
     // ==========================================
-    // 5 - BEBAN - BCS (Rp 12.284.590.157,71 Dr)
+    // 5. HARGA POKOK PENJUALAN / COGS (DEBIT)
     // ==========================================
-    { id: '5', code: '5', name: 'BEBAN - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 12284590157.71 },
-    
-    // 51 - HARGA POKOK PENJUALAN - BCS (Rp 9.807.287.775,40 Dr)
-    { id: '51', code: '51', name: 'HARGA POKOK PENJUALAN - BCS', type: 'COGS', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '5', currentBalance: 9807287775.40 },
-    { id: '5102', code: '5102', name: 'HPP PEROLEHAN TANAH / BAHAN MEDIS UTAMA', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 4415886188 },
-    { id: '5104', code: '5104', name: 'HPP LEGALITAS & PERIZINAN', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 226425353.98 },
-    { id: '5105', code: '5105', name: 'HPP COR JALAN UTAMA / PRASARANA', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 34474242.20 },
-    { id: '5107', code: '5107', name: 'HPP PONDASI TURAP', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 22110104.61 },
-    { id: '5109', code: '5109', name: 'HPP SALURAN', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 119211301.60 },
-    { id: '5110', code: '5110', name: 'HPP JARINGAN LISTRIK', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 115185189 },
-    { id: '5111', code: '5111', name: 'HPP JARINGAN AIR', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 113318172.69 },
-    { id: '5114', code: '5114', name: 'HPP INFRASTRUKTUR/KANSTIN', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 245434412.10 },
-    { id: '5119', code: '5119', name: 'HPP RUMAH / TINDAKAN UNIT', type: 'COGS', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '51', currentBalance: 4515242811.22 },
-
-    // 52 - BEBAN OPERASIONAL - BCS (Rp 2.477.302.382,31 Dr)
-    { id: '52', code: '52', name: 'BEBAN OPERASIONAL - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '5', currentBalance: 2477302382.31 },
-    { id: '5201', code: '5201', name: 'BIAYA MARKETING & PROMOSI', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '52', currentBalance: 443637768 },
-    { id: '5202', code: '5202', name: 'BEBAN UMUM DAN ADMINISTRASI (Gaji, Listrik, Sewa, Limbah)', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '52', currentBalance: 2033664614.31 },
-    { id: '5998', code: '5998', name: 'Opening Balance Expense - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '5', currentBalance: 0 },
-    { id: '5999', code: '5999', name: 'Penyesuaian Stok - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '5', currentBalance: 0 },
+    { id: '5-0000', code: '5-0000', name: 'HARGA POKOK PENJUALAN (HPP)', type: 'COGS', normalBalance: 'DEBIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 0 },
+    { id: '5-1100', code: '5-1100', name: 'HPP Obat & Racikan Anak (Kidinest)', type: 'COGS', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '5-0000', currentBalance: 0 },
+    { id: '5-1200', code: '5-1200', name: 'HPP Vaksin & Imunisasi Anak (Kidinest)', type: 'COGS', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '5-0000', currentBalance: 0 },
+    { id: '5-1300', code: '5-1300', name: 'HPP Produk Skincare & Homecare (SSC)', type: 'COGS', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '5-0000', currentBalance: 0 },
+    { id: '5-1400', code: '5-1400', name: 'HPP Bahan BMHP & Treatment Estetika (SSC)', type: 'COGS', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '5-0000', currentBalance: 0 },
 
     // ==========================================
-    // 6 - PENDAPATAN NON USAHA - BCS (Rp 38.481.777,73 Cr)
+    // 6. BEBAN OPERASIONAL / EXPENSES (DEBIT)
     // ==========================================
-    { id: '6', code: '6', name: 'PENDAPATAN NON USAHA - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 38481777.73 },
-    { id: '61', code: '61', name: 'PENDAPATAN LAIN-LAIN NON USAHA - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '6', currentBalance: 38481777.73 },
-    { id: '6101', code: '6101', name: 'PENDAPATAN BUNGA BANK - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '61', currentBalance: 9545162.73 },
-    { id: '6102', code: '6102', name: 'PENDAPATAN PEMBATALAN UNIT - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '61', currentBalance: 5000000 },
-    { id: '6103', code: '6103', name: 'PENDAPATAN PINDAH KAVLING - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '61', currentBalance: 0 },
-    { id: '6104', code: '6104', name: 'LABA PENJUALAN AKTIVA - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '61', currentBalance: 0 },
-    { id: '6105', code: '6105', name: 'SELISIH PEMBULATAN - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '61', currentBalance: 0 },
-    { id: '6106', code: '6106', name: 'PENDAPATAN LAIN-LAIN NON USAHA - BCS', type: 'REVENUE', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '61', currentBalance: 23936615 },
-
-    // ==========================================
-    // 7 - BEBAN NON USAHA - BCS (Rp 872.980.221,16 Dr)
-    // ==========================================
-    { id: '7', code: '7', name: 'BEBAN NON USAHA - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 872980221.16 },
-    { id: '71', code: '71', name: 'BIAYA LAIN-LAIN NON USAHA - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: true, isActive: true, businessUnit: 'ALL', parentCode: '7', currentBalance: 872980221.16 },
-    { id: '7101', code: '7101', name: 'BEBAN PROVISI KYG KPL - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 0 },
-    { id: '7102', code: '7102', name: 'BUNGA KYG KPL - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 242190000 },
-    { id: '7103', code: '7103', name: 'BEBAN BIAYA ADMINISTRASI BANK - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 47574598 },
-    { id: '7104', code: '7104', name: 'PAJAK JASA GIRO - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 1777489.15, taxCategory: 'PPH_4_2' },
-    { id: '7105', code: '7105', name: 'KERUGIAN PENJUALAN AKTIVA - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 0 },
-    { id: '7106', code: '7106', name: 'SELISIH PEMBULATAN & PENYESUAIAN - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 256 },
-    { id: '7107', code: '7107', name: 'BEBAN BUNGA PINJAMAN LAIN - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 581437878.01 },
-    { id: '7108', code: '7108', name: 'AKUN PENGHAPUSAN - BCS', type: 'EXPENSE', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '71', currentBalance: 0 }
+    { id: '6-0000', code: '6-0000', name: 'BEBAN OPERASIONAL / EXPENSES', type: 'EXPENSE', normalBalance: 'DEBIT', level: 1, isHeader: true, isActive: true, businessUnit: 'ALL', currentBalance: 0 },
+    { id: '6-1100', code: '6-1100', name: 'Beban Honor Jasa Dokter Spesialis Anak (Sp.A)', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'KIDINEST', parentCode: '6-0000', currentBalance: 0 },
+    { id: '6-1110', code: '6-1110', name: 'Beban Honor Jasa Dokter Kulit & Terapis Estetika', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '6-0000', currentBalance: 0 },
+    { id: '6-1200', code: '6-1200', name: 'Beban Gaji Karyawan, Perawat & Staf', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 },
+    { id: '6-1300', code: '6-1300', name: 'Beban Listrik, Air & Telepon', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 },
+    { id: '6-1400', code: '6-1400', name: 'Beban Administrasi Bank & EDC', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 }
   ])
 
   // Accounting Periods
@@ -456,6 +373,38 @@ export const useLedgerStore = defineStore('ledger', () => {
     }
   }
 
+  async function updateAccount(id: string, payload: { name?: string; isActive?: boolean; description?: string }) {
+    try {
+      isLoading.value = true
+      let updatedBackend: any = null
+      try {
+        updatedBackend = await accountingApi.updateAccount(id, {
+          name: payload.name,
+          is_active: payload.isActive,
+          description: payload.description
+        })
+      } catch {
+        // Fallback local if offline/mock
+      }
+
+      const idx = accounts.value.findIndex(a => a.id === id || (updatedBackend && a.code === updatedBackend.code))
+      if (idx !== -1) {
+        if (payload.name) accounts.value[idx].name = payload.name
+        if (payload.isActive !== undefined) accounts.value[idx].isActive = payload.isActive
+        if (payload.description !== undefined) accounts.value[idx].description = payload.description
+      }
+
+      const actionName = payload.isActive === false ? 'dinonaktifkan' : payload.isActive === true ? 'diaktifkan kembali' : 'diperbarui'
+      accountingStore.showToast(`Akun berhasil ${actionName}!`, 'success')
+      return accounts.value[idx]
+    } catch (err: any) {
+      accountingStore.showToast(`Gagal memperbarui akun: ${err.message}`, 'error')
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   function lockPeriod(periodId: string) {
     const p = periods.value.find(item => item.id === periodId)
     if (p) {
@@ -501,7 +450,7 @@ export const useLedgerStore = defineStore('ledger', () => {
         transaction_date: payload.cutOffDate,
         reference_type: 'OPENING_BALANCE',
         reference_id: payload.referenceNo || `OP-${payload.cutOffDate.replace(/-/g, '')}`,
-        description: payload.description || `Saldo Awal Pembukuan Akuntansi BCS per ${payload.cutOffDate}`,
+        description: payload.description || `Saldo Awal Pembukuan Akuntansi Klinik per ${payload.cutOffDate}`,
         auto_post: true,
         lines: validLines.map(l => ({
           account_code: l.accountCode,
@@ -546,6 +495,7 @@ export const useLedgerStore = defineStore('ledger', () => {
     fetchAccounts,
     getAccountLedger,
     addAccount,
+    updateAccount,
     lockPeriod,
     saveOpeningBalance
   }

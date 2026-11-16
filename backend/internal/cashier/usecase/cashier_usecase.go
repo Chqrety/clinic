@@ -19,13 +19,19 @@ type QueueNumberGenerator interface {
 	GenerateNextQueueNumber(ctx context.Context, date time.Time, unit queueDomain.ClinicUnit, category queueDomain.QueueCategory) (string, error)
 }
 
+type CashierJournalListener interface {
+	OnInvoiceSettled(ctx context.Context, inv *domain.Invoice) error
+	OnShiftClosed(ctx context.Context, report *domain.CashierShiftReport) error
+}
+
 type CashierUsecase struct {
-	invoiceRepo   domain.InvoiceRepository
-	shiftRepo     domain.ShiftRepository
-	cashierQRepo  domain.CashierQueueRepository
-	counterRepo   QueueNumberGenerator
-	waAdapter     WhatsAppSender
-	publicBaseURL string
+	invoiceRepo     domain.InvoiceRepository
+	shiftRepo       domain.ShiftRepository
+	cashierQRepo    domain.CashierQueueRepository
+	counterRepo     QueueNumberGenerator
+	waAdapter       WhatsAppSender
+	publicBaseURL   string
+	journalListener CashierJournalListener
 }
 
 func NewCashierUsecase(
@@ -47,6 +53,10 @@ func NewCashierUsecase(
 		waAdapter:     waAdapter,
 		publicBaseURL: publicBaseURL,
 	}
+}
+
+func (uc *CashierUsecase) SetJournalListener(listener CashierJournalListener) {
+	uc.journalListener = listener
 }
 
 func (uc *CashierUsecase) RegisterWalkIn(ctx context.Context, req *domain.WalkInRequest, cashierStaffID int64, cashierName string) (*domain.PendingBill, *domain.Invoice, error) {
@@ -130,6 +140,13 @@ func (uc *CashierUsecase) RegisterWalkIn(ctx context.Context, req *domain.WalkIn
 		}
 		if err := uc.invoiceRepo.Create(ctx, inv); err == nil {
 			createdInvoice = inv
+			if uc.journalListener != nil {
+				go func(inv domain.Invoice) {
+					asyncCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+					defer cancel()
+					_ = uc.journalListener.OnInvoiceSettled(asyncCtx, &inv)
+				}(*inv)
+			}
 		}
 	}
 
@@ -218,6 +235,14 @@ func (uc *CashierUsecase) PayBill(ctx context.Context, req *domain.PayBillReques
 		return nil, fmt.Errorf("gagal memproses transaksi kasir: %w", err)
 	}
 
+	if uc.journalListener != nil {
+		go func(inv domain.Invoice) {
+			asyncCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = uc.journalListener.OnInvoiceSettled(asyncCtx, &inv)
+		}(*invoice)
+	}
+
 	return invoice, nil
 }
 
@@ -299,6 +324,14 @@ func (uc *CashierUsecase) CloseShift(ctx context.Context, staffID int64, staffNa
 
 	if err := uc.shiftRepo.CreateReport(ctx, report); err != nil {
 		return nil, fmt.Errorf("gagal menyimpan laporan tutup shift: %w", err)
+	}
+
+	if uc.journalListener != nil {
+		go func(rep domain.CashierShiftReport) {
+			asyncCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = uc.journalListener.OnShiftClosed(asyncCtx, &rep)
+		}(*report)
 	}
 
 	log.Printf("[CASHIER] Tutup shift berhasil dikirim ke Pimpinan. Kasir: %s, Net Total Setoran: Rp %d",

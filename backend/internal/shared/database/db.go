@@ -115,7 +115,7 @@ func MigrateStaffSchema(db *sql.DB) error {
 		id SERIAL PRIMARY KEY,
 		employee_number VARCHAR(50) UNIQUE NOT NULL,
 		name VARCHAR(150) NOT NULL,
-		role VARCHAR(30) NOT NULL CHECK (role IN ('SUPERADMIN_OWNER', 'DOCTOR', 'GRO_CASHIER', 'PHARMACIST')),
+		role VARCHAR(30) NOT NULL CHECK (role IN ('SUPERADMIN_OWNER', 'DOCTOR', 'GRO_CASHIER', 'PHARMACIST', 'FINANCE')),
 		clinic_unit VARCHAR(20) NOT NULL CHECK (clinic_unit IN ('KIDINEST', 'SSC', 'ALL')),
 		password_hash VARCHAR(255) NOT NULL,
 		is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -284,6 +284,7 @@ func SeedInitialStaff(db *sql.DB) error {
 		{"DOC-SSC-02", "dr. Kevin Wijaya, Sp.D.V.E", "DOCTOR", "SSC"},
 		{"GRO-01", "Siti Sarah, A.Md", "GRO_CASHIER", "ALL"},
 		{"FARMASI-01", "Apt. Dimas Wicaksono, S.Farm", "PHARMACIST", "ALL"},
+		{"FIN-01", "Budi Santoso, SE, Ak., CA", "FINANCE", "ALL"},
 	}
 
 	query := `

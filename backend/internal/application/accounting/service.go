@@ -289,6 +289,11 @@ func (s *Service) CreateAccount(ctx context.Context, acc *domain.Account) error 
 	return s.accountRepo.Create(ctx, acc)
 }
 
+// UpdateAccount updates an existing account's name, active status, or description.
+func (s *Service) UpdateAccount(ctx context.Context, acc *domain.Account) error {
+	return s.accountRepo.Update(ctx, acc)
+}
+
 // ListJournals returns paginated journal entries with filters.
 func (s *Service) ListJournals(ctx context.Context, filter domain.JournalFilter) ([]domain.JournalEntry, int64, error) {
 	return s.journalRepo.List(ctx, filter)

@@ -526,8 +526,8 @@ export const useCashBankStore = defineStore('cashbank', () => {
             description: `Saldo awal buku kas/bank ${data.code}`
           },
           {
-            accountCode: '1999',
-            accountName: 'Temporary Opening - BCS',
+            accountCode: '3-9999',
+            accountName: 'Akun Penyeimbang Saldo Awal',
             debit: 0,
             credit: data.openingBalance,
             description: `Penyeimbang saldo awal pembukaan buku`

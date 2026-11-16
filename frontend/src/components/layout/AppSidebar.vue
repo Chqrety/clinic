@@ -41,7 +41,7 @@ interface NavItem {
   name: string
   to: string
   icon: any
-  badge?: number
+  badge?: number | string
   badgeColor?: string
 }
 
@@ -58,61 +58,54 @@ const navGroups = computed<NavGroup[]>(() => [
     ]
   },
   {
-    groupName: 'SUMBER TRANSAKSI',
+    groupName: 'MODUL UTAMA (SIAP PAKAI)',
     items: [
-      {
-        name: 'Transaksi Operasional',
-        to: '/accounting/transactions',
-        icon: Layers,
-        badge: unprocessedTxCount.value,
-        badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-      }
-    ]
-  },
-  {
-    groupName: 'MANAJEMEN JURNAL',
-    items: [
-      { name: 'Daftar Jurnal Umum', to: '/accounting/journals', icon: BookOpen },
-      {
-        name: 'Antrian Review & Approval',
-        to: '/accounting/journals/approvals',
-        icon: FileCheck2,
-        badge: pendingApprovalCount.value,
-        badgeColor: 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-      }
-    ]
-  },
-  {
-    groupName: 'BUKU BESAR & COA',
-    items: [
-      { name: 'Buku Besar (Ledger)', to: '/accounting/ledger', icon: FileText },
-      { name: 'Buku Kas & Bank', to: '/accounting/cash-bank', icon: Coins },
-      { name: 'Neraca Saldo (Trial Balance)', to: '/accounting/trial-balance', icon: Scale },
       { name: 'Bagan Akun (COA)', to: '/accounting/chart-of-accounts', icon: FileSpreadsheet },
       { name: 'Saldo Awal Akuntansi', to: '/accounting/opening-balance', icon: BookmarkCheck },
-      { name: 'Tutup Buku Periode', to: '/accounting/periods', icon: CalendarCheck }
+      { name: 'Jurnal Umum (Tabel)', to: '/accounting/journals', icon: BookOpen },
+      { name: 'Buku Kas & Bank', to: '/accounting/cash-bank', icon: Coins },
+      { name: 'Buku Besar (Ledger)', to: '/accounting/ledger', icon: FileText },
+      { name: 'Pajak & SPT Masa', to: '/accounting/tax', icon: Calculator }
     ]
   },
   {
-    groupName: 'LAPORAN KEUANGAN',
+    groupName: 'DALAM PENGEMBANGAN (FASE 2)',
     items: [
-      { name: 'Laba Rugi (P&L)', to: '/accounting/reports/profit-loss', icon: Receipt },
-      { name: 'Neraca (Balance Sheet)', to: '/accounting/reports/balance-sheet', icon: Scale },
-      { name: 'Arus Kas (Cash Flow)', to: '/accounting/reports/cash-flow', icon: Coins },
-      { name: 'Umur Piutang & Hutang', to: '/accounting/reports/aging', icon: History }
-    ]
-  },
-  {
-    groupName: 'PAJAK & KEPATUHAN',
-    items: [
-      { name: 'PPh 21 Dokter & PPN', to: '/accounting/tax', icon: Calculator }
-    ]
-  },
-  {
-    groupName: 'MASTER & AUDIT',
-    items: [
-      { name: 'Aturan Pemetaan Akun', to: '/accounting/mapping-rules', icon: Sliders },
-      { name: 'Jejak Audit Sistem', to: '/accounting/audit-trail', icon: ShieldAlert }
+      {
+        name: 'Transaksi Kasir Otomatis',
+        to: '/accounting/transactions',
+        icon: Layers,
+        badge: 'Fase 2',
+        badgeColor: 'bg-slate-800 text-amber-400/90 border border-amber-500/30'
+      },
+      {
+        name: 'Approval Bertingkat',
+        to: '/accounting/journals/approvals',
+        icon: FileCheck2,
+        badge: 'Fase 2',
+        badgeColor: 'bg-slate-800 text-amber-400/90 border border-amber-500/30'
+      },
+      {
+        name: 'Laporan Finansial Lengkap',
+        to: '/accounting/reports/balance-sheet',
+        icon: Scale,
+        badge: 'Fase 2',
+        badgeColor: 'bg-slate-800 text-amber-400/90 border border-amber-500/30'
+      },
+      {
+        name: 'Tutup Buku Periode',
+        to: '/accounting/periods',
+        icon: CalendarCheck,
+        badge: 'Fase 2',
+        badgeColor: 'bg-slate-800 text-slate-400 border border-slate-700'
+      },
+      {
+        name: 'Jejak Audit Sistem',
+        to: '/accounting/audit-trail',
+        icon: ShieldAlert,
+        badge: 'Fase 2',
+        badgeColor: 'bg-slate-800 text-slate-400 border border-slate-700'
+      }
     ]
   }
 ])
@@ -126,51 +119,54 @@ function isCurrentRoute(to: string): boolean {
 
 <template>
   <aside
-    class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 select-none text-slate-300 min-h-screen"
+    class="w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between shrink-0 select-none text-zinc-300 min-h-screen"
   >
-    <!-- Brand Header -->
-    <div class="px-5 py-5 border-b border-slate-800/80 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 font-bold text-lg">
-          <Building2 class="w-5 h-5 text-white" />
+    <!-- Brand Header (Official SMG Clinical Identity) -->
+    <div class="p-4 border-b border-zinc-800/80 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-white text-zinc-950 flex items-center justify-center font-black text-sm shadow-xs">
+          SMG
         </div>
         <div>
-          <h1 class="text-sm font-bold text-white tracking-wide">CLINIC ERP</h1>
-          <p class="text-[11px] font-medium text-slate-400">Integrated Accounting</p>
+          <div class="text-xs font-bold text-zinc-100 leading-tight">Semarang Medical Group</div>
+          <div class="text-[10px] text-zinc-400 font-medium">Finance & Accounting</div>
         </div>
       </div>
-      <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-        v2.4
+      <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+        PROD
       </span>
     </div>
 
-    <!-- Active Unit Banner Pill -->
-    <div class="px-4 py-2.5 bg-slate-950/60 border-b border-slate-800/60 flex items-center justify-between text-xs">
-      <span class="text-slate-400 text-[11px] font-medium">Entitas Aktif:</span>
+    <!-- Active Unit Banner Pill (Semantic Dual-Brand Indicators) -->
+    <div class="px-4 py-2.5 bg-zinc-900/60 border-b border-zinc-800/60 flex items-center justify-between text-xs">
+      <span class="text-zinc-400 text-[11px] font-medium">Entitas Aktif:</span>
       <span
         v-if="accountingStore.businessUnit === 'ALL'"
-        class="font-semibold text-slate-200"
+        class="font-semibold text-zinc-200 inline-flex items-center gap-1.5"
       >
-        Kidinest + SSC (Konsolidasi)
+        <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+        Konsolidasi
       </span>
       <span
         v-else-if="accountingStore.businessUnit === 'KIDINEST'"
-        class="font-semibold text-blue-400"
+        class="font-bold text-amber-400 inline-flex items-center gap-1.5"
       >
-        Kidinest (Klinik Anak)
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+        Kidinest (Anak)
       </span>
       <span
         v-else
-        class="font-semibold text-rose-400"
+        class="font-bold text-rose-400 inline-flex items-center gap-1.5"
       >
-        SSC (Skin & Slimming)
+        <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+        SSC (Dermatologi)
       </span>
     </div>
 
     <!-- Navigation Menu Items -->
-    <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6 text-xs scrollbar-thin scrollbar-thumb-slate-800">
+    <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6 text-xs scrollbar-thin scrollbar-thumb-zinc-800">
       <div v-for="group in navGroups" :key="group.groupName" class="space-y-1">
-        <h4 class="px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+        <h4 class="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
           {{ group.groupName }}
         </h4>
 
@@ -179,10 +175,10 @@ function isCurrentRoute(to: string): boolean {
           :key="item.to"
           :to="item.to"
           :class="[
-            'flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-all duration-150 group',
+            'flex items-center justify-between px-3 py-2 rounded-xl font-medium transition-all duration-150 group',
             isCurrentRoute(item.to)
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+              ? 'bg-zinc-800 text-white font-bold shadow-2xs'
+              : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80'
           ]"
         >
           <div class="flex items-center gap-2.5 truncate">
@@ -190,17 +186,17 @@ function isCurrentRoute(to: string): boolean {
               :is="item.icon"
               :class="[
                 'w-4 h-4 shrink-0 transition-colors',
-                isCurrentRoute(item.to) ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
+                isCurrentRoute(item.to) ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
               ]"
             />
             <span class="truncate">{{ item.name }}</span>
           </div>
 
           <span
-            v-if="item.badge && item.badge > 0"
+            v-if="item.badge && (typeof item.badge === 'string' || item.badge > 0)"
             :class="[
-              'px-1.5 py-0.2 rounded-full text-[10px] font-bold shrink-0',
-              item.badgeColor || 'bg-blue-500/20 text-blue-400'
+              'px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0',
+              item.badgeColor || 'bg-zinc-800 text-zinc-300 border border-zinc-700/60'
             ]"
           >
             {{ item.badge }}
@@ -210,17 +206,17 @@ function isCurrentRoute(to: string): boolean {
     </div>
 
     <!-- Bottom User Profile & Switcher -->
-    <div class="p-4 border-t border-slate-800/80 bg-slate-950/40 space-y-3">
+    <div class="p-4 border-t border-zinc-800/80 bg-zinc-950 space-y-3">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-blue-400">
-          {{ accountingStore.currentUserName.charAt(0) }}
+        <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs text-zinc-200">
+          {{ (accountingStore.currentUserName || 'F').charAt(0) }}
         </div>
         <div class="min-w-0 flex-1">
-          <p class="text-xs font-semibold text-white truncate">
+          <p class="text-xs font-semibold text-zinc-100 truncate">
             {{ accountingStore.currentUserName }}
           </p>
-          <p class="text-[10px] text-slate-400 truncate capitalize">
-            {{ accountingStore.currentUserRole.replace('_', ' ') }}
+          <p class="text-[10px] text-zinc-400 truncate capitalize">
+            Finance & Accounting Manager
           </p>
         </div>
       </div>

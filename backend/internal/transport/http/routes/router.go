@@ -61,9 +61,14 @@ func SetupRouter(h *HandlerContainer) *chi.Mux {
 	return r
 }
 
-// MountAccountingRoutes mounts all accounting submodules under /api/accounting
-func MountAccountingRoutes(r chi.Router, h *HandlerContainer) {
+// MountAccountingRoutes mounts all accounting submodules under /api/accounting with optional JWT auth protection.
+func MountAccountingRoutes(r chi.Router, h *HandlerContainer, authMiddlewares ...func(http.Handler) http.Handler) {
 	r.Route("/api/accounting", func(acc chi.Router) {
+		for _, mw := range authMiddlewares {
+			if mw != nil {
+				acc.Use(mw)
+			}
+		}
 		acc.Use(middleware.BranchContext)
 
 		if h != nil {

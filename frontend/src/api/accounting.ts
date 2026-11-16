@@ -24,12 +24,14 @@ interface ApiResponse<T> {
 }
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+  const token = localStorage.getItem('clinic_auth_token') || localStorage.getItem('clinic_token') || ''
   const res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'X-Branch-ID': '11111111-1111-1111-1111-111111111111',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options?.headers || {}),
     },
   })
@@ -170,6 +172,18 @@ export const accountingApi = {
   }): Promise<BackendAccount> {
     const res = await request<BackendAccount>('/accounts', {
       method: 'POST',
+      body: JSON.stringify(data),
+    })
+    return res.data
+  },
+
+  async updateAccount(id: string, data: {
+    name?: string
+    is_active?: boolean
+    description?: string
+  }): Promise<BackendAccount> {
+    const res = await request<BackendAccount>(`/accounts/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     })
     return res.data

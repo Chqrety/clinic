@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import AccountingLayout from '@/layouts/AccountingLayout.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const routes: RouteRecordRaw[] = [
   // ==================== CLINIC OPERATIONAL & PUBLIC ROUTES ====================
@@ -202,10 +203,33 @@ const router = createRouter({
   }
 })
 
-router.beforeEach((to: any, _from: any, next: any) => {
+router.beforeEach(async (to: any, _from: any, next: any) => {
   if (to.meta?.title) {
     document.title = `${to.meta.title} - Sistem Klinik & Akuntansi`
   }
+
+  // Route Guard: Lindungi seluruh rute /accounting/* wajib login role keuangan atau owner
+  if (to.path.startsWith('/accounting')) {
+    const authStore = useAuthStore()
+
+    if (!authStore.isAuthenticated) {
+      const ok = await authStore.fetchMe()
+      if (!ok) {
+        return next({
+          path: '/login',
+          query: { redirect: to.fullPath }
+        })
+      }
+    }
+
+    // Role yang memiliki akses ke modul accounting: FINANCE, SUPERADMIN_OWNER, OWNER
+    const allowedRoles = ['FINANCE', 'SUPERADMIN_OWNER', 'OWNER']
+    const currentRole = (authStore.user?.role || '').toUpperCase()
+    if (authStore.user && !allowedRoles.includes(currentRole)) {
+      return next({ path: '/admin' })
+    }
+  }
+
   next()
 })
 

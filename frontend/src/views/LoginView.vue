@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useClinicStore, type RoleType } from '../stores/clinic'
 import {
@@ -15,8 +16,12 @@ import {
   Sparkles,
   Lock,
   Terminal,
-  ChevronRight
+  ChevronRight,
+  Wallet
 } from 'lucide-vue-next'
+
+const router = useRouter()
+const route = useRoute()
 
 const props = withDefaults(defineProps<{
   brand?: 'kidinest' | 'ssc'
@@ -87,7 +92,7 @@ interface QuickAccount {
   empNum: string
   name: string
   title: string
-  role: 'SUPERADMIN_OWNER' | 'DOCTOR' | 'GRO_CASHIER' | 'PHARMACIST'
+  role: 'SUPERADMIN_OWNER' | 'DOCTOR' | 'GRO_CASHIER' | 'PHARMACIST' | 'FINANCE'
   unit: string
   clinicRole: RoleType
   icon: any
@@ -95,6 +100,15 @@ interface QuickAccount {
 
 // Quick demo accounts
 const kidinestAccounts: QuickAccount[] = [
+  {
+    empNum: 'FIN-01',
+    name: 'Budi Santoso, SE, Ak., CA',
+    title: 'Finance & Accounting Manager (Semua Unit)',
+    role: 'FINANCE',
+    unit: 'Semarang Medical Group',
+    clinicRole: 'owner',
+    icon: Wallet,
+  },
   {
     empNum: 'OWNER-01',
     name: 'dr. Ratna Paramita, M.Kes',
@@ -201,6 +215,11 @@ async function submitLogin(empNum: string, pass: string, targetClinicRole?: Role
   // 1. Coba login ke API backend
   const success = await auth.login(empNum, pass)
   if (success && auth.user) {
+    if (auth.user.role === 'FINANCE') {
+      const redirect = (route.query.redirect as string) || '/accounting'
+      router.push(redirect)
+      return
+    }
     let roleTarget: RoleType = 'doctor'
     switch (auth.user.role) {
       case 'SUPERADMIN_OWNER':
@@ -218,12 +237,13 @@ async function submitLogin(empNum: string, pass: string, targetClinicRole?: Role
     }
     clinicStore.setRole(roleTarget)
     emit('navigate', 'admin')
+    router.push('/admin')
   } else {
     // 2. Demo fallback
     if (auth.error) {
       errorMessage.value = auth.error
     }
-    if (targetClinicRole) {
+    if (targetClinicRole || empNum === 'FIN-01') {
       const allAccs = [...kidinestAccounts, ...sscAccounts]
       const matched = allAccs.find(a => a.empNum === empNum) ||
                       allAccs.find(a => a.clinicRole === targetClinicRole) ||
@@ -236,8 +256,14 @@ async function submitLogin(empNum: string, pass: string, targetClinicRole?: Role
         role: matched.role as any,
         clinic_unit: (matched.unit.includes('SSC') || matched.unit.includes('Skin') ? 'SSC' : matched.unit.includes('Kidinest') ? 'KIDINEST' : 'ALL') as any,
       })
-      clinicStore.setRole(targetClinicRole)
+      if (matched.role === 'FINANCE') {
+        const redirect = (route.query.redirect as string) || '/accounting'
+        router.push(redirect)
+        return
+      }
+      clinicStore.setRole(targetClinicRole || 'owner')
       emit('navigate', 'admin')
+      router.push('/admin')
     }
   }
   isSubmitting.value = false

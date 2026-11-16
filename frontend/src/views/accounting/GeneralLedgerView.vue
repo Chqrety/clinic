@@ -142,7 +142,7 @@ function inspectJournalByNumber(jNumber: string) {
       sourceReference: `REF-${jNumber.slice(-4)}`,
       businessUnit: (entry.businessUnit as any) || 'KIDINEST',
       branchId: 'BRANCH-MAIN',
-      branchName: entry.branchName,
+      branchName: entry.branchName || 'Unit Layanan',
       description: entry.description,
       totalDebit: amt,
       totalCredit: amt,
@@ -208,7 +208,7 @@ interface SubsidiaryLedgerItem {
   source: string
   description: string
   businessUnit: string
-  branchName: string
+  branchName?: string
   debit: number
   credit: number
   runningBalance: number
@@ -262,7 +262,6 @@ function generateCompleteLedgerForAccount(acc: typeof ledgerStore.accounts[0]): 
       source: step.src,
       description: step.desc,
       businessUnit: step.unit,
-      branchName: step.unit === 'SSC' ? 'Cabang SSC Estetika' : 'Kebayoran Baru (Pusat)',
       debit,
       credit,
       runningBalance: currentRunning
@@ -338,7 +337,6 @@ function handleExportExcel() {
     'Sumber': e.source,
     'Uraian': e.description,
     'Unit': e.businessUnit,
-    'Cabang': e.branchName,
     'Debit (IDR)': e.debit,
     'Kredit (IDR)': e.credit,
     'Saldo Berjalan (IDR)': e.runningBalance

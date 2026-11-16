@@ -124,7 +124,7 @@ function handleExportExcel() {
           <span class="text-blue-400 font-semibold">Arus Kas</span>
         </div>
         <h1 class="text-base font-bold text-white tracking-wide">
-          PT. BRAYO CIPTA SEJAHTERA (BCS) &bull; {{ accountingStore.businessUnit === 'ALL' ? 'KLINIK TERPADU (KIDINEST & SSC)' : accountingStore.businessUnit === 'KIDINEST' ? 'KLINIK SPESIALIS ANAK KIDINEST' : 'SEMARANG SKIN CENTER' }}
+          {{ accountingStore.businessUnit === 'ALL' ? 'KLINIK TERPADU (KIDINEST & SSC)' : accountingStore.businessUnit === 'KIDINEST' ? 'KLINIK SPESIALIS ANAK KIDINEST' : 'SEMARANG SKIN CENTER (SSC)' }}
         </h1>
       </div>
 

@@ -42,6 +42,7 @@ import (
 	staffHttp "clinic-api/internal/staff/delivery/http"
 	staffRepo "clinic-api/internal/staff/repository"
 	staffUsecase "clinic-api/internal/staff/usecase"
+	journalApp "clinic-api/internal/application/journal"
 	accRoutes "clinic-api/internal/transport/http/routes"
 	legacyDb "clinic-api/pkg/database"
 
@@ -245,10 +246,15 @@ func main() {
 		devHandler := dev.NewDevHandler(pgDB)
 		dev.RegisterDevRoutes(r, devHandler)
 
-		// Bounded Context: Accounting & Financial ERP (Dual Mount on /api/accounting)
+		// Bounded Context: Accounting & Financial ERP (Dual Mount on /api/accounting with JWT Protection)
 		accContainer := bootstrap.BuildContainer(pgDB)
-		accRoutes.MountAccountingRoutes(r, accContainer.Handlers)
-		log.Printf("[ACCOUNTING] Accounting API mounted at /api/accounting")
+		accRoutes.MountAccountingRoutes(r, accContainer.Handlers, authMiddleware)
+		log.Printf("[ACCOUNTING] Accounting API mounted at /api/accounting (JWT Protected)")
+
+		// Connect Cashier to Journal sync listener (Step 4)
+		cashierListener := journalApp.NewCashierJournalListener(accContainer.JournalSvc)
+		cashierUc.SetJournalListener(cashierListener)
+		log.Printf("[ACCOUNTING] Cashier-to-Journal async settlement listener connected")
 	}
 
 	// 4. Register Fallback Legacy Modules jika PostgreSQL tidak tersedia (Offline / Mock Mode)

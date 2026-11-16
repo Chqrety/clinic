@@ -17,8 +17,33 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+func loadEnv(paths ...string) {
+	for _, p := range paths {
+		b, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		for _, line := range strings.Split(string(b), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				k := strings.TrimSpace(parts[0])
+				v := strings.Trim(strings.TrimSpace(parts[1]), `"'`)
+				if os.Getenv(k) == "" {
+					os.Setenv(k, v)
+				}
+			}
+		}
+	}
+}
+
 // Main CLI tool for managing PostgreSQL database migrations and Chart of Accounts seeders.
 func main() {
+	loadEnv(".env", "../.env", "backend/.env")
+
 	action := flag.String("action", "up", "Migration action: up, down, status, seed-coa")
 	flag.Parse()
 
@@ -160,6 +185,11 @@ func rollbackMigration(ctx context.Context, db *sql.DB) error {
 }
 
 func seedCOA(ctx context.Context, db *sql.DB) error {
+	// 1. Purge legacy BCS dummy accounts
+	log.Println("[MIGRATE] Purging any legacy BCS dummy accounts...")
+	_, _ = db.ExecContext(ctx, "DELETE FROM accounts WHERE name LIKE '%BCS%' OR name LIKE '%Brayo%' OR description LIKE '%BCS%';")
+
+	// 2. Seed official Clinic Branches & Dual-Brand COA (Kidinest & SSC)
 	seedFiles := []string{
 		"seeds/branches.sql",
 		"seeds/chart_of_accounts.sql",

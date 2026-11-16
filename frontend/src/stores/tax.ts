@@ -431,7 +431,7 @@ export const useTaxStore = defineStore('tax', () => {
         bpeNumber: `BPE-25-2026${mStr}-0021`,
         paymentDate: `2026-${mStr}-15`,
         status: 'REPORTED' as const,
-        notes: `e-Billing Bank BCA: Setoran Angsuran Masa ${mStr}/2026 PPh Badan BCS`,
+        notes: `e-Billing Bank BCA: Setoran Angsuran Masa ${mStr}/2026 PPh Badan Klinik`,
         businessUnit: 'ALL' as BusinessUnit,
         createdAt: `2026-${mStr}-15 08:30:00`,
         createdBy: 'Rian Pratama, S.Ak.'

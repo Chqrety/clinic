@@ -63,8 +63,8 @@ function handleGenerateDraft() {
             <p class="font-bold text-slate-900 mt-0.5">{{ transaction.transactionDate }}</p>
           </div>
           <div>
-            <span class="text-[11px] font-semibold text-slate-400 uppercase">Cabang Pelayanan</span>
-            <p class="font-bold text-slate-900 mt-0.5">{{ transaction.branchName }}</p>
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Unit Layanan</span>
+            <p class="font-bold text-slate-900 mt-0.5">{{ transaction.businessUnit }}</p>
           </div>
           <div>
             <span class="text-[11px] font-semibold text-slate-400 uppercase">Nominal Bruto</span>
