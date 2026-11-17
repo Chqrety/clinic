@@ -220,6 +220,12 @@ const routes: RouteRecordRaw[] = [
         name: 'AuditTrail',
         component: () => import('@/views/accounting/AuditTrailView.vue'),
         meta: { title: 'Jejak Audit Sistem' }
+      },
+      {
+        path: 'settings',
+        name: 'AccountingSettings',
+        component: () => import('@/views/accounting/SettingsView.vue'),
+        meta: { title: 'Pengaturan Bahasa & Sistem' }
       }
     ]
   },

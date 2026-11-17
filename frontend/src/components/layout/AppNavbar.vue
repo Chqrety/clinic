@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { useAuthStore } from '@/stores/auth'
+import { useLocaleStore } from '@/stores/locale'
 import type { BusinessUnit } from '@/types/accounting'
 import {
   Bell,
@@ -10,12 +11,15 @@ import {
   ChevronDown,
   LogOut,
   ShieldCheck,
-  Stethoscope
+  Stethoscope,
+  Languages,
+  Settings
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const store = useAccountingStore()
 const authStore = useAuthStore()
+const localeStore = useLocaleStore()
 
 const showNotifications = ref(false)
 
@@ -81,6 +85,25 @@ async function handleLogout() {
       >
         <Stethoscope class="w-3.5 h-3.5 text-zinc-700" />
         <span>Workstation Medis</span>
+      </router-link>
+
+      <!-- Language Switcher Pill -->
+      <button
+        @click="localeStore.toggleLocale()"
+        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 text-xs font-bold transition shadow-2xs cursor-pointer"
+        :title="localeStore.isIndonesian ? 'Ganti ke English (US)' : 'Switch to Bahasa Indonesia'"
+      >
+        <Languages class="w-3.5 h-3.5 text-blue-600" />
+        <span class="font-mono text-[11px]">{{ localeStore.isIndonesian ? '🇮🇩 ID' : '🇬🇧 EN' }}</span>
+      </button>
+
+      <!-- Settings Shortcut -->
+      <router-link
+        to="/accounting/settings"
+        class="p-2 rounded-xl text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
+        :title="localeStore.t('nav.languageSettings')"
+      >
+        <Settings class="w-4 h-4" />
       </router-link>
 
       <!-- Authenticated User Identity (Production Locked) -->

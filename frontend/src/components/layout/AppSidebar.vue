@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useJournalsStore } from '@/stores/journals'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useAccountingStore } from '@/stores/accounting'
+import { useLocaleStore } from '@/stores/locale'
 import {
   LayoutDashboard,
   Layers,
@@ -21,13 +22,16 @@ import {
   Scale,
   CalendarCheck,
   BookmarkCheck,
-  TrendingUp
+  TrendingUp,
+  Languages,
+  Settings
 } from 'lucide-vue-next'
 
 const route = useRoute()
 const journalsStore = useJournalsStore()
 const transactionsStore = useTransactionsStore()
 const accountingStore = useAccountingStore()
+const localeStore = useLocaleStore()
 
 // Badge counts
 const unprocessedTxCount = computed(() => {
@@ -53,21 +57,21 @@ interface NavGroup {
 
 const navGroups = computed<NavGroup[]>(() => [
   {
-    groupName: 'DASHBOARD',
+    groupName: localeStore.t('nav.dashboardGroup'),
     items: [
-      { name: 'Ikhtisar Keuangan', to: '/accounting/dashboard', icon: LayoutDashboard }
+      { name: localeStore.t('nav.dashboard'), to: '/accounting/dashboard', icon: LayoutDashboard }
     ]
   },
   {
-    groupName: 'BUKU & TRANSAKSI',
+    groupName: localeStore.t('nav.booksGroup'),
     items: [
-      { name: 'Bagan Akun (COA)', to: '/accounting/chart-of-accounts', icon: FileSpreadsheet },
-      { name: 'Saldo Awal Akuntansi', to: '/accounting/opening-balance', icon: BookmarkCheck },
-      { name: 'Jurnal Umum (Tabel)', to: '/accounting/journals', icon: BookOpen },
-      { name: 'Buku Kas & Bank', to: '/accounting/cash-bank', icon: Coins },
-      { name: 'Buku Besar (Ledger)', to: '/accounting/ledger', icon: FileText },
+      { name: localeStore.t('nav.chartOfAccounts'), to: '/accounting/chart-of-accounts', icon: FileSpreadsheet },
+      { name: localeStore.t('nav.openingBalance'), to: '/accounting/opening-balance', icon: BookmarkCheck },
+      { name: localeStore.t('nav.generalJournal'), to: '/accounting/journals', icon: BookOpen },
+      { name: localeStore.t('nav.cashBank'), to: '/accounting/cash-bank', icon: Coins },
+      { name: localeStore.t('nav.generalLedger'), to: '/accounting/ledger', icon: FileText },
       {
-        name: 'Transaksi Kasir Otomatis',
+        name: localeStore.t('nav.cashierTransactions'),
         to: '/accounting/transactions',
         icon: Layers,
         badge: unprocessedTxCount.value,
@@ -76,41 +80,51 @@ const navGroups = computed<NavGroup[]>(() => [
     ]
   },
   {
-    groupName: 'LAPORAN KEUANGAN (PSAK)',
+    groupName: localeStore.t('nav.reportsGroup'),
     items: [
-      { name: 'Neraca Saldo (Trial Balance)', to: '/accounting/trial-balance', icon: Scale },
-      { name: 'Laporan Laba Rugi', to: '/accounting/reports/profit-loss', icon: TrendingUp },
-      { name: 'Laporan Neraca', to: '/accounting/reports/balance-sheet', icon: Scale },
-      { name: 'Arus Kas (Cash Flow)', to: '/accounting/reports/cash-flow', icon: Coins },
-      { name: 'Umur Piutang & Hutang', to: '/accounting/reports/aging', icon: History }
+      { name: localeStore.t('nav.trialBalance'), to: '/accounting/trial-balance', icon: Scale },
+      { name: localeStore.t('nav.profitLoss'), to: '/accounting/reports/profit-loss', icon: TrendingUp },
+      { name: localeStore.t('nav.balanceSheet'), to: '/accounting/reports/balance-sheet', icon: Scale },
+      { name: localeStore.t('nav.cashFlow'), to: '/accounting/reports/cash-flow', icon: Coins },
+      { name: localeStore.t('nav.aging'), to: '/accounting/reports/aging', icon: History }
     ]
   },
   {
-    groupName: 'PERPAJAKAN KLINIK (DJP)',
+    groupName: localeStore.t('nav.taxGroup'),
     items: [
-      { name: 'SPT Masa (Pajak Bulanan)', to: '/accounting/tax/spt-masa', icon: Calculator },
-      { name: 'SPT Tahunan Badan (1771)', to: '/accounting/tax/spt-tahunan', icon: Receipt }
+      { name: localeStore.t('nav.sptMasa'), to: '/accounting/tax/spt-masa', icon: Calculator },
+      { name: localeStore.t('nav.sptTahunan'), to: '/accounting/tax/spt-tahunan', icon: Receipt }
     ]
   },
   {
-    groupName: 'KONTROL & AUDIT',
+    groupName: localeStore.t('nav.auditGroup'),
     items: [
       {
-        name: 'Approval Bertingkat',
+        name: localeStore.t('nav.approvals'),
         to: '/accounting/journals/approvals',
         icon: FileCheck2,
         badge: pendingApprovalCount.value,
         badgeColor: 'bg-amber-500'
       },
       {
-        name: 'Tutup Buku Periode',
+        name: localeStore.t('nav.periods'),
         to: '/accounting/periods',
         icon: CalendarCheck
       },
       {
-        name: 'Jejak Audit Sistem',
+        name: localeStore.t('nav.auditTrail'),
         to: '/accounting/audit-trail',
         icon: ShieldAlert
+      }
+    ]
+  },
+  {
+    groupName: localeStore.t('nav.settingsGroup'),
+    items: [
+      {
+        name: localeStore.t('nav.languageSettings'),
+        to: '/accounting/settings',
+        icon: Languages
       }
     ]
   }
