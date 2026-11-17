@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTaxStore } from '@/stores/tax'
 import { useAccountingStore } from '@/stores/accounting'
@@ -12,18 +12,12 @@ import {
   Printer,
   Sparkles,
   Link2,
-  ArrowRight,
   ArrowLeft,
   SlidersHorizontal,
   RotateCcw,
   AlertCircle,
-  Edit3,
   Send,
-  Info,
-  X,
-  ShieldCheck,
   Building2,
-  Calculator,
   Pencil
 } from 'lucide-vue-next'
 
@@ -38,183 +32,13 @@ onMounted(async () => {
 const annual1771 = computed(() => taxStore.annualTaxReport1771)
 const sptMatrix = computed(() => taxStore.monthlySptMasaMatrix)
 
-// Month Level Editing Modal
-const isEditModalOpen = ref(false)
-const editingMonth = ref<{
-  monthNum: number
-  monthName: string
-  taxType: 'PPH_23' | 'PPH_25'
-  originalAmount: number
-  adjustedAmount: number
-  claimStatus: 'CLAIM_FULL' | 'CLAIM_PARTIAL' | 'EXCLUDED'
-  reason: string
-} | null>(null)
-
-function openEditMonth(
-  monthNum: number,
-  monthName: string,
-  taxType: 'PPH_23' | 'PPH_25',
-  original: number,
-  currentAdjusted: number,
-  status: 'CLAIM_FULL' | 'CLAIM_PARTIAL' | 'EXCLUDED',
-  reason: string
-) {
-  editingMonth.value = {
-    monthNum,
-    monthName,
-    taxType,
-    originalAmount: original,
-    adjustedAmount: currentAdjusted,
-    claimStatus: status,
-    reason: reason || ''
-  }
-  isEditModalOpen.value = true
-}
-
-function handleStatusChange(status: 'CLAIM_FULL' | 'CLAIM_PARTIAL' | 'EXCLUDED') {
-  if (!editingMonth.value) return
-  editingMonth.value.claimStatus = status
-  if (status === 'CLAIM_FULL') {
-    editingMonth.value.adjustedAmount = editingMonth.value.originalAmount
-  } else if (status === 'EXCLUDED') {
-    editingMonth.value.adjustedAmount = 0
-  }
-}
-
-function handleSaveMonthAdjustment() {
-  if (!editingMonth.value) return
-  taxStore.setMonthAdjustment({
-    monthNum: editingMonth.value.monthNum,
-    taxType: editingMonth.value.taxType,
-    originalAmount: editingMonth.value.originalAmount,
-    adjustedAmount: Number(editingMonth.value.adjustedAmount) || 0,
-    claimStatus: editingMonth.value.claimStatus,
-    reason: editingMonth.value.reason
-  })
-  isEditModalOpen.value = false
-  editingMonth.value = null
-}
-
-function handleResetMonthAdjustment() {
-  if (!editingMonth.value) return
-  taxStore.resetMonthAdjustment(editingMonth.value.monthNum, editingMonth.value.taxType)
-  isEditModalOpen.value = false
-  editingMonth.value = null
-}
-
-// Global Adjustment Form
-const pph23GeneralInput = ref(taxStore.annualGeneralAdjustment.pph23Adjustment)
-const pph25GeneralInput = ref(taxStore.annualGeneralAdjustment.pph25Adjustment)
-const notesGeneralInput = ref(taxStore.annualGeneralAdjustment.notes)
-
-function applyGeneralAdjustment() {
-  taxStore.setAnnualGeneralAdjustment({
-    pph23Adjustment: Number(pph23GeneralInput.value) || 0,
-    pph25Adjustment: Number(pph25GeneralInput.value) || 0,
-    notes: notesGeneralInput.value
-  })
-  accountingStore.showToast('Penyesuaian global kredit pajak SPT 1771 tersimpan!', 'success')
-}
-
-function applyPresetOverwithholding() {
-  pph23GeneralInput.value = -2400000
-  notesGeneralInput.value = 'Koreksi kelebihan potong PPh 23 Masa Januari vendor PT Wastec (bukti potong direvisi non-kredit)'
-  applyGeneralAdjustment()
-}
-
 function handleResetAll() {
   taxStore.resetAllAdjustments()
   taxStore.resetAnnual1771Overrides()
-  pph23GeneralInput.value = 0
-  pph25GeneralInput.value = 0
-  notesGeneralInput.value = ''
 }
 
 function handlePostJournal() {
   taxStore.postPph29AccrualJournal()
-}
-
-// Full SPT 1771 Worksheet Edit Modal (Allows changing ANY/ALL parameters)
-const isFullEditModalOpen = ref(false)
-
-const editForm1771 = ref({
-  commercialRevenue: 0,
-  commercialExpense: 0,
-  positiveFiscalCorrection: 0,
-  positiveCorrectionNotes: '',
-  negativeFiscalCorrection: 0,
-  negativeCorrectionNotes: '',
-  corporateTaxRate: 0.11,
-  taxCreditPph23: 0,
-  taxCreditPph25: 0
-})
-
-function openFullEditModal() {
-  const current = annual1771.value
-  editForm1771.value = {
-    commercialRevenue: current.commercialRevenue,
-    commercialExpense: current.commercialExpense,
-    positiveFiscalCorrection: current.positiveFiscalCorrection,
-    positiveCorrectionNotes: current.positiveCorrectionNotes,
-    negativeFiscalCorrection: current.negativeFiscalCorrection,
-    negativeCorrectionNotes: current.negativeCorrectionNotes,
-    corporateTaxRate: current.corporateTaxRate,
-    taxCreditPph23: current.taxCreditPph23,
-    taxCreditPph25: current.taxCreditPph25
-  }
-  isFullEditModalOpen.value = true
-}
-
-// Live computed values inside edit modal
-const modalComputedNetProfit = computed(() => {
-  return Number(editForm1771.value.commercialRevenue || 0) - Number(editForm1771.value.commercialExpense || 0)
-})
-
-const modalComputedPKP = computed(() => {
-  return Math.max(
-    0,
-    modalComputedNetProfit.value +
-    Number(editForm1771.value.positiveFiscalCorrection || 0) -
-    Number(editForm1771.value.negativeFiscalCorrection || 0)
-  )
-})
-
-const modalComputedTaxPayable = computed(() => {
-  return Math.round(modalComputedPKP.value * Number(editForm1771.value.corporateTaxRate || 0))
-})
-
-const modalComputedTotalCredits = computed(() => {
-  return Number(editForm1771.value.taxCreditPph23 || 0) + Number(editForm1771.value.taxCreditPph25 || 0)
-})
-
-const modalComputedPph29 = computed(() => {
-  return Math.max(0, modalComputedTaxPayable.value - modalComputedTotalCredits.value)
-})
-
-const modalComputedPph28A = computed(() => {
-  return modalComputedTotalCredits.value > modalComputedTaxPayable.value
-    ? modalComputedTotalCredits.value - modalComputedTaxPayable.value
-    : 0
-})
-
-function handleSaveFullEdit() {
-  taxStore.updateAnnual1771Overrides({
-    commercialRevenue: Number(editForm1771.value.commercialRevenue),
-    commercialExpense: Number(editForm1771.value.commercialExpense),
-    positiveFiscalCorrection: Number(editForm1771.value.positiveFiscalCorrection),
-    positiveCorrectionNotes: editForm1771.value.positiveCorrectionNotes,
-    negativeFiscalCorrection: Number(editForm1771.value.negativeFiscalCorrection),
-    negativeCorrectionNotes: editForm1771.value.negativeCorrectionNotes,
-    corporateTaxRate: Number(editForm1771.value.corporateTaxRate),
-    taxCreditPph23: Number(editForm1771.value.taxCreditPph23),
-    taxCreditPph25: Number(editForm1771.value.taxCreditPph25)
-  })
-  isFullEditModalOpen.value = false
-}
-
-function handleResetOverrides() {
-  taxStore.resetAnnual1771Overrides()
-  isFullEditModalOpen.value = false
 }
 
 function handleExportExcel() {
@@ -241,25 +65,25 @@ function printReport() {
             v-if="annual1771.isCustomOverridden"
             class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-300"
           >
-            Data 1771 Diubah Manual
+            Data 1771 Disesuaikan Manual
           </span>
         </div>
         <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
           SPT Tahunan PPh Badan (Formulir 1771)
         </h1>
         <p class="text-xs text-zinc-500">
-          Rekonsiliasi fiskal tahunan & akumulasi kredit pajak riil. Seluruh komponen SPT Tahunan dapat diubah bebas tanpa memengaruhi data SPT Masa bulanan.
+          Rekonsiliasi fiskal tahunan & akumulasi kredit pajak riil. Seluruh komponen SPT Tahunan dapat diubah pada halaman penyesuaian tanpa memengaruhi SPT Masa.
         </p>
       </div>
 
       <div class="flex items-center gap-2.5 flex-wrap">
-        <button
-          @click="openFullEditModal"
+        <router-link
+          to="/accounting/tax/spt-tahunan/edit"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded-xl text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
         >
           <Pencil class="w-3.5 h-3.5" />
-          <span>Ubah Seluruh Data 1771</span>
-        </button>
+          <span>Ubah Data Kertas Kerja 1771</span>
+        </router-link>
 
         <router-link
           to="/accounting/tax/spt-masa"
@@ -295,8 +119,8 @@ function printReport() {
         </div>
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h4 class="font-bold text-zinc-950 text-sm">Fleksibilitas Penuh SPT Tahunan (Tanpa Mengubah SPT Masa)</h4>
-            <span class="px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-800 font-bold text-[10px]">Non-Destructive DJP Model</span>
+            <h4 class="font-bold text-zinc-950 text-sm">Prinsip Non-Destruktif SPT Tahunan vs SPT Masa</h4>
+            <span class="px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-800 font-bold text-[10px]">Non-Cash DJP Standard</span>
             <span
               v-if="annual1771.isCustomOverridden"
               class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[10px] flex items-center gap-1"
@@ -306,7 +130,7 @@ function printReport() {
             </span>
           </div>
           <p class="text-zinc-600 mt-0.5">
-            Setiap komponen SPT Tahunan (Pendapatan Komersial, Biaya, Koreksi Fiskal, Tarif, hingga Kredit Pajak PPh 23 & 25) dapat diedit sesuai kebutuhan fiskal akhir tahun tanpa mengubah transaksi historis bank pada SPT Masa.
+            Setiap komponen SPT Tahunan dapat diedit pada halaman khusus penyesuaian tanpa merusak catatan perbankan pada SPT Masa bulanan.
           </p>
         </div>
       </div>
@@ -314,7 +138,7 @@ function printReport() {
       <div class="flex items-center gap-2">
         <button
           v-if="annual1771.isCustomOverridden"
-          @click="handleResetOverrides"
+          @click="handleResetAll"
           class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 rounded-xl font-bold transition shadow-2xs text-xs whitespace-nowrap cursor-pointer"
         >
           Reset ke Nilai Buku Otomatis
@@ -371,9 +195,9 @@ function printReport() {
         <div class="bg-zinc-900/80 rounded-xl p-4 border border-zinc-800/60 space-y-1">
           <div class="flex items-center justify-between">
             <span class="text-zinc-400 font-bold uppercase tracking-wide text-[10px]">1. Laba Bersih Komersial</span>
-            <button @click="openFullEditModal" class="text-zinc-500 hover:text-white cursor-pointer" title="Ubah Nilai">
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-500 hover:text-white cursor-pointer" title="Ubah di Halaman Penyesuaian">
               <Pencil class="w-3 h-3" />
-            </button>
+            </router-link>
           </div>
           <div class="tabular-nums text-base font-bold text-white">
             {{ formatIDR(annual1771.commercialNetProfit) }}
@@ -384,9 +208,9 @@ function printReport() {
         <div class="bg-zinc-900/80 rounded-xl p-4 border border-zinc-800/60 space-y-1">
           <div class="flex items-center justify-between">
             <span class="text-zinc-400 font-bold uppercase tracking-wide text-[10px]">2. Penghasilan Kena Pajak</span>
-            <button @click="openFullEditModal" class="text-zinc-500 hover:text-amber-300 cursor-pointer" title="Ubah Koreksi Fiskal">
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-500 hover:text-amber-300 cursor-pointer" title="Ubah Koreksi Fiskal">
               <Pencil class="w-3 h-3" />
-            </button>
+            </router-link>
           </div>
           <div class="tabular-nums text-base font-bold text-amber-300">
             {{ formatIDR(annual1771.taxableIncome) }}
@@ -397,9 +221,9 @@ function printReport() {
         <div class="bg-zinc-900/80 rounded-xl p-4 border border-zinc-800/60 space-y-1">
           <div class="flex items-center justify-between">
             <span class="text-zinc-400 font-bold uppercase tracking-wide text-[10px]">3. PPh Badan Terutang</span>
-            <button @click="openFullEditModal" class="text-zinc-500 hover:text-white cursor-pointer" title="Ubah Tarif Pajak">
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-500 hover:text-white cursor-pointer" title="Ubah Tarif Pajak">
               <Pencil class="w-3 h-3" />
-            </button>
+            </router-link>
           </div>
           <div class="tabular-nums text-base font-bold text-white">
             {{ formatIDR(annual1771.corporateTaxPayable) }}
@@ -410,9 +234,9 @@ function printReport() {
         <div class="bg-emerald-950/80 rounded-xl p-4 border border-emerald-700/60 space-y-1 text-emerald-100">
           <div class="flex items-center justify-between">
             <span class="text-emerald-400 font-bold uppercase tracking-wide text-[10px]">4. Kredit Pajak Diakui</span>
-            <button @click="openFullEditModal" class="text-emerald-500 hover:text-emerald-200 cursor-pointer" title="Ubah Kredit Pajak">
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-emerald-500 hover:text-emerald-200 cursor-pointer" title="Ubah Kredit Pajak">
               <Pencil class="w-3 h-3" />
-            </button>
+            </router-link>
           </div>
           <div class="tabular-nums text-base font-bold text-emerald-300">
             {{ formatIDR(annual1771.taxCredits) }}
@@ -424,7 +248,7 @@ function printReport() {
       </div>
     </div>
 
-    <!-- SPT 1771 FULL BREAKDOWN TABLE (DENGAN AKSI EDIT SETIAP BARIS) -->
+    <!-- SPT 1771 FULL BREAKDOWN TABLE -->
     <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden p-6 space-y-4">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
         <div class="flex items-center gap-2">
@@ -435,19 +259,18 @@ function printReport() {
         </div>
 
         <div class="flex items-center gap-2">
-          <button
-            type="button"
-            @click="openFullEditModal"
-            class="inline-flex items-center gap-1 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+          <router-link
+            to="/accounting/tax/spt-tahunan/edit"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
           >
             <Pencil class="w-3 h-3" />
-            <span>Edit Kertas Kerja 1771</span>
-          </button>
+            <span>Buka Halaman Form Penyesuaian</span>
+          </router-link>
 
           <button
             v-if="annual1771.isCustomOverridden"
             type="button"
-            @click="handleResetOverrides"
+            @click="handleResetAll"
             class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer border border-rose-200"
           >
             <RotateCcw class="w-3 h-3" />
@@ -480,13 +303,13 @@ function printReport() {
                 {{ formatIDR(annual1771.commercialRevenue) }}
               </td>
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openFullEditModal"
-                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition cursor-pointer"
-                  title="Ubah Pendapatan Bruto"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
+                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition inline-flex items-center"
+                  title="Ubah di Halaman Form"
                 >
                   <Pencil class="w-3.5 h-3.5" />
-                </button>
+                </router-link>
               </td>
             </tr>
             <tr class="hover:bg-zinc-50/50">
@@ -501,13 +324,13 @@ function printReport() {
                 ({{ formatIDR(annual1771.commercialExpense) }})
               </td>
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openFullEditModal"
-                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition cursor-pointer"
-                  title="Ubah Beban Operasional"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
+                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition inline-flex items-center"
+                  title="Ubah di Halaman Form"
                 >
                   <Pencil class="w-3.5 h-3.5" />
-                </button>
+                </router-link>
               </td>
             </tr>
             <tr class="bg-zinc-100/60 font-bold border-t border-b border-zinc-200">
@@ -537,13 +360,13 @@ function printReport() {
                 + {{ formatIDR(annual1771.positiveFiscalCorrection) }}
               </td>
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openFullEditModal"
-                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition cursor-pointer"
-                  title="Ubah Koreksi Positif"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
+                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition inline-flex items-center"
+                  title="Ubah di Halaman Form"
                 >
                   <Pencil class="w-3.5 h-3.5" />
-                </button>
+                </router-link>
               </td>
             </tr>
             <tr class="hover:bg-zinc-50/50">
@@ -558,13 +381,13 @@ function printReport() {
                 - {{ formatIDR(annual1771.negativeFiscalCorrection) }}
               </td>
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openFullEditModal"
-                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition cursor-pointer"
-                  title="Ubah Koreksi Negatif"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
+                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition inline-flex items-center"
+                  title="Ubah di Halaman Form"
                 >
                   <Pencil class="w-3.5 h-3.5" />
-                </button>
+                </router-link>
               </td>
             </tr>
             <tr class="bg-amber-50 font-bold border-t border-b border-amber-200 text-amber-950">
@@ -594,13 +417,13 @@ function printReport() {
                 {{ (annual1771.corporateTaxRate * 100).toFixed(2) }} %
               </td>
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openFullEditModal"
-                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition cursor-pointer"
-                  title="Ubah Tarif Pajak"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
+                  class="p-1 rounded-lg hover:bg-zinc-200 text-zinc-500 hover:text-zinc-950 transition inline-flex items-center"
+                  title="Ubah di Halaman Form"
                 >
                   <Pencil class="w-3.5 h-3.5" />
-                </button>
+                </router-link>
               </td>
             </tr>
             <tr class="bg-zinc-100/80 font-bold border-t border-b border-zinc-200">
@@ -630,13 +453,13 @@ function printReport() {
                 ({{ formatIDR(annual1771.taxCreditPph23) }})
               </td>
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openFullEditModal"
-                  class="p-1 rounded-lg hover:bg-emerald-200 text-emerald-700 transition cursor-pointer"
-                  title="Ubah Kredit PPh 23"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
+                  class="p-1 rounded-lg hover:bg-emerald-200 text-emerald-700 transition inline-flex items-center"
+                  title="Ubah di Halaman Form"
                 >
                   <Pencil class="w-3.5 h-3.5" />
-                </button>
+                </router-link>
               </td>
             </tr>
             <tr class="text-emerald-950 bg-emerald-50/60 hover:bg-emerald-100/50">
@@ -651,13 +474,13 @@ function printReport() {
                 ({{ formatIDR(annual1771.taxCreditPph25) }})
               </td>
               <td class="px-4 py-2.5 text-center">
-                <button
-                  @click="openFullEditModal"
-                  class="p-1 rounded-lg hover:bg-emerald-200 text-emerald-700 transition cursor-pointer"
-                  title="Ubah Kredit PPh 25"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
+                  class="p-1 rounded-lg hover:bg-emerald-200 text-emerald-700 transition inline-flex items-center"
+                  title="Ubah di Halaman Form"
                 >
                   <Pencil class="w-3.5 h-3.5" />
-                </button>
+                </router-link>
               </td>
             </tr>
             <tr class="bg-zinc-950 text-white font-black border-t-2 border-zinc-800">
@@ -702,7 +525,7 @@ function printReport() {
             <h3 class="text-sm font-bold text-zinc-900">Rekapitulasi Bulanan SPT Masa Sebagai Sumber Kredit Pajak SPT Tahunan 1771</h3>
           </div>
           <p class="text-xs text-zinc-500 mt-0.5">
-            Diambil secara otomatis dari dokumen SPT Masa yang telah terverifikasi kanal bank resmi. Anda dapat menyesuaikan klaim per bulan jika terjadi kelebihan pemotongan.
+            Diambil secara otomatis dari dokumen SPT Masa yang telah terverifikasi kanal bank resmi.
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -771,7 +594,7 @@ function printReport() {
                 <span
                   v-if="row.isAdjusted"
                   class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
-                  :title="`Koreksi: ${formatIDR(row.adjustmentDiff)} (${row.pph23Reason || row.pph25Reason || 'Kelebihan potong'})`"
+                  :title="`Koreksi: ${formatIDR(row.adjustmentDiff)}`"
                 >
                   Disesuaikan ({{ formatIDR(row.adjustmentDiff) }})
                 </span>
@@ -789,24 +612,14 @@ function printReport() {
                 </span>
               </td>
               <td class="px-3 py-2.5 text-center">
-                <button
-                  v-if="row.pph23Original > 0 || row.pph25Original > 0"
-                  @click="openEditMonth(
-                    row.monthNum,
-                    row.monthName,
-                    row.pph23Original > 0 ? 'PPH_23' : 'PPH_25',
-                    row.pph23Original > 0 ? row.pph23Original : row.pph25Original,
-                    row.pph23Original > 0 ? row.pph23Amount : row.pph25Amount,
-                    row.pph23Original > 0 ? row.pph23Status : row.pph25Status,
-                    row.pph23Original > 0 ? row.pph23Reason : row.pph25Reason
-                  )"
+                <router-link
+                  to="/accounting/tax/spt-tahunan/edit"
                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition active:scale-95 cursor-pointer shadow-2xs"
-                  title="Sesuaikan kredit bulan ini karena kelebihan potong"
+                  title="Sesuaikan kredit pada halaman formulir 1771"
                 >
-                  <Edit3 class="w-3 h-3 text-zinc-500" />
-                  <span>{{ row.isAdjusted ? 'Edit Koreksi' : 'Koreksi' }}</span>
-                </button>
-                <span v-else class="text-zinc-300">-</span>
+                  <Pencil class="w-3 h-3 text-zinc-500" />
+                  <span>Koreksi</span>
+                </router-link>
               </td>
             </tr>
           </tbody>
@@ -828,80 +641,22 @@ function printReport() {
       </div>
     </div>
 
-    <!-- PANEL PENYESUAIAN GLOBAL & POSTING JURNAL -->
+    <!-- PANEL AKSI JURNAL AKRUAL -->
     <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-6 space-y-4">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
         <div>
           <div class="flex items-center gap-2">
             <SlidersHorizontal class="w-4 h-4 text-zinc-900" />
             <h3 class="text-sm font-bold text-zinc-900">
-              Penyesuaian Global & Aksi Jurnal Akrual SPT Tahunan
+              Posting Jurnal Akrual SPT Tahunan ke Buku Besar
             </h3>
           </div>
           <p class="text-xs text-zinc-500 mt-0.5">
-            Koreksi selisih lebih bayar/kurang bayar pada SPT Tahunan 1771 dan langsung posting jurnal akrual PPh Badan ke Buku Besar.
+            Membukukan otomatis beban PPh Badan berjalan, pengkreditan PPh 23 & 25, serta hutang PPh 29 ke Buku Besar.
           </p>
         </div>
 
         <div class="flex items-center gap-2">
-          <button
-            type="button"
-            @click="applyPresetOverwithholding"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer"
-          >
-            <Sparkles class="w-3.5 h-3.5 text-amber-600" />
-            <span>Simulasi Kelebihan Potong PPh 23 (-Rp 2,4M)</span>
-          </button>
-
-          <button
-            v-if="annual1771.hasAdjustments"
-            type="button"
-            @click="handleResetAll"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer border border-rose-200"
-          >
-            <RotateCcw class="w-3.5 h-3.5" />
-            <span>Reset Semua Penyesuaian</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Action Row: Apply & Post Journal -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div class="flex items-center gap-3 text-xs flex-wrap">
-          <div class="bg-zinc-50 px-3 py-2 rounded-xl border border-zinc-200">
-            <span class="text-zinc-500 font-medium">Asli SPT Masa:</span>
-            <span class="font-bold text-zinc-900 ml-1.5 tabular-nums">
-              {{ formatIDR(annual1771.baseSptMasaPph23 + annual1771.baseSptMasaPph25) }}
-            </span>
-          </div>
-
-          <div class="bg-zinc-50 px-3 py-2 rounded-xl border border-zinc-200">
-            <span class="text-zinc-500 font-medium">Total Koreksi:</span>
-            <span
-              class="font-bold ml-1.5 tabular-nums"
-              :class="annual1771.adjustmentPph23 + annual1771.adjustmentPph25 < 0 ? 'text-rose-600' : 'text-emerald-600'"
-            >
-              {{ annual1771.adjustmentPph23 + annual1771.adjustmentPph25 >= 0 ? '+' : '' }}{{ formatIDR(annual1771.adjustmentPph23 + annual1771.adjustmentPph25) }}
-            </span>
-          </div>
-
-          <div class="bg-zinc-950 text-white px-3 py-2 rounded-xl">
-            <span class="text-zinc-400 font-medium">Kredit Bersih 1771:</span>
-            <span class="font-bold text-amber-300 ml-1.5 tabular-nums">
-              {{ formatIDR(annual1771.taxCredits) }}
-            </span>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            @click="openFullEditModal"
-            class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
-          >
-            <span>Ubah Komponen 1771</span>
-          </button>
-
           <button
             type="button"
             @click="handlePostJournal"
@@ -911,379 +666,6 @@ function printReport() {
             <Send class="w-3.5 h-3.5" />
             <span>Posting Jurnal Akrual PPh 29</span>
           </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL 1: UBAH SELURUH DATA KERTAS KERJA SPT TAHUNAN 1771 -->
-    <div
-      v-if="isFullEditModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-xs"
-    >
-      <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
-        <!-- Modal Header -->
-        <div class="sticky top-0 px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/90 backdrop-blur-sm z-10">
-          <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-              Fleksibilitas Penuh Formulir 1771
-            </span>
-            <h3 class="text-base font-bold text-zinc-950 mt-1">
-              Ubah Data Kertas Kerja SPT Tahunan PPh Badan
-            </h3>
-            <p class="text-[11px] text-zinc-500">
-              Perubahan nilai di sini murni untuk SPT Tahunan dan TIDAK mengubah histori mutasi bank atau SPT Masa bulanan.
-            </p>
-          </div>
-          <button
-            @click="isFullEditModalOpen = false"
-            class="w-8 h-8 rounded-xl hover:bg-zinc-200 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition cursor-pointer"
-          >
-            <X class="w-4 h-4" />
-          </button>
-        </div>
-
-        <!-- Form Body -->
-        <div class="p-6 space-y-5 text-xs">
-          <!-- Section 1: Pendapatan & Beban Komersial -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-zinc-950 uppercase tracking-wider text-[11px] border-b border-zinc-100 pb-1">
-              1. Laba Bersih Komersial
-            </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-zinc-700 mb-1">Peredaran Usaha & Pendapatan Bruto (IDR)</label>
-                <input
-                  v-model.number="editForm1771.commercialRevenue"
-                  type="number"
-                  class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:bg-white"
-                />
-              </div>
-
-              <div>
-                <label class="block font-bold text-zinc-700 mb-1">Beban Operasional & HPP Obat (IDR)</label>
-                <input
-                  v-model.number="editForm1771.commercialExpense"
-                  type="number"
-                  class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:bg-white"
-                />
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between px-3 py-2 bg-zinc-100 rounded-xl font-mono text-xs">
-              <span class="text-zinc-600 font-medium">Laba Bersih Komersial Dihitung:</span>
-              <span class="font-bold text-zinc-950 tabular-nums">
-                {{ formatIDR(modalComputedNetProfit) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Section 2: Koreksi Fiskal Positif & Negatif -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-zinc-950 uppercase tracking-wider text-[11px] border-b border-zinc-100 pb-1">
-              2. Koreksi Fiskal (UU Pajak Penghasilan)
-            </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-emerald-800 mb-1">Koreksi Fiskal Positif (+) IDR</label>
-                <input
-                  v-model.number="editForm1771.positiveFiscalCorrection"
-                  type="number"
-                  class="w-full px-3 py-2 bg-emerald-50/50 border border-emerald-300 rounded-xl font-mono text-emerald-950 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white"
-                />
-                <input
-                  v-model="editForm1771.positiveCorrectionNotes"
-                  type="text"
-                  placeholder="Catatan koreksi positif"
-                  class="w-full mt-1.5 px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-700 text-[11px]"
-                />
-              </div>
-
-              <div>
-                <label class="block font-bold text-rose-800 mb-1">Koreksi Fiskal Negatif (-) IDR</label>
-                <input
-                  v-model.number="editForm1771.negativeFiscalCorrection"
-                  type="number"
-                  class="w-full px-3 py-2 bg-rose-50/50 border border-rose-300 rounded-xl font-mono text-rose-950 font-bold focus:outline-none focus:ring-2 focus:ring-rose-600 focus:bg-white"
-                />
-                <input
-                  v-model="editForm1771.negativeCorrectionNotes"
-                  type="text"
-                  placeholder="Catatan koreksi negatif"
-                  class="w-full mt-1.5 px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-700 text-[11px]"
-                />
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between px-3 py-2 bg-amber-50 rounded-xl font-mono text-xs border border-amber-200">
-              <span class="text-amber-900 font-bold">Penghasilan Kena Pajak (PKP):</span>
-              <span class="font-black text-amber-950 tabular-nums">
-                {{ formatIDR(modalComputedPKP) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Section 3: Tarif Pajak & PPh Terutang -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-zinc-950 uppercase tracking-wider text-[11px] border-b border-zinc-100 pb-1">
-              3. Tarif PPh Badan & Pajak Terutang
-            </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-zinc-700 mb-1">Tarif Efektif PPh Badan (0.11 = 11%, 0.22 = 22%)</label>
-                <div class="flex items-center gap-2">
-                  <input
-                    v-model.number="editForm1771.corporateTaxRate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="1"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:bg-white"
-                  />
-                  <button
-                    type="button"
-                    @click="editForm1771.corporateTaxRate = 0.11"
-                    class="px-2.5 py-2 bg-zinc-100 hover:bg-zinc-200 rounded-xl font-bold text-[10px] text-zinc-700 whitespace-nowrap cursor-pointer"
-                  >
-                    11% (31E)
-                  </button>
-                  <button
-                    type="button"
-                    @click="editForm1771.corporateTaxRate = 0.22"
-                    class="px-2.5 py-2 bg-zinc-100 hover:bg-zinc-200 rounded-xl font-bold text-[10px] text-zinc-700 whitespace-nowrap cursor-pointer"
-                  >
-                    22%
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label class="block font-medium text-zinc-500 mb-1">PPh Badan Terutang (Dihitung Otomatis)</label>
-                <input
-                  type="text"
-                  readonly
-                  :value="formatIDR(modalComputedTaxPayable)"
-                  class="w-full px-3 py-2 bg-zinc-100 border border-zinc-200 rounded-xl font-bold font-mono text-zinc-700 tabular-nums cursor-not-allowed"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 4: Kredit Pajak Diakui -->
-          <div class="space-y-3">
-            <h4 class="font-bold text-zinc-950 uppercase tracking-wider text-[11px] border-b border-zinc-100 pb-1">
-              4. Kredit Pajak Diakui di 1771 (PPh 23 & PPh 25)
-            </h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-zinc-800 mb-1">Kredit Pajak PPh 23 (Lampiran III) IDR</label>
-                <input
-                  v-model.number="editForm1771.taxCreditPph23"
-                  type="number"
-                  class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:bg-white"
-                />
-                <span class="text-[10px] text-zinc-400 mt-1 block">
-                  SPT Masa riil: {{ formatIDR(annual1771.baseSptMasaPph23) }}
-                </span>
-              </div>
-
-              <div>
-                <label class="block font-bold text-zinc-800 mb-1">Kredit Pajak PPh 25 (Induk 10a) IDR</label>
-                <input
-                  v-model.number="editForm1771.taxCreditPph25"
-                  type="number"
-                  class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:bg-white"
-                />
-                <span class="text-[10px] text-zinc-400 mt-1 block">
-                  SPT Masa riil: {{ formatIDR(annual1771.baseSptMasaPph25) }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Total Credits & PPh 29/28A Live Summary Box -->
-            <div class="bg-zinc-950 text-white rounded-xl p-4 space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-zinc-400">Total Kredit Pajak (PPh 23 + 25):</span>
-                <span class="font-bold text-emerald-300 tabular-nums">{{ formatIDR(modalComputedTotalCredits) }}</span>
-              </div>
-              <div class="flex items-center justify-between text-xs border-t border-zinc-800 pt-2">
-                <span class="text-zinc-400 font-bold">
-                  {{ modalComputedPph28A > 0 ? 'PPh Pasal 28A Lebih Bayar:' : 'PPh Pasal 29 Kurang Bayar:' }}
-                </span>
-                <span
-                  class="text-base font-black tabular-nums"
-                  :class="modalComputedPph28A > 0 ? 'text-emerald-400' : 'text-amber-400'"
-                >
-                  {{ formatIDR(modalComputedPph28A > 0 ? modalComputedPph28A : modalComputedPph29) }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="sticky bottom-0 px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between z-10">
-          <button
-            type="button"
-            @click="handleResetOverrides"
-            class="px-3.5 py-2 bg-white hover:bg-zinc-100 border border-zinc-200 text-zinc-700 rounded-xl font-semibold transition active:scale-95 cursor-pointer text-xs"
-          >
-            Reset ke Perhitungan Awal
-          </button>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              @click="isFullEditModalOpen = false"
-              class="px-4 py-2 text-zinc-600 hover:text-zinc-900 rounded-xl font-semibold transition cursor-pointer text-xs"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              @click="handleSaveFullEdit"
-              class="px-5 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl font-bold transition active:scale-95 cursor-pointer text-xs shadow-xs"
-            >
-              Simpan Perubahan SPT 1771
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL 2: PENYESUAIAN KREDIT BULANAN (KELEBIHAN POTONG / REKLASIFIKASI) -->
-    <div
-      v-if="isEditModalOpen && editingMonth"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs"
-    >
-      <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
-          <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Penyesuaian Kredit SPT Tahunan</span>
-            <h3 class="text-sm font-bold text-zinc-950">
-              Koreksi {{ editingMonth.taxType === 'PPH_23' ? 'PPh 23' : 'PPh 25' }} - {{ editingMonth.monthName }} (Masa {{ editingMonth.monthNum }})
-            </h3>
-          </div>
-          <button
-            @click="isEditModalOpen = false"
-            class="w-7 h-7 rounded-lg hover:bg-zinc-200 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition cursor-pointer"
-          >
-            <X class="w-4 h-4" />
-          </button>
-        </div>
-
-        <div class="p-6 space-y-4 text-xs">
-          <!-- Information Banner -->
-          <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-900 space-y-1">
-            <div class="flex items-center gap-1.5 font-bold text-xs">
-              <Info class="w-4 h-4 text-amber-700" />
-              <span>Koreksi ini hanya memengaruhi SPT Tahunan 1771</span>
-            </div>
-            <p class="text-[11px] text-amber-800">
-              Nilai SPT Masa asli (Rp {{ formatIDR(editingMonth.originalAmount) }}) tetap tercatat sebagai mutasi audit kanal bank dan tidak dihapus.
-            </p>
-          </div>
-
-          <!-- Claim Status Selector -->
-          <div>
-            <label class="block font-bold text-zinc-700 mb-1.5">Status Pengakuan Kredit di SPT 1771</label>
-            <div class="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                @click="handleStatusChange('CLAIM_FULL')"
-                class="px-2.5 py-2 rounded-xl text-center border font-bold text-[11px] transition cursor-pointer"
-                :class="editingMonth.claimStatus === 'CLAIM_FULL' ? 'bg-zinc-950 text-white border-zinc-950' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200'"
-              >
-                Klaim Penuh (100%)
-              </button>
-              <button
-                type="button"
-                @click="handleStatusChange('CLAIM_PARTIAL')"
-                class="px-2.5 py-2 rounded-xl text-center border font-bold text-[11px] transition cursor-pointer"
-                :class="editingMonth.claimStatus === 'CLAIM_PARTIAL' ? 'bg-amber-500 text-zinc-950 border-amber-500' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200'"
-              >
-                Klaim Sebagian
-              </button>
-              <button
-                type="button"
-                @click="handleStatusChange('EXCLUDED')"
-                class="px-2.5 py-2 rounded-xl text-center border font-bold text-[11px] transition cursor-pointer"
-                :class="editingMonth.claimStatus === 'EXCLUDED' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200'"
-              >
-                Tidak Diklaim
-              </button>
-            </div>
-          </div>
-
-          <!-- Nominal Inputs -->
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-medium text-zinc-500 mb-1">Nilai Asli SPT Masa</label>
-              <input
-                type="text"
-                readonly
-                :value="formatIDR(editingMonth.originalAmount)"
-                class="w-full px-3 py-2 bg-zinc-100 border border-zinc-200 rounded-xl text-zinc-600 font-bold tabular-nums cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label class="block font-bold text-zinc-800 mb-1">Nilai Diakui di 1771</label>
-              <input
-                v-model.number="editingMonth.adjustedAmount"
-                type="number"
-                class="w-full px-3 py-2 bg-white border border-zinc-300 rounded-xl font-bold font-mono text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-950"
-              />
-            </div>
-          </div>
-
-          <!-- Difference preview -->
-          <div class="flex items-center justify-between px-3 py-2 bg-zinc-50 rounded-xl border border-zinc-200 font-mono text-[11px]">
-            <span class="text-zinc-500">Selisih Koreksi:</span>
-            <span
-              class="font-bold tabular-nums"
-              :class="editingMonth.adjustedAmount - editingMonth.originalAmount < 0 ? 'text-rose-600' : 'text-emerald-600'"
-            >
-              {{ editingMonth.adjustedAmount - editingMonth.originalAmount >= 0 ? '+' : '' }}{{ formatIDR(editingMonth.adjustedAmount - editingMonth.originalAmount) }}
-            </span>
-          </div>
-
-          <!-- Reason Input -->
-          <div>
-            <label class="block font-bold text-zinc-700 mb-1">Alasan Penyesuaian / Reklasifikasi</label>
-            <textarea
-              v-model="editingMonth.reason"
-              rows="2"
-              placeholder="Contoh: Kelebihan potong vendor PT Wastec, belum ada bukti setor revisi"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:bg-white text-xs resize-none"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="px-6 py-3.5 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
-          <button
-            type="button"
-            @click="handleResetMonthAdjustment"
-            class="px-3 py-1.5 bg-white hover:bg-zinc-100 border border-zinc-200 text-zinc-700 rounded-xl font-semibold transition active:scale-95 cursor-pointer text-xs"
-          >
-            Kembalikan ke Nilai Awal
-          </button>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              @click="isEditModalOpen = false"
-              class="px-3.5 py-1.5 text-zinc-600 hover:text-zinc-900 rounded-xl font-semibold transition cursor-pointer text-xs"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              @click="handleSaveMonthAdjustment"
-              class="px-4 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl font-bold transition active:scale-95 cursor-pointer text-xs shadow-xs"
-            >
-              Simpan Koreksi
-            </button>
-          </div>
         </div>
       </div>
     </div>

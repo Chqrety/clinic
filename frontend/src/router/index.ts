@@ -192,6 +192,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'SPT Tahunan PPh Badan (1771)' }
       },
       {
+        path: 'tax/spt-tahunan/edit',
+        name: 'SptTahunanEdit',
+        component: () => import('@/views/accounting/tax/SptTahunanEditView.vue'),
+        meta: { title: 'Formulir Penyesuaian SPT 1771' }
+      },
+      {
         path: 'mapping-rules',
         name: 'MappingRules',
         component: () => import('@/views/accounting/MappingRulesView.vue'),
