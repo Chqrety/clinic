@@ -78,11 +78,11 @@ const neracaTree = ref<TreeNode[]>([
             level: 3,
             amount: 88600000.00,
             isHeader: true,
-            accountCode: '1101',
+            accountCode: '1-1100',
             children: [
-              { id: '1101.001', lineNo: 9, code: '1101.001', name: 'Kas Kasir Kidinest', level: 4, amount: 45200000.00, isHeader: false, accountCode: '1101.001' },
-              { id: '1101.002', lineNo: 10, code: '1101.002', name: 'Kas Kasir Semarang Skin Center (SSC)', level: 4, amount: 38400000.00, isHeader: false, accountCode: '1101.002' },
-              { id: '1101.003', lineNo: 11, code: '1101.003', name: 'Kas Kecil (Petty Cash Operasional)', level: 4, amount: 5000000.00, isHeader: false, accountCode: '1101.003' }
+              { id: '1101.001', lineNo: 9, code: '1101.001', name: 'Kas Kasir Kidinest', level: 4, amount: 45200000.00, isHeader: false, accountCode: '1-1111' },
+              { id: '1101.002', lineNo: 10, code: '1101.002', name: 'Kas Kasir Semarang Skin Center (SSC)', level: 4, amount: 38400000.00, isHeader: false, accountCode: '1-1112' },
+              { id: '1101.003', lineNo: 11, code: '1101.003', name: 'Kas Kecil (Petty Cash Operasional)', level: 4, amount: 5000000.00, isHeader: false, accountCode: '1-1110' }
             ]
           },
           {
@@ -93,11 +93,11 @@ const neracaTree = ref<TreeNode[]>([
             level: 3,
             amount: 1189329020.88,
             isHeader: true,
-            accountCode: '1102',
+            accountCode: '1-1113',
             children: [
-              { id: '1102.001', lineNo: 13, code: '1102.001', name: 'Bank BCA Operasional (Giro & EDC)', level: 4, amount: 680964487.55, isHeader: false, accountCode: '1102.001' },
-              { id: '1102.002', lineNo: 14, code: '1102.002', name: 'Bank Mandiri Operasional & Payroll', level: 4, amount: 493864533.33, isHeader: false, accountCode: '1102.002' },
-              { id: '1102.003', lineNo: 15, code: '1102.003', name: 'Settlement QRIS & Payment Gateway Transit', level: 4, amount: 14500000.00, isHeader: false, accountCode: '1102.003' }
+              { id: '1102.001', lineNo: 13, code: '1102.001', name: 'Bank BCA Operasional (Giro & EDC)', level: 4, amount: 680964487.55, isHeader: false, accountCode: '1-1113' },
+              { id: '1102.002', lineNo: 14, code: '1102.002', name: 'Bank Mandiri Operasional & Payroll', level: 4, amount: 493864533.33, isHeader: false, accountCode: '1-1114' },
+              { id: '1102.003', lineNo: 15, code: '1102.003', name: 'Settlement QRIS & Payment Gateway Transit', level: 4, amount: 14500000.00, isHeader: false, accountCode: '1-1120' }
             ]
           }
         ]
@@ -110,9 +110,9 @@ const neracaTree = ref<TreeNode[]>([
         level: 2,
         amount: 1568434065.00,
         isHeader: true,
-        accountCode: '12',
+        accountCode: '1-1200',
         children: [
-          { id: '1201', lineNo: 48, code: '1201', name: 'Piutang Pasien Perawatan Rawat Jalan & Treatment', level: 3, amount: 485600000.00, isHeader: false, accountCode: '1201' },
+          { id: '1201', lineNo: 48, code: '1201', name: 'Piutang Pasien Perawatan Rawat Jalan & Treatment', level: 3, amount: 485600000.00, isHeader: false, accountCode: '1-1200' },
           {
             id: '1202',
             lineNo: 49,
@@ -121,14 +121,14 @@ const neracaTree = ref<TreeNode[]>([
             level: 3,
             amount: 1097834065.00,
             isHeader: true,
-            accountCode: '1202',
+            accountCode: '1-1200',
             children: [
-              { id: '1202.001', lineNo: 50, code: '1202.001', name: 'Piutang Asuransi Sinarmas', level: 4, amount: 420000000.00, isHeader: false, accountCode: '1202.001' },
-              { id: '1202.002', lineNo: 51, code: '1202.002', name: 'Piutang Asuransi Prudential', level: 4, amount: 465000000.00, isHeader: false, accountCode: '1202.002' },
-              { id: '1202.003', lineNo: 52, code: '1202.003', name: 'Piutang MCU Eksekutif Korporat', level: 4, amount: 212834065.00, isHeader: false, accountCode: '1202.003' }
+              { id: '1202.001', lineNo: 50, code: '1202.001', name: 'Piutang Asuransi Sinarmas', level: 4, amount: 420000000.00, isHeader: false, accountCode: '1-1200' },
+              { id: '1202.002', lineNo: 51, code: '1202.002', name: 'Piutang Asuransi Prudential', level: 4, amount: 465000000.00, isHeader: false, accountCode: '1-1200' },
+              { id: '1202.003', lineNo: 52, code: '1202.003', name: 'Piutang Klaim BPJS Kesehatan Poli Anak', level: 4, amount: 212834065.00, isHeader: false, accountCode: '1-1210' }
             ]
           },
-          { id: '1203', lineNo: 53, code: '1203', name: 'Cadangan Kerugian Piutang Tak Tertagih', level: 3, amount: -15000000.00, isHeader: false, accountCode: '1203' }
+          { id: '1203', lineNo: 53, code: '1203', name: 'Cadangan Kerugian Piutang Tak Tertagih', level: 3, amount: -15000000.00, isHeader: false, accountCode: '1-1200' }
         ]
       },
       {
@@ -139,12 +139,12 @@ const neracaTree = ref<TreeNode[]>([
         level: 2,
         amount: 19335748296.88,
         isHeader: true,
-        accountCode: '13',
+        accountCode: '1-1300',
         children: [
-          { id: '1301', lineNo: 50, code: '1301', name: 'Persediaan Obat Resep & Paten Farmasi Kidinest', level: 3, amount: 4885000000.00, isHeader: false, accountCode: '1301' },
-          { id: '1302', lineNo: 51, code: '1302', name: 'Persediaan Produk Skincare & Kosmetika SSC', level: 3, amount: 6442748296.88, isHeader: false, accountCode: '1302' },
-          { id: '1303', lineNo: 52, code: '1303', name: 'Persediaan Bahan Medis Habis Pakai (BMHP)', level: 3, amount: 3208000000.00, isHeader: false, accountCode: '1303' },
-          { id: '1304', lineNo: 53, code: '1304', name: 'Persediaan Vaksin & Serum Imunisasi Anak', level: 3, amount: 4800000000.00, isHeader: false, accountCode: '1304' }
+          { id: '1301', lineNo: 50, code: '1301', name: 'Persediaan Obat Resep & Paten Farmasi Kidinest', level: 3, amount: 4885000000.00, isHeader: false, accountCode: '1-1310' },
+          { id: '1302', lineNo: 51, code: '1302', name: 'Persediaan Produk Skincare & Kosmetika SSC', level: 3, amount: 6442748296.88, isHeader: false, accountCode: '1-1330' },
+          { id: '1303', lineNo: 52, code: '1303', name: 'Persediaan Bahan Medis Habis Pakai (BMHP)', level: 3, amount: 3208000000.00, isHeader: false, accountCode: '1-1340' },
+          { id: '1304', lineNo: 53, code: '1304', name: 'Persediaan Vaksin & Serum Imunisasi Anak', level: 3, amount: 4800000000.00, isHeader: false, accountCode: '1-1320' }
         ]
       },
       {
@@ -274,14 +274,14 @@ const neracaTree = ref<TreeNode[]>([
             level: 3,
             amount: 4300000.00,
             isHeader: true,
-            accountCode: '22',
+            accountCode: '2-1000',
             children: [
-              { id: '2201', lineNo: 76, code: '2201', name: 'Hutang PBF Distributor Farmasi & Obat', level: 4, amount: 2800000.00, isHeader: false, accountCode: '2201' },
-              { id: '2202', lineNo: 77, code: '2202', name: 'Hutang Supplier Kosmetika & Skincare SSC', level: 4, amount: 1500000.00, isHeader: false, accountCode: '2202' }
+              { id: '2201', lineNo: 76, code: '2201', name: 'Hutang PBF Distributor Farmasi & Obat', level: 4, amount: 2800000.00, isHeader: false, accountCode: '2-1110' },
+              { id: '2202', lineNo: 77, code: '2202', name: 'Hutang Supplier Kosmetika & Skincare SSC', level: 4, amount: 1500000.00, isHeader: false, accountCode: '2-1115' }
             ]
           },
-          { id: '23', lineNo: 75, code: '23', name: 'HUTANG BANK', level: 3, amount: 6245750462.00, isHeader: false, accountCode: '23' },
-          { id: '24', lineNo: 75, code: '24', name: 'HUTANG PIHAK KETIGA', level: 3, amount: 1363725333.01, isHeader: false, accountCode: '24' },
+          { id: '23', lineNo: 75, code: '23', name: 'HUTANG BANK', level: 3, amount: 6245750462.00, isHeader: false, accountCode: '2-1000' },
+          { id: '24', lineNo: 75, code: '24', name: 'HUTANG PIHAK KETIGA', level: 3, amount: 1363725333.01, isHeader: false, accountCode: '2-1000' },
           {
             id: '25',
             lineNo: 75,
@@ -290,15 +290,15 @@ const neracaTree = ref<TreeNode[]>([
             level: 3,
             amount: 39249649.00,
             isHeader: true,
-            accountCode: '25',
+            accountCode: '2-1500',
             children: [
-              { id: '2501', lineNo: 76, code: '2501', name: 'Hutang PPh 21 (Dokter & Karyawan)', level: 4, amount: 22374594.00, isHeader: false, accountCode: '2501' },
-              { id: '2502', lineNo: 77, code: '2502', name: 'Hutang PPh 23 (Jasa Medis, B3 & Maintenance)', level: 4, amount: 2400000.00, isHeader: false, accountCode: '2502' },
-              { id: '2503', lineNo: 78, code: '2503', name: 'Hutang PPh Final Pasal 4(2) (Sewa Gedung Ruko)', level: 4, amount: 5000000.00, isHeader: false, accountCode: '2503' },
-              { id: '2504', lineNo: 79, code: '2504', name: 'Hutang PPN Keluaran (Skincare & Treatment)', level: 4, amount: 9475055.00, isHeader: false, accountCode: '2504' }
+              { id: '2501', lineNo: 76, code: '2501', name: 'Hutang PPh 21 (Dokter & Karyawan)', level: 4, amount: 22374594.00, isHeader: false, accountCode: '2-1500' },
+              { id: '2502', lineNo: 77, code: '2502', name: 'Hutang PPh 23 (Jasa Medis, B3 & Maintenance)', level: 4, amount: 2400000.00, isHeader: false, accountCode: '2-1510' },
+              { id: '2503', lineNo: 78, code: '2503', name: 'Hutang PPh Final Pasal 4(2) (Sewa Gedung Ruko)', level: 4, amount: 5000000.00, isHeader: false, accountCode: '2-1500' },
+              { id: '2504', lineNo: 79, code: '2504', name: 'Hutang PPN Keluaran (Skincare & Treatment)', level: 4, amount: 9475055.00, isHeader: false, accountCode: '2-1500' }
             ]
           },
-          { id: '26', lineNo: 79, code: '26', name: 'HUTANG PEMBEBANAN HPP', level: 3, amount: 161948419.04, isHeader: false, accountCode: '26' }
+          { id: '26', lineNo: 79, code: '26', name: 'HUTANG PEMBEBANAN HPP', level: 3, amount: 161948419.04, isHeader: false, accountCode: '2-1000' }
         ]
       },
       {
@@ -310,7 +310,7 @@ const neracaTree = ref<TreeNode[]>([
         amount: 16499491330.79,
         isHeader: true,
         isBold: true,
-        accountCode: '3',
+        accountCode: '3-0000',
         children: [
           {
             id: '31',
@@ -320,9 +320,9 @@ const neracaTree = ref<TreeNode[]>([
             level: 3,
             amount: 2367382942.15,
             isHeader: true,
-            accountCode: '31',
+            accountCode: '3-1100',
             children: [
-              { id: '3101', lineNo: 80, code: '3101', name: 'Modal Disetor Pemilik Klinik Kidinest & SSC', level: 4, amount: 2367382942.15, isHeader: false, accountCode: '3101' }
+              { id: '3101', lineNo: 80, code: '3101', name: 'Modal Disetor Pemilik Klinik Kidinest & SSC', level: 4, amount: 2367382942.15, isHeader: false, accountCode: '3-1100' }
             ]
           },
           {
@@ -333,13 +333,13 @@ const neracaTree = ref<TreeNode[]>([
             level: 3,
             amount: 14132108388.64,
             isHeader: true,
-            accountCode: '32',
+            accountCode: '3-1200',
             children: [
-              { id: '3201', lineNo: 81, code: '3201', name: 'Laba Ditahan (Retained Earnings)', level: 4, amount: 11496921049.78, isHeader: false, accountCode: '3201' },
-              { id: '3202', lineNo: 82, code: '3202', name: 'Laba Bersih Periode Berjalan', level: 4, amount: 2635187338.86, isHeader: false, accountCode: '3202' }
+              { id: '3201', lineNo: 81, code: '3201', name: 'Laba Ditahan (Retained Earnings)', level: 4, amount: 11496921049.78, isHeader: false, accountCode: '3-1200' },
+              { id: '3202', lineNo: 82, code: '3202', name: 'Laba Bersih Periode Berjalan', level: 4, amount: 2635187338.86, isHeader: false, accountCode: '3-1300' }
             ]
           },
-          { id: '3999', lineNo: 83, code: '3999', name: 'Opening Balance Equity', level: 3, amount: 0.00, isHeader: false, accountCode: '3999' }
+          { id: '3999', lineNo: 83, code: '3999', name: 'Opening Balance Equity', level: 3, amount: 0.00, isHeader: false, accountCode: '3-9999' }
         ]
       }
     ]

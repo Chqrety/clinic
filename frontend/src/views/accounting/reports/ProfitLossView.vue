@@ -73,15 +73,15 @@ const plTree = ref<PLTreeNode[]>([
             isHeader: true,
             accountCode: '4-1000',
             children: [
-              { id: '4101', lineNo: 9, code: '4101', name: 'Pendapatan Registrasi & Skrining Anak', level: 4, amount: 24500000.00, isHeader: false, accountCode: '4-1110' },
-              { id: '4102', lineNo: 10, code: '4102', name: 'Pendapatan Jasa Konsultasi Spesialis Anak (Sp.A)', level: 4, amount: 345000000.00, isHeader: false, accountCode: '4-1120' },
-              { id: '4103', lineNo: 11, code: '4103', name: 'Pendapatan Tindakan Vaksinasi & Imunisasi Anak', level: 4, amount: 96000000.00, isHeader: false, accountCode: '4-1130' },
-              { id: '4104', lineNo: 12, code: '4104', name: 'Pendapatan Layanan Terapi & Tumbuh Kembang Anak', level: 4, amount: 54000000.00, isHeader: false, accountCode: '4-1140' },
-              { id: '4105', lineNo: 13, code: '4105', name: 'Pendapatan Penjualan Obat Resep Farmasi Kidinest', level: 4, amount: 186000000.00, isHeader: false, accountCode: '4-1150' },
-              { id: '4106', lineNo: 14, code: '4106', name: 'Pendapatan Konsultasi Dokter Estetika & Kulit (Sp.DVE)', level: 4, amount: 195000000.00, isHeader: false, accountCode: '4-2110' },
-              { id: '4107', lineNo: 15, code: '4107', name: 'Pendapatan Tindakan Medis Laser & Cauter SSC', level: 4, amount: 435000000.00, isHeader: false, accountCode: '4-2120' },
-              { id: '4108', lineNo: 16, code: '4108', name: 'Pendapatan Tindakan Facial & Treatment Terapis', level: 4, amount: 104800000.00, isHeader: false, accountCode: '4-2130' },
-              { id: '4109', lineNo: 17, code: '4109', name: 'Pendapatan Penjualan Produk Skincare & Kosmetika SSC', level: 4, amount: 104000000.00, isHeader: false, accountCode: '4-2140' }
+              { id: '4101', lineNo: 9, code: '4101', name: 'Pendapatan Registrasi & Skrining Anak', level: 4, amount: 24500000.00, isHeader: false, accountCode: '4-1100' },
+              { id: '4102', lineNo: 10, code: '4102', name: 'Pendapatan Jasa Konsultasi Spesialis Anak (Sp.A)', level: 4, amount: 345000000.00, isHeader: false, accountCode: '4-1200' },
+              { id: '4103', lineNo: 11, code: '4103', name: 'Pendapatan Tindakan Vaksinasi & Imunisasi Anak', level: 4, amount: 96000000.00, isHeader: false, accountCode: '4-1300' },
+              { id: '4104', lineNo: 12, code: '4104', name: 'Pendapatan Layanan Terapi & Tumbuh Kembang Anak', level: 4, amount: 54000000.00, isHeader: false, accountCode: '4-1400' },
+              { id: '4105', lineNo: 13, code: '4105', name: 'Pendapatan Penjualan Obat Resep Farmasi Kidinest', level: 4, amount: 186000000.00, isHeader: false, accountCode: '4-1500' },
+              { id: '4106', lineNo: 14, code: '4106', name: 'Pendapatan Konsultasi Dokter Estetika & Kulit (Sp.DVE)', level: 4, amount: 195000000.00, isHeader: false, accountCode: '4-2100' },
+              { id: '4107', lineNo: 15, code: '4107', name: 'Pendapatan Tindakan Medis Laser & Cauter SSC', level: 4, amount: 435000000.00, isHeader: false, accountCode: '4-2300' },
+              { id: '4108', lineNo: 16, code: '4108', name: 'Pendapatan Tindakan Facial & Treatment Terapis', level: 4, amount: 104800000.00, isHeader: false, accountCode: '4-2200' },
+              { id: '4109', lineNo: 17, code: '4109', name: 'Pendapatan Penjualan Produk Skincare & Kosmetika SSC', level: 4, amount: 104000000.00, isHeader: false, accountCode: '4-2400' }
             ]
           }
         ]
@@ -115,14 +115,14 @@ const plTree = ref<PLTreeNode[]>([
             isHeader: true,
             accountCode: '5-0000',
             children: [
-              { id: '5101', lineNo: 22, code: '5101', name: 'HPP Obat Resep & Paten Farmasi Kidinest', level: 4, amount: 72000000.00, isHeader: false, accountCode: '5-1101' },
-              { id: '5102', lineNo: 23, code: '5102', name: 'HPP Vaksin & Serum Imunisasi Kidinest', level: 4, amount: 24000000.00, isHeader: false, accountCode: '5-1102' },
-              { id: '5103', lineNo: 24, code: '5103', name: 'HPP Produk Skincare & Kosmetika Terjual SSC', level: 4, amount: 49500000.00, isHeader: false, accountCode: '5-1103' },
-              { id: '5104', lineNo: 25, code: '5104', name: 'HPP Bahan Tindakan Facial & Peeling SSC', level: 4, amount: 21250000.00, isHeader: false },
-              { id: '5105', lineNo: 26, code: '5105', name: 'Beban Pemakaian Bahan Medis Habis Pakai (BMHP)', level: 4, amount: 29400000.00, isHeader: false, accountCode: '5-1105' },
-              { id: '5106', lineNo: 27, code: '5106', name: 'Beban Bagi Hasil Dokter Spesialis Anak (Kidinest)', level: 4, amount: 435000000.00, isHeader: false, accountCode: '5-1106' },
-              { id: '5107', lineNo: 28, code: '5107', name: 'Beban Bagi Hasil Dokter Estetika & Kulit SSC', level: 4, amount: 483195239.18, isHeader: false, accountCode: '5-1107' },
-              { id: '5108', lineNo: 29, code: '5108', name: 'Beban Komisi Tindakan Beautician / Terapis SSC', level: 4, amount: 25500000.00, isHeader: false, accountCode: '5-1108' }
+              { id: '5101', lineNo: 22, code: '5101', name: 'HPP Obat Resep & Paten Farmasi Kidinest', level: 4, amount: 72000000.00, isHeader: false, accountCode: '5-1100' },
+              { id: '5102', lineNo: 23, code: '5102', name: 'HPP Vaksin & Serum Imunisasi Kidinest', level: 4, amount: 24000000.00, isHeader: false, accountCode: '5-1200' },
+              { id: '5103', lineNo: 24, code: '5103', name: 'HPP Produk Skincare & Kosmetika Terjual SSC', level: 4, amount: 49500000.00, isHeader: false, accountCode: '5-1300' },
+              { id: '5104', lineNo: 25, code: '5104', name: 'HPP Bahan Tindakan Facial & Peeling SSC', level: 4, amount: 21250000.00, isHeader: false, accountCode: '5-1400' },
+              { id: '5105', lineNo: 26, code: '5105', name: 'Beban Pemakaian Bahan Medis Habis Pakai (BMHP)', level: 4, amount: 29400000.00, isHeader: false, accountCode: '5-1400' },
+              { id: '5106', lineNo: 27, code: '5106', name: 'Beban Honor Dokter Spesialis Anak (Sp.A)', level: 4, amount: 435000000.00, isHeader: false, accountCode: '6-1100' },
+              { id: '5107', lineNo: 28, code: '5107', name: 'Beban Honor Dokter Kulit & Terapis Estetika', level: 4, amount: 483195239.18, isHeader: false, accountCode: '6-1110' },
+              { id: '5108', lineNo: 29, code: '5108', name: 'Beban Komisi Tindakan Beautician / Terapis SSC', level: 4, amount: 25500000.00, isHeader: false, accountCode: '6-1110' }
             ]
           },
           {
@@ -135,8 +135,8 @@ const plTree = ref<PLTreeNode[]>([
             isHeader: true,
             accountCode: '6-0000',
             children: [
-              { id: '5201', lineNo: 52, code: '5201', name: 'Biaya Marketing, Iklan Meta & Edukasi Medis', level: 4, amount: 43637768.00, isHeader: false },
-              { id: '5202', lineNo: 99, code: '5202', name: 'Beban Umum dan Administrasi (Gaji, Listrik, Sewa, Limbah B3, Servis Laser)', level: 4, amount: 197974242.87, isHeader: false, accountCode: '6-1101' }
+              { id: '5201', lineNo: 52, code: '5201', name: 'Beban Gaji Karyawan, Perawat & Staf', level: 4, amount: 43637768.00, isHeader: false, accountCode: '6-1200' },
+              { id: '5202', lineNo: 99, code: '5202', name: 'Beban Operasional (Listrik, Air, Sewa Gedung & Limbah B3)', level: 4, amount: 197974242.87, isHeader: false, accountCode: '6-1300' }
             ]
           }
         ]

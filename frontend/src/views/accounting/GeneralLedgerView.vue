@@ -4,9 +4,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { useAccountingStore } from '@/stores/accounting'
+import { accountingApi, type BackendGeneralLedger } from '@/api/accounting'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportGeneralLedgerToExcel, exportToExcel, printReport } from '@/utils/export'
+import { exportGeneralLedgerToExcel, printReport } from '@/utils/export'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
@@ -21,7 +22,11 @@ import {
   Building,
   Scale,
   ArrowLeft,
-  BookOpen
+  BookOpen,
+  RefreshCw,
+  Plus,
+  ArrowRight,
+  AlertCircle
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -30,87 +35,171 @@ const ledgerStore = useLedgerStore()
 const journalsStore = useJournalsStore()
 const accountingStore = useAccountingStore()
 
-// Account alias mapping from reports (e.g. 11, 12, 13, 2101, etc.) to standard COA codes
+// Comprehensive Account alias mapping from reports (e.g. 11, 12, 13, 2101, etc.) to standard PostgreSQL COA codes
 const accountAliases: Record<string, string> = {
-  '11': '1-1100',
+  // 1. Aset
+  '1': '1-1111',
+  '11': '1-1111',
   '1101': '1-1111',
-  '1102': '1-1112',
-  '1103': '1-1113',
-  '1104': '1-1121',
-  '1105': '1-1122',
-  '1106': '1-1130',
+  '1101.001': '1-1111',
+  '1101.002': '1-1112',
+  '1101.003': '1-1110',
+  '1102': '1-1113',
+  '1102.001': '1-1113',
+  '1102.002': '1-1114',
+  '1102.003': '1-1120',
+  '1-1100': '1-1111',
   '12': '1-1200',
-  '1201': '1-1201',
-  '1202': '1-1202',
-  '13': '1-1300',
+  '1201': '1-1200',
+  '1202': '1-1200',
+  '1202.001': '1-1200',
+  '1202.002': '1-1200',
+  '1202.003': '1-1210',
+  '1203': '1-1200',
+  '13': '1-1310',
   '1301': '1-1310',
   '1302': '1-1330',
-  '1303': '1-1320',
-  '1304': '1-1311',
-  '14': '1-1400',
-  '15': '1-1500',
-  '16': '1-2000',
-  '1601': '1-2010',
+  '1303': '1-1340',
+  '1304': '1-1320',
+  '14': '1-2100',
+  '1401': '1-2100',
+  '1402': '1-2200',
+  '15': '1-2100',
+  '1501': '1-2100',
+  '1504': '2-1520',
+  '16': '1-2100',
+  '1601': '1-2100',
   '1602': '1-2200',
   '1603': '1-2100',
-  '2101': '2-1410',
-  '2102': '2-1420',
-  '2103': '2-1430',
+  '1604': '1-2100',
+  '1606': '1-2300',
+  // 2. Kewajiban
+  '2': '2-1000',
+  '21': '2-1110',
+  '2101': '2-1110',
+  '2102': '2-1115',
+  '2103': '2-1120',
   '22': '2-1110',
+  '2201': '2-1110',
+  '2202': '2-1115',
   '23': '2-1000',
   '24': '2-1000',
-  '25': '2-1501',
+  '25': '2-1500',
+  '2501': '2-1500',
+  '2502': '2-1510',
+  '2503': '2-1500',
+  '2504': '2-1500',
   '26': '2-1000',
+  // 3. Ekuitas
+  '3': '3-1100',
   '31': '3-1100',
+  '3101': '3-1100',
   '32': '3-1200',
-  '41': '4-1000',
-  '4101': '4-1110',
-  '4102': '4-1120',
-  '4103': '4-1130',
-  '4104': '4-1140',
-  '4106': '4-2110',
-  '4107': '4-2120',
-  '4108': '4-2130',
-  '4109': '4-2140',
-  '51': '5-0000',
-  '5101': '5-1101',
-  '5102': '5-1102',
-  '5103': '5-1103',
-  '5105': '5-1105',
-  '5106': '5-1106',
-  '5107': '5-1107',
-  '5108': '5-1108',
-  '52': '6-0000',
-  '5201': '6-1101',
-  '5202': '6-1101',
-  '6101': '4-9200',
-  '7103': '6-1201',
-  '7104': '2-1504',
-  '7107': '6-1201'
+  '3201': '3-1200',
+  '3202': '3-1300',
+  '3999': '3-9999',
+  // 4. Pendapatan
+  '4': '4-1000',
+  '41': '4-1100',
+  '4100': '4-1100',
+  '4101': '4-1100',
+  '4-1110': '4-1100',
+  '4102': '4-1200',
+  '4-1120': '4-1200',
+  '4103': '4-1300',
+  '4-1130': '4-1300',
+  '4104': '4-1400',
+  '4-1140': '4-1400',
+  '4105': '4-1500',
+  '4-1150': '4-1500',
+  '4106': '4-2100',
+  '4-2110': '4-2100',
+  '4107': '4-2300',
+  '4-2120': '4-2300',
+  '4108': '4-2200',
+  '4-2130': '4-2200',
+  '4109': '4-2400',
+  '4-2140': '4-2400',
+  // 5. HPP
+  '5': '5-0000',
+  '51': '5-1100',
+  '5101': '5-1100',
+  '5-1101': '5-1100',
+  '5102': '5-1200',
+  '5-1102': '5-1200',
+  '5103': '5-1300',
+  '5-1103': '5-1300',
+  '5104': '5-1400',
+  '5105': '5-1400',
+  '5-1105': '5-1400',
+  '5106': '6-1100',
+  '5-1106': '6-1100',
+  '5107': '6-1110',
+  '5-1107': '6-1110',
+  '5108': '6-1110',
+  '5-1108': '6-1110',
+  // 6. Beban Operasional
+  '6': '6-0000',
+  '52': '6-1200',
+  '5201': '6-1200',
+  '5202': '6-1300',
+  '6-1101': '6-1300'
 }
 
-// Read query param if passed from BalanceSheet, ProfitLoss, or CashFlow (e.g. ?account=1101.001)
-const initialAccount = (route.query.account as string) || '1101.001'
-const resolvedInitial = accountAliases[initialAccount] || initialAccount
-const selectedAccountCode = ref(resolvedInitial)
+// Read query param if passed from BalanceSheet, ProfitLoss, or CashFlow (e.g. ?account=1-1200)
+function resolveAccountParam(raw: string | undefined): string {
+  if (!raw) return '1-1111'
+  return accountAliases[raw] || raw
+}
+
+const selectedAccountCode = ref(resolveAccountParam(route.query.account as string))
 const searchQuery = ref('')
 const startDate = ref('2026-01-01')
 const endDate = ref('2026-12-31')
 
-onMounted(() => {
-  ledgerStore.fetchAccounts()
-  journalsStore.fetchJournals()
+// Backend live report state
+const backendLedger = ref<BackendGeneralLedger | null>(null)
+const isLoadingLedger = ref(false)
+
+async function fetchLedgerReport() {
+  const code = activeAccount.value?.code || selectedAccountCode.value
+  if (!code) return
+  isLoadingLedger.value = true
+  try {
+    const data = await accountingApi.getGeneralLedger(code, startDate.value, endDate.value)
+    backendLedger.value = data
+  } catch (err: any) {
+    console.warn('Backend General Ledger fetch fallback to store:', err)
+  } finally {
+    isLoadingLedger.value = false
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    ledgerStore.fetchAccounts(),
+    journalsStore.fetchJournals()
+  ])
+  await fetchLedgerReport()
 })
 
 watch(
   () => route.query.account,
   (newAcc) => {
     if (newAcc) {
-      const codeStr = newAcc as string
-      selectedAccountCode.value = accountAliases[codeStr] || codeStr
+      selectedAccountCode.value = resolveAccountParam(newAcc as string)
+      fetchLedgerReport()
     }
   }
 )
+
+watch(selectedAccountCode, () => {
+  fetchLedgerReport()
+})
+
+watch([startDate, endDate], () => {
+  fetchLedgerReport()
+})
 
 const selectedJournal = ref<JournalEntry | null>(null)
 const showDetailModal = ref(false)
@@ -123,16 +212,15 @@ function inspectJournalByNumber(jNumber: string) {
     return
   }
 
-  // If not found in store, create a dynamic balanced double-entry voucher
+  // If not found in store, create dynamic double-entry voucher from entry
   const acc = activeAccount.value
   const entry = accountLedgerEntries.value.find(e => e.journalNumber === jNumber)
   if (acc && entry) {
     const isDebit = entry.debit > 0
     const amt = isDebit ? entry.debit : entry.credit
 
-    // Corresponding balancing account
-    const balancingCode = acc.type === 'ASSET' ? '4-1110' : acc.type === 'REVENUE' ? '1-1111' : acc.type === 'EXPENSE' || acc.type === 'COGS' ? '1-1121' : '1-1122'
-    const balancingName = acc.type === 'ASSET' ? 'Pendapatan Layanan Medis' : acc.type === 'REVENUE' ? 'Kas Kasir Operasional' : 'Bank BCA Operasional'
+    const balancingCode = acc.type === 'ASSET' ? '4-1200' : acc.type === 'REVENUE' ? '1-1111' : acc.type === 'EXPENSE' || acc.type === 'COGS' ? '1-1113' : '1-1114'
+    const balancingName = acc.type === 'ASSET' ? 'Pendapatan Jasa Dokter Spesialis Anak' : acc.type === 'REVENUE' ? 'Kas Kasir Kidinest' : 'Bank BCA Operasional'
 
     selectedJournal.value = {
       id: `dyn-${jNumber}`,
@@ -142,7 +230,7 @@ function inspectJournalByNumber(jNumber: string) {
       sourceReference: `REF-${jNumber.slice(-4)}`,
       businessUnit: (entry.businessUnit as any) || 'KIDINEST',
       branchId: 'BRANCH-MAIN',
-      branchName: entry.branchName || 'Unit Layanan',
+      branchName: entry.branchName || 'Kantor Pusat Semarang',
       description: entry.description,
       totalDebit: amt,
       totalCredit: amt,
@@ -186,41 +274,22 @@ function inspectJournalByNumber(jNumber: string) {
 }
 
 const nonHeaderAccounts = computed(() => {
-  return ledgerStore.accounts.filter(a => {
-    if (a.isHeader || a.isActive === false) return false
-    if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
-      return false
-    }
-    return true
-  })
-})
-
-const allAccountsGrouped = computed(() => {
-  return ledgerStore.accounts.filter(a => {
-    if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
-      return false
-    }
-    return true
-  })
+  return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
 })
 
 const ledgerAccountOptions = computed(() => {
-  return allAccountsGrouped.value.map(acc => ({
-    value: acc.code,
-    label: `[${acc.code}] ${acc.name}`,
-    sublabel: `${acc.type} • Saldo Normal: ${acc.normalBalance}`
-  }))
-})
+  return nonHeaderAccounts.value.map(acc => {
+    let unitLabel = ''
+    if (acc.businessUnit === 'KIDINEST') unitLabel = ' [Kidinest]'
+    else if (acc.businessUnit === 'SSC') unitLabel = ' [SSC]'
 
-watch(
-  () => accountingStore.businessUnit,
-  () => {
-    const list = nonHeaderAccounts.value
-    if (list.length > 0 && !list.some(a => a.code === selectedAccountCode.value)) {
-      selectedAccountCode.value = list[0].code
+    return {
+      value: acc.code,
+      label: `[${acc.code}] ${acc.name}${unitLabel}`,
+      sublabel: `${acc.type} • Saldo Normal: ${acc.normalBalance}`
     }
-  }
-)
+  })
+})
 
 const activeAccount = computed(() => {
   const code = selectedAccountCode.value
@@ -253,17 +322,48 @@ function normalizeDate(d: string): string {
   return trimmed
 }
 
+const openingBalanceVal = computed(() => {
+  if (backendLedger.value && backendLedger.value.opening_balance !== undefined) {
+    return Number(backendLedger.value.opening_balance)
+  }
+  return activeAccount.value?.currentBalance ? activeAccount.value.currentBalance * 0.55 : 0
+})
+
 const accountLedgerEntries = computed<SubsidiaryLedgerItem[]>(() => {
   const acc = activeAccount.value
   if (!acc) return []
 
+  // Priority 1: Use live authoritative transactions from PostgreSQL
+  if (backendLedger.value && backendLedger.value.transactions && backendLedger.value.transactions.length > 0) {
+    return backendLedger.value.transactions.map((t, idx) => {
+      const descUpper = (t.description || '').toUpperCase()
+      let bu = 'ALL'
+      if (descUpper.includes('KIDINEST') || descUpper.includes('ANAK') || descUpper.includes('SP.A') || descUpper.includes('VAKSIN')) bu = 'KIDINEST'
+      else if (descUpper.includes('SSC') || descUpper.includes('SKIN') || descUpper.includes('ESTETIKA') || descUpper.includes('FACIAL') || descUpper.includes('LASER')) bu = 'SSC'
+
+      return {
+        id: `tx-${t.journal_id}-${idx}`,
+        date: t.date ? t.date.split('T')[0] : '',
+        journalNumber: t.journal_number,
+        source: t.reference_type || t.journal_type || 'GENERAL',
+        description: t.description,
+        businessUnit: bu,
+        branchName: 'Kantor Pusat Semarang',
+        debit: Number(t.debit) || 0,
+        credit: Number(t.credit) || 0,
+        runningBalance: Number(t.running_balance) || 0
+      }
+    })
+  }
+
+  // Priority 2: Fallback to client Pinia journalsStore / ledgerStore
   const isDebit = acc.normalBalance === 'DEBIT'
   const targetCode = acc.code
   const realEntries = ledgerStore.generalLedgerEntries.filter(
     e => e.accountCode === targetCode || (acc.isHeader && e.accountCode.startsWith(targetCode.slice(0, 3)))
   )
 
-  let bal = acc.currentBalance || 0
+  let bal = openingBalanceVal.value
   return realEntries.map(e => {
     if (isDebit) {
       bal += (e.debit - e.credit)
@@ -285,6 +385,22 @@ const accountLedgerEntries = computed<SubsidiaryLedgerItem[]>(() => {
   })
 })
 
+// Cross-account suggestion when searching in search box
+const matchingAccountSuggestions = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q || q.length < 2) return []
+  return nonHeaderAccounts.value
+    .filter(a => a.code !== activeAccount.value?.code)
+    .filter(a => a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))
+    .slice(0, 3)
+})
+
+function switchToAccount(code: string) {
+  selectedAccountCode.value = code
+  searchQuery.value = ''
+  fetchLedgerReport()
+}
+
 const filteredLedgerEntries = computed(() => {
   const start = normalizeDate(startDate.value)
   const end = normalizeDate(endDate.value)
@@ -300,36 +416,58 @@ const filteredLedgerEntries = computed(() => {
       const match = e.journalNumber.toLowerCase().includes(q) ||
         e.description.toLowerCase().includes(q) ||
         e.source.toLowerCase().includes(q) ||
-        e.date.includes(q)
+        e.date.includes(q) ||
+        String(e.debit).includes(q) ||
+        String(e.credit).includes(q)
       if (!match) return false
     }
     return true
   })
 })
 
-const totalDebit = computed(() => filteredLedgerEntries.value.reduce((s, e) => s + e.debit, 0))
-const totalCredit = computed(() => filteredLedgerEntries.value.reduce((s, e) => s + e.credit, 0))
+const totalDebit = computed(() => {
+  if (searchQuery.value.trim()) {
+    return filteredLedgerEntries.value.reduce((s, e) => s + e.debit, 0)
+  }
+  if (backendLedger.value && backendLedger.value.total_debit !== undefined) {
+    return Number(backendLedger.value.total_debit)
+  }
+  return filteredLedgerEntries.value.reduce((s, e) => s + e.debit, 0)
+})
+
+const totalCredit = computed(() => {
+  if (searchQuery.value.trim()) {
+    return filteredLedgerEntries.value.reduce((s, e) => s + e.credit, 0)
+  }
+  if (backendLedger.value && backendLedger.value.total_credit !== undefined) {
+    return Number(backendLedger.value.total_credit)
+  }
+  return filteredLedgerEntries.value.reduce((s, e) => s + e.credit, 0)
+})
+
 const endingBalance = computed(() => {
-  if (filteredLedgerEntries.value.length === 0) return activeAccount.value?.currentBalance || 0
+  if (!searchQuery.value.trim() && backendLedger.value && backendLedger.value.closing_balance !== undefined) {
+    return Number(backendLedger.value.closing_balance)
+  }
+  if (filteredLedgerEntries.value.length === 0) return openingBalanceVal.value
   return filteredLedgerEntries.value[filteredLedgerEntries.value.length - 1].runningBalance
 })
 
 function handleExportExcel() {
   const acc = activeAccount.value
-  const opBal = acc?.currentBalance ? acc.currentBalance * 0.55 : 0
   exportGeneralLedgerToExcel(acc, filteredLedgerEntries.value, {
     businessUnit: accountingStore.businessUnit,
     startDate: startDate.value,
     endDate: endDate.value,
-    openingBalance: opBal
+    openingBalance: openingBalanceVal.value
   })
   accountingStore.showToast(`Buku Besar Akun [${acc?.code}] (Format LHP SPHC) berhasil diekspor ke Excel`, 'success')
 }
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- Header matching Image 2 & 4 with Dark ERP Look -->
+  <div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">
+    <!-- Header with Dark ERP Look -->
     <div class="bg-[#121826] border border-slate-800 rounded-xl p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
       <div class="space-y-0.5">
         <div class="flex items-center gap-2 text-xs text-slate-400">
@@ -345,6 +483,10 @@ function handleExportExcel() {
         </div>
         <h1 class="text-base font-bold text-white tracking-wide flex items-center gap-2">
           <span>Rincian Buku Besar Akun: {{ activeAccount?.code }} - {{ activeAccount?.name }}</span>
+          <span v-if="isLoadingLedger" class="inline-flex items-center gap-1 text-[11px] font-normal text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800">
+            <RefreshCw class="w-3 h-3 animate-spin" />
+            <span>Memuat dari database...</span>
+          </span>
         </h1>
       </div>
 
@@ -365,6 +507,16 @@ function handleExportExcel() {
         </div>
 
         <button
+          @click="fetchLedgerReport"
+          :disabled="isLoadingLedger"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-bold border border-slate-700 transition"
+          title="Segarkan data dari database"
+        >
+          <RefreshCw :class="['w-3.5 h-3.5', isLoadingLedger ? 'animate-spin text-blue-400' : '']" />
+          <span>Segarkan</span>
+        </button>
+
+        <button
           @click="handleExportExcel"
           class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs transition-colors"
         >
@@ -383,39 +535,63 @@ function handleExportExcel() {
     </div>
 
     <!-- Account Picker & Search Toolbar -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-300">
-      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-        <span class="font-bold text-slate-400">Pilih Akun Buku Besar:</span>
-        <div class="min-w-[340px]">
-          <SearchableSelect
-            v-model="selectedAccountCode"
-            :options="ledgerAccountOptions"
-            placeholder="Ketik kode atau nama akun COA..."
-          />
+    <div class="bg-[#121826] border border-slate-800 rounded-xl p-3.5 space-y-3 text-xs text-slate-300 shadow-md">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3 flex-1">
+          <span class="font-bold text-slate-400 shrink-0">Pilih Akun Buku Besar:</span>
+          <div class="min-w-[340px] flex-1 max-w-md">
+            <SearchableSelect
+              v-model="selectedAccountCode"
+              :options="ledgerAccountOptions"
+              placeholder="Ketik kode atau nama akun COA..."
+            />
+          </div>
+
+          <!-- Search in Ledger Filter -->
+          <div class="relative flex-1 max-w-xs">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Cari transaksi / no jurnal / nominal..."
+              class="w-full pl-7 pr-3 py-1.5 bg-[#1E293B] border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5 pointer-events-none" />
+          </div>
         </div>
 
-        <!-- Search in Ledger Filter -->
-        <div class="relative">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari transaksi / no jurnal..."
-            class="pl-7 pr-3 py-1.5 bg-[#1E293B] border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none w-56"
-          />
-          <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5 pointer-events-none" />
+        <!-- Quick Metrics -->
+        <div class="flex items-center gap-4 font-mono text-xs shrink-0 bg-[#0F172A] px-3 py-1.5 rounded-lg border border-slate-800">
+          <div>
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Normal</span>
+            <span class="font-bold text-blue-400">{{ activeAccount?.normalBalance }}</span>
+          </div>
+          <div class="h-6 w-px bg-slate-800"></div>
+          <div>
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Awal</span>
+            <span class="font-bold text-slate-300 text-xs">{{ formatIDR(openingBalanceVal) }}</span>
+          </div>
+          <div class="h-6 w-px bg-slate-800"></div>
+          <div>
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Akhir</span>
+            <span class="font-bold text-emerald-400 text-sm">{{ formatIDR(endingBalance) }}</span>
+          </div>
         </div>
       </div>
 
-      <!-- Quick Metrics -->
-      <div class="flex items-center gap-4 font-mono text-xs">
-        <div>
-          <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Normal</span>
-          <span class="font-bold text-blue-400">{{ activeAccount?.normalBalance }}</span>
-        </div>
-        <div class="h-6 w-px bg-slate-800"></div>
-        <div>
-          <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Akhir</span>
-          <span class="font-bold text-emerald-400 text-sm">{{ formatIDR(endingBalance) }}</span>
+      <!-- Smart Account Suggestions if search query matches another COA account -->
+      <div v-if="matchingAccountSuggestions.length > 0" class="flex items-center gap-2 pt-1 border-t border-slate-800/80 text-[11px]">
+        <span class="text-slate-400">Pindah ke Buku Besar Akun Terkait:</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="sug in matchingAccountSuggestions"
+            :key="sug.code"
+            @click="switchToAccount(sug.code)"
+            class="px-2.5 py-0.5 rounded-md bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800/60 transition inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span class="font-mono font-bold">[{{ sug.code }}]</span>
+            <span>{{ sug.name }}</span>
+            <ArrowRight class="w-2.5 h-2.5 opacity-70" />
+          </button>
         </div>
       </div>
     </div>
@@ -441,14 +617,36 @@ function handleExportExcel() {
             <!-- Opening Balance Row -->
             <tr class="bg-[#141D2E] font-bold text-slate-300">
               <td class="py-2.5 px-4 text-slate-500 font-mono text-[11px]">0</td>
-              <td class="py-2.5 px-4 text-slate-400">01/11/2026</td>
+              <td class="py-2.5 px-4 text-slate-400">{{ formatDate(startDate) || '01/01/2026' }}</td>
               <td colspan="4" class="py-2.5 px-4 italic font-sans text-slate-400">
-                Saldo Awal Buku Besar Akun {{ activeAccount?.code }} (Periode November 2026)
+                Saldo Awal Buku Besar Akun {{ activeAccount?.code }} (Periode {{ startDate }} s/d {{ endDate }})
               </td>
               <td class="py-2.5 px-5 text-right text-slate-500">-</td>
               <td class="py-2.5 px-5 text-right text-slate-500">-</td>
               <td class="py-2.5 px-6 text-right font-bold text-slate-100 bg-slate-800/60">
-                {{ formatIDR(activeAccount?.currentBalance ? activeAccount.currentBalance * 0.55 : 0) }}
+                {{ formatIDR(openingBalanceVal) }}
+              </td>
+            </tr>
+
+            <!-- Empty State when no transactions -->
+            <tr v-if="!isLoadingLedger && filteredLedgerEntries.length === 0" class="bg-[#121826]">
+              <td colspan="9" class="py-8 px-4 text-center">
+                <div class="flex flex-col items-center justify-center gap-2 text-slate-400 font-sans">
+                  <AlertCircle class="w-7 h-7 text-slate-500" />
+                  <p class="font-medium text-sm text-slate-300">
+                    Belum ada transaksi mutasi buku besar untuk akun {{ activeAccount?.code }} - {{ activeAccount?.name }} pada periode ini.
+                  </p>
+                  <p class="text-xs text-slate-500">
+                    Transaksi akan tercatat otomatis saat Jurnal Umum dengan akun ini diposting.
+                  </p>
+                  <router-link
+                    to="/accounting/journals/create"
+                    class="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs"
+                  >
+                    <Plus class="w-3.5 h-3.5" />
+                    <span>Buat Jurnal Baru Untuk Akun Ini</span>
+                  </router-link>
+                </div>
               </td>
             </tr>
 
@@ -467,7 +665,8 @@ function handleExportExcel() {
               <td class="py-2.5 px-4 font-bold text-blue-400 whitespace-nowrap">
                 <button
                   @click="inspectJournalByNumber(entry.journalNumber)"
-                  class="hover:underline flex items-center gap-1"
+                  class="hover:underline flex items-center gap-1 cursor-pointer"
+                  title="Klik untuk membuka voucher jurnal lengkap"
                 >
                   <span>{{ entry.journalNumber }}</span>
                   <Eye class="w-3 h-3 text-slate-500 group-hover:text-blue-400" />
@@ -520,7 +719,7 @@ function handleExportExcel() {
         </span>
         <button
           @click="router.push('/accounting/journals')"
-          class="text-blue-400 hover:underline flex items-center gap-1 font-semibold"
+          class="text-blue-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
         >
           <span>Lihat Seluruh Voucher Jurnal</span>
           <ArrowLeft class="w-3.5 h-3.5 rotate-180" />
@@ -534,7 +733,5 @@ function handleExportExcel() {
       :journal="selectedJournal"
       @close="showDetailModal = false; selectedJournal = null"
     />
-
-
   </div>
 </template>

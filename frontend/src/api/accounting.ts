@@ -65,6 +65,32 @@ export interface BackendAccount {
   description?: string
 }
 
+export interface BackendLedgerTransaction {
+  date: string
+  journal_id: string
+  journal_number: string
+  journal_type: string
+  reference_type: string
+  reference_id: string
+  description: string
+  debit: string | number
+  credit: string | number
+  running_balance: string | number
+}
+
+export interface BackendGeneralLedger {
+  account_id: string
+  account_code: string
+  account_name: string
+  account_type: string
+  normal_balance: 'DEBIT' | 'CREDIT'
+  opening_balance: string | number
+  total_debit: string | number
+  total_credit: string | number
+  closing_balance: string | number
+  transactions: BackendLedgerTransaction[] | null
+}
+
 export interface BackendCashBankAccount {
   id: string
   branch_id: string
@@ -415,6 +441,19 @@ export const accountingApi = {
   // =========================================================================
   // 5. Financial Reports & Statements
   // =========================================================================
+  async getGeneralLedger(
+    accountCode: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<BackendGeneralLedger | null> {
+    const q = new URLSearchParams()
+    q.set('account_code', accountCode)
+    if (startDate) q.set('start_date', startDate)
+    if (endDate) q.set('end_date', endDate)
+    const res = await request<BackendGeneralLedger>(`/reports/general-ledger?${q.toString()}`)
+    return res.data
+  },
+
   async getTrialBalance(startDate?: string, endDate?: string): Promise<BackendTrialBalance | null> {
     const q = new URLSearchParams()
     if (startDate) q.set('start_date', startDate)

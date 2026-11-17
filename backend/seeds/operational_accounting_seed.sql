@@ -98,7 +98,11 @@ BEGIN
     -- J1: Honor dr. Hendra Wijaya, Sp.A & PPh 21 Dokter
     DELETE FROM journal_entries WHERE journal_number IN (
         'JV-2026-11-001', 'JV-2026-11-002', 'JV-2026-11-003', 'JV-2026-11-004',
-        'JV-2026-11-005', 'JV-2026-11-006', 'JV-2026-11-007', 'JV-2026-11-008', 'JV-2026-11-009'
+        'JV-2026-11-005', 'JV-2026-11-006', 'JV-2026-11-007', 'JV-2026-11-008', 'JV-2026-11-009',
+        'JV-2026-11-010', 'JV-2026-11-011', 'JV-2026-11-012', 'JV-2026-11-013',
+        'JV-2026-11-014', 'JV-2026-11-015', 'JV-2026-11-016', 'JV-2026-11-017',
+        'JV-2026-11-018', 'JV-2026-11-019', 'JV-2026-11-020', 'JV-2026-11-021',
+        'JV-2026-11-022', 'JV-2026-11-023'
     );
 
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
