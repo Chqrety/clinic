@@ -7,7 +7,6 @@ import { useJournalsStore } from '@/stores/journals'
 import { useCashBankStore } from '@/stores/cashbank'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { CashBankTransaction, BusinessUnit } from '@/types/accounting'
 import {
@@ -608,8 +607,7 @@ function terbilang(n: number): string {
       </div>
     </div>
 
-    <!-- Official Report Signatures (Gambar 1 Standard) -->
-    <ReportSignatures />
+
 
     <!-- MODAL 1: Buat Buku Kas / Rekening Bank Baru -->
     <div

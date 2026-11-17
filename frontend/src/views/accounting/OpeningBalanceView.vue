@@ -5,7 +5,6 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
-import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { BusinessUnit, AccountType, NormalBalance } from '@/types/accounting'
 import {

@@ -7,7 +7,6 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   FileText,
   CheckCircle2,
@@ -545,15 +544,7 @@ function printReport() {
         </table>
       </div>
 
-      <!-- Formal Clinical Signature Section -->
-      <ReportSignatures
-        preparer-role="Supervisor Pajak & Akuntansi"
-        preparer-name="Rian Pratama, S.Ak."
-        reviewer-role="Tax Manager & Konsultan Pajak"
-        reviewer-name="Dewi Lestari, SE, Ak., BKP"
-        approver-role="Direktur Keuangan (CFO)"
-        approver-name="Budi Santoso, SE, Ak., CA"
-      />
+
     </div>
 
     <!-- CROSS-RECONCILIATION TABLE: Rekapitulasi Aliran Kredit Pajak dari SPT Masa & Aksi Penyesuaian -->

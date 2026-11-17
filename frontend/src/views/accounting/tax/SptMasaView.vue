@@ -8,7 +8,6 @@ import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
-import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   Calculator,
   Download,

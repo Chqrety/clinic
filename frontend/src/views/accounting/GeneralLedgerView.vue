@@ -7,7 +7,6 @@ import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import { exportToExcel, printReport } from '@/utils/export'
-import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
@@ -542,7 +541,6 @@ function handleExportExcel() {
       @close="showDetailModal = false; selectedJournal = null"
     />
 
-    <!-- Official Report Signature Section matching Image 1 -->
-    <ReportSignatures />
+
   </div>
 </template>

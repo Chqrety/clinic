@@ -6,7 +6,6 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel, printReport } from '@/utils/export'
-import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   Download,
   Printer,
@@ -612,7 +611,6 @@ function handleExportExcel() {
       </div>
     </div>
 
-    <!-- Official Report Signature Section matching Image 1 -->
-    <ReportSignatures />
+
   </div>
 </template>

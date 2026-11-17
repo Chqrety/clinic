@@ -5,7 +5,6 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import StatusBadge from '@/components/common/StatusBadge.vue'
-import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import type { AccountType, NormalBalance, BusinessUnit } from '@/types/accounting'
 import {
   FileSpreadsheet,
@@ -560,8 +559,7 @@ function openTaxModule(taxCategory?: string) {
       </div>
     </div>
 
-    <!-- Approval Signature Section -->
-    <ReportSignatures />
+
 
     <!-- Add Account Modal (Official Clinical Modal Specification) -->
     <div
