@@ -6,6 +6,7 @@ import { useAccountingStore } from '@/stores/accounting'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
+import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { BusinessUnit, AccountType, NormalBalance } from '@/types/accounting'
 import {
   BookmarkCheck,
@@ -24,7 +25,9 @@ import {
   Database,
   Layers,
   HelpCircle,
-  FolderOpen
+  FolderOpen,
+  Plus,
+  Trash2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -42,57 +45,90 @@ watch(() => accountingStore.businessUnit, (unit) => {
   if (unit) selectedUnit.value = unit
 })
 
-// Search & Filter
-const searchQuery = ref('')
-const selectedCategory = ref<'ALL' | 'ASSET' | 'LIABILITY' | 'EQUITY' | 'NOMINAL'>('ALL')
+// Available active leaf accounts for SearchableSelect
+const availableAccounts = computed(() => {
+  return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
+})
 
-// Input Rows State: Map of accountCode -> { debit: number, credit: number, notes?: string }
+const accountSelectOptions = computed(() => {
+  return availableAccounts.value.map(acc => ({
+    value: acc.code,
+    label: `[${acc.code}] ${acc.name}`,
+    sublabel: `${acc.type} • Normal: ${acc.normalBalance}`
+  }))
+})
+
+// Input Rows State: Dynamic Row Entry (Opsi A)
 interface OpeningBalanceRowState {
   code: string
   name: string
-  type: AccountType
-  normalBalance: NormalBalance
-  level: number
-  isHeader: boolean
-  parentCode?: string
-  businessUnit?: BusinessUnit
-  debit: number
-  credit: number
+  type?: AccountType
+  normalBalance?: NormalBalance
+  unit?: BusinessUnit
+  debit: number | string
+  credit: number | string
   notes: string
 }
 
 const balanceRows = ref<OpeningBalanceRowState[]>([])
 
-// Populate rows from ledgerStore.accounts (only active leaf accounts)
+// Populate rows: only accounts with balances, or clean start rows
 function initializeRows() {
-  balanceRows.value = ledgerStore.accounts
-    .filter(a => !a.isHeader && a.isActive !== false) // Only active leaf accounts can take opening balance
+  const existing = ledgerStore.accounts
+    .filter(a => !a.isHeader && a.isActive !== false && (a.currentBalance && a.currentBalance !== 0))
     .map(a => {
       const cur = a.currentBalance || 0
-      let d = 0
-      let c = 0
-      if (a.normalBalance === 'DEBIT') {
-        d = cur >= 0 ? cur : 0
-        c = cur < 0 ? Math.abs(cur) : 0
-      } else {
-        c = cur >= 0 ? cur : 0
-        d = cur < 0 ? Math.abs(cur) : 0
-      }
-
       return {
         code: a.code,
         name: a.name,
         type: a.type,
         normalBalance: a.normalBalance,
-        level: a.level,
-        isHeader: a.isHeader,
-        parentCode: a.parentCode,
-        businessUnit: a.businessUnit,
-        debit: d,
-        credit: c,
-        notes: ''
+        unit: a.businessUnit || 'ALL',
+        debit: a.normalBalance === 'DEBIT' ? (cur > 0 ? cur : 0) : (cur < 0 ? Math.abs(cur) : 0),
+        credit: a.normalBalance === 'CREDIT' ? (cur > 0 ? cur : 0) : (cur < 0 ? Math.abs(cur) : 0),
+        notes: 'Saldo pembukuan migrasi'
       }
     })
+
+  if (existing.length > 0) {
+    balanceRows.value = existing
+  } else {
+    // Default 2 empty rows ready to be filled
+    balanceRows.value = [
+      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' },
+      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' }
+    ]
+  }
+}
+
+function onAccountSelect(index: number, code: string) {
+  const acc = availableAccounts.value.find(a => a.code === code)
+  if (acc && balanceRows.value[index]) {
+    balanceRows.value[index].code = acc.code
+    balanceRows.value[index].name = acc.name
+    balanceRows.value[index].type = acc.type
+    balanceRows.value[index].normalBalance = acc.normalBalance
+    balanceRows.value[index].unit = acc.businessUnit || selectedUnit.value || 'ALL'
+  }
+}
+
+function addRow() {
+  balanceRows.value.push({
+    code: '',
+    name: '',
+    debit: 0,
+    credit: 0,
+    notes: '',
+    unit: selectedUnit.value || 'ALL'
+  })
+}
+
+function removeRow(index: number) {
+  if (balanceRows.value.length > 1) {
+    balanceRows.value.splice(index, 1)
+  } else {
+    balanceRows.value[0] = { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' }
+  }
 }
 
 onMounted(async () => {
@@ -101,32 +137,6 @@ onMounted(async () => {
     journalsStore.fetchJournals()
   ])
   initializeRows()
-})
-
-// Filtered Accounts
-const filteredRows = computed(() => {
-  return balanceRows.value.filter(r => {
-    // Business Unit filter
-    if (accountingStore.businessUnit !== 'ALL' && r.businessUnit && r.businessUnit !== 'ALL' && r.businessUnit !== accountingStore.businessUnit) {
-      return false
-    }
-
-    // Category filter
-    if (selectedCategory.value === 'ASSET' && r.type !== 'ASSET') return false
-    if (selectedCategory.value === 'LIABILITY' && r.type !== 'LIABILITY') return false
-    if (selectedCategory.value === 'EQUITY' && r.type !== 'EQUITY') return false
-    if (selectedCategory.value === 'NOMINAL' && r.type !== 'REVENUE' && r.type !== 'EXPENSE' && r.type !== 'COGS') return false
-
-    // Search query
-    if (searchQuery.value.trim()) {
-      const q = searchQuery.value.toLowerCase()
-      const matchCode = r.code.toLowerCase().includes(q)
-      const matchName = r.name.toLowerCase().includes(q)
-      if (!matchCode && !matchName) return false
-    }
-
-    return true
-  })
 })
 
 // Real-time Calculations
@@ -148,31 +158,32 @@ const isBalanced = computed(() => {
 
 // Action: Muat Angka Standar Saldo Awal Klinik (Simulasi Demo)
 function loadClinicStandardBalances() {
-  const sampleMap: Record<string, { debit?: number; credit?: number }> = {
-    '1-1110': { debit: 5000000 },    // Kas Kecil
-    '1-1111': { debit: 12500000 },   // Kas Kasir Kidinest
-    '1-1112': { debit: 18500000 },   // Kas Kasir SSC
-    '1-1113': { debit: 145000000 },  // Bank BCA Operasional
-    '1-1114': { debit: 85000000 },   // Bank Mandiri Operasional
-    '1-1310': { debit: 42000000 },   // Stok Obat Anak
-    '1-1330': { debit: 58000000 },   // Stok Skincare SSC
-    '1-2100': { debit: 250000000 },  // Alkes USG 4D Kidinest
-    '1-2200': { debit: 380000000 },  // Mesin Laser SSC
-    '2-1110': { credit: 24500000 },  // Hutang Supplier Obat
-    '2-1115': { credit: 31000000 },  // Hutang Supplier SSC
-    '3-1100': { credit: 940500000 }, // Modal Disetor Pemilik
+  const sampleMap: Record<string, { debit?: number; credit?: number; notes?: string }> = {
+    '1-1110': { debit: 5000000, notes: 'Kas Kecil Operasional' },
+    '1-1111': { debit: 12500000, notes: 'Kas Kasir Kidinest' },
+    '1-1112': { debit: 18500000, notes: 'Kas Kasir SSC' },
+    '1-1113': { debit: 145000000, notes: 'Bank BCA Operasional' },
+    '1-1114': { debit: 85000000, notes: 'Bank Mandiri Payroll' },
+    '1-1310': { debit: 42000000, notes: 'Stok Obat & Vaksin Anak Kidinest' },
+    '1-1330': { debit: 58000000, notes: 'Stok Produk Skincare SSC' },
+    '1-2100': { debit: 250000000, notes: 'Alkes USG 4D Kidinest' },
+    '1-2200': { debit: 380000000, notes: 'Mesin Laser Estetika SSC' },
+    '2-1110': { credit: 24500000, notes: 'Hutang Distributor Obat PBF' },
+    '2-1115': { credit: 31000000, notes: 'Hutang Supplier Skincare SSC' },
+    '3-1100': { credit: 940500000, notes: 'Modal Disetor Pemilik Klinik' }
   }
 
-  balanceRows.value.forEach(r => {
-    const s = sampleMap[r.code]
-    if (s) {
-      r.debit = s.debit || 0
-      r.credit = s.credit || 0
-      r.notes = 'Template standar klinik'
-    } else {
-      r.debit = 0
-      r.credit = 0
-      r.notes = ''
+  balanceRows.value = Object.entries(sampleMap).map(([code, data]) => {
+    const acc = ledgerStore.accounts.find(a => a.code === code)
+    return {
+      code,
+      name: acc?.name || code,
+      type: acc?.type,
+      normalBalance: acc?.normalBalance,
+      unit: acc?.businessUnit || 'ALL',
+      debit: data.debit || 0,
+      credit: data.credit || 0,
+      notes: data.notes || 'Migrasi Standar Klinik'
     }
   })
   accountingStore.showToast('Template Saldo Awal Standar Klinik berhasil dimuat!', 'info')
@@ -189,13 +200,23 @@ function autoBalanceToEquity() {
   // Find 3-9999 / 3999 - Opening Balance Equity
   let eqRow = balanceRows.value.find(r => r.code === '3-9999' || r.code === '3999' || r.code.includes('9999'))
   if (!eqRow) {
-    // Fallback to Retained Earnings / Modal
-    eqRow = balanceRows.value.find(r => r.code === '3-2000' || r.code === '3201' || r.type === 'EQUITY')
-  }
-
-  if (!eqRow) {
-    accountingStore.showToast('Akun penyeimbang saldo awal (3999 / 1999) tidak ditemukan', 'error')
-    return
+    const acc = ledgerStore.accounts.find(a => a.code === '3-9999' || a.code === '3999') ||
+                ledgerStore.accounts.find(a => a.type === 'EQUITY' && !a.isHeader)
+    if (!acc) {
+      accountingStore.showToast('Akun penyeimbang saldo awal (3-9999) tidak ditemukan', 'error')
+      return
+    }
+    eqRow = {
+      code: acc.code,
+      name: acc.name,
+      type: acc.type,
+      normalBalance: acc.normalBalance,
+      unit: 'ALL',
+      debit: 0,
+      credit: 0,
+      notes: 'Penyeimbang Saldo Awal'
+    }
+    balanceRows.value.push(eqRow)
   }
 
   if (diff > 0) {
@@ -213,12 +234,11 @@ function autoBalanceToEquity() {
 
 // Action: Reset Saldo Awal
 function resetAllBalances() {
-  if (confirm('Apakah Anda yakin ingin mengosongkan seluruh input saldo awal?')) {
-    balanceRows.value.forEach(r => {
-      r.debit = 0
-      r.credit = 0
-      r.notes = ''
-    })
+  if (confirm('Kosongkan seluruh baris input saldo awal?')) {
+    balanceRows.value = [
+      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' },
+      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' }
+    ]
     accountingStore.showToast('Seluruh input saldo awal dikosongkan', 'info')
   }
 }
@@ -449,42 +469,37 @@ function handlePrint() {
       </div>
     </div>
 
-    <!-- Table Section -->
+    <!-- Dynamic Row Input Table (Opsi A: Minimalis & Cepat) -->
     <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
-      <!-- Toolbar Filter & Search -->
-      <div class="p-4 border-b border-zinc-200/90 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <!-- Category Tabs -->
-        <div class="flex items-center bg-zinc-100 p-0.5 rounded-xl border border-zinc-200/90">
-          <button
-            v-for="cat in [
-              { id: 'ALL', label: 'Semua Akun' },
-              { id: 'ASSET', label: '1 - Aset' },
-              { id: 'LIABILITY', label: '2 - Kewajiban' },
-              { id: 'EQUITY', label: '3 - Ekuitas' },
-              { id: 'NOMINAL', label: '4-7 Nominal' }
-            ]"
-            :key="cat.id"
-            @click="selectedCategory = cat.id as any"
-            :class="[
-              'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
-              selectedCategory === cat.id
-                ? 'bg-zinc-950 text-white shadow-2xs'
-                : 'text-zinc-600 hover:text-zinc-950'
-            ]"
-          >
-            {{ cat.label }}
-          </button>
+      <!-- Toolbar Header -->
+      <div class="p-4 border-b border-zinc-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50">
+        <div class="flex items-center gap-2">
+          <Scale class="w-4 h-4 text-zinc-700" />
+          <span class="text-xs font-bold text-zinc-900">
+            Daftar Baris Akun Bersaldo ({{ balanceRows.length }} Baris Dimasukkan)
+          </span>
+          <span class="text-[11px] text-zinc-500 hidden sm:inline">
+            &bull; Masukkan hanya akun yang memiliki saldo awal (seperti Jurnal Migrasi)
+          </span>
         </div>
 
-        <!-- Search Input -->
-        <div class="relative w-full md:w-64">
-          <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari kode atau nama akun..."
-            class="w-full pl-9 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-          />
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="addRow"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>Tambah Akun</span>
+          </button>
+          <button
+            type="button"
+            @click="resetAllBalances"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-100 text-zinc-700 rounded-xl text-xs font-bold transition-all border border-zinc-200 shadow-2xs cursor-pointer"
+          >
+            <RotateCcw class="w-3.5 h-3.5 text-zinc-500" />
+            <span>Reset</span>
+          </button>
         </div>
       </div>
 
@@ -493,44 +508,56 @@ function handlePrint() {
         <table class="w-full text-xs text-left">
           <thead class="bg-zinc-50 text-zinc-600 font-bold border-b border-zinc-200/90 uppercase tracking-wider text-[11px]">
             <tr>
-              <th class="px-4 py-3 w-32">Kode Akun</th>
-              <th class="px-4 py-3 min-w-[240px]">Nama Akun COA</th>
-              <th class="px-3 py-3 w-28 text-center">Tipe / Saldo</th>
-              <th class="px-4 py-3 w-52 text-right">Saldo Awal Debit (Rp)</th>
-              <th class="px-4 py-3 w-52 text-right">Saldo Awal Kredit (Rp)</th>
+              <th class="px-3 py-3 w-12 text-center">#</th>
+              <th class="px-4 py-3 min-w-[280px]">Akun Saldo Awal (Bagan Akun COA)</th>
+              <th class="px-3 py-3 w-28 text-center">Unit Bisnis</th>
+              <th class="px-3 py-3 w-24 text-center">Saldo Normal</th>
+              <th class="px-4 py-3 w-48 text-right">Saldo Awal Debit (Rp)</th>
+              <th class="px-4 py-3 w-48 text-right">Saldo Awal Kredit (Rp)</th>
               <th class="px-4 py-3 min-w-[180px]">Catatan / Keterangan</th>
+              <th class="px-3 py-3 w-12 text-center">Hapus</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-zinc-100 text-zinc-700">
             <tr
-              v-for="row in filteredRows"
-              :key="row.code"
+              v-for="(row, idx) in balanceRows"
+              :key="idx"
               :class="[
                 'hover:bg-zinc-50/70 transition',
-                (row.debit > 0 || row.credit > 0) ? 'bg-zinc-50/50 font-semibold' : ''
+                (Number(row.debit) > 0 || Number(row.credit) > 0) ? 'bg-zinc-50/40' : ''
               ]"
             >
-              <!-- Kode Akun -->
-              <td class="px-4 py-2.5 font-mono font-bold text-zinc-900">
-                {{ row.code }}
+              <!-- Index -->
+              <td class="px-3 py-2 text-center font-mono font-bold text-zinc-400">
+                {{ idx + 1 }}
               </td>
 
-              <!-- Nama Akun -->
-              <td class="px-4 py-2.5">
-                <div class="flex items-center gap-2">
-                  <span
-                    v-if="row.code === '3999' || row.code === '1999' || row.code === '3-9999'"
-                    class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[9px]"
-                  >
-                    PENYEIMBANG
-                  </span>
-                  <span class="text-zinc-900">{{ row.name }}</span>
-                </div>
+              <!-- Akun Saldo Awal with SearchableSelect -->
+              <td class="px-4 py-2">
+                <SearchableSelect
+                  :model-value="row.code"
+                  :options="accountSelectOptions"
+                  placeholder="Pilih atau cari akun COA..."
+                  @update:model-value="(val: any) => onAccountSelect(idx, String(val))"
+                />
               </td>
 
-              <!-- Tipe Akun & Normal Balance -->
-              <td class="px-3 py-2.5 text-center">
+              <!-- Unit Bisnis -->
+              <td class="px-3 py-2 text-center">
+                <select
+                  v-model="row.unit"
+                  class="w-full px-2 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
+                >
+                  <option value="ALL">ALL</option>
+                  <option value="KIDINEST">Kidinest</option>
+                  <option value="SSC">SSC</option>
+                </select>
+              </td>
+
+              <!-- Normal Balance Badge -->
+              <td class="px-3 py-2 text-center">
                 <span
+                  v-if="row.normalBalance"
                   :class="[
                     'px-2 py-0.5 rounded text-[10px] font-bold',
                     row.normalBalance === 'DEBIT'
@@ -540,6 +567,7 @@ function handlePrint() {
                 >
                   {{ row.normalBalance }}
                 </span>
+                <span v-else class="text-zinc-400">-</span>
               </td>
 
               <!-- Input Debit -->
@@ -554,7 +582,7 @@ function handlePrint() {
                     placeholder="0"
                     :class="[
                       'w-full pl-8 pr-2.5 py-1.5 rounded-xl border tabular-nums text-right text-xs transition focus:outline-none',
-                      row.debit > 0
+                      Number(row.debit) > 0
                         ? 'border-zinc-900 bg-white font-bold text-zinc-950 ring-1 ring-zinc-900'
                         : 'border-zinc-200 bg-white text-zinc-600 focus:border-zinc-900'
                     ]"
@@ -574,7 +602,7 @@ function handlePrint() {
                     placeholder="0"
                     :class="[
                       'w-full pl-8 pr-2.5 py-1.5 rounded-xl border tabular-nums text-right text-xs transition focus:outline-none',
-                      row.credit > 0
+                      Number(row.credit) > 0
                         ? 'border-zinc-900 bg-white font-bold text-zinc-950 ring-1 ring-zinc-900'
                         : 'border-zinc-200 bg-white text-zinc-600 focus:border-zinc-900'
                     ]"
@@ -587,15 +615,27 @@ function handlePrint() {
                 <input
                   v-model="row.notes"
                   type="text"
-                  placeholder="Keterangan saldo awal..."
+                  placeholder="Keterangan saldo..."
                   class="w-full px-2.5 py-1.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
                 />
               </td>
+
+              <!-- Hapus Row -->
+              <td class="px-3 py-2 text-center">
+                <button
+                  type="button"
+                  @click="removeRow(idx)"
+                  class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                  title="Hapus baris ini"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </td>
             </tr>
 
-            <tr v-if="filteredRows.length === 0">
-              <td colspan="6" class="p-8 text-center text-zinc-400 italic">
-                Tidak ada akun yang sesuai dengan filter pencarian.
+            <tr v-if="balanceRows.length === 0">
+              <td colspan="8" class="p-8 text-center text-zinc-400 italic">
+                Belum ada baris akun. Klik "Tambah Akun" atau "Muat Data Standar Klinik".
               </td>
             </tr>
           </tbody>
@@ -603,8 +643,8 @@ function handlePrint() {
           <!-- Table Footer Summary -->
           <tfoot class="bg-zinc-50 font-bold border-t border-zinc-200 text-zinc-900">
             <tr>
-              <td colspan="3" class="px-4 py-3 text-right uppercase tracking-wider text-[11px] text-zinc-500">
-                Total Saldo Awal:
+              <td colspan="4" class="px-4 py-3 text-right uppercase tracking-wider text-[11px] text-zinc-500">
+                Total Saldo Awal ({{ balanceRows.length }} Baris):
               </td>
               <td class="px-4 py-3 text-right tabular-nums text-sm font-extrabold text-zinc-950">
                 Rp {{ formatIDR(totalDebit) }}
@@ -612,7 +652,7 @@ function handlePrint() {
               <td class="px-4 py-3 text-right tabular-nums text-sm font-extrabold text-zinc-950">
                 Rp {{ formatIDR(totalCredit) }}
               </td>
-              <td class="px-4 py-3 text-right">
+              <td colspan="2" class="px-4 py-3 text-right">
                 <span
                   :class="[
                     'px-2 py-0.5 rounded text-[10px] font-black uppercase',
@@ -627,6 +667,18 @@ function handlePrint() {
             </tr>
           </tfoot>
         </table>
+      </div>
+
+      <!-- Add Row Bottom Action -->
+      <div class="p-3 bg-zinc-50/50 border-t border-zinc-200/90 flex justify-center">
+        <button
+          type="button"
+          @click="addRow"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-zinc-100 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all cursor-pointer active:scale-95"
+        >
+          <Plus class="w-4 h-4 text-zinc-600" />
+          <span>Tambah Baris Akun Saldo Awal</span>
+        </button>
       </div>
     </div>
 
