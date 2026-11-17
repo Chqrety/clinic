@@ -92,6 +92,19 @@ export interface AnnualTaxReport1771 {
   linkedSptMasaCount: number
   bankReconciliationVerified: boolean
   hasAdjustments: boolean
+  isCustomOverridden: boolean
+}
+
+export interface Annual1771Overrides {
+  commercialRevenue?: number
+  commercialExpense?: number
+  positiveFiscalCorrection?: number
+  positiveCorrectionNotes?: string
+  negativeFiscalCorrection?: number
+  negativeCorrectionNotes?: string
+  corporateTaxRate?: number
+  taxCreditPph23?: number
+  taxCreditPph25?: number
 }
 
 export interface MonthTaxAdjustment {
@@ -186,6 +199,44 @@ export const useTaxStore = defineStore('tax', () => {
     annualGeneralAdjustment.value = { pph23Adjustment: 0, pph25Adjustment: 0, notes: '' }
     persistAdjustments()
     accountingStore.showToast('Seluruh penyesuaian SPT Tahunan berhasil di-reset ke nilai SPT Masa', 'info')
+  }
+
+  // Storage key for custom user overrides on SPT Tahunan 1771
+  const OVERRIDES_STORAGE_KEY = 'clinic_spt_1771_custom_overrides'
+
+  function loadSavedOverrides(): Annual1771Overrides {
+    try {
+      const raw = localStorage.getItem(OVERRIDES_STORAGE_KEY)
+      if (raw) return JSON.parse(raw)
+    } catch (e) {
+      console.warn('Gagal membaca custom overrides SPT 1771', e)
+    }
+    return {}
+  }
+
+  const annual1771Overrides = ref<Annual1771Overrides>(loadSavedOverrides())
+
+  function persistOverrides() {
+    try {
+      localStorage.setItem(OVERRIDES_STORAGE_KEY, JSON.stringify(annual1771Overrides.value))
+    } catch (e) {
+      console.warn('Gagal menyimpan custom overrides SPT 1771', e)
+    }
+  }
+
+  function updateAnnual1771Overrides(data: Partial<Annual1771Overrides>) {
+    annual1771Overrides.value = {
+      ...annual1771Overrides.value,
+      ...data
+    }
+    persistOverrides()
+    accountingStore.showToast('Perubahan Kertas Kerja SPT Tahunan 1771 berhasil disimpan!', 'success')
+  }
+
+  function resetAnnual1771Overrides() {
+    annual1771Overrides.value = {}
+    persistOverrides()
+    accountingStore.showToast('Seluruh nilai SPT Tahunan dikembalikan ke perhitungan buku & SPT Masa', 'info')
   }
 
   // Tax Accounts mapped to COA
@@ -1132,36 +1183,27 @@ export const useTaxStore = defineStore('tax', () => {
   // =========================================================================
   // 3. ANNUAL TAX CALCULATION (SPT TAHUNAN PPH BADAN FORMULIR 1771)
   // MENGAMBIL NILAI KREDIT PAJAK HANYA DARI BANK (BUKAN KAS)
+  // MENDUKUNG OVERRIDE SELURUH KOMPONEN TANPA MENGUBAH SPT MASA
   // =========================================================================
   const annualTaxReport1771 = computed<AnnualTaxReport1771>(() => {
-    // 1. Commercial Revenues (Akun 4 + Akun 6)
+    // 1. Default Commercial Revenues (Akun 4 + Akun 6)
     const rev4 = ledgerStore.accounts.find(a => a.code === '4')?.currentBalance || 15860537440
     const rev6 = ledgerStore.accounts.find(a => a.code === '6')?.currentBalance || 38481777.73
-    const commercialRevenue = rev4 + rev6
+    const defaultCommercialRevenue = rev4 + rev6
 
-    // 2. Commercial Expenses (Akun 5 + Akun 7)
+    // 2. Default Commercial Expenses (Akun 5 + Akun 7)
     const exp5 = ledgerStore.accounts.find(a => a.code === '5')?.currentBalance || 12284590157.71
     const exp7 = ledgerStore.accounts.find(a => a.code === '7')?.currentBalance || 872980221.16
-    const commercialExpense = exp5 + exp7
+    const defaultCommercialExpense = exp5 + exp7
 
-    // 3. Commercial Net Profit
-    const commercialNetProfit = commercialRevenue - commercialExpense
+    // 3. Default Fiscal Corrections per UU PPh
+    const defaultPosCorrection = 58500000.00
+    const defaultPosNotes = 'Koreksi Positif: Biaya entertainment/jamuan tanpa daftar nominatif PMK-02/2010 (Rp 38.5M) + Sanksi denda bunga (Rp 20M)'
+    const defaultNegCorrection = 9545162.73
+    const defaultNegNotes = 'Koreksi Negatif: Pendapatan Bunga Bank telah dipotong PPh Final Pasal 4(2) oleh Bank'
+    const defaultRate = 0.11 // Fasilitas Ps 31E UU HPP (50% x 22% = 11%)
 
-    // 4. Fiscal Corrections per UU PPh
-    const positiveFiscalCorrection = 58500000.00
-    const positiveCorrectionNotes = 'Koreksi Positif: Biaya entertainment/jamuan tanpa daftar nominatif PMK-02/2010 (Rp 38.5M) + Sanksi denda bunga (Rp 20M)'
-    const negativeFiscalCorrection = 9545162.73
-    const negativeCorrectionNotes = 'Koreksi Negatif: Pendapatan Bunga Bank telah dipotong PPh Final Pasal 4(2) oleh Bank'
-
-    // 5. Taxable Income (Penghasilan Kena Pajak / PKP)
-    const taxableIncome = commercialNetProfit + positiveFiscalCorrection - negativeFiscalCorrection
-
-    // 6. Corporate Tax Rate 22% & Fasilitas 31E UU PPh
-    const corporateTaxRate = 0.22
-    const corporateTaxPayable = Math.round(taxableIncome * 0.11)
-
-    // 7. KREDIT PAJAK OTOMATIS DARI SPT MASA DENGAN PENYESUAIAN/REKLASIFIKASI 1771:
-    // Menghimpun mutasi kanal bank dan menerapkan penyesuaian tahunan (kelebihan potong / reklasifikasi)
+    // 4. Default Kredit Pajak dari SPT Masa (Bank Only)
     const matrix = monthlySptMasaMatrix.value
     const baseSptMasaPph23 = matrix.reduce((sum, m) => sum + m.pph23Original, 0)
     const baseSptMasaPph25 = matrix.reduce((sum, m) => sum + m.pph25Original, 0)
@@ -1172,17 +1214,34 @@ export const useTaxStore = defineStore('tax', () => {
     const adjustmentPph23 = (rowAdjustedPph23 - baseSptMasaPph23) + annualGeneralAdjustment.value.pph23Adjustment
     const adjustmentPph25 = (rowAdjustedPph25 - baseSptMasaPph25) + annualGeneralAdjustment.value.pph25Adjustment
 
-    // Total Kredit Bersih yang Diakui di SPT 1771 (PPh 23 dan PPh 25)
-    const taxCreditPph23 = Math.max(0, baseSptMasaPph23 + adjustmentPph23)
-    const taxCreditPph25 = Math.max(0, baseSptMasaPph25 + adjustmentPph25)
+    const defaultTaxCreditPph23 = Math.max(0, baseSptMasaPph23 + adjustmentPph23)
+    const defaultTaxCreditPph25 = Math.max(0, baseSptMasaPph25 + adjustmentPph25)
 
-    // Total Kredit Pajak Netto (PPh 23 + PPh 25)
+    // APLIKASIKAN OVERRIDE PENGGUNA (Jika Disesuaikan di SPT Tahunan)
+    const o = annual1771Overrides.value
+    const commercialRevenue = o.commercialRevenue !== undefined ? o.commercialRevenue : defaultCommercialRevenue
+    const commercialExpense = o.commercialExpense !== undefined ? o.commercialExpense : defaultCommercialExpense
+    const commercialNetProfit = commercialRevenue - commercialExpense
+
+    const positiveFiscalCorrection = o.positiveFiscalCorrection !== undefined ? o.positiveFiscalCorrection : defaultPosCorrection
+    const positiveCorrectionNotes = o.positiveCorrectionNotes !== undefined ? o.positiveCorrectionNotes : defaultPosNotes
+
+    const negativeFiscalCorrection = o.negativeFiscalCorrection !== undefined ? o.negativeFiscalCorrection : defaultNegCorrection
+    const negativeCorrectionNotes = o.negativeCorrectionNotes !== undefined ? o.negativeCorrectionNotes : defaultNegNotes
+
+    const taxableIncome = Math.max(0, commercialNetProfit + positiveFiscalCorrection - negativeFiscalCorrection)
+    const corporateTaxRate = o.corporateTaxRate !== undefined ? o.corporateTaxRate : defaultRate
+    const corporateTaxPayable = Math.round(taxableIncome * corporateTaxRate)
+
+    const taxCreditPph23 = o.taxCreditPph23 !== undefined ? o.taxCreditPph23 : defaultTaxCreditPph23
+    const taxCreditPph25 = o.taxCreditPph25 !== undefined ? o.taxCreditPph25 : defaultTaxCreditPph25
     const taxCredits = taxCreditPph23 + taxCreditPph25
 
-    // 8. PPh 29 Kurang Bayar atau PPh 28A Lebih Bayar
+    // 5. PPh 29 Kurang Bayar atau PPh 28A Lebih Bayar
     const pph29Payable = Math.max(0, corporateTaxPayable - taxCredits)
     const pph28aOverpaid = taxCredits > corporateTaxPayable ? (taxCredits - corporateTaxPayable) : 0
-    const hasAdjustments = adjustmentPph23 !== 0 || adjustmentPph25 !== 0
+    const hasAdjustments = adjustmentPph23 !== 0 || adjustmentPph25 !== 0 || Object.keys(o).length > 0
+    const isCustomOverridden = Object.keys(o).length > 0
 
     return {
       fiscalYear: selectedYear.value,
@@ -1208,7 +1267,8 @@ export const useTaxStore = defineStore('tax', () => {
       pph28aOverpaid,
       linkedSptMasaCount: matrix.filter(m => m.pph23Record || m.pph25Record).length,
       bankReconciliationVerified: true,
-      hasAdjustments
+      hasAdjustments,
+      isCustomOverridden
     }
   })
 
@@ -1393,6 +1453,9 @@ export const useTaxStore = defineStore('tax', () => {
     filteredTaxTransactions,
     monthlyTaxSummary,
     annualTaxReport1771,
+    annual1771Overrides,
+    updateAnnual1771Overrides,
+    resetAnnual1771Overrides,
     monthCreditAdjustments,
     annualGeneralAdjustment,
     setMonthAdjustment,
