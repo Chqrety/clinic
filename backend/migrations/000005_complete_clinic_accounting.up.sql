@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS doctor_fee_settlements (
 CREATE TABLE IF NOT EXISTS doctor_fee_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     settlement_id UUID REFERENCES doctor_fee_settlements(id) ON DELETE CASCADE,
-    invoice_id UUID REFERENCES invoices(id) ON DELETE RESTRICT,
+    invoice_id INT REFERENCES invoices(id) ON DELETE RESTRICT,
     service_date DATE NOT NULL,
     patient_name VARCHAR(255) NOT NULL,
     service_description VARCHAR(255) NOT NULL,

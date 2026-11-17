@@ -302,6 +302,13 @@ func (r *PostgresJournalRepo) List(ctx context.Context, filter accounting.Journa
 		entries = append(entries, entry)
 	}
 
+	for i := range entries {
+		lines, err := r.getLinesByEntryID(ctx, exec, entries[i].ID)
+		if err == nil {
+			entries[i].Lines = lines
+		}
+	}
+
 	return entries, totalCount, nil
 }
 

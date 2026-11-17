@@ -55,8 +55,8 @@ func (r *PostgresTaxRepo) CreateWithholding(ctx context.Context, tw *tax.TaxWith
 func (r *PostgresTaxRepo) GetWithholdingByID(ctx context.Context, id uuid.UUID) (*tax.TaxWithholding, error) {
 	exec := GetExecutor(ctx, r.db)
 	query := `
-		SELECT id, branch_id, tax_type, bupot_number, taxpayer_nik,
-		       taxpayer_npwp, taxpayer_name, object_code, gross_amount,
+		SELECT id, branch_id, tax_type, bupot_number, COALESCE(taxpayer_nik, ''),
+		       COALESCE(taxpayer_npwp, ''), taxpayer_name, object_code, gross_amount,
 		       dpp_amount, tax_rate, tax_amount, period_year,
 		       period_month, is_reported, journal_id, created_at
 		FROM tax_withholdings
@@ -164,8 +164,8 @@ func (r *PostgresTaxRepo) ListWithholdings(ctx context.Context, filter tax.TaxFi
 	orderBy := fmt.Sprintf(" ORDER BY %s %s, id %s", sortCol, sortDir, sortDir)
 
 	selectQuery := `
-		SELECT id, branch_id, tax_type, bupot_number, taxpayer_nik,
-		       taxpayer_npwp, taxpayer_name, object_code, gross_amount,
+		SELECT id, branch_id, tax_type, bupot_number, COALESCE(taxpayer_nik, ''),
+		       COALESCE(taxpayer_npwp, ''), taxpayer_name, object_code, gross_amount,
 		       dpp_amount, tax_rate, tax_amount, period_year,
 		       period_month, is_reported, journal_id, created_at
 	` + baseQuery + orderBy

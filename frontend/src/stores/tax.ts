@@ -130,6 +130,29 @@ export interface LinkedTaxJournalEntry {
   rawJournal: any
 }
 
+export interface LinkedTaxJournalEntry {
+  id: string
+  journalId: string
+  journalNumber: string
+  journalDate: string
+  description: string
+  businessUnit: BusinessUnit
+  status: string
+  taxType: SptMasaType
+  taxAccountCode: string
+  taxAccountName: string
+  counterpartAccountCode: string
+  counterpartAccountName: string
+  grossAmount: number
+  dppAmount: number
+  taxAmount: number
+  direction: 'WITHHELD' | 'PAID'
+  bankAccount: string
+  month: number
+  year: number
+  rawJournal: any
+}
+
 export interface DoctorTaxRecord {
   id: string
   doctorName: string
@@ -359,378 +382,8 @@ export const useTaxStore = defineStore('tax', () => {
   // 1. REKAPITULASI DOKUMEN SPT MASA (Januari - November 2026)
   // Strictly Berbasis Rekening Bank Operasional (Bukan Kas Tunai)
   // =========================================================================
-  const sptMasaRecords = ref<SptMasaRecord[]>([
-    // --- PPH 23 (KREDIT PAJAK LAMPIRAN III SPT 1771 - VIA TRANSFER BANK) ---
-    {
-      id: 'spt-23-01',
-      sptNumber: 'SPT-MASA-23-2026-01',
-      masaMonth: 1,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Pengolahan Limbah Medis & IT',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 120000000,
-      dppAmount: 120000000,
-      taxRate: '2%',
-      taxAmount: 2400000,
-      ntpnNumber: 'NTPN-BCA-20260128-01',
-      bpeNumber: 'BPE-23-202601-9901',
-      paymentDate: '2026-01-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Jasa limbah B3 PT Wastec & maintenance SIMRS',
-      businessUnit: 'ALL',
-      createdAt: '2026-01-28 10:00:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-02',
-      sptNumber: 'SPT-MASA-23-2026-02',
-      masaMonth: 2,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Kalibrasi Alat Medis Laser SSC',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 150000000,
-      dppAmount: 150000000,
-      taxRate: '2%',
-      taxAmount: 3000000,
-      ntpnNumber: 'NTPN-BCA-20260228-02',
-      bpeNumber: 'BPE-23-202602-9902',
-      paymentDate: '2026-02-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Kalibrasi laser Nd:YAG & USG 4D Kidinest',
-      businessUnit: 'SSC',
-      createdAt: '2026-02-28 11:00:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-03',
-      sptNumber: 'SPT-MASA-23-2026-03',
-      masaMonth: 3,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Kebersihan Medis & Sanitasi',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 160000000,
-      dppAmount: 160000000,
-      taxRate: '2%',
-      taxAmount: 3200000,
-      ntpnNumber: 'NTPN-BCA-20260328-03',
-      bpeNumber: 'BPE-23-202603-9903',
-      paymentDate: '2026-03-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Outsourcing cleaning service ruang steril',
-      businessUnit: 'ALL',
-      createdAt: '2026-03-28 14:00:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-04',
-      sptNumber: 'SPT-MASA-23-2026-04',
-      masaMonth: 4,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Konsultasi Manajemen Medis',
-      bankAccountCode: '1102.002',
-      bankAccountName: 'Bank Mandiri Operasional & Payroll',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 140000000,
-      dppAmount: 140000000,
-      taxRate: '2%',
-      taxAmount: 2800000,
-      ntpnNumber: 'NTPN-MDR-20260428-04',
-      bpeNumber: 'BPE-23-202604-9904',
-      paymentDate: '2026-04-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank Mandiri: Konsultasi akreditasi Paripurna Kemenkes',
-      businessUnit: 'ALL',
-      createdAt: '2026-04-28 09:30:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-05',
-      sptNumber: 'SPT-MASA-23-2026-05',
-      masaMonth: 5,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Limbah B3 & Maintenance Alkes',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 155000000,
-      dppAmount: 155000000,
-      taxRate: '2%',
-      taxAmount: 3100000,
-      ntpnNumber: 'NTPN-BCA-20260528-05',
-      bpeNumber: 'BPE-23-202605-9905',
-      paymentDate: '2026-05-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Maintenance berkala autoklaf & sterilisator',
-      businessUnit: 'ALL',
-      createdAt: '2026-05-28 15:00:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-06',
-      sptNumber: 'SPT-MASA-23-2026-06',
-      masaMonth: 6,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Sewa Kendaraan Logistik Vaksin',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 145000000,
-      dppAmount: 145000000,
-      taxRate: '2%',
-      taxAmount: 2900000,
-      ntpnNumber: 'NTPN-BCA-20260628-06',
-      bpeNumber: 'BPE-23-202606-9906',
-      paymentDate: '2026-06-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Sewa mobil cold-chain distribusi vaksin',
-      businessUnit: 'KIDINEST',
-      createdAt: '2026-06-28 11:20:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-07',
-      sptNumber: 'SPT-MASA-23-2026-07',
-      masaMonth: 7,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Service HVAC Ruang Operasi SSC',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 165000000,
-      dppAmount: 165000000,
-      taxRate: '2%',
-      taxAmount: 3300000,
-      ntpnNumber: 'NTPN-BCA-20260728-07',
-      bpeNumber: 'BPE-23-202607-9907',
-      paymentDate: '2026-07-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Service HEPA filter & AC sentral steril',
-      businessUnit: 'SSC',
-      createdAt: '2026-07-28 10:15:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-08',
-      sptNumber: 'SPT-MASA-23-2026-08',
-      masaMonth: 8,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa IT Cloud & Cyber Security SIMRS',
-      bankAccountCode: '1102.002',
-      bankAccountName: 'Bank Mandiri Operasional & Payroll',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 150000000,
-      dppAmount: 150000000,
-      taxRate: '2%',
-      taxAmount: 3000000,
-      ntpnNumber: 'NTPN-MDR-20260828-08',
-      bpeNumber: 'BPE-23-202608-9908',
-      paymentDate: '2026-08-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank Mandiri: Bridging SATUSEHAT & hosting server',
-      businessUnit: 'ALL',
-      createdAt: '2026-08-28 16:00:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-09',
-      sptNumber: 'SPT-MASA-23-2026-09',
-      masaMonth: 9,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Limbah Medis B3 September',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 140000000,
-      dppAmount: 140000000,
-      taxRate: '2%',
-      taxAmount: 2800000,
-      ntpnNumber: 'NTPN-BCA-20260928-09',
-      bpeNumber: 'BPE-23-202609-9909',
-      paymentDate: '2026-09-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Pengolahan limbah jarum & residu',
-      businessUnit: 'ALL',
-      createdAt: '2026-09-28 13:45:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-10',
-      sptNumber: 'SPT-MASA-23-2026-10',
-      masaMonth: 10,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Kalibrasi Tensimeter & Alkes',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 150000000,
-      dppAmount: 150000000,
-      taxRate: '2%',
-      taxAmount: 3000000,
-      ntpnNumber: 'NTPN-BCA-20261028-10',
-      bpeNumber: 'BPE-23-202610-9910',
-      paymentDate: '2026-10-28',
-      status: 'REPORTED',
-      notes: 'Transfer Bank BCA: Sertifikasi kalibrasi BPFK Kemenkes',
-      businessUnit: 'ALL',
-      createdAt: '2026-10-28 11:30:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-    {
-      id: 'spt-23-11',
-      sptNumber: 'SPT-MASA-23-2026-11',
-      masaMonth: 11,
-      masaYear: 2026,
-      taxType: 'PPH_23',
-      accountCode: '2502',
-      accountName: 'PPh 23 Jasa Vendor Limbah B3 & Maintenance AC',
-      bankAccountCode: '1102.001',
-      bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-      paymentChannel: 'BANK_TRANSFER',
-      isBankVerified: true,
-      grossAmount: 150000000,
-      dppAmount: 150000000,
-      taxRate: '2%',
-      taxAmount: 3000000,
-      ntpnNumber: 'NTPN-BCA-20261128-11',
-      bpeNumber: 'BPE-23-202611-9911',
-      paymentDate: '2026-11-28',
-      status: 'PAID',
-      notes: 'Internet Banking Bank BCA: Disetor ke Kas Negara via DJP',
-      businessUnit: 'ALL',
-      createdAt: '2026-11-28 14:10:00',
-      createdBy: 'Rian Pratama, S.Ak.'
-    },
-
-    // --- PPH 25 (ANGSURAN BULANAN PPH BADAN - SETOR VIA E-BILLING BANK) ---
-    // Rp 13.000.000 per bulan x 11 bulan = Rp 143.000.000 (Semua via Bank BCA/Mandiri)
-    ...Array.from({ length: 11 }, (_, i) => {
-      const m = i + 1
-      const mStr = String(m).padStart(2, '0')
-      return {
-        id: `spt-25-${mStr}`,
-        sptNumber: `SPT-MASA-25-2026-${mStr}`,
-        masaMonth: m,
-        masaYear: 2026,
-        taxType: 'PPH_25' as SptMasaType,
-        accountCode: '2505',
-        accountName: 'PPh 25 Angsuran Pajak Penghasilan Badan',
-        bankAccountCode: '1102.001',
-        bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-        paymentChannel: 'BANK_EBILLING' as const,
-        isBankVerified: true,
-        grossAmount: 0,
-        dppAmount: 0,
-        taxRate: 'Angsuran Tetap SKP/SPT',
-        taxAmount: 13000000,
-        ntpnNumber: `NTPN-BCA-PPH25-${mStr}`,
-        bpeNumber: `BPE-25-2026${mStr}-0021`,
-        paymentDate: `2026-${mStr}-15`,
-        status: 'REPORTED' as const,
-        notes: `e-Billing Bank BCA: Setoran Angsuran Masa ${mStr}/2026 PPh Badan Klinik`,
-        businessUnit: 'ALL' as BusinessUnit,
-        createdAt: `2026-${mStr}-15 08:30:00`,
-        createdBy: 'Rian Pratama, S.Ak.'
-      }
-    }),
-
-    // --- PPH 21 (TENAGA AHLI DOKTER & KARYAWAN - TRANSFER BANK MANDIRI / BCA) ---
-    ...Array.from({ length: 11 }, (_, i) => {
-      const m = i + 1
-      const mStr = String(m).padStart(2, '0')
-      return {
-        id: `spt-21-${mStr}`,
-        sptNumber: `SPT-MASA-21-2026-${mStr}`,
-        masaMonth: m,
-        masaYear: 2026,
-        taxType: 'PPH_21' as SptMasaType,
-        accountCode: '2501.001',
-        accountName: 'PPh 21 Tenaga Medis Dokter & Karyawan',
-        bankAccountCode: '1102.002',
-        bankAccountName: 'Bank Mandiri Operasional & Payroll',
-        paymentChannel: 'BANK_TRANSFER' as const,
-        isBankVerified: true,
-        grossAmount: 435000000,
-        dppAmount: 310000000,
-        taxRate: 'PMK 168 / TER',
-        taxAmount: 13750000,
-        ntpnNumber: `NTPN-MDR-PPH21-${mStr}`,
-        bpeNumber: `BPE-21-2026${mStr}-8819`,
-        paymentDate: `2026-${mStr}-10`,
-        status: 'REPORTED' as const,
-        notes: `Payroll Bank Mandiri: Withholding 21 Dokter & TER Staf Masa ${mStr}`,
-        businessUnit: 'ALL' as BusinessUnit,
-        createdAt: `2026-${mStr}-10 16:00:00`,
-        createdBy: 'Rian Pratama, S.Ak.'
-      }
-    }),
-
-    // --- PPH 4(2) FINAL (SEWA GEDUNG & BUNGA BANK - MUTASI REKENING GIRO) ---
-    ...Array.from({ length: 11 }, (_, i) => {
-      const m = i + 1
-      const mStr = String(m).padStart(2, '0')
-      return {
-        id: `spt-4-2-${mStr}`,
-        sptNumber: `SPT-MASA-4-2-2026-${mStr}`,
-        masaMonth: m,
-        masaYear: 2026,
-        taxType: 'PPH_4_2' as SptMasaType,
-        accountCode: '2503',
-        accountName: 'PPh Final Pasal 4(2) Persewaan & Bunga',
-        bankAccountCode: '1102.001',
-        bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
-        paymentChannel: 'BANK_TRANSFER' as const,
-        isBankVerified: true,
-        grossAmount: 50000000,
-        dppAmount: 50000000,
-        taxRate: '10%',
-        taxAmount: 5000000,
-        ntpnNumber: `NTPN-BCA-4-2-${mStr}`,
-        bpeNumber: `BPE-4-2-2026${mStr}-4412`,
-        paymentDate: `2026-${mStr}-12`,
-        status: 'REPORTED' as const,
-        notes: `Transfer Bank BCA: PPh Final sewa ruko & pemotongan bunga jasa giro`,
-        businessUnit: 'ALL' as BusinessUnit,
-        createdAt: `2026-${mStr}-12 11:00:00`,
-        createdBy: 'Rian Pratama, S.Ak.'
-      }
-    })
-  ])
+  // Real SPT Masa documents fetched dynamically from PostgreSQL database via Go API
+  const sptMasaRecords = ref<SptMasaRecord[]>([])
 
   // =========================================================================
   // LINKED JOURNAL ENTRIES (TERIKAT KE JURNAL UMUM SECARA REAL-TIME)
@@ -1048,6 +701,30 @@ export const useTaxStore = defineStore('tax', () => {
         const dbNumbers = new Set(dbRecords.map(r => r.sptNumber))
         const remainingInitial = sptMasaRecords.value.filter(r => !dbNumbers.has(r.sptNumber))
         sptMasaRecords.value = [...dbRecords, ...remainingInitial]
+
+        // Sync doctor e-Bupot records directly from PostgreSQL
+        const doctorWithholdings = backendWithholdings.filter(tw => tw.tax_type === 'PPH21_DOCTOR')
+        if (doctorWithholdings.length > 0) {
+          doctorTaxRecords.value = doctorWithholdings.map((tw, idx) => ({
+            id: tw.id || `dt-db-${idx}`,
+            doctorName: tw.taxpayer_name,
+            specialty: tw.taxpayer_name.includes('Sp.A') ? 'Spesialis Anak (Pediatri)' : 'Spesialis Kulit & Kelamin (Sp.DVE)',
+            npwp: tw.taxpayer_npwp || '-',
+            nik: tw.taxpayer_nik || '-',
+            businessUnit: tw.taxpayer_name.includes('Sp.A') ? 'KIDINEST' : 'SSC',
+            bankAccountTarget: 'Bank BCA Operasional (Giro & EDC)',
+            grossIncomeCurrentMonth: Number(tw.gross_amount),
+            grossIncomeCumulativeYear: Number(tw.gross_amount) * 3,
+            dppPercentage: 0.5,
+            dppAmount: Number(tw.dpp_amount),
+            taxBracketApplied: 'Pasal 17 Lapisan 1 (5%)',
+            taxRate: Number(tw.tax_rate),
+            pph21Amount: Number(tw.tax_amount),
+            netPayable: Number(tw.gross_amount) - Number(tw.tax_amount),
+            ebupotNumber: tw.bupot_number,
+            journalNumber: tw.bupot_number
+          }))
+        }
       }
     } catch (err: any) {
       console.error('Failed to fetch tax records from database:', err)
@@ -1215,158 +892,8 @@ export const useTaxStore = defineStore('tax', () => {
   ])
 
   // Tax Transactions (Hanya mencatat transaksi berbasis Rekening Bank)
-  const taxTransactions = ref<TaxTransaction[]>([
-    {
-      id: 'tx-21-01',
-      taxNumber: 'BUPOT-21-202611-001',
-      taxDate: '2026-11-15',
-      businessUnit: 'KIDINEST',
-      taxCategory: 'PPH_21',
-      accountCode: '2501.001',
-      journalNumber: 'JU-2026-0004',
-      counterpartyName: 'dr. Hendra Wijaya, Sp.A (Transfer BCA)',
-      counterpartyNPWP: '08.123.456.7-012.000',
-      counterpartyNIK: '3171012304850001',
-      objectCode: '21-100-07 (Tenaga Ahli - Dokter)',
-      grossAmount: 48500000,
-      dppAmount: 24250000,
-      taxRate: 0.05,
-      taxAmount: 1212500,
-      documentReference: 'TRF-BCA-DOC-202611-01',
-      reconciliationStatus: 'RECONCILED',
-      isReported: false,
-      periodMonth: 11,
-      periodYear: 2026
-    },
-    {
-      id: 'tx-21-02',
-      taxNumber: 'BUPOT-21-202611-002',
-      taxDate: '2026-11-20',
-      businessUnit: 'SSC',
-      taxCategory: 'PPH_21',
-      accountCode: '2501.001',
-      journalNumber: 'JU-2026-0005',
-      counterpartyName: 'dr. Maya Sandria, Sp.KK (Transfer BCA)',
-      counterpartyNPWP: '09.345.678.9-015.000',
-      counterpartyNIK: '3174055208880003',
-      objectCode: '21-100-07 (Tenaga Ahli - Dokter)',
-      grossAmount: 82500000,
-      dppAmount: 41250000,
-      taxRate: 0.05,
-      taxAmount: 2062500,
-      documentReference: 'TRF-BCA-DOC-202611-02',
-      reconciliationStatus: 'RECONCILED',
-      isReported: false,
-      periodMonth: 11,
-      periodYear: 2026
-    },
-    {
-      id: 'tx-21-karyawan',
-      taxNumber: 'BUPOT-21-KARYAWAN-11',
-      taxDate: '2026-11-28',
-      businessUnit: 'ALL',
-      taxCategory: 'PPH_21',
-      accountCode: '2501.002',
-      journalNumber: 'JU-2026-0008',
-      counterpartyName: 'Payroll Pegawai Tetap & Apoteker (Transfer Mandiri)',
-      counterpartyNPWP: '01.234.567.8-091.000',
-      counterpartyNIK: '3374019901900001',
-      objectCode: '21-100-01 (Pegawai Tetap)',
-      grossAmount: 185000000,
-      dppAmount: 185000000,
-      taxRate: 0.0405,
-      taxAmount: 7500000,
-      documentReference: 'PAYROLL-MDR-202611',
-      reconciliationStatus: 'RECONCILED',
-      isReported: false,
-      periodMonth: 11,
-      periodYear: 2026
-    },
-    {
-      id: 'tx-23-01',
-      taxNumber: 'BUPOT-23-202611-01',
-      taxDate: '2026-11-10',
-      businessUnit: 'ALL',
-      taxCategory: 'PPH_23',
-      accountCode: '2502',
-      journalNumber: 'JU-2026-0002',
-      counterpartyName: 'PT Wastec International (Transfer Bank BCA)',
-      counterpartyNPWP: '01.554.219.8-032.000',
-      objectCode: '24-104-01 (Jasa Pengolahan Limbah Medis B3)',
-      grossAmount: 45000000,
-      dppAmount: 45000000,
-      taxRate: 0.02,
-      taxAmount: 900000,
-      documentReference: 'TRF-BCA-WST-8891',
-      reconciliationStatus: 'RECONCILED',
-      isReported: false,
-      periodMonth: 11,
-      periodYear: 2026
-    },
-    {
-      id: 'tx-23-02',
-      taxNumber: 'BUPOT-23-202611-02',
-      taxDate: '2026-11-18',
-      businessUnit: 'SSC',
-      taxCategory: 'PPH_23',
-      accountCode: '2502',
-      journalNumber: 'JU-2026-0003',
-      counterpartyName: 'PT Medika Laser Servis (Transfer Bank BCA)',
-      counterpartyNPWP: '02.881.902.1-014.000',
-      objectCode: '24-104-02 (Maintenance Alkes Laser)',
-      grossAmount: 75000000,
-      dppAmount: 75000000,
-      taxRate: 0.02,
-      taxAmount: 1500000,
-      documentReference: 'TRF-BCA-MLS-2026',
-      reconciliationStatus: 'RECONCILED',
-      isReported: false,
-      periodMonth: 11,
-      periodYear: 2026
-    },
-    {
-      id: 'tx-4-2-sewa',
-      taxNumber: 'BUPOT-4-2-202611',
-      taxDate: '2026-11-05',
-      businessUnit: 'ALL',
-      taxCategory: 'PPH_4_2',
-      accountCode: '2503',
-      journalNumber: 'JU-2026-0001',
-      counterpartyName: 'Hj. Siti Nurhaliza (Sewa Ruko Transfer BCA)',
-      counterpartyNPWP: '07.991.234.5-011.000',
-      objectCode: '28-403-01 (Persewaan Gedung Ruko)',
-      grossAmount: 50000000,
-      dppAmount: 50000000,
-      taxRate: 0.10,
-      taxAmount: 5000000,
-      documentReference: 'TRF-BCA-SEWA-202611',
-      reconciliationStatus: 'RECONCILED',
-      isReported: false,
-      periodMonth: 11,
-      periodYear: 2026
-    },
-    {
-      id: 'tx-ppn-out',
-      taxNumber: 'FP-010-202611-0099',
-      taxDate: '2026-11-30',
-      businessUnit: 'SSC',
-      taxCategory: 'PPN_OUTPUT',
-      accountCode: '2504',
-      journalNumber: 'JU-2026-0010',
-      counterpartyName: 'Pelanggan Produk Skincare (Settlement EDC & QRIS Bank)',
-      counterpartyNPWP: '00.000.000.0-000.000',
-      objectCode: 'Penyerahan BKP Produk Estetika',
-      grossAmount: 95596409,
-      dppAmount: 86122880,
-      taxRate: 0.11,
-      taxAmount: 9475055,
-      documentReference: 'EDC-BCA-RECAP-202611',
-      reconciliationStatus: 'RECONCILED',
-      isReported: false,
-      periodMonth: 11,
-      periodYear: 2026
-    }
-  ])
+  // Real tax transactions fetched dynamically from PostgreSQL database via Go API
+  const taxTransactions = ref<TaxTransaction[]>([])
 
   // PPN Summary Computation
   const ppnSummary = computed(() => {
