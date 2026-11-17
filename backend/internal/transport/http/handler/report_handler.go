@@ -52,7 +52,7 @@ func (h *ReportHandler) HandleGetGeneralLedger(w http.ResponseWriter, r *http.Re
 	endDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("end_date"))
 
 	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(ctx); ok {
+	if bID, ok := middleware.GetBranchID(ctx); ok && bID != uuid.Nil {
 		branchID = &bID
 	}
 
@@ -79,7 +79,7 @@ func (h *ReportHandler) HandleGetTrialBalance(w http.ResponseWriter, r *http.Req
 	endDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("end_date"))
 
 	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(ctx); ok {
+	if bID, ok := middleware.GetBranchID(ctx); ok && bID != uuid.Nil {
 		branchID = &bID
 	}
 
@@ -98,7 +98,7 @@ func (h *ReportHandler) HandleGetIncomeStatement(w http.ResponseWriter, r *http.
 	endDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("end_date"))
 
 	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(ctx); ok {
+	if bID, ok := middleware.GetBranchID(ctx); ok && bID != uuid.Nil {
 		branchID = &bID
 	}
 
@@ -116,7 +116,7 @@ func (h *ReportHandler) HandleGetBalanceSheet(w http.ResponseWriter, r *http.Req
 	asOfDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("as_of_date"))
 
 	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(ctx); ok {
+	if bID, ok := middleware.GetBranchID(ctx); ok && bID != uuid.Nil {
 		branchID = &bID
 	}
 
@@ -135,7 +135,7 @@ func (h *ReportHandler) HandleGetCashFlowStatement(w http.ResponseWriter, r *htt
 	endDate, _ := time.Parse("2006-01-02", r.URL.Query().Get("end_date"))
 
 	var branchID *uuid.UUID
-	if bID, ok := middleware.GetBranchID(ctx); ok {
+	if bID, ok := middleware.GetBranchID(ctx); ok && bID != uuid.Nil {
 		branchID = &bID
 	}
 

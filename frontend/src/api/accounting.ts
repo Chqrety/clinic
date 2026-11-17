@@ -146,6 +146,34 @@ export interface BackendTaxWithholding {
   created_at?: string
 }
 
+export interface BackendTrialBalanceItem {
+  account_id: string
+  account_code: string
+  account_name: string
+  account_type: string
+  normal_balance: 'DEBIT' | 'CREDIT'
+  opening_debit: string | number
+  opening_credit: string | number
+  period_debit: string | number
+  period_credit: string | number
+  ending_debit: string | number
+  ending_credit: string | number
+}
+
+export interface BackendTrialBalance {
+  branch_id?: string
+  start_date: string
+  end_date: string
+  total_opening_debit: string | number
+  total_opening_credit: string | number
+  total_period_debit: string | number
+  total_period_credit: string | number
+  total_ending_debit: string | number
+  total_ending_credit: string | number
+  is_balanced: boolean
+  items: BackendTrialBalanceItem[]
+}
+
 export const accountingApi = {
   // =========================================================================
   // 1. Chart of Accounts (COA)
@@ -382,6 +410,40 @@ export const accountingApi = {
     await request<void>(`/taxes/withholdings/${id}/report`, {
       method: 'POST',
     })
+  },
+
+  // =========================================================================
+  // 5. Financial Reports & Statements
+  // =========================================================================
+  async getTrialBalance(startDate?: string, endDate?: string): Promise<BackendTrialBalance | null> {
+    const q = new URLSearchParams()
+    if (startDate) q.set('start_date', startDate)
+    if (endDate) q.set('end_date', endDate)
+    const res = await request<BackendTrialBalance>(`/reports/trial-balance?${q.toString()}`)
+    return res.data
+  },
+
+  async getIncomeStatement(startDate?: string, endDate?: string): Promise<any> {
+    const q = new URLSearchParams()
+    if (startDate) q.set('start_date', startDate)
+    if (endDate) q.set('end_date', endDate)
+    const res = await request<any>(`/reports/income-statement?${q.toString()}`)
+    return res.data
+  },
+
+  async getBalanceSheet(asOfDate?: string): Promise<any> {
+    const q = new URLSearchParams()
+    if (asOfDate) q.set('as_of_date', asOfDate)
+    const res = await request<any>(`/reports/balance-sheet?${q.toString()}`)
+    return res.data
+  },
+
+  async getCashFlowStatement(startDate?: string, endDate?: string): Promise<any> {
+    const q = new URLSearchParams()
+    if (startDate) q.set('start_date', startDate)
+    if (endDate) q.set('end_date', endDate)
+    const res = await request<any>(`/reports/cash-flow?${q.toString()}`)
+    return res.data
   }
 }
 

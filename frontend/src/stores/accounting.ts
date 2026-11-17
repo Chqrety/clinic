@@ -16,8 +16,8 @@ export const useAccountingStore = defineStore('accounting', () => {
   // Global Filters
   const businessUnit = ref<BusinessUnit>('ALL')
   const branchCode = ref<BranchCode>('ALL')
-  const fiscalYear = ref<number>(2026)
-  const fiscalMonth = ref<number>(3) // March 2026
+  const fiscalYear = ref<number>(new Date().getFullYear())
+  const fiscalMonth = ref<number>(new Date().getMonth() + 1) // Default to current calendar month (e.g. November)
 
   // User Authentication & Role Context
   const currentUserRole = ref<UserRole>('finance_manager')

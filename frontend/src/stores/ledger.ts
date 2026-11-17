@@ -161,13 +161,6 @@ export const useLedgerStore = defineStore('ledger', () => {
       if (accountingStore.businessUnit !== 'ALL' && journal.businessUnit !== 'ALL' && journal.businessUnit !== accountingStore.businessUnit) {
         continue
       }
-      if (accountingStore.fiscalMonth && journal.journalDate) {
-        const parts = journal.journalDate.split('-')
-        if (parts.length >= 2) {
-          const m = parseInt(parts[1], 10)
-          if (m !== accountingStore.fiscalMonth) continue
-        }
-      }
 
       for (const line of journal.lines) {
         list.push({

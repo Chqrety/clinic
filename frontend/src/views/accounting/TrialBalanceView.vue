@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
+import { useJournalsStore } from '@/stores/journals'
 import { useAccountingStore } from '@/stores/accounting'
+import { accountingApi, type BackendTrialBalance } from '@/api/accounting'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel } from '@/utils/export'
 import type { BusinessUnit, AccountType } from '@/types/accounting'
@@ -16,16 +18,19 @@ import {
   Calendar,
   Building2,
   ExternalLink,
-  Printer
+  Printer,
+  RefreshCw,
+  Loader2
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const ledgerStore = useLedgerStore()
+const journalsStore = useJournalsStore()
 const accountingStore = useAccountingStore()
 
-onMounted(async () => {
-  await ledgerStore.fetchAccounts()
-})
+// State
+const isLoading = ref<boolean>(false)
+const backendTrialBalance = ref<BackendTrialBalance | null>(null)
 
 // Filter State
 const startDate = ref<string>('2026-01-01')
@@ -34,6 +39,31 @@ const selectedUnit = ref<BusinessUnit>(accountingStore.businessUnit || 'ALL')
 const selectedType = ref<string>('ALL')
 const searchQuery = ref<string>('')
 const hideZeroBalances = ref<boolean>(false)
+
+async function fetchBackendReport() {
+  isLoading.value = true
+  try {
+    const report = await accountingApi.getTrialBalance(startDate.value, endDate.value)
+    backendTrialBalance.value = report
+  } catch (err: any) {
+    console.warn('[TrialBalance] Gagal mengambil laporan dari server Go, menggunakan kalkulasi lokal:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    ledgerStore.fetchAccounts(),
+    journalsStore.fetchJournals(),
+    fetchBackendReport()
+  ])
+})
+
+// Watch date filters to re-fetch authoritative PostgreSQL data
+watch([startDate, endDate], () => {
+  fetchBackendReport()
+})
 
 // Trial Balance Data Calculation per Account
 interface TrialBalanceCalculatedRow {
@@ -51,10 +81,31 @@ interface TrialBalanceCalculatedRow {
 }
 
 const calculatedRows = computed<TrialBalanceCalculatedRow[]>(() => {
+  // 1. Authoritative Backend PostgreSQL Report items
+  if (backendTrialBalance.value && backendTrialBalance.value.items?.length > 0) {
+    return backendTrialBalance.value.items.map(item => {
+      const acc = ledgerStore.accounts.find(a => a.code === item.account_code)
+      return {
+        code: item.account_code,
+        name: item.account_name,
+        type: (acc?.type || item.account_type) as AccountType,
+        normalBalance: item.normal_balance,
+        unit: (acc?.businessUnit || 'ALL') as BusinessUnit,
+        openingDebit: Number(item.opening_debit) || 0,
+        openingCredit: Number(item.opening_credit) || 0,
+        periodDebit: Number(item.period_debit) || 0,
+        periodCredit: Number(item.period_credit) || 0,
+        endingDebit: Number(item.ending_debit) || 0,
+        endingCredit: Number(item.ending_credit) || 0
+      }
+    })
+  }
+
+  // 2. Client-side Fallback (Offline / Cache)
   const leafAccounts = ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
 
   return leafAccounts.map(acc => {
-    // 1. Initial / Opening balance
+    // Initial / Opening balance
     const cur = acc.currentBalance || 0
     let openingDebit = 0
     let openingCredit = 0
@@ -66,12 +117,12 @@ const calculatedRows = computed<TrialBalanceCalculatedRow[]>(() => {
       openingDebit = cur < 0 ? Math.abs(cur) : 0
     }
 
-    // 2. Period mutations from general ledger entries
+    // Period mutations from general ledger entries
     const entries = ledgerStore.generalLedgerEntries.filter(e => e.accountCode === acc.code)
     const periodDebit = entries.reduce((s, e) => s + (e.debit || 0), 0)
     const periodCredit = entries.reduce((s, e) => s + (e.credit || 0), 0)
 
-    // 3. Ending balance
+    // Ending balance
     let endingDebit = 0
     let endingCredit = 0
 
@@ -207,6 +258,16 @@ function handlePrint() {
       </div>
 
       <div class="flex items-center gap-2">
+        <button
+          @click="fetchBackendReport"
+          :disabled="isLoading"
+          class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer disabled:opacity-50"
+          title="Muat Ulang Data dari Database PostgreSQL"
+        >
+          <RefreshCw :class="['w-3.5 h-3.5 text-zinc-600', isLoading ? 'animate-spin' : '']" />
+          <span>{{ isLoading ? 'Memuat...' : 'Segarkan' }}</span>
+        </button>
+
         <button
           @click="handleExportExcel"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
@@ -359,7 +420,26 @@ function handlePrint() {
           </thead>
 
           <tbody class="divide-y divide-zinc-100">
+            <!-- Loading State -->
+            <tr v-if="isLoading">
+              <td colspan="8" class="px-4 py-12 text-center text-zinc-500">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <Loader2 class="w-6 h-6 animate-spin text-zinc-400" />
+                  <span class="text-xs font-semibold">Mengambil data Neraca Saldo langsung dari PostgreSQL...</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Empty State -->
+            <tr v-else-if="filteredRows.length === 0">
+              <td colspan="8" class="px-4 py-12 text-center text-zinc-400 text-xs">
+                Tidak ada data akun yang memenuhi filter yang dipilih.
+              </td>
+            </tr>
+
+            <!-- Data Rows -->
             <tr
+              v-else
               v-for="row in filteredRows"
               :key="row.code"
               class="hover:bg-zinc-50/80 transition-colors group cursor-pointer"
