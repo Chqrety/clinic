@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTaxStore } from '@/stores/tax'
 import { useAccountingStore } from '@/stores/accounting'
+import { useLedgerStore } from '@/stores/ledger'
+import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
+import { formatDate } from '@/utils/date'
 import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   FileText,
@@ -13,24 +16,61 @@ import {
   Sparkles,
   Link2,
   ArrowLeft,
+  ArrowRight,
   SlidersHorizontal,
   RotateCcw,
   AlertCircle,
   Send,
   Building2,
-  Pencil
+  Pencil,
+  X,
+  ExternalLink,
+  ChevronRight,
+  Landmark,
+  Scale
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const taxStore = useTaxStore()
 const accountingStore = useAccountingStore()
+const ledgerStore = useLedgerStore()
+const journalsStore = useJournalsStore()
 
 onMounted(async () => {
-  await taxStore.fetchTaxRecords()
+  await Promise.all([
+    taxStore.fetchTaxRecords(),
+    ledgerStore.fetchAccounts(),
+    journalsStore.fetchJournals()
+  ])
 })
 
 const annual1771 = computed(() => taxStore.annualTaxReport1771)
 const sptMatrix = computed(() => taxStore.monthlySptMasaMatrix)
+
+const selectedMonthForJournals = ref<number | null>(null)
+const showMonthJournalsModal = ref(false)
+const showJournalDetailModal = ref(false)
+const activeJournal = ref<any>(null)
+
+function openMonthJournals(monthNum: number) {
+  selectedMonthForJournals.value = monthNum
+  showMonthJournalsModal.value = true
+}
+
+const selectedMonthJournalEntries = computed(() => {
+  if (!selectedMonthForJournals.value) return []
+  return taxStore.getLinkedJournalsForMonth(selectedMonthForJournals.value, annual1771.value.fiscalYear)
+})
+
+function openJournalDetail(entry: any) {
+  if (entry.rawJournal) {
+    activeJournal.value = entry.rawJournal
+  } else {
+    const found = journalsStore.journals.find(j => j.journalNumber === entry.journalNumber || j.id === entry.journalId)
+    activeJournal.value = found || entry
+  }
+  showJournalDetailModal.value = true
+}
 
 function handleResetAll() {
   taxStore.resetAllAdjustments()
@@ -547,6 +587,7 @@ function printReport() {
               <th class="px-3 py-2.5 text-right text-zinc-600">PPh 4(2) Final</th>
               <th class="px-3 py-2.5 text-right font-bold text-zinc-950 bg-zinc-50/50">Total Kredit 1771</th>
               <th class="px-3 py-2.5 text-center">Status Klaim 1771</th>
+              <th class="px-3 py-2.5 text-center">Jurnal Terkait</th>
               <th class="px-3 py-2.5 text-center">Aksi Penyesuaian</th>
             </tr>
           </thead>
@@ -611,6 +652,16 @@ function printReport() {
                   Belum Ada
                 </span>
               </td>
+              <td class="px-3 py-2.5 text-center whitespace-nowrap">
+                <button
+                  @click="openMonthJournals(row.monthNum)"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition cursor-pointer"
+                  title="Lihat Jurnal Terkait Bulan Ini"
+                >
+                  <Link2 class="w-3 h-3 text-zinc-500" />
+                  <span>{{ taxStore.getLinkedJournalsForMonth(row.monthNum, annual1771.fiscalYear).length }} Jurnal</span>
+                </button>
+              </td>
               <td class="px-3 py-2.5 text-center">
                 <router-link
                   to="/accounting/tax/spt-tahunan/edit"
@@ -632,7 +683,7 @@ function printReport() {
               <td class="px-3 py-3 text-right text-zinc-400">-</td>
               <td class="px-3 py-3 text-right text-zinc-400">-</td>
               <td class="px-3 py-3 text-right tabular-nums text-amber-300 text-sm font-black bg-zinc-900">{{ formatIDR(annual1771.taxCredits) }}</td>
-              <td class="px-3 py-3 text-center text-emerald-400 font-sans text-xs" colspan="2">
+              <td class="px-3 py-3 text-center text-emerald-400 font-sans text-xs" colspan="3">
                 {{ annual1771.hasAdjustments ? 'Diakui dengan Penyesuaian' : 'Terverifikasi Penuh' }}
               </td>
             </tr>
@@ -665,6 +716,250 @@ function printReport() {
           >
             <Send class="w-3.5 h-3.5" />
             <span>Posting Jurnal Akrual PPh 29</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRAYO GL RECONCILIATION SECTION: Rekonsiliasi Jurnal Umum & Laba Rugi Tahunan -->
+    <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden p-6 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
+        <div class="flex items-center gap-2">
+          <Scale class="w-4 h-4 text-emerald-600" />
+          <div>
+            <h3 class="text-sm font-bold text-zinc-950">
+              Rekonsiliasi Jurnal Umum & Buku Besar Tahunan (Brayo Pajak Standard)
+            </h3>
+            <p class="text-xs text-zinc-500">
+              Pencocokan saldo akun pendapatan, beban, dan kredit pajak pada Buku Besar (GL Entry) terhadap Form 1771 DJP.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <router-link
+            to="/accounting/trial-balance"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition shadow-2xs"
+          >
+            <span>Neraca Saldo (Trial Balance)</span>
+            <ExternalLink class="w-3.5 h-3.5" />
+          </router-link>
+          <router-link
+            to="/accounting/ledger"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition shadow-2xs"
+          >
+            <span>Buku Besar (GL)</span>
+            <ArrowRight class="w-3.5 h-3.5" />
+          </router-link>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <!-- Card 1: Laba Komersial GL -->
+        <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-zinc-500 uppercase text-[10px]">Laba Komersial (Akun 4 - Akun 5)</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-bold">RECONCILED</span>
+          </div>
+          <p class="text-base font-black text-zinc-950 tabular-nums">
+            {{ formatIDR(annual1771.commercialNetProfit) }}
+          </p>
+          <div class="text-[11px] text-zinc-500 space-y-0.5 pt-1 border-t border-zinc-200">
+            <div class="flex justify-between">
+              <span>Pendapatan (4 & 6):</span>
+              <span class="font-mono">{{ formatIDR(annual1771.commercialRevenue) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Beban (5 & 7):</span>
+              <span class="font-mono">{{ formatIDR(annual1771.commercialExpense) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Koreksi Fiskal Netto -->
+        <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-zinc-500 uppercase text-[10px]">Koreksi Fiskal Netto</span>
+            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9px] font-bold">AUDITED</span>
+          </div>
+          <p class="text-base font-black text-amber-700 tabular-nums">
+            {{ formatIDR(annual1771.positiveFiscalCorrection - annual1771.negativeFiscalCorrection) }}
+          </p>
+          <div class="text-[11px] text-zinc-500 space-y-0.5 pt-1 border-t border-zinc-200">
+            <div class="flex justify-between">
+              <span>Koreksi Positif (+):</span>
+              <span class="font-mono text-emerald-700">{{ formatIDR(annual1771.positiveFiscalCorrection) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Koreksi Negatif (-):</span>
+              <span class="font-mono text-rose-700">{{ formatIDR(annual1771.negativeFiscalCorrection) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Kredit Pajak Bank -->
+        <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-zinc-500 uppercase text-[10px]">Kredit Pajak Terverifikasi (Bank)</span>
+            <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[9px] font-bold">MATCH 100%</span>
+          </div>
+          <p class="text-base font-black text-zinc-950 tabular-nums">
+            {{ formatIDR(annual1771.taxCredits) }}
+          </p>
+          <div class="text-[11px] text-zinc-500 space-y-0.5 pt-1 border-t border-zinc-200">
+            <div class="flex justify-between">
+              <span>PPh 23 (Akun 2502):</span>
+              <span class="font-mono">{{ formatIDR(annual1771.taxCreditPph23) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>PPh 25 (Akun 1504/2505):</span>
+              <span class="font-mono">{{ formatIDR(annual1771.taxCreditPph25) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIALOG MODAL: Daftar Jurnal Terkait Bulan Tertentu -->
+    <div
+      v-if="showMonthJournalsModal && selectedMonthForJournals"
+      class="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl border border-zinc-200/80 max-w-2xl w-full overflow-hidden p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-zinc-950">
+              Daftar Jurnal Terkait Pajak — Masa {{ selectedMonthForJournals }}/{{ annual1771.fiscalYear }}
+            </h3>
+            <p class="text-xs text-zinc-500 mt-0.5">
+              Seluruh voucher transaksi yang menyumbang kredit pajak / pemotongan pada masa ini.
+            </p>
+          </div>
+          <button @click="showMonthJournalsModal = false" class="text-zinc-400 hover:text-zinc-600">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-zinc-50 border-b border-zinc-200 text-[11px] font-bold text-zinc-500 uppercase">
+                <th class="py-2 px-3">Tanggal</th>
+                <th class="py-2 px-3">No. Jurnal</th>
+                <th class="py-2 px-3">Uraian Transaksi</th>
+                <th class="py-2 px-3">Jenis Pajak</th>
+                <th class="py-2 px-3 text-right">Nilai Pajak (Rp)</th>
+                <th class="py-2 px-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+              <tr
+                v-for="j in selectedMonthJournalEntries"
+                :key="j.id"
+                class="hover:bg-zinc-50/50"
+              >
+                <td class="py-2 px-3 font-mono text-zinc-600">{{ formatDate(j.journalDate) }}</td>
+                <td class="py-2 px-3 font-mono font-bold text-zinc-950">{{ j.journalNumber }}</td>
+                <td class="py-2 px-3 text-zinc-800 max-w-xs truncate">{{ j.description }}</td>
+                <td class="py-2 px-3 font-bold text-zinc-900">{{ j.taxType }}</td>
+                <td class="py-2 px-3 text-right tabular-nums font-bold text-zinc-950">{{ formatIDR(j.taxAmount) }}</td>
+                <td class="py-2 px-3 text-center">
+                  <button
+                    @click="openJournalDetail(j)"
+                    class="px-2 py-0.5 bg-white hover:bg-zinc-100 text-zinc-700 rounded-lg text-xs font-bold border border-zinc-200"
+                  >
+                    Detail
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="selectedMonthJournalEntries.length === 0">
+                <td colspan="6" class="py-6 text-center text-zinc-400 italic">
+                  Belum ada jurnal khusus yang terhubung pada masa ini.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex justify-end pt-2 border-t border-zinc-100">
+          <button
+            @click="showMonthJournalsModal = false"
+            class="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-bold"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIALOG MODAL: Detail Voucher Jurnal -->
+    <div
+      v-if="showJournalDetailModal && activeJournal"
+      class="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl border border-zinc-200/80 max-w-2xl w-full overflow-hidden p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-base font-bold text-zinc-950">{{ activeJournal.journalNumber }}</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                {{ activeJournal.status || 'POSTED' }}
+              </span>
+            </div>
+            <p class="text-xs text-zinc-500 mt-0.5">Tanggal: {{ formatDate(activeJournal.journalDate) }} • Unit: {{ activeJournal.businessUnit || 'ALL' }}</p>
+          </div>
+          <button @click="showJournalDetailModal = false" class="text-zinc-400 hover:text-zinc-600">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200 text-xs">
+          <span class="text-zinc-400 font-bold uppercase text-[10px] block">Keterangan / Uraian Jurnal:</span>
+          <p class="text-zinc-900 font-medium mt-0.5">{{ activeJournal.description }}</p>
+        </div>
+
+        <!-- Multi-line Table -->
+        <div class="border border-zinc-200 rounded-xl overflow-hidden bg-white">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-zinc-50 border-b border-zinc-200 text-[11px] font-bold text-zinc-500 uppercase">
+                <th class="py-2 px-3">Kode Akun</th>
+                <th class="py-2 px-3">Nama Akun</th>
+                <th class="py-2 px-3 text-right">Debit (Rp)</th>
+                <th class="py-2 px-3 text-right">Kredit (Rp)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+              <tr v-for="(line, idx) in activeJournal.lines" :key="idx" class="hover:bg-zinc-50/50">
+                <td class="py-2 px-3 font-mono font-bold text-zinc-900">{{ line.accountCode }}</td>
+                <td class="py-2 px-3 text-zinc-700">
+                  <span class="font-medium block">{{ line.accountName }}</span>
+                  <span v-if="line.description" class="text-[10px] text-zinc-400 block">{{ line.description }}</span>
+                </td>
+                <td class="py-2 px-3 text-right tabular-nums font-semibold text-zinc-950">
+                  {{ line.debit > 0 ? formatIDR(line.debit) : '-' }}
+                </td>
+                <td class="py-2 px-3 text-right tabular-nums font-semibold text-zinc-950">
+                  {{ line.credit > 0 ? formatIDR(line.credit) : '-' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-zinc-100 text-xs">
+          <router-link
+            :to="`/accounting/journals?search=${activeJournal.journalNumber}`"
+            class="text-xs font-bold text-zinc-700 hover:text-zinc-950 flex items-center gap-1"
+          >
+            <span>Buka di Daftar Jurnal Umum</span>
+            <ArrowRight class="w-3.5 h-3.5" />
+          </router-link>
+          <button
+            @click="showJournalDetailModal = false"
+            class="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-bold hover:bg-zinc-800 transition"
+          >
+            Tutup
           </button>
         </div>
       </div>

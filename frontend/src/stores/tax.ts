@@ -38,6 +38,29 @@ export interface SptMasaRecord {
   createdBy: string
 }
 
+export interface LinkedTaxJournalEntry {
+  id: string
+  journalId: string
+  journalNumber: string
+  journalDate: string
+  description: string
+  businessUnit: BusinessUnit
+  status: string
+  taxType: SptMasaType
+  taxAccountCode: string
+  taxAccountName: string
+  counterpartAccountCode: string
+  counterpartAccountName: string
+  grossAmount: number
+  dppAmount: number
+  taxAmount: number
+  direction: 'WITHHELD' | 'PAID'
+  bankAccount: string
+  month: number
+  year: number
+  rawJournal: any
+}
+
 export interface DoctorTaxRecord {
   id: string
   doctorName: string
@@ -1433,6 +1456,100 @@ export const useTaxStore = defineStore('tax', () => {
     accountingStore.showToast('File e-Bupot PPh 21 format DJP berhasil diunduh!', 'success')
   }
 
+  // =========================================================================
+  // 4. LINKED JOURNAL ENTRIES (TERIKAT KE JURNAL UMUM & BRAYO RECONCILIATION)
+  // Menghubungkan SPT Masa & Tahunan langsung ke voucher Jurnal Umum
+  // =========================================================================
+  const linkedTaxJournalEntries = computed<LinkedTaxJournalEntry[]>(() => {
+    const allJournals = journalsStore.journals
+    const result: LinkedTaxJournalEntry[] = []
+
+    for (const j of allJournals) {
+      if (!j.journalDate) continue
+      const parts = j.journalDate.split('-')
+      const year = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10)
+
+      for (const line of j.lines) {
+        const code = line.accountCode || ''
+        const name = line.accountName || ''
+        const isTaxLine =
+          code.startsWith('2501') || code.startsWith('2502') || code.startsWith('2503') ||
+          code.startsWith('2504') || code.startsWith('2505') || code.startsWith('2506') ||
+          code.startsWith('1504') || code.startsWith('1505') ||
+          code === '2-1300' || code === '2-1301' ||
+          name.toUpperCase().includes('PPH') || name.toUpperCase().includes('PAJAK') || name.toUpperCase().includes('PPN')
+
+        if (isTaxLine) {
+          let detectedTaxType: SptMasaType = 'PPH_21'
+          if (code.includes('2502') || name.includes('23')) detectedTaxType = 'PPH_23'
+          else if (code.includes('2503') || name.includes('4(2)') || name.toLowerCase().includes('final')) detectedTaxType = 'PPH_4_2'
+          else if (code.includes('2505') || code.includes('1504') || name.includes('25')) detectedTaxType = 'PPH_25'
+          else if (code.includes('2504') || code.includes('1505') || name.toUpperCase().includes('PPN')) detectedTaxType = 'PPN'
+
+          // Find counterpart line (not this line)
+          const counterpart = j.lines.find(l => l.id !== line.id)
+          const bankLine = j.lines.find(l => l.accountCode?.startsWith('1102') || l.accountName?.toLowerCase().includes('bank'))
+
+          const taxAmt = line.credit > 0 ? line.credit : line.debit
+          const isWithheld = line.credit > 0 // Withheld on credit, paid on debit
+
+          let dpp = taxAmt
+          if (detectedTaxType === 'PPH_23') dpp = taxAmt / 0.02
+          else if (detectedTaxType === 'PPH_4_2') dpp = taxAmt / 0.10
+          else if (detectedTaxType === 'PPN') dpp = taxAmt / 0.11
+          else if (detectedTaxType === 'PPH_21') dpp = taxAmt / 0.025
+          else dpp = taxAmt
+
+          result.push({
+            id: `${j.id}-${line.id}`,
+            journalId: j.id,
+            journalNumber: j.journalNumber,
+            journalDate: j.journalDate,
+            description: line.description || j.description,
+            businessUnit: j.businessUnit || 'ALL',
+            status: j.status,
+            taxType: detectedTaxType,
+            taxAccountCode: code,
+            taxAccountName: name,
+            counterpartAccountCode: counterpart?.accountCode || '-',
+            counterpartAccountName: counterpart?.accountName || '-',
+            grossAmount: Math.round(dpp),
+            dppAmount: Math.round(dpp),
+            taxAmount: taxAmt,
+            direction: isWithheld ? 'WITHHELD' : 'PAID',
+            bankAccount: bankLine ? `${bankLine.accountCode} - ${bankLine.accountName}` : 'Bank BCA Operasional (1102.001)',
+            month,
+            year,
+            rawJournal: j
+          })
+        }
+      }
+    }
+
+    return result
+  })
+
+  const filteredLinkedTaxJournalEntries = computed(() => {
+    return linkedTaxJournalEntries.value.filter(entry => {
+      if (accountingStore.businessUnit !== 'ALL' && entry.businessUnit && entry.businessUnit !== 'ALL' && entry.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
+      if (selectedYear.value && entry.year !== selectedYear.value) return false
+      if (selectedMonth.value && entry.month !== selectedMonth.value) return false
+      if (selectedSptMasaTypeFilter.value !== 'ALL' && entry.taxType !== selectedSptMasaTypeFilter.value) return false
+      return true
+    })
+  })
+
+  function getLinkedJournalsForMonth(month: number, year: number, taxType?: string) {
+    return linkedTaxJournalEntries.value.filter(entry => {
+      if (entry.month !== month || entry.year !== year) return false
+      if (taxType && taxType !== 'ALL' && entry.taxType !== taxType) return false
+      return true
+    })
+  }
+
   return {
     isLoading,
     fetchTaxRecords,
@@ -1465,6 +1582,9 @@ export const useTaxStore = defineStore('tax', () => {
     postPph29AccrualJournal,
     ppnSummary,
     generateTaxPaymentJournal,
-    exportEbupotCSV
+    exportEbupotCSV,
+    linkedTaxJournalEntries,
+    filteredLinkedTaxJournalEntries,
+    getLinkedJournalsForMonth
   }
 })

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useTaxStore, type SptMasaType } from '@/stores/tax'
 import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
+import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
@@ -38,11 +39,13 @@ const router = useRouter()
 const taxStore = useTaxStore()
 const accountingStore = useAccountingStore()
 const ledgerStore = useLedgerStore()
+const journalsStore = useJournalsStore()
 
 onMounted(async () => {
   await Promise.all([
     taxStore.fetchTaxRecords(),
-    ledgerStore.fetchAccounts()
+    ledgerStore.fetchAccounts(),
+    journalsStore.fetchJournals()
   ])
 })
 
@@ -80,12 +83,14 @@ const taxAccountOptions = computed(() => {
 })
 const sptMasaList = computed(() => taxStore.filteredSptMasa)
 
-// Subview under SPT Masa: 'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU'
-const sptMasaSubTab = ref<'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU'>('DOKUMEN_SPT')
+// Subview under SPT Masa: 'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU' | 'JURNAL_TERKAIT'
+const sptMasaSubTab = ref<'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU' | 'JURNAL_TERKAIT'>('DOKUMEN_SPT')
 
 const showDetailModal = ref(false)
 const showPaymentBankModal = ref(false)
+const showJournalPreviewModal = ref(false)
 const selectedSptDetail = ref<any>(null)
+const activeJournal = ref<any>(null)
 const selectedBankForPayment = ref<string>('1102.001')
 
 // Selected Account Metadata
@@ -112,6 +117,49 @@ function handleExecutePayment() {
 function viewSptDetail(item: any) {
   selectedSptDetail.value = item
   showDetailModal.value = true
+}
+
+function openJournalDetail(entry: any) {
+  if (entry.rawJournal) {
+    activeJournal.value = entry.rawJournal
+  } else {
+    // Look up in journalsStore
+    const found = journalsStore.journals.find(j => j.journalNumber === entry.journalNumber || j.id === entry.journalId)
+    if (found) {
+      activeJournal.value = found
+    } else {
+      activeJournal.value = {
+        journalNumber: entry.journalNumber,
+        journalDate: entry.journalDate,
+        description: entry.description,
+        businessUnit: entry.businessUnit,
+        status: entry.status,
+        lines: [
+          {
+            accountCode: entry.taxAccountCode,
+            accountName: entry.taxAccountName,
+            description: entry.description,
+            debit: entry.direction === 'PAID' ? entry.taxAmount : 0,
+            credit: entry.direction === 'WITHHELD' ? entry.taxAmount : 0
+          },
+          {
+            accountCode: entry.counterpartAccountCode,
+            accountName: entry.counterpartAccountName,
+            description: entry.description,
+            debit: entry.direction === 'WITHHELD' ? entry.taxAmount : 0,
+            credit: entry.direction === 'PAID' ? entry.taxAmount : 0
+          }
+        ]
+      }
+    }
+  }
+  showJournalPreviewModal.value = true
+}
+
+function drillDownToJournals(month: number, taxType: string) {
+  taxStore.selectedMonth = month
+  taxStore.selectedSptMasaTypeFilter = taxType
+  sptMasaSubTab.value = 'JURNAL_TERKAIT'
 }
 </script>
 
@@ -199,6 +247,22 @@ function viewSptDetail(item: any) {
         >
           Buku Pembantu Hutang Pajak
         </button>
+
+        <button
+          @click="sptMasaSubTab = 'JURNAL_TERKAIT'"
+          :class="[
+            'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5',
+            sptMasaSubTab === 'JURNAL_TERKAIT'
+              ? 'bg-white text-zinc-950 shadow-2xs'
+              : 'text-zinc-600 hover:text-zinc-950'
+          ]"
+        >
+          <FileText class="w-3.5 h-3.5 text-zinc-500" />
+          <span>Transaksi & Jurnal Terkait</span>
+          <span class="px-1.5 py-0.2 bg-zinc-200 text-zinc-800 rounded-full text-[10px] font-bold">
+            {{ taxStore.filteredLinkedTaxJournalEntries.length }}
+          </span>
+        </button>
       </div>
 
       <!-- Quick Link to SPT Tahunan 1771 -->
@@ -278,6 +342,14 @@ function viewSptDetail(item: any) {
                 <td class="px-4 py-2.5">
                   <span class="font-bold text-zinc-950">{{ spt.taxType }}</span>
                   <span class="block text-[10px] text-zinc-500 truncate max-w-xs">{{ spt.accountName }}</span>
+                  <button
+                    @click="drillDownToJournals(spt.masaMonth, spt.taxType)"
+                    class="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 transition cursor-pointer"
+                    title="Buka seluruh Jurnal Umum terkait SPT Masa ini"
+                  >
+                    <Link2 class="w-3 h-3" />
+                    <span>{{ taxStore.getLinkedJournalsForMonth(spt.masaMonth, spt.masaYear, spt.taxType).length }} Jurnal Terkait</span>
+                  </button>
                 </td>
                 <td class="px-4 py-2.5 text-center font-bold font-mono">
                   Masa {{ spt.masaMonth }}/{{ spt.masaYear }}
@@ -378,7 +450,7 @@ function viewSptDetail(item: any) {
     </div>
 
     <!-- VIEW 3: BUKU PEMBANTU PAJAK -->
-    <div v-else class="space-y-4">
+    <div v-else-if="sptMasaSubTab === 'BUKU_PEMBANTU'" class="space-y-4">
       <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
           <div>
@@ -417,6 +489,148 @@ function viewSptDetail(item: any) {
                 <td class="px-3 py-2.5 text-right tabular-nums text-zinc-600">{{ formatIDR(t.grossAmount) }}</td>
                 <td class="px-3 py-2.5 text-right tabular-nums text-zinc-600">{{ formatIDR(t.dppAmount) }}</td>
                 <td class="px-3 py-2.5 text-right tabular-nums font-bold text-zinc-950">{{ formatIDR(t.taxAmount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: TRANSAKSI & JURNAL UMUM TERKAIT (TERIKAT KE JURNAL ENTRi) -->
+    <div v-else-if="sptMasaSubTab === 'JURNAL_TERKAIT'" class="space-y-4">
+      <!-- Filter Bar & Quick Create -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs">
+        <div class="flex flex-wrap items-center gap-3 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Masa Pajak</label>
+            <select
+              v-model.number="taxStore.selectedMonth"
+              class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-800 focus:outline-none cursor-pointer"
+            >
+              <option :value="1">01 - Januari</option>
+              <option :value="2">02 - Februari</option>
+              <option :value="3">03 - Maret</option>
+              <option :value="4">04 - April</option>
+              <option :value="5">05 - Mei</option>
+              <option :value="6">06 - Juni</option>
+              <option :value="7">07 - Juli</option>
+              <option :value="8">08 - Agustus</option>
+              <option :value="9">09 - September</option>
+              <option :value="10">10 - Oktober</option>
+              <option :value="11">11 - November</option>
+              <option :value="12">12 - Desember</option>
+            </select>
+          </div>
+
+          <div class="w-56">
+            <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Jenis Pajak</label>
+            <SearchableSelect
+              :model-value="taxStore.selectedSptMasaTypeFilter"
+              :options="taxFilterOptions"
+              placeholder="Cari jenis pajak..."
+              input-class="!py-1.5"
+              @update:model-value="(val: any) => taxStore.selectedSptMasaTypeFilter = val"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <router-link
+            to="/accounting/journals/create"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>+ Buat Jurnal Pajak Baru</span>
+          </router-link>
+          <span class="text-xs text-zinc-500 font-medium ml-2">
+            <strong>{{ taxStore.filteredLinkedTaxJournalEntries.length }}</strong> Jurnal Terkait
+          </span>
+        </div>
+      </div>
+
+      <!-- Linked Journal Entries Table -->
+      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-zinc-50 border-b border-zinc-200/90 text-[11px] font-bold text-zinc-600 uppercase tracking-wider">
+                <th class="px-4 py-3">Tanggal</th>
+                <th class="px-4 py-3">No. Jurnal / Ref</th>
+                <th class="px-4 py-3">Unit</th>
+                <th class="px-4 py-3">Uraian Transaksi</th>
+                <th class="px-4 py-3">Akun Pajak Terkait</th>
+                <th class="px-4 py-3">Akun Lawan (Kontra)</th>
+                <th class="px-4 py-3 text-right">DPP (Rp)</th>
+                <th class="px-4 py-3 text-right">Nilai Pajak (Rp)</th>
+                <th class="px-4 py-3">Kanal Bank Penyetor</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+              <tr
+                v-for="entry in taxStore.filteredLinkedTaxJournalEntries"
+                :key="entry.id"
+                class="hover:bg-zinc-50/70 transition"
+              >
+                <td class="px-4 py-2.5 font-mono text-zinc-600 whitespace-nowrap">
+                  {{ formatDate(entry.journalDate) }}
+                </td>
+                <td class="px-4 py-2.5 whitespace-nowrap">
+                  <span class="font-mono font-bold text-zinc-950 block">{{ entry.journalNumber }}</span>
+                  <span class="text-[10px] text-zinc-400 font-mono">Masa {{ entry.month }}/{{ entry.year }}</span>
+                </td>
+                <td class="px-4 py-2.5 whitespace-nowrap font-bold text-[10px] uppercase text-zinc-700">
+                  {{ entry.businessUnit }}
+                </td>
+                <td class="px-4 py-2.5 max-w-xs text-zinc-900 font-medium truncate">
+                  {{ entry.description }}
+                </td>
+                <td class="px-4 py-2.5 whitespace-nowrap">
+                  <span class="font-bold text-zinc-950 block font-mono text-[11px]">{{ entry.taxAccountCode }}</span>
+                  <span class="text-[10px] text-zinc-500 block truncate max-w-[180px]">{{ entry.taxAccountName }}</span>
+                </td>
+                <td class="px-4 py-2.5 whitespace-nowrap">
+                  <span class="font-bold text-zinc-700 block font-mono text-[11px]">{{ entry.counterpartAccountCode }}</span>
+                  <span class="text-[10px] text-zinc-400 block truncate max-w-[180px]">{{ entry.counterpartAccountName }}</span>
+                </td>
+                <td class="px-4 py-2.5 text-right tabular-nums text-zinc-600 whitespace-nowrap">
+                  {{ formatIDR(entry.dppAmount) }}
+                </td>
+                <td class="px-4 py-2.5 text-right tabular-nums font-bold text-zinc-950 whitespace-nowrap">
+                  {{ formatIDR(entry.taxAmount) }}
+                </td>
+                <td class="px-4 py-2.5 whitespace-nowrap text-zinc-700">
+                  <span class="flex items-center gap-1 font-medium">
+                    <Landmark class="w-3 h-3 text-zinc-400" />
+                    <span>{{ entry.bankAccount }}</span>
+                  </span>
+                </td>
+                <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                  <span
+                    :class="[
+                      'px-2 py-0.5 rounded-full text-[10px] font-bold',
+                      entry.status === 'POSTED'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+                    ]"
+                  >
+                    {{ entry.status }}
+                  </span>
+                </td>
+                <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                  <button
+                    @click="openJournalDetail(entry)"
+                    class="px-2.5 py-1 bg-white hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 rounded-lg text-xs font-bold border border-zinc-200 transition cursor-pointer"
+                  >
+                    Lihat Jurnal
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="taxStore.filteredLinkedTaxJournalEntries.length === 0">
+                <td colspan="11" class="px-4 py-8 text-center text-zinc-400 italic">
+                  Belum ada transaksi Jurnal Umum terkait pajak untuk masa dan filter yang dipilih.
+                </td>
               </tr>
             </tbody>
           </table>
@@ -539,6 +753,79 @@ function viewSptDetail(item: any) {
             class="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-bold hover:bg-zinc-800 transition"
           >
             Eksekusi Pendebetan & Posting Jurnal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIALOG MODAL 3: Detail Voucher Jurnal Umum Terkait -->
+    <div
+      v-if="showJournalPreviewModal && activeJournal"
+      class="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl border border-zinc-200/80 max-w-2xl w-full overflow-hidden p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-base font-bold text-zinc-950">{{ activeJournal.journalNumber }}</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                {{ activeJournal.status || 'POSTED' }}
+              </span>
+            </div>
+            <p class="text-xs text-zinc-500 mt-0.5">Tanggal: {{ formatDate(activeJournal.journalDate) }} • Unit: {{ activeJournal.businessUnit || 'ALL' }}</p>
+          </div>
+          <button @click="showJournalPreviewModal = false" class="text-zinc-400 hover:text-zinc-600">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200 text-xs">
+          <span class="text-zinc-400 font-bold uppercase text-[10px] block">Keterangan / Uraian Jurnal:</span>
+          <p class="text-zinc-900 font-medium mt-0.5">{{ activeJournal.description }}</p>
+        </div>
+
+        <!-- Multi-line Table -->
+        <div class="border border-zinc-200 rounded-xl overflow-hidden bg-white">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-zinc-50 border-b border-zinc-200 text-[11px] font-bold text-zinc-500 uppercase">
+                <th class="py-2 px-3">Kode Akun</th>
+                <th class="py-2 px-3">Nama Akun</th>
+                <th class="py-2 px-3 text-right">Debit (Rp)</th>
+                <th class="py-2 px-3 text-right">Kredit (Rp)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+              <tr v-for="(line, idx) in activeJournal.lines" :key="idx" class="hover:bg-zinc-50/50">
+                <td class="py-2 px-3 font-mono font-bold text-zinc-900">{{ line.accountCode }}</td>
+                <td class="py-2 px-3 text-zinc-700">
+                  <span class="font-medium block">{{ line.accountName }}</span>
+                  <span v-if="line.description" class="text-[10px] text-zinc-400 block">{{ line.description }}</span>
+                </td>
+                <td class="py-2 px-3 text-right tabular-nums font-semibold text-zinc-950">
+                  {{ line.debit > 0 ? formatIDR(line.debit) : '-' }}
+                </td>
+                <td class="py-2 px-3 text-right tabular-nums font-semibold text-zinc-950">
+                  {{ line.credit > 0 ? formatIDR(line.credit) : '-' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-zinc-100 text-xs">
+          <router-link
+            :to="`/accounting/journals?search=${activeJournal.journalNumber}`"
+            class="text-xs font-bold text-zinc-700 hover:text-zinc-950 flex items-center gap-1"
+          >
+            <span>Buka di Daftar Jurnal Umum</span>
+            <ArrowRight class="w-3.5 h-3.5" />
+          </router-link>
+          <button
+            @click="showJournalPreviewModal = false"
+            class="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-bold hover:bg-zinc-800 transition"
+          >
+            Tutup
           </button>
         </div>
       </div>

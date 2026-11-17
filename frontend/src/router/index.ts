@@ -104,6 +104,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Daftar Jurnal Umum' }
       },
       {
+        path: 'journals/create',
+        name: 'JournalCreate',
+        component: () => import('@/views/accounting/JournalCreateView.vue'),
+        meta: { title: 'Buat Jurnal Umum Baru' }
+      },
+      {
         path: 'journals/approvals',
         name: 'JournalApprovals',
         component: () => import('@/views/accounting/JournalApprovalsView.vue'),

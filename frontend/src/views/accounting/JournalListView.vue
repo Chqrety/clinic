@@ -286,18 +286,13 @@ function handleExportExcel() {
       </div>
 
       <div class="flex items-center gap-2.5">
-        <button
-          @click="showInlineForm = !showInlineForm"
-          :class="[
-            'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95',
-            showInlineForm
-              ? 'bg-zinc-800 text-white'
-              : 'bg-zinc-950 hover:bg-zinc-800 text-white'
-          ]"
+        <router-link
+          to="/accounting/journals/create"
+          class="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
         >
-          <Plus class="w-3.5 h-3.5" />
-          <span>{{ showInlineForm ? 'Tutup Form Tabel' : '+ Entri Jurnal (Tabel)' }}</span>
-        </button>
+          <Plus class="w-3.5 h-3.5 text-emerald-400" />
+          <span>+ Buat Jurnal Baru (New Page)</span>
+        </router-link>
 
         <button
           @click="handleExportExcel"

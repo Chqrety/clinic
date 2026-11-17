@@ -78,6 +78,7 @@ const navGroups = computed<NavGroup[]>(() => [
   {
     groupName: 'LAPORAN KEUANGAN (PSAK)',
     items: [
+      { name: 'Neraca Saldo (Trial Balance)', to: '/accounting/trial-balance', icon: Scale },
       { name: 'Laporan Laba Rugi', to: '/accounting/reports/profit-loss', icon: TrendingUp },
       { name: 'Laporan Neraca', to: '/accounting/reports/balance-sheet', icon: Scale },
       { name: 'Arus Kas (Cash Flow)', to: '/accounting/reports/cash-flow', icon: Coins },

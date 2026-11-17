@@ -363,6 +363,209 @@ export const useJournalsStore = defineStore('journals', () => {
       createdByName: 'Rian Pratama, S.Ak.',
       createdAt: '2026-03-04 10:10:00',
       isManual: true
+    },
+    {
+      id: 'jv-108',
+      journalNumber: 'JV-2026-03-008',
+      journalDate: '2026-03-10',
+      journalSource: 'MANUAL',
+      sourceReference: 'INV-WST-202603',
+      businessUnit: 'ALL',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Pembayaran Jasa Pemusnahan Limbah Medis B3 PT Wastec International + Potongan PPh 23',
+      totalDebit: 45000000,
+      totalCredit: 45000000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-108-1',
+          accountId: 'acc-5202',
+          accountCode: '5202',
+          accountName: 'Beban Pengolahan Limbah Medis B3',
+          debit: 45000000,
+          credit: 0,
+          description: 'Invoice Limbah B3 PT Wastec Periode Maret'
+        },
+        {
+          id: 'jl-108-2',
+          accountId: 'acc-2502',
+          accountCode: '2502',
+          accountName: 'PPh 23 Jasa Teknik & Limbah B3',
+          debit: 0,
+          credit: 900000,
+          description: 'Withholding Tax PPh 23 (Tarif 2% x Rp 45.000.000)'
+        },
+        {
+          id: 'jl-108-3',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 44100000,
+          description: 'Transfer Pembayaran via Bank BCA Netto'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-03-10 11:30:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-03-10 13:00:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-03-10 13:05:00',
+      isManual: false
+    },
+    {
+      id: 'jv-109',
+      journalNumber: 'JV-2026-03-009',
+      journalDate: '2026-03-12',
+      journalSource: 'MANUAL',
+      sourceReference: 'SEWA-RUKO-202603',
+      businessUnit: 'ALL',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Pembayaran Sewa Gedung Klinik Hj. Siti Nurhaliza + Pemotongan PPh Final Pasal 4(2)',
+      totalDebit: 50000000,
+      totalCredit: 50000000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-109-1',
+          accountId: 'acc-5201',
+          accountCode: '5201',
+          accountName: 'Beban Sewa Gedung & Ruang Medis',
+          debit: 50000000,
+          credit: 0,
+          description: 'Sewa Gedung Klinik Pratama Periode Maret'
+        },
+        {
+          id: 'jl-109-2',
+          accountId: 'acc-2503',
+          accountCode: '2503',
+          accountName: 'PPh Final Pasal 4(2) Persewaan Bangunan',
+          debit: 0,
+          credit: 5000000,
+          description: 'Potongan PPh Final 4(2) 10% x Rp 50.000.000'
+        },
+        {
+          id: 'jl-109-3',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 45000000,
+          description: 'Transfer Pembayaran via Bank BCA Netto'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-03-12 10:00:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-03-12 11:15:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-03-12 11:20:00',
+      isManual: false
+    },
+    {
+      id: 'jv-110',
+      journalNumber: 'JV-2026-03-010',
+      journalDate: '2026-03-15',
+      journalSource: 'MANUAL',
+      sourceReference: 'NTPN-BCA-PPH25-03',
+      businessUnit: 'ALL',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Setoran Angsuran Pajak Badan PPh 25 Masa Maret 2026 via Bank BCA',
+      totalDebit: 13000000,
+      totalCredit: 13000000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-110-1',
+          accountId: 'acc-1504',
+          accountCode: '1504',
+          accountName: 'Pajak Dibayar di Muka PPh 25 (Kredit Pajak Badan)',
+          debit: 13000000,
+          credit: 0,
+          description: 'Angsuran PPh 25 Bulanan Klinik Masa Maret'
+        },
+        {
+          id: 'jl-110-2',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 13000000,
+          description: 'Debet Rekening BCA NTPN-BCA-20260315-9921'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-03-15 09:30:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-03-15 10:00:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-03-15 10:05:00',
+      isManual: false
+    },
+    {
+      id: 'jv-111',
+      journalNumber: 'JV-2026-03-011',
+      journalDate: '2026-03-20',
+      journalSource: 'MANUAL',
+      sourceReference: 'NTPN-MDR-PPH21-03',
+      businessUnit: 'ALL',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Penyetoran Pajak PPh 21 Dokter & Karyawan Masa Maret via Bank Mandiri',
+      totalDebit: 22362500,
+      totalCredit: 22362500,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-111-1',
+          accountId: 'acc-2501-1',
+          accountCode: '2501.001',
+          accountName: 'PPh 21 Dokter Tenaga Ahli (PMK 168/2023)',
+          debit: 14862500,
+          credit: 0,
+          description: 'Penyetoran SPT Masa PPh 21 Dokter Masa Maret'
+        },
+        {
+          id: 'jl-111-2',
+          accountId: 'acc-2501-2',
+          accountCode: '2501.002',
+          accountName: 'PPh 21 Karyawan & Staf Tetap (TER PP 58)',
+          debit: 7500000,
+          credit: 0,
+          description: 'Penyetoran SPT Masa PPh 21 Pegawai Tetap Masa Maret'
+        },
+        {
+          id: 'jl-111-3',
+          accountId: 'acc-1102-2',
+          accountCode: '1102.002',
+          accountName: 'Bank Mandiri Payroll & Pajak',
+          debit: 0,
+          credit: 22362500,
+          description: 'Debet Payroll Mandiri NTPN-MDR-PPH21-03'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-03-20 14:00:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-03-20 14:30:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-03-20 14:35:00',
+      isManual: false
     }
   ])
 

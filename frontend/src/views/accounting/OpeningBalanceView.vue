@@ -27,7 +27,9 @@ import {
   HelpCircle,
   FolderOpen,
   Plus,
-  Trash2
+  Trash2,
+  TableProperties,
+  ListPlus
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -35,175 +37,138 @@ const ledgerStore = useLedgerStore()
 const accountingStore = useAccountingStore()
 const journalsStore = useJournalsStore()
 
-// Opening Balance Header Form
-const cutOffDate = ref('2026-01-01')
-const referenceNo = ref('OP-20260101-CLINIC')
-const selectedUnit = ref<BusinessUnit>(accountingStore.businessUnit || 'ALL')
-const description = ref('Saldo Awal Pembukuan Akuntansi & Neraca Migrasi Klinik Kidinest & SSC per 1 Januari 2026')
-
-watch(() => accountingStore.businessUnit, (unit) => {
-  if (unit) selectedUnit.value = unit
-})
-
-// Available active leaf accounts for SearchableSelect
-const availableAccounts = computed(() => {
-  return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
-})
-
-const accountSelectOptions = computed(() => {
-  return availableAccounts.value.map(acc => ({
-    value: acc.code,
-    label: `[${acc.code}] ${acc.name}`,
-    sublabel: `${acc.type} • Normal: ${acc.normalBalance}`
-  }))
-})
-
-// Input Rows State: Dynamic Row Entry (Opsi A)
-interface OpeningBalanceRowState {
-  code: string
-  name: string
-  type?: AccountType
-  normalBalance?: NormalBalance
-  unit?: BusinessUnit
-  debit: number | string
-  credit: number | string
-  notes: string
-}
-
-const balanceRows = ref<OpeningBalanceRowState[]>([])
-
-// Populate rows: only accounts with balances, or clean start rows
-function initializeRows() {
-  const existing = ledgerStore.accounts
-    .filter(a => !a.isHeader && a.isActive !== false && (a.currentBalance && a.currentBalance !== 0))
-    .map(a => {
-      const cur = a.currentBalance || 0
-      return {
-        code: a.code,
-        name: a.name,
-        type: a.type,
-        normalBalance: a.normalBalance,
-        unit: a.businessUnit || 'ALL',
-        debit: a.normalBalance === 'DEBIT' ? (cur > 0 ? cur : 0) : (cur < 0 ? Math.abs(cur) : 0),
-        credit: a.normalBalance === 'CREDIT' ? (cur > 0 ? cur : 0) : (cur < 0 ? Math.abs(cur) : 0),
-        notes: 'Saldo pembukuan migrasi'
-      }
-    })
-
-  if (existing.length > 0) {
-    balanceRows.value = existing
-  } else {
-    // Default 2 empty rows ready to be filled
-    balanceRows.value = [
-      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' },
-      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' }
-    ]
-  }
-}
-
-function onAccountSelect(index: number, code: string) {
-  const acc = availableAccounts.value.find(a => a.code === code)
-  if (acc && balanceRows.value[index]) {
-    balanceRows.value[index].code = acc.code
-    balanceRows.value[index].name = acc.name
-    balanceRows.value[index].type = acc.type
-    balanceRows.value[index].normalBalance = acc.normalBalance
-    balanceRows.value[index].unit = acc.businessUnit || selectedUnit.value || 'ALL'
-  }
-}
-
-function addRow() {
-  balanceRows.value.push({
-    code: '',
-    name: '',
-    debit: 0,
-    credit: 0,
-    notes: '',
-    unit: selectedUnit.value || 'ALL'
-  })
-}
-
-function removeRow(index: number) {
-  if (balanceRows.value.length > 1) {
-    balanceRows.value.splice(index, 1)
-  } else {
-    balanceRows.value[0] = { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' }
-  }
-}
-
 onMounted(async () => {
   await Promise.all([
     ledgerStore.fetchAccounts(),
     journalsStore.fetchJournals()
   ])
-  initializeRows()
+  initializeAllCoaRows()
 })
 
-// Real-time Calculations
+// Header Form
+const cutOffDate = ref('2026-01-01')
+const referenceNo = ref('OP-20260101-BCS')
+const selectedUnit = ref<BusinessUnit>(accountingStore.businessUnit || 'ALL')
+const description = ref('Saldo Awal Pembukuan Akuntansi & Neraca Migrasi PT. Brayo Cipta Sejahtera (Kidinest & SSC) per 1 Januari 2026')
+
+// Mode Switch: Full COA Matrix vs Quick Custom Rows
+const activeMode = ref<'COA_MATRIX' | 'CUSTOM_ROWS'>('COA_MATRIX')
+const matrixSearch = ref('')
+const selectedTypeFilter = ref<string>('ALL')
+
+// Input Row Structure
+interface BalanceRow {
+  code: string
+  name: string
+  type: AccountType
+  normalBalance: NormalBalance
+  unit: BusinessUnit
+  debit: number | string
+  credit: number | string
+  notes: string
+}
+
+// Full COA Matrix Rows (all leaf accounts from 106 BCS COA)
+const matrixRows = ref<BalanceRow[]>([])
+// Custom Rows (dynamic manual rows)
+const customRows = ref<BalanceRow[]>([])
+
+function initializeAllCoaRows() {
+  const leafAccounts = ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
+
+  matrixRows.value = leafAccounts.map(acc => {
+    const cur = acc.currentBalance || 0
+    return {
+      code: acc.code,
+      name: acc.name,
+      type: acc.type,
+      normalBalance: acc.normalBalance,
+      unit: acc.businessUnit || 'ALL',
+      debit: acc.normalBalance === 'DEBIT' ? (cur > 0 ? cur : 0) : 0,
+      credit: acc.normalBalance === 'CREDIT' ? (cur > 0 ? cur : 0) : 0,
+      notes: cur > 0 ? 'Saldo migrasi berjalan' : ''
+    }
+  })
+
+  // Also setup default custom rows
+  if (customRows.value.length === 0) {
+    customRows.value = [
+      { code: '1101.001', name: 'Kas Kasir Kidinest', type: 'ASSET', normalBalance: 'DEBIT', unit: 'KIDINEST', debit: 45200000, credit: 0, notes: 'Kas fisik kasir awal' },
+      { code: '1102.001', name: 'Bank BCA Operasional (Giro & EDC)', type: 'ASSET', normalBalance: 'DEBIT', unit: 'ALL', debit: 680964487.55, credit: 0, notes: 'Rekening giro operasional' },
+      { code: '3101', name: 'Modal Disetor Pemilik Klinik Kidinest & SSC', type: 'EQUITY', normalBalance: 'CREDIT', unit: 'ALL', debit: 0, credit: 726164487.55, notes: 'Penyertaan modal awal' }
+    ]
+  }
+}
+
+// Active Rows based on selected mode
+const activeWorkingRows = computed(() => {
+  return activeMode.value === 'COA_MATRIX' ? matrixRows.value : customRows.value
+})
+
+// Filtered Matrix Rows for search & category
+const filteredMatrixRows = computed(() => {
+  return matrixRows.value.filter(r => {
+    if (selectedTypeFilter.value !== 'ALL' && r.type !== selectedTypeFilter.value) return false
+    if (!matrixSearch.value) return true
+    const q = matrixSearch.value.toLowerCase()
+    return r.code.toLowerCase().includes(q) || r.name.toLowerCase().includes(q)
+  })
+})
+
+// Calculations based on active mode
 const totalDebit = computed(() => {
-  return balanceRows.value.reduce((sum, r) => sum + (Number(r.debit) || 0), 0)
+  return activeWorkingRows.value.reduce((sum, r) => sum + (Number(r.debit) || 0), 0)
 })
 
 const totalCredit = computed(() => {
-  return balanceRows.value.reduce((sum, r) => sum + (Number(r.credit) || 0), 0)
+  return activeWorkingRows.value.reduce((sum, r) => sum + (Number(r.credit) || 0), 0)
 })
 
 const difference = computed(() => {
-  return totalDebit.value - totalCredit.value
+  return Math.round((totalDebit.value - totalCredit.value) * 100) / 100
 })
 
 const isBalanced = computed(() => {
   return Math.abs(difference.value) < 0.01 && totalDebit.value > 0
 })
 
-// Action: Muat Angka Standar Saldo Awal Klinik (Simulasi Demo)
-function loadClinicStandardBalances() {
-  const sampleMap: Record<string, { debit?: number; credit?: number; notes?: string }> = {
-    '1-1110': { debit: 5000000, notes: 'Kas Kecil Operasional' },
-    '1-1111': { debit: 12500000, notes: 'Kas Kasir Kidinest' },
-    '1-1112': { debit: 18500000, notes: 'Kas Kasir SSC' },
-    '1-1113': { debit: 145000000, notes: 'Bank BCA Operasional' },
-    '1-1114': { debit: 85000000, notes: 'Bank Mandiri Payroll' },
-    '1-1310': { debit: 42000000, notes: 'Stok Obat & Vaksin Anak Kidinest' },
-    '1-1330': { debit: 58000000, notes: 'Stok Produk Skincare SSC' },
-    '1-2100': { debit: 250000000, notes: 'Alkes USG 4D Kidinest' },
-    '1-2200': { debit: 380000000, notes: 'Mesin Laser Estetika SSC' },
-    '2-1110': { credit: 24500000, notes: 'Hutang Distributor Obat PBF' },
-    '2-1115': { credit: 31000000, notes: 'Hutang Supplier Skincare SSC' },
-    '3-1100': { credit: 940500000, notes: 'Modal Disetor Pemilik Klinik' }
-  }
+// Asset, Liability, Equity Breakdown
+const totalAsset = computed(() => {
+  return activeWorkingRows.value
+    .filter(r => r.type === 'ASSET')
+    .reduce((sum, r) => sum + (Number(r.debit) || 0) - (Number(r.credit) || 0), 0)
+})
 
-  balanceRows.value = Object.entries(sampleMap).map(([code, data]) => {
-    const acc = ledgerStore.accounts.find(a => a.code === code)
-    return {
-      code,
-      name: acc?.name || code,
-      type: acc?.type,
-      normalBalance: acc?.normalBalance,
-      unit: acc?.businessUnit || 'ALL',
-      debit: data.debit || 0,
-      credit: data.credit || 0,
-      notes: data.notes || 'Migrasi Standar Klinik'
-    }
-  })
-  accountingStore.showToast('Template Saldo Awal Standar Klinik berhasil dimuat!', 'info')
-}
+const totalLiability = computed(() => {
+  return activeWorkingRows.value
+    .filter(r => r.type === 'LIABILITY')
+    .reduce((sum, r) => sum + (Number(r.credit) || 0) - (Number(r.debit) || 0), 0)
+})
 
-// Action: Seimbangkan Otomatis ke Akun Ekuitas Saldo Awal (3999)
+const totalEquity = computed(() => {
+  return activeWorkingRows.value
+    .filter(r => r.type === 'EQUITY')
+    .reduce((sum, r) => sum + (Number(r.credit) || 0) - (Number(r.debit) || 0), 0)
+})
+
+// Auto-Balance to Equity (3999 Opening Balance Equity)
 function autoBalanceToEquity() {
   const diff = difference.value
   if (Math.abs(diff) < 0.01) {
-    accountingStore.showToast('Saldo awal sudah seimbang!', 'info')
+    accountingStore.showToast('Saldo Awal sudah seimbang!', 'info')
     return
   }
 
-  // Find 3-9999 / 3999 - Opening Balance Equity
-  let eqRow = balanceRows.value.find(r => r.code === '3-9999' || r.code === '3999' || r.code.includes('9999'))
+  const targetList = activeMode.value === 'COA_MATRIX' ? matrixRows.value : customRows.value
+
+  // Look for 3999 or 3-9999
+  let eqRow = targetList.find(r => r.code === '3999' || r.code === '3-9999' || r.code.includes('9999'))
+
   if (!eqRow) {
-    const acc = ledgerStore.accounts.find(a => a.code === '3-9999' || a.code === '3999') ||
+    const acc = ledgerStore.accounts.find(a => a.code === '3999' || a.code === '3-9999') ||
                 ledgerStore.accounts.find(a => a.type === 'EQUITY' && !a.isHeader)
     if (!acc) {
-      accountingStore.showToast('Akun penyeimbang saldo awal (3-9999) tidak ditemukan', 'error')
+      accountingStore.showToast('Akun penyeimbang modal (3999 Opening Balance Equity) tidak ditemukan!', 'error')
       return
     }
     eqRow = {
@@ -216,7 +181,7 @@ function autoBalanceToEquity() {
       credit: 0,
       notes: 'Penyeimbang Saldo Awal'
     }
-    balanceRows.value.push(eqRow)
+    targetList.push(eqRow)
   }
 
   if (diff > 0) {
@@ -229,92 +194,192 @@ function autoBalanceToEquity() {
     eqRow.notes = 'Penyeimbang selisih kredit saldo awal'
   }
 
-  accountingStore.showToast(`Selisih Rp ${formatIDR(Math.abs(diff))} dialokasikan ke ${eqRow.code} - ${eqRow.name}!`, 'success')
+  accountingStore.showToast(`Selisih Rp ${formatIDR(Math.abs(diff))} dialokasikan ke akun ${eqRow.code} - ${eqRow.name}!`, 'success')
 }
 
-// Action: Reset Saldo Awal
-function resetAllBalances() {
-  if (confirm('Kosongkan seluruh baris input saldo awal?')) {
-    balanceRows.value = [
-      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' },
-      { code: '', name: '', debit: 0, credit: 0, notes: '', unit: selectedUnit.value || 'ALL' }
-    ]
-    accountingStore.showToast('Seluruh input saldo awal dikosongkan', 'info')
+// Load Standard Template
+function loadBcsTemplate() {
+  // Preset standard realistic clinic balances
+  const templateMap: Record<string, { debit?: number; credit?: number; notes: string }> = {
+    '1101.001': { debit: 45200000, notes: 'Kas Kasir Kidinest' },
+    '1101.002': { debit: 38400000, notes: 'Kas Kasir SSC' },
+    '1101.003': { debit: 5000000, notes: 'Kas Kecil Petty Cash' },
+    '1102.001': { debit: 680964487.55, notes: 'Bank BCA Giro & EDC' },
+    '1102.002': { debit: 493864533.33, notes: 'Bank Mandiri Operasional' },
+    '1102.003': { debit: 14500000, notes: 'QRIS Transit Settlement' },
+    '1201': { debit: 485600000, notes: 'Piutang Pasien Perawatan' },
+    '1202.001': { debit: 420000000, notes: 'Piutang Klaim Sinarmas' },
+    '1202.002': { debit: 465000000, notes: 'Piutang Klaim Prudential' },
+    '1301': { debit: 4885000000, notes: 'Persediaan Obat Resep Kidinest' },
+    '1302': { debit: 6442748296.88, notes: 'Persediaan Produk Skincare SSC' },
+    '1303': { debit: 3208000000, notes: 'Persediaan Bahan Medis (BMHP)' },
+    '1304': { debit: 4800000000, notes: 'Persediaan Vaksin Anak' },
+    '1601': { debit: 350000000, notes: 'Renovasi Interior Klinik' },
+    '1602': { debit: 500000000, notes: 'Mesin Laser Nd:YAG SSC' },
+    '1603': { debit: 250000000, notes: 'Peralatan USG 4D Poli Anak' },
+    '1606': { credit: 155000000, notes: 'Akumulasi Penyusutan Alkes' },
+    '2101.001': { credit: 35500000, notes: 'Uang Muka Reservasi Poli Anak' },
+    '2102.001': { credit: 1904190360, notes: 'Deposit Paket Skincare Pasien' },
+    '2201': { credit: 2800000, notes: 'Hutang PBF Kimia Farma' },
+    '2202': { credit: 1500000, notes: 'Hutang Supplier Kosmetika SSC' },
+    '2301': { credit: 85000000, notes: 'Hutang Bagi Hasil Dokter' },
+    '2501.001': { credit: 22374594, notes: 'Hutang PPh 21 Dokter' },
+    '2502': { credit: 2400000, notes: 'Hutang PPh 23 Limbah Medis B3' },
+    '2503': { credit: 5000000, notes: 'Hutang PPh Final 4(2) Sewa' },
+    '2504': { credit: 9475055, notes: 'Hutang PPN Keluaran' },
+    '3101': { credit: 2367382942.15, notes: 'Modal Disetor Pemilik Klinik' },
+    '3201': { credit: 14132108388.64, notes: 'Laba Ditahan Periode Lalu' }
+  }
+
+  matrixRows.value.forEach(row => {
+    const t = templateMap[row.code]
+    if (t) {
+      row.debit = t.debit || 0
+      row.credit = t.credit || 0
+      row.notes = t.notes
+    } else {
+      row.debit = 0
+      row.credit = 0
+    }
+  })
+
+  autoBalanceToEquity()
+  accountingStore.showToast('Template Saldo Awal Standar BCS berhasil dimuat!', 'success')
+}
+
+// Reset Balances
+function resetBalances() {
+  if (confirm('Kosongkan seluruh nilai saldo awal pada tabel aktif?')) {
+    if (activeMode.value === 'COA_MATRIX') {
+      matrixRows.value.forEach(r => {
+        r.debit = 0
+        r.credit = 0
+        r.notes = ''
+      })
+    } else {
+      customRows.value = [
+        { code: '', name: '', type: 'ASSET', normalBalance: 'DEBIT', unit: 'ALL', debit: 0, credit: 0, notes: '' }
+      ]
+    }
+    accountingStore.showToast('Seluruh input saldo awal berhasil dikosongkan.', 'info')
   }
 }
 
-// Action: Simpan & Posting Saldo Awal ke Database
+// Custom Row Helpers
+function addCustomRow() {
+  customRows.value.push({
+    code: '',
+    name: '',
+    type: 'ASSET',
+    normalBalance: 'DEBIT',
+    unit: selectedUnit.value || 'ALL',
+    debit: 0,
+    credit: 0,
+    notes: ''
+  })
+}
+
+function removeCustomRow(index: number) {
+  if (customRows.value.length > 1) {
+    customRows.value.splice(index, 1)
+  }
+}
+
+function onCustomAccountSelect(index: number, code: string) {
+  const acc = ledgerStore.accounts.find(a => a.code === code)
+  if (acc && customRows.value[index]) {
+    customRows.value[index].code = acc.code
+    customRows.value[index].name = acc.name
+    customRows.value[index].type = acc.type
+    customRows.value[index].normalBalance = acc.normalBalance
+    customRows.value[index].unit = acc.businessUnit || selectedUnit.value || 'ALL'
+  }
+}
+
+// Submit & Post Opening Balance
 const isSubmitting = ref(false)
+
 async function handleSaveOpeningBalance() {
   if (!isBalanced.value) {
-    accountingStore.showToast(`Saldo Awal belum seimbang! Terdapat selisih Rp ${formatIDR(Math.abs(difference.value))}. Klik 'Seimbangkan Otomatis' atau koreksi input.`, 'error')
+    accountingStore.showToast(`Saldo Awal belum seimbang! Selisih Rp ${formatIDR(Math.abs(difference.value))}. Klik 'Seimbangkan ke Ekuitas' terlebih dahulu.`, 'error')
+    return
+  }
+
+  const validLines = activeWorkingRows.value
+    .filter(r => (Number(r.debit) > 0 || Number(r.credit) > 0))
+    .map(r => ({
+      accountCode: r.code,
+      accountName: r.name,
+      debit: Number(r.debit) || 0,
+      credit: Number(r.credit) || 0,
+      description: r.notes || `Saldo Awal ${r.code} - ${r.name}`
+    }))
+
+  if (validLines.length === 0) {
+    accountingStore.showToast('Harap masukkan minimal satu baris akun dengan nominal saldo!', 'error')
     return
   }
 
   try {
     isSubmitting.value = true
 
-    const lines = balanceRows.value
-      .filter(r => (Number(r.debit) > 0 || Number(r.credit) > 0))
-      .map(r => ({
-        accountCode: r.code,
-        accountName: r.name,
-        debit: Number(r.debit) || 0,
-        credit: Number(r.credit) || 0,
-        description: r.notes || `Saldo Awal ${r.code} - ${r.name}`
-      }))
-
     await ledgerStore.saveOpeningBalance({
       cutOffDate: cutOffDate.value,
-      referenceNo: referenceNo.value,
+      referenceNo: referenceNo.value || `OP-${cutOffDate.value.replace(/-/g, '')}`,
       businessUnit: selectedUnit.value,
       description: description.value,
-      lines
+      lines: validLines
     })
 
-    // Navigate to General Ledger or Journals to see result
-    setTimeout(() => {
-      router.push('/accounting/ledger')
-    }, 1500)
+    accountingStore.showToast(
+      `Saldo Awal Akuntansi per ${cutOffDate.value} berhasil diposting ke database PostgreSQL!`,
+      'success'
+    )
+
+    router.push('/accounting/chart-of-accounts')
   } catch (err: any) {
-    console.error(err)
+    accountingStore.showToast(`Gagal menyimpan saldo awal: ${err.message}`, 'error')
   } finally {
     isSubmitting.value = false
   }
 }
-
-// Print / Cetak Saldo Awal
-function handlePrint() {
-  window.print()
-}
 </script>
 
 <template>
-  <div class="space-y-5 font-['Plus_Jakarta_Sans',sans-serif] pb-24">
-    <!-- Minimalist Clinical Header -->
+  <div class="space-y-6 font-['Plus_Jakarta_Sans',sans-serif] pb-24">
+    <!-- Header with Breadcrumb -->
     <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-            Setup Buku Besar & Migrasi
-          </span>
-          <span class="text-zinc-300">•</span>
-          <span class="text-xs text-zinc-400 font-medium">Semarang Medical Group</span>
+      <div class="flex items-center gap-3">
+        <button
+          @click="router.push('/accounting/chart-of-accounts')"
+          class="p-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Kembali ke Bagan Akun"
+        >
+          <ArrowLeft class="w-4 h-4" />
+        </button>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+              Setup Buku Besar & Migrasi
+            </span>
+            <span class="text-zinc-300">•</span>
+            <span class="text-xs text-zinc-400 font-medium">Bagan Akun BCS 106 Akun</span>
+          </div>
+          <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
+            Saldo Awal Akuntansi (Opening Balance Engine)
+          </h1>
         </div>
-        <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
-          Saldo Awal Akuntansi (Cut-Off)
-        </h1>
       </div>
 
-      <!-- Quick Actions -->
+      <!-- Action Presets -->
       <div class="flex flex-wrap items-center gap-2">
         <button
-          @click="loadClinicStandardBalances"
-          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold transition-all border border-zinc-200 shadow-2xs cursor-pointer active:scale-95"
-          title="Muat nilai saldo awal standar Klinik"
+          @click="loadBcsTemplate"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold transition border border-zinc-200 shadow-2xs cursor-pointer active:scale-95"
+          title="Muat nilai saldo awal standar BCS"
         >
           <FolderOpen class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Muat Data Standar Klinik</span>
+          <span>Muat Template Standar BCS</span>
         </button>
 
         <button
@@ -332,20 +397,20 @@ function handlePrint() {
         </button>
 
         <button
-          @click="handlePrint"
-          class="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold transition border border-zinc-200 shadow-2xs cursor-pointer"
+          @click="resetBalances"
+          class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-zinc-100 text-zinc-700 rounded-xl text-xs font-bold transition border border-zinc-200 shadow-2xs cursor-pointer"
         >
-          <Printer class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Cetak</span>
+          <RotateCcw class="w-3.5 h-3.5 text-zinc-500" />
+          <span>Reset Input</span>
         </button>
       </div>
     </header>
 
-    <!-- Configuration Form Bar -->
+    <!-- Header Metadata Configuration -->
     <div class="bg-white p-5 rounded-2xl border border-zinc-200/90 shadow-2xs grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
       <div>
         <label class="block font-bold text-zinc-700 mb-1 flex items-center gap-1">
-          <Calendar class="w-3.5 h-3.5 text-zinc-600" />
+          <Calendar class="w-3.5 h-3.5 text-zinc-500" />
           <span>Tanggal Cut-Off Saldo Awal:</span>
         </label>
         <input
@@ -357,20 +422,20 @@ function handlePrint() {
 
       <div>
         <label class="block font-bold text-zinc-700 mb-1 flex items-center gap-1">
-          <FileText class="w-3.5 h-3.5 text-zinc-600" />
+          <FileText class="w-3.5 h-3.5 text-zinc-500" />
           <span>Nomor Dokumen Bukti:</span>
         </label>
         <input
           v-model="referenceNo"
           type="text"
-          placeholder="OP-20260101-CLINIC"
+          placeholder="OP-20260101-BCS"
           class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono font-bold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
         />
       </div>
 
       <div>
         <label class="block font-bold text-zinc-700 mb-1 flex items-center gap-1">
-          <Building2 class="w-3.5 h-3.5 text-zinc-600" />
+          <Building2 class="w-3.5 h-3.5 text-zinc-500" />
           <span>Unit Bisnis:</span>
         </label>
         <select
@@ -378,361 +443,301 @@ function handlePrint() {
           class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
         >
           <option value="ALL">Semua Unit (Konsolidasi)</option>
-          <option value="KIDINEST">Unit Kidinest (Klinik Spesialis Anak)</option>
+          <option value="KIDINEST">Unit Kidinest (Poli Anak)</option>
           <option value="SSC">Unit Semarang Skin Center (SSC)</option>
         </select>
       </div>
 
       <div>
-        <label class="block font-bold text-zinc-700 mb-1">Keterangan Dokumen Saldo Awal:</label>
+        <label class="block font-bold text-zinc-700 mb-1">Keterangan Memo Saldo Awal:</label>
         <input
           v-model="description"
           type="text"
-          class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-800 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+          class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
         />
       </div>
     </div>
 
-    <!-- Real-time Balance Status Bar -->
-    <div
-      :class="[
-        'p-5 rounded-2xl border transition-all shadow-2xs',
-        isBalanced
-          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
-          : 'bg-amber-50/70 border-amber-200 text-amber-950'
-      ]"
-    >
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <!-- Status Indicator -->
-        <div class="flex items-center gap-3">
-          <div
-            :class="[
-              'w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shrink-0',
-              isBalanced ? 'bg-emerald-600 shadow-2xs' : 'bg-amber-600 shadow-2xs'
-            ]"
-          >
-            <CheckCircle2 v-if="isBalanced" class="w-5 h-5" />
-            <AlertTriangle v-else class="w-5 h-5" />
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-black uppercase tracking-wider">
-                {{ isBalanced ? 'STATUS: SEIMBANG (BALANCED)' : 'STATUS: BELUM SEIMBANG' }}
-              </span>
-              <span
-                v-if="isBalanced"
-                class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]"
-              >
-                Siap Diposting ke Buku Besar
-              </span>
-              <span
-                v-else
-                class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px]"
-              >
-                Debit & Kredit Wajib Sama
-              </span>
-            </div>
-            <p class="text-xs mt-0.5 opacity-90">
-              {{
-                isBalanced
-                  ? 'Total Debit sama persis dengan Total Kredit. Jurnal Saldo Awal dapat diposting ke database.'
-                  : `Terdapat selisih sebesar Rp ${formatIDR(Math.abs(difference))}. Gunakan tombol "Seimbangkan ke Akun Ekuitas" untuk alokasi otomatis.`
-              }}
-            </p>
-          </div>
-        </div>
+    <!-- Accounting Equation Summary Bar (Aktiva = Pasiva) -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+      <!-- Total Aktiva (Aset) -->
+      <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs">
+        <span class="text-[10px] font-bold text-zinc-500 uppercase block">1. Total Aktiva (Aset)</span>
+        <span class="text-base font-extrabold text-emerald-700 font-mono block mt-1">
+          Rp {{ formatIDR(totalAsset) }}
+        </span>
+      </div>
 
-        <!-- Metric Numbers -->
-        <div class="flex flex-wrap items-center gap-4 lg:gap-6 bg-white/90 px-4 py-2.5 rounded-xl border border-zinc-200/80 shadow-2xs">
-          <div>
-            <span class="text-[10px] font-bold text-zinc-500 uppercase block">Total Debit:</span>
-            <span class="tabular-nums text-sm font-extrabold text-zinc-950">Rp {{ formatIDR(totalDebit) }}</span>
-          </div>
-          <div class="h-8 w-px bg-zinc-200"></div>
-          <div>
-            <span class="text-[10px] font-bold text-zinc-500 uppercase block">Total Kredit:</span>
-            <span class="tabular-nums text-sm font-extrabold text-zinc-950">Rp {{ formatIDR(totalCredit) }}</span>
-          </div>
-          <div class="h-8 w-px bg-zinc-200"></div>
-          <div>
-            <span class="text-[10px] font-bold text-zinc-500 uppercase block">Selisih:</span>
-            <span
-              :class="[
-                'tabular-nums text-sm font-extrabold',
-                isBalanced ? 'text-emerald-700' : 'text-rose-600'
-              ]"
-            >
-              Rp {{ formatIDR(Math.abs(difference)) }}
-            </span>
-          </div>
+      <!-- Total Kewajiban (Liability) -->
+      <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs">
+        <span class="text-[10px] font-bold text-zinc-500 uppercase block">2. Total Kewajiban (Hutang)</span>
+        <span class="text-base font-extrabold text-rose-700 font-mono block mt-1">
+          Rp {{ formatIDR(totalLiability) }}
+        </span>
+      </div>
+
+      <!-- Total Ekuitas (Modal) -->
+      <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs">
+        <span class="text-[10px] font-bold text-zinc-500 uppercase block">3. Total Ekuitas (Modal)</span>
+        <span class="text-base font-extrabold text-blue-700 font-mono block mt-1">
+          Rp {{ formatIDR(totalEquity) }}
+        </span>
+      </div>
+
+      <!-- Balance Status Card -->
+      <div
+        :class="[
+          'p-4 rounded-2xl border flex flex-col justify-between shadow-2xs',
+          isBalanced
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
+            : 'bg-amber-50 border-amber-200 text-amber-950'
+        ]"
+      >
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-black uppercase tracking-wider">
+            {{ isBalanced ? '✓ NERACA SEIMBANG' : '⚠ BELUM SEIMBANG' }}
+          </span>
+          <span
+            :class="[
+              'w-2 h-2 rounded-full',
+              isBalanced ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+            ]"
+          ></span>
+        </div>
+        <div class="mt-1 font-mono">
+          <span class="text-[10px] opacity-75 block">Selisih Debit - Kredit:</span>
+          <span :class="['text-sm font-extrabold', isBalanced ? 'text-emerald-800' : 'text-rose-700']">
+            Rp {{ formatIDR(Math.abs(difference)) }}
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Dynamic Row Input Table (Opsi A: Minimalis & Cepat) -->
-    <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
-      <!-- Toolbar Header -->
-      <div class="p-4 border-b border-zinc-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50">
-        <div class="flex items-center gap-2">
-          <Scale class="w-4 h-4 text-zinc-700" />
-          <span class="text-xs font-bold text-zinc-900">
-            Daftar Baris Akun Bersaldo ({{ balanceRows.length }} Baris Dimasukkan)
-          </span>
-          <span class="text-[11px] text-zinc-500 hidden sm:inline">
-            &bull; Masukkan hanya akun yang memiliki saldo awal (seperti Jurnal Migrasi)
-          </span>
-        </div>
+    <!-- Mode Selector Tabs: COA Matrix vs Custom Rows -->
+    <div class="flex items-center justify-between gap-4 border-b border-zinc-200 pb-2">
+      <div class="flex items-center gap-2">
+        <button
+          @click="activeMode = 'COA_MATRIX'"
+          :class="[
+            'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer',
+            activeMode === 'COA_MATRIX'
+              ? 'bg-zinc-950 text-white shadow-2xs'
+              : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
+          ]"
+        >
+          <TableProperties class="w-4 h-4" />
+          <span>Matriks Seluruh Bagan Akun COA ({{ matrixRows.length }} Akun)</span>
+        </button>
 
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            @click="addRow"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
-          >
-            <Plus class="w-3.5 h-3.5" />
-            <span>Tambah Akun</span>
-          </button>
-          <button
-            type="button"
-            @click="resetAllBalances"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-100 text-zinc-700 rounded-xl text-xs font-bold transition-all border border-zinc-200 shadow-2xs cursor-pointer"
-          >
-            <RotateCcw class="w-3.5 h-3.5 text-zinc-500" />
-            <span>Reset</span>
-          </button>
-        </div>
+        <button
+          @click="activeMode = 'CUSTOM_ROWS'"
+          :class="[
+            'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer',
+            activeMode === 'CUSTOM_ROWS'
+              ? 'bg-zinc-950 text-white shadow-2xs'
+              : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
+          ]"
+        >
+          <ListPlus class="w-4 h-4" />
+          <span>Entri Baris Kustom Cepat ({{ customRows.length }} Baris)</span>
+        </button>
       </div>
 
-      <!-- Main Input Table -->
-      <div class="overflow-x-auto">
+      <!-- Quick Search Bar (For Matrix Mode) -->
+      <div v-if="activeMode === 'COA_MATRIX'" class="flex items-center gap-2">
+        <select
+          v-model="selectedTypeFilter"
+          class="px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs font-bold text-zinc-800 focus:outline-none"
+        >
+          <option value="ALL">Semua Kategori</option>
+          <option value="ASSET">Aset (1)</option>
+          <option value="LIABILITY">Kewajiban (2)</option>
+          <option value="EQUITY">Ekuitas (3)</option>
+        </select>
+        <div class="relative w-48 sm:w-64">
+          <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
+          <input
+            v-model="matrixSearch"
+            type="text"
+            placeholder="Cari kode / nama akun..."
+            class="w-full pl-8 pr-3 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- MODE 1: MATRIKS SELURUH BAGAN AKUN (COA MATRIX) -->
+    <div v-if="activeMode === 'COA_MATRIX'" class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
+      <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
         <table class="w-full text-xs text-left">
-          <thead class="bg-zinc-50 text-zinc-600 font-bold border-b border-zinc-200/90 uppercase tracking-wider text-[11px]">
+          <thead class="bg-zinc-50 text-zinc-600 font-bold border-b border-zinc-200 sticky top-0 z-10 uppercase tracking-wider text-[11px]">
             <tr>
-              <th class="px-3 py-3 w-12 text-center">#</th>
-              <th class="px-4 py-3 min-w-[280px]">Akun Saldo Awal (Bagan Akun COA)</th>
-              <th class="px-3 py-3 w-28 text-center">Unit Bisnis</th>
+              <th class="px-3 py-3 w-10 text-center">#</th>
+              <th class="px-4 py-3 min-w-[280px]">Bagan Akun (Kode & Nama)</th>
+              <th class="px-3 py-3 w-28 text-center">Kategori</th>
               <th class="px-3 py-3 w-24 text-center">Saldo Normal</th>
-              <th class="px-4 py-3 w-48 text-right">Saldo Awal Debit (Rp)</th>
+              <th class="px-4 py-3 w-48 text-right">Saldo Awal Debet (Rp)</th>
               <th class="px-4 py-3 w-48 text-right">Saldo Awal Kredit (Rp)</th>
-              <th class="px-4 py-3 min-w-[180px]">Catatan / Keterangan</th>
-              <th class="px-3 py-3 w-12 text-center">Hapus</th>
+              <th class="px-4 py-3 min-w-[180px]">Keterangan / Catatan</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-zinc-100 text-zinc-700">
             <tr
-              v-for="(row, idx) in balanceRows"
-              :key="idx"
+              v-for="(row, idx) in filteredMatrixRows"
+              :key="row.code"
               :class="[
                 'hover:bg-zinc-50/70 transition',
-                (Number(row.debit) > 0 || Number(row.credit) > 0) ? 'bg-zinc-50/40' : ''
+                (Number(row.debit) > 0 || Number(row.credit) > 0) ? 'bg-amber-50/20 font-medium' : ''
               ]"
             >
-              <!-- Index -->
-              <td class="px-3 py-2 text-center font-mono font-bold text-zinc-400">
+              <td class="px-3 py-2 text-center text-zinc-400 font-mono text-[11px]">
                 {{ idx + 1 }}
               </td>
 
-              <!-- Akun Saldo Awal with SearchableSelect -->
               <td class="px-4 py-2">
-                <SearchableSelect
-                  :model-value="row.code"
-                  :options="accountSelectOptions"
-                  placeholder="Pilih atau cari akun COA..."
-                  @update:model-value="(val: any) => onAccountSelect(idx, String(val))"
+                <span class="font-mono font-bold text-zinc-900 mr-1.5">{{ row.code }}</span>
+                <span>{{ row.name }}</span>
+              </td>
+
+              <td class="px-3 py-2 text-center">
+                <span
+                  :class="[
+                    'px-2 py-0.5 rounded text-[10px] font-bold uppercase',
+                    row.type === 'ASSET' ? 'bg-emerald-50 text-emerald-800' :
+                    row.type === 'LIABILITY' ? 'bg-rose-50 text-rose-800' :
+                    'bg-blue-50 text-blue-800'
+                  ]"
+                >
+                  {{ row.type }}
+                </span>
+              </td>
+
+              <td class="px-3 py-2 text-center font-mono text-[11px] font-bold text-zinc-500">
+                {{ row.normalBalance }}
+              </td>
+
+              <!-- Debit Input -->
+              <td class="px-4 py-1.5 text-right">
+                <input
+                  v-model.number="row.debit"
+                  type="number"
+                  min="0"
+                  step="any"
+                  class="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                  placeholder="0"
                 />
               </td>
 
-              <!-- Unit Bisnis -->
+              <!-- Credit Input -->
+              <td class="px-4 py-1.5 text-right">
+                <input
+                  v-model.number="row.credit"
+                  type="number"
+                  min="0"
+                  step="any"
+                  class="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-rose-700 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                  placeholder="0"
+                />
+              </td>
+
+              <!-- Notes -->
+              <td class="px-4 py-1.5">
+                <input
+                  v-model="row.notes"
+                  type="text"
+                  placeholder="Catatan saldo awal..."
+                  class="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-800 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MODE 2: ENTRI BARIS KUSTOM CEPAT (CUSTOM ROWS) -->
+    <div v-else class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
+      <div class="p-4 border-b border-zinc-200/90 flex items-center justify-between bg-zinc-50/50">
+        <span class="text-xs font-bold text-zinc-900">
+          Entri Akun Bersaldo Spesifik ({{ customRows.length }} Baris)
+        </span>
+        <button
+          type="button"
+          @click="addCustomRow"
+          class="inline-flex items-center gap-1 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+        >
+          <Plus class="w-3.5 h-3.5" />
+          <span>Tambah Baris</span>
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-zinc-50 text-zinc-600 font-bold border-b border-zinc-200 uppercase tracking-wider text-[11px]">
+            <tr>
+              <th class="px-3 py-3 w-10 text-center">#</th>
+              <th class="px-4 py-3 min-w-[280px]">Pilih Akun COA</th>
+              <th class="px-3 py-3 w-28 text-center">Unit</th>
+              <th class="px-4 py-3 w-48 text-right">Saldo Debet (Rp)</th>
+              <th class="px-4 py-3 w-48 text-right">Saldo Kredit (Rp)</th>
+              <th class="px-4 py-3 min-w-[180px]">Catatan Baris</th>
+              <th class="px-3 py-3 w-12 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-100 text-zinc-700">
+            <tr v-for="(row, idx) in customRows" :key="idx" class="hover:bg-zinc-50/70 transition">
+              <td class="px-3 py-3 text-center text-zinc-400 font-mono">{{ idx + 1 }}</td>
+              <td class="px-4 py-2">
+                <SearchableSelect
+                  :model-value="row.code"
+                  :options="ledgerStore.accounts.filter(a => !a.isHeader).map(a => ({ value: a.code, label: `[${a.code}] ${a.name}`, sublabel: a.type }))"
+                  placeholder="-- Pilih Akun --"
+                  @update:model-value="(code: any) => onCustomAccountSelect(idx, String(code))"
+                />
+              </td>
               <td class="px-3 py-2 text-center">
-                <select
-                  v-model="row.unit"
-                  class="w-full px-2 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
-                >
+                <select v-model="row.unit" class="px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-bold text-zinc-800">
                   <option value="ALL">ALL</option>
                   <option value="KIDINEST">Kidinest</option>
                   <option value="SSC">SSC</option>
                 </select>
               </td>
-
-              <!-- Normal Balance Badge -->
+              <td class="px-4 py-2 text-right">
+                <input v-model.number="row.debit" type="number" min="0" step="any" class="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:outline-none" placeholder="0" />
+              </td>
+              <td class="px-4 py-2 text-right">
+                <input v-model.number="row.credit" type="number" min="0" step="any" class="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-rose-700 focus:outline-none" placeholder="0" />
+              </td>
+              <td class="px-4 py-2">
+                <input v-model="row.notes" type="text" placeholder="Catatan..." class="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-800 focus:outline-none" />
+              </td>
               <td class="px-3 py-2 text-center">
-                <span
-                  v-if="row.normalBalance"
-                  :class="[
-                    'px-2 py-0.5 rounded text-[10px] font-bold',
-                    row.normalBalance === 'DEBIT'
-                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-800 border border-rose-200'
-                  ]"
-                >
-                  {{ row.normalBalance }}
-                </span>
-                <span v-else class="text-zinc-400">-</span>
-              </td>
-
-              <!-- Input Debit -->
-              <td class="px-4 py-2">
-                <div class="relative">
-                  <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-[10px]">Rp</span>
-                  <input
-                    v-model.number="row.debit"
-                    type="number"
-                    step="any"
-                    min="0"
-                    placeholder="0"
-                    :class="[
-                      'w-full pl-8 pr-2.5 py-1.5 rounded-xl border tabular-nums text-right text-xs transition focus:outline-none',
-                      Number(row.debit) > 0
-                        ? 'border-zinc-900 bg-white font-bold text-zinc-950 ring-1 ring-zinc-900'
-                        : 'border-zinc-200 bg-white text-zinc-600 focus:border-zinc-900'
-                    ]"
-                  />
-                </div>
-              </td>
-
-              <!-- Input Kredit -->
-              <td class="px-4 py-2">
-                <div class="relative">
-                  <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-[10px]">Rp</span>
-                  <input
-                    v-model.number="row.credit"
-                    type="number"
-                    step="any"
-                    min="0"
-                    placeholder="0"
-                    :class="[
-                      'w-full pl-8 pr-2.5 py-1.5 rounded-xl border tabular-nums text-right text-xs transition focus:outline-none',
-                      Number(row.credit) > 0
-                        ? 'border-zinc-900 bg-white font-bold text-zinc-950 ring-1 ring-zinc-900'
-                        : 'border-zinc-200 bg-white text-zinc-600 focus:border-zinc-900'
-                    ]"
-                  />
-                </div>
-              </td>
-
-              <!-- Catatan -->
-              <td class="px-4 py-2">
-                <input
-                  v-model="row.notes"
-                  type="text"
-                  placeholder="Keterangan saldo..."
-                  class="w-full px-2.5 py-1.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-                />
-              </td>
-
-              <!-- Hapus Row -->
-              <td class="px-3 py-2 text-center">
-                <button
-                  type="button"
-                  @click="removeRow(idx)"
-                  class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                  title="Hapus baris ini"
-                >
+                <button type="button" @click="removeCustomRow(idx)" class="p-1.5 text-zinc-400 hover:text-rose-600 rounded-lg transition">
                   <Trash2 class="w-3.5 h-3.5" />
                 </button>
               </td>
             </tr>
-
-            <tr v-if="balanceRows.length === 0">
-              <td colspan="8" class="p-8 text-center text-zinc-400 italic">
-                Belum ada baris akun. Klik "Tambah Akun" atau "Muat Data Standar Klinik".
-              </td>
-            </tr>
           </tbody>
-
-          <!-- Table Footer Summary -->
-          <tfoot class="bg-zinc-50 font-bold border-t border-zinc-200 text-zinc-900">
-            <tr>
-              <td colspan="4" class="px-4 py-3 text-right uppercase tracking-wider text-[11px] text-zinc-500">
-                Total Saldo Awal ({{ balanceRows.length }} Baris):
-              </td>
-              <td class="px-4 py-3 text-right tabular-nums text-sm font-extrabold text-zinc-950">
-                Rp {{ formatIDR(totalDebit) }}
-              </td>
-              <td class="px-4 py-3 text-right tabular-nums text-sm font-extrabold text-zinc-950">
-                Rp {{ formatIDR(totalCredit) }}
-              </td>
-              <td colspan="2" class="px-4 py-3 text-right">
-                <span
-                  :class="[
-                    'px-2 py-0.5 rounded text-[10px] font-black uppercase',
-                    isBalanced
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                      : 'bg-rose-100 text-rose-800 border border-rose-300'
-                  ]"
-                >
-                  {{ isBalanced ? 'SEIMBANG' : `SELISIH: Rp ${formatIDR(Math.abs(difference))}` }}
-                </span>
-              </td>
-            </tr>
-          </tfoot>
         </table>
-      </div>
-
-      <!-- Add Row Bottom Action -->
-      <div class="p-3 bg-zinc-50/50 border-t border-zinc-200/90 flex justify-center">
-        <button
-          type="button"
-          @click="addRow"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-zinc-100 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all cursor-pointer active:scale-95"
-        >
-          <Plus class="w-4 h-4 text-zinc-600" />
-          <span>Tambah Baris Akun Saldo Awal</span>
-        </button>
       </div>
     </div>
 
-    <!-- Sticky Bottom Balance Bar (Clinical Fast-Action Dock) -->
-    <div class="fixed bottom-4 left-68 right-8 z-30 bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-300/90 p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex flex-wrap items-center gap-5 text-xs">
-        <div>
-          <span class="text-[10px] uppercase font-bold text-zinc-500">Total Debit</span>
-          <div class="text-sm font-extrabold tabular-nums text-zinc-950">Rp {{ formatIDR(totalDebit) }}</div>
-        </div>
-        <div class="w-px h-7 bg-zinc-200"></div>
-        <div>
-          <span class="text-[10px] uppercase font-bold text-zinc-500">Total Kredit</span>
-          <div class="text-sm font-extrabold tabular-nums text-zinc-950">Rp {{ formatIDR(totalCredit) }}</div>
-        </div>
-        <div class="w-px h-7 bg-zinc-200"></div>
-        <div>
-          <span class="text-[10px] uppercase font-bold text-zinc-500">Keseimbangan Neraca</span>
-          <div class="mt-0.5">
-            <span
-              :class="[
-                'px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5',
-                isBalanced
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  : 'bg-rose-50 text-rose-800 border border-rose-200'
-              ]"
-            >
-              <span :class="['w-1.5 h-1.5 rounded-full', isBalanced ? 'bg-emerald-500' : 'bg-rose-500']"></span>
-              <span>{{ isBalanced ? 'SEIMBANG (Rp 0)' : `SELISIH: Rp ${formatIDR(Math.abs(difference))}` }}</span>
-            </span>
-          </div>
-        </div>
+    <!-- Bottom Submission Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+      <div class="text-xs text-zinc-500 flex items-center gap-2">
+        <span class="font-bold text-zinc-700">Total Akun Terisi:</span>
+        <span class="font-mono font-bold text-zinc-950">{{ activeWorkingRows.filter(r => (Number(r.debit) > 0 || Number(r.credit) > 0)).length }} Akun</span>
       </div>
 
       <div class="flex items-center gap-2">
         <button
-          v-if="!isBalanced && difference !== 0"
-          @click="autoBalanceToEquity"
-          class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition-all shadow-2xs active:scale-95 cursor-pointer"
-        >
-          Seimbangkan Otomatis
-        </button>
-        <button
+          type="button"
+          :disabled="isSubmitting || !isBalanced"
           @click="handleSaveOpeningBalance"
-          :disabled="!isBalanced || isSubmitting"
-          :class="[
-            'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer',
-            isBalanced && !isSubmitting
-              ? 'bg-zinc-950 hover:bg-zinc-800 text-white'
-              : 'bg-zinc-100 text-zinc-400 border border-zinc-200 cursor-not-allowed'
-          ]"
+          class="inline-flex items-center gap-1.5 px-6 py-2.5 bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-md cursor-pointer active:scale-95"
         >
-          <Send class="w-3.5 h-3.5" />
-          <span>{{ isSubmitting ? 'Menyimpan...' : 'Simpan & Posting Saldo Awal' }}</span>
+          <Send class="w-4 h-4 text-emerald-400" />
+          <span>Simpan & Posting Saldo Awal ke PostgreSQL</span>
         </button>
       </div>
     </div>
