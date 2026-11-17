@@ -270,3 +270,4 @@ export const useLocaleStore = defineStore('locale', () => {
     translations
   }
 })
+
