@@ -171,9 +171,25 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'tax',
-        name: 'TaxManagement',
-        component: () => import('@/views/accounting/TaxView.vue'),
-        meta: { title: 'Manajemen Pajak' }
+        redirect: '/accounting/tax/spt-masa'
+      },
+      {
+        path: 'tax/spt-masa',
+        name: 'SptMasaManagement',
+        component: () => import('@/views/accounting/tax/SptMasaView.vue'),
+        meta: { title: 'SPT Masa (Pajak Bulanan)' }
+      },
+      {
+        path: 'tax/spt-masa/create',
+        name: 'SptMasaCreate',
+        component: () => import('@/views/accounting/tax/SptMasaCreateView.vue'),
+        meta: { title: 'Formulir SPT Masa Baru' }
+      },
+      {
+        path: 'tax/spt-tahunan',
+        name: 'SptTahunanManagement',
+        component: () => import('@/views/accounting/tax/SptTahunanView.vue'),
+        meta: { title: 'SPT Tahunan PPh Badan (1771)' }
       },
       {
         path: 'mapping-rules',

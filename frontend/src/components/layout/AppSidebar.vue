@@ -65,46 +65,36 @@ const navGroups = computed<NavGroup[]>(() => [
       { name: 'Jurnal Umum (Tabel)', to: '/accounting/journals', icon: BookOpen },
       { name: 'Buku Kas & Bank', to: '/accounting/cash-bank', icon: Coins },
       { name: 'Buku Besar (Ledger)', to: '/accounting/ledger', icon: FileText },
-      { name: 'Pajak & SPT Masa', to: '/accounting/tax', icon: Calculator }
+      { name: 'SPT Masa (Bulanan)', to: '/accounting/tax/spt-masa', icon: Calculator },
+      { name: 'SPT Tahunan (1771)', to: '/accounting/tax/spt-tahunan', icon: Receipt }
     ]
   },
   {
-    groupName: 'DALAM PENGEMBANGAN (FASE 2)',
+    groupName: 'LAPORAN KEUANGAN & AUDIT',
     items: [
+      { name: 'Laba Rugi (P&L)', to: '/accounting/reports/profit-loss', icon: FileSpreadsheet },
+      { name: 'Laporan Neraca', to: '/accounting/reports/balance-sheet', icon: Scale },
+      { name: 'Arus Kas (Cash Flow)', to: '/accounting/reports/cash-flow', icon: Coins },
+      { name: 'Umur Piutang (Aging)', to: '/accounting/reports/aging', icon: History },
       {
         name: 'Transaksi Kasir Otomatis',
         to: '/accounting/transactions',
-        icon: Layers,
-        badge: 'Fase 2',
-        badgeColor: 'bg-slate-800 text-amber-400/90 border border-amber-500/30'
+        icon: Layers
       },
       {
         name: 'Approval Bertingkat',
         to: '/accounting/journals/approvals',
-        icon: FileCheck2,
-        badge: 'Fase 2',
-        badgeColor: 'bg-slate-800 text-amber-400/90 border border-amber-500/30'
-      },
-      {
-        name: 'Laporan Finansial Lengkap',
-        to: '/accounting/reports/balance-sheet',
-        icon: Scale,
-        badge: 'Fase 2',
-        badgeColor: 'bg-slate-800 text-amber-400/90 border border-amber-500/30'
+        icon: FileCheck2
       },
       {
         name: 'Tutup Buku Periode',
         to: '/accounting/periods',
-        icon: CalendarCheck,
-        badge: 'Fase 2',
-        badgeColor: 'bg-slate-800 text-slate-400 border border-slate-700'
+        icon: CalendarCheck
       },
       {
         name: 'Jejak Audit Sistem',
         to: '/accounting/audit-trail',
-        icon: ShieldAlert,
-        badge: 'Fase 2',
-        badgeColor: 'bg-slate-800 text-slate-400 border border-slate-700'
+        icon: ShieldAlert
       }
     ]
   }
@@ -112,7 +102,9 @@ const navGroups = computed<NavGroup[]>(() => [
 
 function isCurrentRoute(to: string): boolean {
   if (to === '/dashboard' && (route.path === '/' || route.path === '/dashboard')) return true
-  if (to !== '/dashboard' && route.path.startsWith(to)) return true
+  if (to === '/accounting/tax/spt-masa' && route.path.startsWith('/accounting/tax/spt-masa')) return true
+  if (to !== '/dashboard' && route.path === to) return true
+  if (to !== '/dashboard' && route.path.startsWith(to + '/')) return true
   return false
 }
 </script>
