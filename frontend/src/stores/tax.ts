@@ -77,6 +77,7 @@ export function detectTaxType(accountCode?: string, accountName?: string, desc?:
   const name = (accountName || '').toUpperCase()
   const d = (desc || '').toUpperCase()
 
+  // ONLY match lines that represent actual tax liability / prepaid tax accounts
   const isTax =
     code.startsWith('25') ||
     code.startsWith('2-15') ||
@@ -84,26 +85,45 @@ export function detectTaxType(accountCode?: string, accountName?: string, desc?:
     code.startsWith('1505') ||
     code === '1-1180' ||
     code === '2-1300' || code === '2-1301' ||
-    name.includes('PAJAK') || name.includes('PPH') || name.includes('PPN') ||
-    d.includes('PAJAK') || d.includes('PPH') || d.includes('PPN')
+    name.includes('PAJAK') || name.includes('PPH') || name.includes('PPN')
 
   if (!isTax) return null
 
-  if (code.includes('2502') || code === '2-1510' || name.includes('23') || d.includes('23') || name.includes('LIMBAH')) {
-    return 'PPH_23'
-  }
-  if (code.includes('2503') || name.includes('4(2)') || name.includes('4 (2)') || name.includes('FINAL') || d.includes('4(2)') || d.includes('FINAL') || d.includes('SEWA')) {
+  // 1. Direct specific COA code checks (highest priority)
+  if (code === '2-1510' || code.startsWith('2502')) return 'PPH_23'
+  if (code === '2-1520' || code.startsWith('2505')) return 'PPH_25'
+  if (code === '2-1530' || code.startsWith('2506')) return null // PPh 29 is strictly SPT Tahunan, not SPT Masa
+  if (code.startsWith('2503')) return 'PPH_4_2'
+  if (code === '1-1180' || code.startsWith('2504') || code === '1504') return 'PPN'
+  if (code.startsWith('2501')) return 'PPH_21'
+
+  // 2. Transaction Memo / Description checks (for umbrella accounts like 2-1500)
+  if (d.includes('4(2)') || d.includes('4 (2)') || d.includes('PASAL 4') || d.includes('FINAL') || d.includes('SEWA')) {
     return 'PPH_4_2'
   }
-  if (code.includes('2505') || code.includes('1504') || code === '2-1520' || name.includes('25') || d.includes('25') || d.includes('ANGSURAN')) {
+  if (d.includes('25') || d.includes('ANGSURAN')) {
     return 'PPH_25'
   }
-  if (code.includes('2504') || code.includes('1505') || code === '1-1180' || name.includes('PPN') || d.includes('PPN') || name.includes('FAKTUR') || d.includes('FAKTUR')) {
+  if (d.includes('PPN') || d.includes('FAKTUR') || d.includes('BMHP') || d.includes('MASUKAN') || d.includes('KELUARAN')) {
     return 'PPN'
   }
-  if (code.includes('2501') || code === '2-1500' || name.includes('21') || d.includes('21') || name.includes('DOKTER') || name.includes('GAJI') || name.includes('HONOR')) {
+  if (d.includes('23') || d.includes('LIMBAH') || d.includes('LABORATORIUM') || d.includes('MAINTENANCE') || d.includes('JASA MEDIKA') || d.includes('JASA TEKNIK')) {
+    return 'PPH_23'
+  }
+  if (d.includes('21') || d.includes('DOKTER') || d.includes('HONOR') || d.includes('GAJI') || d.includes('SP.A') || d.includes('SP.DVE') || d.includes('VISITE')) {
     return 'PPH_21'
   }
+
+  // 3. Specific Account Name checks (only if not umbrella 2-1500)
+  if (!code.startsWith('2-1500') && !name.includes('PPH 21, 23')) {
+    if (name.includes('23') || name.includes('LIMBAH')) return 'PPH_23'
+    if (name.includes('4(2)') || name.includes('FINAL') || name.includes('SEWA')) return 'PPH_4_2'
+    if (name.includes('25') || name.includes('ANGSURAN')) return 'PPH_25'
+    if (name.includes('PPN')) return 'PPN'
+    if (name.includes('21') || name.includes('DOKTER') || name.includes('GAJI')) return 'PPH_21'
+  }
+
+  // Default fallback for medical clinic tax withholdings
   return 'PPH_21'
 }
 
@@ -373,8 +393,13 @@ export const useTaxStore = defineStore('tax', () => {
   const availableBankAccounts = computed(() => {
     return ledgerStore.accounts.filter(a => {
       if (a.isHeader) return false
-      // Only include accounts under 1102 (Bank Operasional & Kliring) or 1103 (Bank Transit), EXCLUDING 1101 (Kas Fisik)
-      return a.code.startsWith('1102') || a.code.startsWith('1103') || a.parentCode === '1102'
+      const code = a.code || ''
+      const name = (a.name || '').toLowerCase()
+      // Bank accounts: 1-1113 (BCA), 1-1114 (Mandiri), 1-1120 (Kliring), or legacy 1102 / 1103
+      const isBankCode = code.startsWith('1-1113') || code.startsWith('1-1114') || code.startsWith('1-112') || code.startsWith('1102') || code.startsWith('1103')
+      const isBankName = name.includes('bank') || name.includes('giro') || name.includes('kliring')
+      const isNotCash = !name.includes('kasir') && !name.includes('petty') && !name.includes('kas kecil') && !name.includes('tunai')
+      return (isBankCode || isBankName) && isNotCash
     })
   })
 
@@ -402,23 +427,54 @@ export const useTaxStore = defineStore('tax', () => {
         const detectedTaxType = detectTaxType(line.accountCode, line.accountName, line.description || j.description)
         if (!detectedTaxType) continue
 
-        // Find counterpart line (not this line)
-        const counterpart = j.lines.find(l => l.id !== line.id)
+        // Find main counterpart line: prioritize Expense/Asset/Inventory lines over Bank/Cash
+        const mainLine = j.lines.find(l => 
+          l.id !== line.id &&
+          !l.accountCode?.startsWith('1-111') &&
+          !l.accountCode?.startsWith('110') &&
+          !l.accountCode?.startsWith('2-15') &&
+          !l.accountCode?.startsWith('25')
+        ) || j.lines.find(l => l.id !== line.id)
+
         const bankLine = j.lines.find(l =>
+          l.accountCode?.startsWith('1-1113') ||
+          l.accountCode?.startsWith('1-1114') ||
+          l.accountCode?.startsWith('1-112') ||
           l.accountCode?.startsWith('1102') ||
-          l.accountCode?.startsWith('1101') ||
-          (l.accountName && (l.accountName.toLowerCase().includes('bank') || l.accountName.toLowerCase().includes('kas')))
+          l.accountCode?.startsWith('1103') ||
+          (l.accountName && (l.accountName.toLowerCase().includes('bank') || l.accountName.toLowerCase().includes('giro')))
         )
 
         const taxAmt = line.credit > 0 ? line.credit : line.debit
         const isWithheld = line.credit > 0 // Withheld on credit, paid on debit
 
+        // Calculate DPP and Gross
+        let gross = 0
         let dpp = taxAmt
-        if (detectedTaxType === 'PPH_23') dpp = taxAmt / 0.02
-        else if (detectedTaxType === 'PPH_4_2') dpp = taxAmt / 0.10
-        else if (detectedTaxType === 'PPN') dpp = taxAmt / 0.11
-        else if (detectedTaxType === 'PPH_21') dpp = taxAmt / 0.025
-        else dpp = taxAmt
+        if (mainLine && (mainLine.debit > 0 || mainLine.credit > 0)) {
+          gross = mainLine.debit > 0 ? mainLine.debit : mainLine.credit
+        }
+
+        if (detectedTaxType === 'PPH_23') {
+          dpp = gross > 0 ? gross : Math.round(taxAmt / 0.02)
+          gross = gross > 0 ? gross : dpp
+        } else if (detectedTaxType === 'PPH_4_2') {
+          dpp = gross > 0 ? gross : Math.round(taxAmt / 0.10)
+          gross = gross > 0 ? gross : dpp
+        } else if (detectedTaxType === 'PPN') {
+          dpp = gross > 0 ? gross : Math.round(taxAmt / 0.11)
+          gross = gross > 0 ? gross : dpp
+        } else if (detectedTaxType === 'PPH_21') {
+          if (gross > 0) {
+            dpp = Math.round(gross * 0.5) // PMK 168 / PP 58 Dokter Tenaga Ahli: 50% dari Bruto
+          } else {
+            dpp = Math.round(taxAmt / 0.05) // Lapisan 1 tarif 5%
+            gross = dpp * 2
+          }
+        } else {
+          dpp = gross > 0 ? gross : taxAmt
+          gross = gross > 0 ? gross : taxAmt
+        }
 
         result.push({
           id: `${j.id}-${line.id}`,
@@ -429,15 +485,15 @@ export const useTaxStore = defineStore('tax', () => {
           businessUnit: j.businessUnit || 'ALL',
           status: j.status,
           taxType: detectedTaxType,
-          taxAccountCode: line.accountCode || '2501',
+          taxAccountCode: line.accountCode || (detectedTaxType === 'PPH_23' ? '2-1510' : detectedTaxType === 'PPH_25' ? '2-1520' : '2-1500'),
           taxAccountName: line.accountName || `Akun Pajak ${detectedTaxType}`,
-          counterpartAccountCode: counterpart?.accountCode || '-',
-          counterpartAccountName: counterpart?.accountName || '-',
-          grossAmount: Math.round(dpp),
+          counterpartAccountCode: mainLine?.accountCode || '-',
+          counterpartAccountName: mainLine?.accountName || '-',
+          grossAmount: Math.round(gross),
           dppAmount: Math.round(dpp),
           taxAmount: taxAmt,
           direction: isWithheld ? 'WITHHELD' : 'PAID',
-          bankAccount: bankLine ? `[${bankLine.accountCode}] ${bankLine.accountName}` : 'Bank BCA Operasional (1102.001)',
+          bankAccount: bankLine ? `[${bankLine.accountCode}] ${bankLine.accountName}` : '[1-1113] Bank BCA Operasional',
           month,
           year,
           rawJournal: j
@@ -527,14 +583,14 @@ export const useTaxStore = defineStore('tax', () => {
 
         enrichedList.push({
           id: `spt-dyn-${tType}-${y}-${m}`,
-          sptNumber: `SPT-${tType.replace('_', '')}-${y}-${String(m).padStart(2, '0')}`,
+          sptNumber: `SPT-${tType.replace(/_/g, '')}-${y}-${String(m).padStart(2, '0')}`,
           masaMonth: m,
           masaYear: y,
           taxType: tType,
-          accountCode: first?.taxAccountCode || '2501',
+          accountCode: first?.taxAccountCode || (tType === 'PPH_23' ? '2-1510' : tType === 'PPH_25' ? '2-1520' : '2-1500'),
           accountName: first?.taxAccountName || `Kewajiban Pajak ${tType}`,
-          bankAccountCode: '1102.001',
-          bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+          bankAccountCode: '1-1113',
+          bankAccountName: 'Bank BCA Operasional',
           paymentChannel: 'BANK_TRANSFER',
           isBankVerified: true,
           grossAmount: jDpp,
@@ -568,6 +624,7 @@ export const useTaxStore = defineStore('tax', () => {
     ntpnNumber?: string
     status?: 'DRAFT' | 'PAID' | 'REPORTED'
     businessUnit?: BusinessUnit
+    linkedJournals?: LinkedTaxJournalEntry[]
   }) {
     // Validation: Deny any cash account (1101)
     if (!data.bankAccountCode || data.bankAccountCode.startsWith('1101')) {
@@ -575,27 +632,27 @@ export const useTaxStore = defineStore('tax', () => {
     }
 
     const bankAcc = availableBankAccounts.value.find(b => b.code === data.bankAccountCode) || availableBankAccounts.value[0]
-    const bankCode = bankAcc?.code || '1102.001'
-    const bankName = bankAcc?.name || 'Bank BCA Operasional (Giro & EDC)'
+    const bankCode = bankAcc?.code || '1-1113'
+    const bankName = bankAcc?.name || 'Bank BCA Operasional'
 
     const mStr = String(data.masaMonth).padStart(2, '0')
     const typeLabel = data.taxType.replace('_', ' ')
     const sptNum = `SPT-${data.taxType}-${data.masaYear}-${mStr}`
 
-    let accCode = '2501.001'
-    let accName = 'Hutang PPh 21'
+    let accCode = '2-1500'
+    let accName = 'Hutang Pajak PPh 21'
     if (data.taxType === 'PPH_23') {
-      accCode = '2502'
-      accName = 'PPh 23 Jasa Teknik & Limbah B3'
+      accCode = '2-1510'
+      accName = 'Kredit Pajak PPh 23'
     } else if (data.taxType === 'PPH_4_2') {
-      accCode = '2503'
-      accName = 'PPh Final Pasal 4(2)'
+      accCode = '2-1500'
+      accName = 'Hutang Pajak PPh Final 4(2)'
     } else if (data.taxType === 'PPH_25') {
-      accCode = '2505'
-      accName = 'PPh 25 Angsuran Badan Bulanan'
+      accCode = '2-1520'
+      accName = 'Uang Muka PPh 25 Badan'
     } else if (data.taxType === 'PPN') {
-      accCode = '2504'
-      accName = 'PPN Keluaran'
+      accCode = '2-1500'
+      accName = 'Hutang PPN'
     }
 
     const st = data.status || 'PAID'
@@ -622,7 +679,8 @@ export const useTaxStore = defineStore('tax', () => {
       notes: data.notes || `SPT Masa ${typeLabel} Masa ${mStr}/${data.masaYear} via ${bankName}`,
       businessUnit: data.businessUnit || accountingStore.businessUnit,
       createdAt: new Date().toISOString(),
-      createdBy: accountingStore.currentUserName
+      createdBy: accountingStore.currentUserName,
+      linkedJournals: data.linkedJournals || []
     }
 
     sptMasaRecords.value.unshift(newRecord)
@@ -678,8 +736,8 @@ export const useTaxStore = defineStore('tax', () => {
             taxType: sptType,
             accountCode: sptType === 'PPH_23' ? '2502' : sptType === 'PPH_25' ? '2505' : '2501',
             accountName: tw.taxpayer_name,
-            bankAccountCode: '1102.001',
-            bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+            bankAccountCode: '1-1113',
+            bankAccountName: 'Bank BCA Operasional',
             paymentChannel: 'BANK_EBILLING',
             isBankVerified: true,
             grossAmount: Number(tw.gross_amount),

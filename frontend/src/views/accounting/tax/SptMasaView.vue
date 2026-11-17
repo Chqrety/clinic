@@ -98,6 +98,18 @@ const selectedBankForPayment = ref<string>('1102.001')
 // Expandable SPT Row state for viewing individual journal entries
 const expandedSptIds = ref<Set<string>>(new Set())
 
+const isAllExpanded = computed(() => {
+  return sptMasaList.value.length > 0 && expandedSptIds.value.size >= sptMasaList.value.length
+})
+
+function toggleExpandAll() {
+  if (isAllExpanded.value) {
+    expandedSptIds.value.clear()
+  } else {
+    expandedSptIds.value = new Set(sptMasaList.value.map(s => s.id))
+  }
+}
+
 function toggleExpandSpt(id: string) {
   if (expandedSptIds.value.has(id)) {
     expandedSptIds.value.delete(id)
@@ -349,8 +361,18 @@ function handleExportExcel() {
           </div>
         </div>
 
-        <div class="text-xs text-zinc-500 font-medium">
-          Ditemukan <strong>{{ sptMasaList.length }}</strong> dokumen SPT Masa
+        <div class="flex items-center gap-3">
+          <button
+            @click="toggleExpandAll"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-xs font-bold transition cursor-pointer"
+            title="Buka atau tutup seluruh rincian transaksi jurnal umum di bawah"
+          >
+            <Layers class="w-3.5 h-3.5 text-zinc-600" />
+            <span>{{ isAllExpanded ? 'Tutup Rincian' : 'Buka Semua Rincian Jurnal' }}</span>
+          </button>
+          <span class="text-xs text-zinc-500 font-medium">
+            <strong>{{ sptMasaList.length }}</strong> dokumen SPT Masa
+          </span>
         </div>
       </div>
 
