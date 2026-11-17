@@ -8,6 +8,7 @@ import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import { exportToExcel } from '@/utils/export'
 import StatusBadge from '@/components/common/StatusBadge.vue'
+import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import type { JournalEntry, JournalStatus, BusinessUnit } from '@/types/accounting'
 import {
@@ -94,6 +95,14 @@ const inlineRows = ref<InlineRow[]>([
 
 const availableAccounts = computed(() => {
   return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
+})
+
+const accountSelectOptions = computed(() => {
+  return availableAccounts.value.map(acc => ({
+    value: acc.code,
+    label: `[${acc.code}] ${acc.name}`,
+    sublabel: `${acc.type} • Normal: ${acc.normalBalance}`
+  }))
 })
 
 function onAccountSelect(index: number, code: string) {
@@ -397,21 +406,13 @@ function handleExportExcel() {
                   <option value="SSC">SSC</option>
                 </select>
               </td>
-              <td class="py-2 px-3">
-                <select
-                  :value="row.accountCode"
-                  @change="(e: any) => onAccountSelect(idx, e.target.value)"
-                  class="w-full px-2 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs font-mono font-bold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
-                >
-                  <option value="" disabled>-- Pilih Akun COA --</option>
-                  <option
-                    v-for="acc in availableAccounts"
-                    :key="acc.code"
-                    :value="acc.code"
-                  >
-                    [{{ acc.code }}] {{ acc.name }}
-                  </option>
-                </select>
+              <td class="py-2 px-3 min-w-[260px]">
+                <SearchableSelect
+                  :model-value="row.accountCode"
+                  :options="accountSelectOptions"
+                  placeholder="Pilih atau cari akun COA..."
+                  @update:model-value="(val: any) => onAccountSelect(idx, String(val))"
+                />
               </td>
               <td class="py-2 px-3">
                 <input

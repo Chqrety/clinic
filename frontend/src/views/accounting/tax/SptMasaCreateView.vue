@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useTaxStore, type SptMasaType } from '@/stores/tax'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
+import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { BusinessUnit } from '@/types/accounting'
 import {
   ArrowLeft,
@@ -34,6 +35,14 @@ const taxAmount = ref<number>(3000000)
 const ntpnNumber = ref<string>('')
 const notes = ref<string>('')
 const status = ref<'DRAFT' | 'PAID' | 'REPORTED'>('REPORTED')
+
+const taxTypeOptions = [
+  { value: 'PPH_21', label: 'PPh Pasal 21', sublabel: 'Tenaga Medis Dokter & Karyawan' },
+  { value: 'PPH_23', label: 'PPh Pasal 23', sublabel: 'Jasa Medis, Laboratorium, Limbah B3' },
+  { value: 'PPH_4_2', label: 'PPh Final Pasal 4(2)', sublabel: 'Sewa Gedung / Fasilitas / Bunga Giro' },
+  { value: 'PPH_25', label: 'PPh Pasal 25', sublabel: 'Angsuran Pajak Penghasilan Badan Bulanan' },
+  { value: 'PPN', label: 'PPN', sublabel: 'Pajak Pertambahan Nilai (Keluaran/Masukan)' }
+]
 
 function updateSuggestedTaxAmount() {
   const dpp = Number(dppAmount.value) || 0
@@ -186,17 +195,12 @@ function handleSave() {
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
             <label class="block font-bold text-zinc-700 mb-1">Jenis SPT Masa</label>
-            <select
-              v-model="taxType"
-              @change="updateSuggestedTaxAmount"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
-            >
-              <option value="PPH_21">PPh Pasal 21 (Tenaga Medis Dokter & Karyawan)</option>
-              <option value="PPH_23">PPh Pasal 23 (Jasa Medis, Laboratorium, Limbah B3)</option>
-              <option value="PPH_4_2">PPh Final Pasal 4(2) (Sewa Gedung / Bunga Giro)</option>
-              <option value="PPH_25">PPh Pasal 25 (Angsuran Pajak Badan Bulanan)</option>
-              <option value="PPN">PPN (Pajak Pertambahan Nilai)</option>
-            </select>
+            <SearchableSelect
+              :model-value="taxType"
+              :options="taxTypeOptions"
+              placeholder="Pilih atau cari jenis SPT..."
+              @update:model-value="(val: any) => { taxType = val; updateSuggestedTaxAmount() }"
+            />
           </div>
 
           <div>

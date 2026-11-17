@@ -6,6 +6,7 @@ import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
+import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import {
   Calculator,
@@ -57,6 +58,15 @@ const doctorTaxRecords = computed(() => taxStore.filteredDoctorTax)
 const ppn = computed(() => taxStore.ppnSummary)
 const txList = computed(() => taxStore.filteredTaxTransactions)
 const summary = computed(() => taxStore.monthlyTaxSummary)
+
+const taxFilterOptions = [
+  { value: 'ALL', label: 'Semua Jenis SPT Masa' },
+  { value: 'PPH_21', label: 'PPh Pasal 21', sublabel: 'Dokter & Staf' },
+  { value: 'PPH_23', label: 'PPh Pasal 23', sublabel: 'Jasa Medis & Limbah B3' },
+  { value: 'PPH_4_2', label: 'PPh Final Pasal 4(2)', sublabel: 'Sewa & Bunga' },
+  { value: 'PPH_25', label: 'PPh Pasal 25', sublabel: 'Angsuran Badan' },
+  { value: 'PPN', label: 'PPN', sublabel: 'Keluaran & Masukan' }
+]
 const sptMasaList = computed(() => taxStore.filteredSptMasa)
 
 // Subview under SPT Masa: 'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU'
@@ -216,19 +226,15 @@ function viewSptDetail(item: any) {
             </select>
           </div>
 
-          <div>
+          <div class="w-56">
             <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Jenis SPT</label>
-            <select
-              v-model="taxStore.selectedSptMasaTypeFilter"
-              class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-800 focus:outline-none cursor-pointer"
-            >
-              <option value="ALL">Semua Jenis SPT Masa</option>
-              <option value="PPH_21">PPh Pasal 21 (Dokter & Staf)</option>
-              <option value="PPH_23">PPh Pasal 23 (Jasa & Limbah B3)</option>
-              <option value="PPH_4_2">PPh Final Pasal 4(2)</option>
-              <option value="PPH_25">PPh Pasal 25 (Angsuran)</option>
-              <option value="PPN">PPN (Keluaran/Masukan)</option>
-            </select>
+            <SearchableSelect
+              :model-value="taxStore.selectedSptMasaTypeFilter"
+              :options="taxFilterOptions"
+              placeholder="Cari jenis SPT..."
+              input-class="!py-1.5"
+              @update:model-value="(val: any) => taxStore.selectedSptMasaTypeFilter = val"
+            />
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import { useCashBankStore } from '@/stores/cashbank'
 import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
 import { formatIDR } from '@/utils/currency'
+import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { BusinessUnit, CashBankTransactionType } from '@/types/accounting'
 import {
   ArrowLeft,
@@ -72,6 +73,22 @@ const selectedPrimaryAccount = computed(() => {
 // Available COA accounts for counterpart lines (Excluding headers and inactive accounts)
 const availableAccounts = computed(() => {
   return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
+})
+
+const primaryAccountOptions = computed(() => {
+  return availableCashBankAccounts.value.map(acc => ({
+    value: acc.code,
+    label: `[${acc.code}] ${acc.name}`,
+    sublabel: `Saldo: ${formatIDR(acc.currentBalance || 0)}`
+  }))
+})
+
+const accountSelectOptions = computed(() => {
+  return availableAccounts.value.map(acc => ({
+    value: acc.code,
+    label: `[${acc.code}] ${acc.name}`,
+    sublabel: `${acc.type} • Normal: ${acc.normalBalance}`
+  }))
 })
 
 // Multi-line Voucher Rows
@@ -422,19 +439,12 @@ function handleSaveVoucher() {
           <label class="block font-bold text-zinc-700 mb-1">
             Buku Kas / Rekening Bank Utama:
           </label>
-          <select
-            :value="primaryAccountCode"
-            @change="(e: any) => onPrimaryAccountChange(e.target.value)"
-            class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono font-bold text-zinc-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 cursor-pointer text-xs"
-          >
-            <option
-              v-for="acc in availableCashBankAccounts"
-              :key="acc.code"
-              :value="acc.code"
-            >
-              [{{ acc.code }}] {{ acc.name }}
-            </option>
-          </select>
+          <SearchableSelect
+            :model-value="primaryAccountCode"
+            :options="primaryAccountOptions"
+            placeholder="Cari atau pilih rekening kas/bank..."
+            @update:model-value="(val: any) => onPrimaryAccountChange(String(val))"
+          />
           <span v-if="selectedPrimaryAccount" class="text-[10px] text-zinc-500 mt-1 block">
             Saldo Buku: <strong class="text-zinc-950">{{ formatIDR(selectedPrimaryAccount.currentBalance || 0) }}</strong>
           </span>
@@ -566,21 +576,13 @@ function handleSaveVoucher() {
                   <option value="ALL">ALL</option>
                 </select>
               </td>
-              <td class="py-2 px-3">
-                <select
-                  :value="row.accountCode"
-                  @change="(e: any) => onAccountSelect(idx, e.target.value)"
-                  class="w-full px-2 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs font-mono font-bold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
-                >
-                  <option value="" disabled>-- Pilih Akun COA --</option>
-                  <option
-                    v-for="acc in availableAccounts"
-                    :key="acc.code"
-                    :value="acc.code"
-                  >
-                    [{{ acc.code }}] {{ acc.name }}
-                  </option>
-                </select>
+              <td class="py-2 px-3 min-w-[260px]">
+                <SearchableSelect
+                  :model-value="row.accountCode"
+                  :options="accountSelectOptions"
+                  placeholder="Pilih atau cari akun COA..."
+                  @update:model-value="(val: any) => onAccountSelect(idx, String(val))"
+                />
               </td>
               <td class="py-2 px-3">
                 <input
