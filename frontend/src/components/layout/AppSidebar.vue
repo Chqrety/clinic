@@ -20,7 +20,8 @@ import {
   History,
   Scale,
   CalendarCheck,
-  BookmarkCheck
+  BookmarkCheck,
+  TrendingUp
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -58,33 +59,47 @@ const navGroups = computed<NavGroup[]>(() => [
     ]
   },
   {
-    groupName: 'MODUL UTAMA (SIAP PAKAI)',
+    groupName: 'BUKU & TRANSAKSI',
     items: [
       { name: 'Bagan Akun (COA)', to: '/accounting/chart-of-accounts', icon: FileSpreadsheet },
       { name: 'Saldo Awal Akuntansi', to: '/accounting/opening-balance', icon: BookmarkCheck },
       { name: 'Jurnal Umum (Tabel)', to: '/accounting/journals', icon: BookOpen },
       { name: 'Buku Kas & Bank', to: '/accounting/cash-bank', icon: Coins },
       { name: 'Buku Besar (Ledger)', to: '/accounting/ledger', icon: FileText },
-      { name: 'SPT Masa (Bulanan)', to: '/accounting/tax/spt-masa', icon: Calculator },
-      { name: 'SPT Tahunan (1771)', to: '/accounting/tax/spt-tahunan', icon: Receipt }
-    ]
-  },
-  {
-    groupName: 'LAPORAN KEUANGAN & AUDIT',
-    items: [
-      { name: 'Laba Rugi (P&L)', to: '/accounting/reports/profit-loss', icon: FileSpreadsheet },
-      { name: 'Laporan Neraca', to: '/accounting/reports/balance-sheet', icon: Scale },
-      { name: 'Arus Kas (Cash Flow)', to: '/accounting/reports/cash-flow', icon: Coins },
-      { name: 'Umur Piutang (Aging)', to: '/accounting/reports/aging', icon: History },
       {
         name: 'Transaksi Kasir Otomatis',
         to: '/accounting/transactions',
-        icon: Layers
-      },
+        icon: Layers,
+        badge: unprocessedTxCount.value,
+        badgeColor: 'bg-emerald-500'
+      }
+    ]
+  },
+  {
+    groupName: 'LAPORAN KEUANGAN (PSAK)',
+    items: [
+      { name: 'Laporan Laba Rugi', to: '/accounting/reports/profit-loss', icon: TrendingUp },
+      { name: 'Laporan Neraca', to: '/accounting/reports/balance-sheet', icon: Scale },
+      { name: 'Arus Kas (Cash Flow)', to: '/accounting/reports/cash-flow', icon: Coins },
+      { name: 'Umur Piutang & Hutang', to: '/accounting/reports/aging', icon: History }
+    ]
+  },
+  {
+    groupName: 'PERPAJAKAN KLINIK (DJP)',
+    items: [
+      { name: 'SPT Masa (Pajak Bulanan)', to: '/accounting/tax/spt-masa', icon: Calculator },
+      { name: 'SPT Tahunan Badan (1771)', to: '/accounting/tax/spt-tahunan', icon: Receipt }
+    ]
+  },
+  {
+    groupName: 'KONTROL & AUDIT',
+    items: [
       {
         name: 'Approval Bertingkat',
         to: '/accounting/journals/approvals',
-        icon: FileCheck2
+        icon: FileCheck2,
+        badge: pendingApprovalCount.value,
+        badgeColor: 'bg-amber-500'
       },
       {
         name: 'Tutup Buku Periode',
@@ -103,6 +118,8 @@ const navGroups = computed<NavGroup[]>(() => [
 function isCurrentRoute(to: string): boolean {
   if (to === '/dashboard' && (route.path === '/' || route.path === '/dashboard')) return true
   if (to === '/accounting/tax/spt-masa' && route.path.startsWith('/accounting/tax/spt-masa')) return true
+  if (to === '/accounting/tax/spt-tahunan' && route.path.startsWith('/accounting/tax/spt-tahunan')) return true
+  if (to === '/accounting/cash-bank' && route.path.startsWith('/accounting/cash-bank')) return true
   if (to !== '/dashboard' && route.path === to) return true
   if (to !== '/dashboard' && route.path.startsWith(to + '/')) return true
   return false
