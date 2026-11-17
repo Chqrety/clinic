@@ -79,13 +79,34 @@ export interface AnnualTaxReport1771 {
   taxableIncome: number // Penghasilan Kena Pajak (PKP)
   corporateTaxRate: number // 22% (UU HPP)
   corporateTaxPayable: number // PPh Terutang
-  // Kredit Pajak murni bersumber dari mutasi perbankan (SPT Masa)
-  taxCreditPph23: number // Otomatis dari akumulasi SPT Masa PPh 23 via Bank
-  taxCreditPph25: number // Otomatis dari akumulasi SPT Masa PPh 25 via e-Billing Bank
-  taxCredits: number // Total Kredit Pajak (PPh 23 + PPh 25)
+  // Kredit Pajak murni bersumber dari mutasi perbankan (SPT Masa) & Penyesuaian Tahunan
+  baseSptMasaPph23: number // Akumulasi asli SPT Masa PPh 23
+  baseSptMasaPph25: number // Akumulasi asli SPT Masa PPh 25
+  adjustmentPph23: number // Selisih koreksi / kelebihan potong PPh 23
+  adjustmentPph25: number // Selisih koreksi / kelebihan bayar PPh 25
+  taxCreditPph23: number // Netto PPh 23 diakui di 1771
+  taxCreditPph25: number // Netto PPh 25 diakui di 1771
+  taxCredits: number // Total Kredit Pajak Netto (PPh 23 + PPh 25)
   pph29Payable: number // PPh Kurang Bayar Pasal 29
+  pph28aOverpaid: number // PPh Lebih Bayar Pasal 28A
   linkedSptMasaCount: number
   bankReconciliationVerified: boolean
+  hasAdjustments: boolean
+}
+
+export interface MonthTaxAdjustment {
+  monthNum: number
+  taxType: 'PPH_23' | 'PPH_25'
+  originalAmount: number
+  adjustedAmount: number
+  claimStatus: 'CLAIM_FULL' | 'CLAIM_PARTIAL' | 'EXCLUDED'
+  reason: string
+}
+
+export interface AnnualGeneralAdjustment {
+  pph23Adjustment: number
+  pph25Adjustment: number
+  notes: string
 }
 
 export const useTaxStore = defineStore('tax', () => {
@@ -99,6 +120,73 @@ export const useTaxStore = defineStore('tax', () => {
   const selectedMonth = ref<number>(11)
   const selectedYear = ref<number>(2026)
   const selectedSptMasaTypeFilter = ref<string>('ALL')
+
+  // Storage key for annual adjustments
+  const LOCAL_STORAGE_KEY = 'clinic_spt_tahunan_adjustments'
+
+  function loadSavedAdjustments(): {
+    months: Record<string, MonthTaxAdjustment>
+    general: AnnualGeneralAdjustment
+  } {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (raw) {
+        return JSON.parse(raw)
+      }
+    } catch (e) {
+      console.warn('Gagal membaca data penyesuaian SPT Tahunan dari storage', e)
+    }
+    return {
+      months: {},
+      general: { pph23Adjustment: 0, pph25Adjustment: 0, notes: '' }
+    }
+  }
+
+  const initialSaved = loadSavedAdjustments()
+  const monthCreditAdjustments = ref<Record<string, MonthTaxAdjustment>>(initialSaved.months)
+  const annualGeneralAdjustment = ref<AnnualGeneralAdjustment>(initialSaved.general)
+
+  function persistAdjustments() {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+        months: monthCreditAdjustments.value,
+        general: annualGeneralAdjustment.value
+      }))
+    } catch (e) {
+      console.warn('Gagal menyimpan penyesuaian SPT Tahunan', e)
+    }
+  }
+
+  function setMonthAdjustment(adjustment: MonthTaxAdjustment) {
+    const key = `${adjustment.monthNum}_${adjustment.taxType}`
+    monthCreditAdjustments.value[key] = { ...adjustment }
+    persistAdjustments()
+    accountingStore.showToast(`Penyesuaian Kredit ${adjustment.taxType} Masa ${adjustment.monthNum} tersimpan!`, 'info')
+  }
+
+  function resetMonthAdjustment(monthNum: number, taxType: 'PPH_23' | 'PPH_25') {
+    const key = `${monthNum}_${taxType}`
+    if (monthCreditAdjustments.value[key]) {
+      delete monthCreditAdjustments.value[key]
+      persistAdjustments()
+      accountingStore.showToast(`Penyesuaian Kredit Masa ${monthNum} dikembalikan ke nilai awal SPT Masa`, 'info')
+    }
+  }
+
+  function setAnnualGeneralAdjustment(adj: Partial<AnnualGeneralAdjustment>) {
+    annualGeneralAdjustment.value = {
+      ...annualGeneralAdjustment.value,
+      ...adj
+    }
+    persistAdjustments()
+  }
+
+  function resetAllAdjustments() {
+    monthCreditAdjustments.value = {}
+    annualGeneralAdjustment.value = { pph23Adjustment: 0, pph25Adjustment: 0, notes: '' }
+    persistAdjustments()
+    accountingStore.showToast('Seluruh penyesuaian SPT Tahunan berhasil di-reset ke nilai SPT Masa', 'info')
+  }
 
   // Tax Accounts mapped to COA
   const taxAccountOptions = computed<TaxAccountOption[]>(() => {
@@ -675,7 +763,7 @@ export const useTaxStore = defineStore('tax', () => {
 
   // =========================================================================
   // 2. MATRIX KREDIT PAJAK DARI SPT MASA (Januari - Desember)
-  // Menampilkan verifikasi rekening Bank pembayar per bulan
+  // Menampilkan verifikasi rekening Bank pembayar per bulan & Penyesuaian 1771
   // =========================================================================
   const monthlySptMasaMatrix = computed(() => {
     const months = [
@@ -695,12 +783,28 @@ export const useTaxStore = defineStore('tax', () => {
       const pph25Record = recordsThisMonth.find(r => r.taxType === 'PPH_25')
 
       const pph21Amount = pph21Record?.taxAmount || 0
-      const pph23Amount = pph23Record?.taxAmount || 0
+      const pph23Original = pph23Record?.taxAmount || 0
       const pph42Amount = pph42Record?.taxAmount || 0
-      const pph25Amount = pph25Record?.taxAmount || 0
+      const pph25Original = pph25Record?.taxAmount || 0
 
-      // Kredit Pajak untuk SPT 1771 = PPh 23 (Bank) + PPh 25 (Bank)
+      // Penyesuaian SPT Tahunan per bulan (karena kelebihan potong / reklasifikasi)
+      const adj23 = monthCreditAdjustments.value[`${monthNum}_PPH_23`]
+      const pph23Amount = adj23 !== undefined ? adj23.adjustedAmount : pph23Original
+      const pph23Status = adj23?.claimStatus || 'CLAIM_FULL'
+      const pph23Reason = adj23?.reason || ''
+
+      const adj25 = monthCreditAdjustments.value[`${monthNum}_PPH_25`]
+      const pph25Amount = adj25 !== undefined ? adj25.adjustedAmount : pph25Original
+      const pph25Status = adj25?.claimStatus || 'CLAIM_FULL'
+      const pph25Reason = adj25?.reason || ''
+
+      const isAdjusted = (adj23 !== undefined && adj23.adjustedAmount !== pph23Original) ||
+                         (adj25 !== undefined && adj25.adjustedAmount !== pph25Original)
+
+      // Kredit Pajak untuk SPT 1771 = PPh 23 (diakui) + PPh 25 (diakui)
       const totalCreditThisMonth = pph23Amount + pph25Amount
+      const totalCreditOriginal = pph23Original + pph25Original
+      const adjustmentDiff = totalCreditThisMonth - totalCreditOriginal
 
       const bankUsed = pph25Record?.bankAccountName || pph23Record?.bankAccountName || 'Bank BCA Operasional'
 
@@ -710,12 +814,21 @@ export const useTaxStore = defineStore('tax', () => {
         pph21Record,
         pph21Amount,
         pph23Record,
+        pph23Original,
         pph23Amount,
+        pph23Status,
+        pph23Reason,
         pph42Record,
         pph42Amount,
         pph25Record,
+        pph25Original,
         pph25Amount,
+        pph25Status,
+        pph25Reason,
+        totalCreditOriginal,
         totalCreditThisMonth,
+        adjustmentDiff,
+        isAdjusted,
         bankUsed,
         isReported: (pph23Record?.status === 'REPORTED' || pph25Record?.status === 'REPORTED'),
         ntpn: pph25Record?.ntpnNumber || pph23Record?.ntpnNumber || '-'
@@ -1047,23 +1160,29 @@ export const useTaxStore = defineStore('tax', () => {
     const corporateTaxRate = 0.22
     const corporateTaxPayable = Math.round(taxableIncome * 0.11)
 
-    // 7. KREDIT PAJAK OTOMATIS DARI SPT MASA SESUAI JENISNYA (STRICTLY BANK ONLY):
-    // Hanya mengakui kredit pajak yang dipotong/disetor via Rekening Bank resmi
-    const sptMasaPph23Records = sptMasaRecords.value.filter(
-      r => r.masaYear === selectedYear.value && r.taxType === 'PPH_23' && r.isBankVerified !== false
-    )
-    const taxCreditPph23 = sptMasaPph23Records.reduce((sum, r) => sum + r.taxAmount, 0)
+    // 7. KREDIT PAJAK OTOMATIS DARI SPT MASA DENGAN PENYESUAIAN/REKLASIFIKASI 1771:
+    // Menghimpun mutasi kanal bank dan menerapkan penyesuaian tahunan (kelebihan potong / reklasifikasi)
+    const matrix = monthlySptMasaMatrix.value
+    const baseSptMasaPph23 = matrix.reduce((sum, m) => sum + m.pph23Original, 0)
+    const baseSptMasaPph25 = matrix.reduce((sum, m) => sum + m.pph25Original, 0)
 
-    const sptMasaPph25Records = sptMasaRecords.value.filter(
-      r => r.masaYear === selectedYear.value && r.taxType === 'PPH_25' && r.isBankVerified !== false
-    )
-    const taxCreditPph25 = sptMasaPph25Records.reduce((sum, r) => sum + r.taxAmount, 0)
+    const rowAdjustedPph23 = matrix.reduce((sum, m) => sum + m.pph23Amount, 0)
+    const rowAdjustedPph25 = matrix.reduce((sum, m) => sum + m.pph25Amount, 0)
 
-    // Total Kredit Pajak (PPh 23 + PPh 25)
+    const adjustmentPph23 = (rowAdjustedPph23 - baseSptMasaPph23) + annualGeneralAdjustment.value.pph23Adjustment
+    const adjustmentPph25 = (rowAdjustedPph25 - baseSptMasaPph25) + annualGeneralAdjustment.value.pph25Adjustment
+
+    // Total Kredit Bersih yang Diakui di SPT 1771 (PPh 23 dan PPh 25)
+    const taxCreditPph23 = Math.max(0, baseSptMasaPph23 + adjustmentPph23)
+    const taxCreditPph25 = Math.max(0, baseSptMasaPph25 + adjustmentPph25)
+
+    // Total Kredit Pajak Netto (PPh 23 + PPh 25)
     const taxCredits = taxCreditPph23 + taxCreditPph25
 
-    // 8. PPh 29 Kurang Bayar yang harus disetor ke Kas Negara
+    // 8. PPh 29 Kurang Bayar atau PPh 28A Lebih Bayar
     const pph29Payable = Math.max(0, corporateTaxPayable - taxCredits)
+    const pph28aOverpaid = taxCredits > corporateTaxPayable ? (taxCredits - corporateTaxPayable) : 0
+    const hasAdjustments = adjustmentPph23 !== 0 || adjustmentPph25 !== 0
 
     return {
       fiscalYear: selectedYear.value,
@@ -1078,14 +1197,101 @@ export const useTaxStore = defineStore('tax', () => {
       taxableIncome,
       corporateTaxRate,
       corporateTaxPayable,
+      baseSptMasaPph23,
+      baseSptMasaPph25,
+      adjustmentPph23,
+      adjustmentPph25,
       taxCreditPph23,
       taxCreditPph25,
       taxCredits,
       pph29Payable,
-      linkedSptMasaCount: sptMasaPph23Records.length + sptMasaPph25Records.length,
-      bankReconciliationVerified: true
+      pph28aOverpaid,
+      linkedSptMasaCount: matrix.filter(m => m.pph23Record || m.pph25Record).length,
+      bankReconciliationVerified: true,
+      hasAdjustments
     }
   })
+
+  // Action: Generate Jurnal Akrual Penyesuaian PPh 29 Badan ke Buku Besar
+  function postPph29AccrualJournal() {
+    const report = annualTaxReport1771.value
+    if (report.corporateTaxPayable <= 0 && report.pph29Payable <= 0) {
+      accountingStore.showToast('Tidak ada kewajiban PPh Badan yang perlu dibukukan.', 'info')
+      return
+    }
+
+    const totalBeban = report.corporateTaxPayable
+    const kreditPph23 = report.taxCreditPph23
+    const kreditPph25 = report.taxCreditPph25
+    const hutangPph29 = report.pph29Payable
+
+    // Build balanced double-entry lines
+    const lines = [
+      {
+        accountId: 'acc-5501',
+        accountCode: '5501',
+        accountName: 'Beban Pajak Penghasilan Badan (PPh Badan Berjalan)',
+        debit: totalBeban,
+        credit: 0,
+        description: `Pengakuan Beban PPh Badan Formulir 1771 Tahun Pajak ${report.fiscalYear}`
+      }
+    ]
+
+    if (kreditPph23 > 0) {
+      lines.push({
+        accountId: 'acc-2502',
+        accountCode: '2502',
+        accountName: 'Kredit Pajak PPh 23 (Jasa Limbah & IT)',
+        debit: 0,
+        credit: kreditPph23,
+        description: `Pengkreditan PPh 23 SPT 1771 Tahun ${report.fiscalYear}`
+      })
+    }
+
+    if (kreditPph25 > 0) {
+      lines.push({
+        accountId: 'acc-2505',
+        accountCode: '2505',
+        accountName: 'Uang Muka / Angsuran PPh 25 Badan',
+        debit: 0,
+        credit: kreditPph25,
+        description: `Pengkreditan Angsuran PPh 25 Tahun ${report.fiscalYear}`
+      })
+    }
+
+    if (hutangPph29 > 0) {
+      lines.push({
+        accountId: 'acc-2506',
+        accountCode: '2506',
+        accountName: 'Hutang PPh 29 (Kurang Bayar SPT Tahunan Badan)',
+        debit: 0,
+        credit: hutangPph29,
+        description: `Hutang PPh 29 Kurang Bayar Formulir 1771 Tahun ${report.fiscalYear}`
+      })
+    }
+
+    // Safety balance check
+    const totalD = lines.reduce((s, l) => s + l.debit, 0)
+    const totalC = lines.reduce((s, l) => s + l.credit, 0)
+    if (Math.abs(totalD - totalC) > 0.01) {
+      // Balance out rounding
+      lines[lines.length - 1].credit += (totalD - totalC)
+    }
+
+    const journal = journalsStore.createManualJournal({
+      journalDate: `${report.fiscalYear}-12-31`,
+      businessUnit: accountingStore.businessUnit,
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kantor Pusat Semarang',
+      description: `Jurnal Penyesuaian Akrual PPh Badan & Kredit Pajak SPT 1771 Tahun Pajak ${report.fiscalYear}`,
+      status: 'POSTED',
+      journalSource: 'MANUAL',
+      sourceReference: `SPT-1771-${report.fiscalYear}`,
+      lines
+    })
+
+    accountingStore.showToast(`Jurnal Penyesuaian SPT 1771 (${journal.journalNumber}) berhasil diposting ke Buku Besar!`, 'success')
+  }
 
   // Filtered doctor tax records
   const filteredDoctorTax = computed(() => {
@@ -1187,6 +1393,13 @@ export const useTaxStore = defineStore('tax', () => {
     filteredTaxTransactions,
     monthlyTaxSummary,
     annualTaxReport1771,
+    monthCreditAdjustments,
+    annualGeneralAdjustment,
+    setMonthAdjustment,
+    resetMonthAdjustment,
+    setAnnualGeneralAdjustment,
+    resetAllAdjustments,
+    postPph29AccrualJournal,
     ppnSummary,
     generateTaxPaymentJournal,
     exportEbupotCSV
