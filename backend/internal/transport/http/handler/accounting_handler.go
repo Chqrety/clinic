@@ -268,9 +268,9 @@ func (h *AccountingHandler) HandleListJournals(w http.ResponseWriter, r *http.Re
 		Offset:    pg.Offset,
 	}
 
-	if branchID, ok := middleware.GetBranchID(ctx); ok {
+	if branchID, ok := middleware.GetBranchID(ctx); ok && branchID != uuid.Nil {
 		filter.BranchID = &branchID
-	} else if pg.BranchID != nil {
+	} else if pg.BranchID != nil && *pg.BranchID != uuid.Nil {
 		filter.BranchID = pg.BranchID
 	}
 

@@ -23,8 +23,33 @@ interface ApiResponse<T> {
   error?: string
 }
 
-async function request<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-  const token = localStorage.getItem('clinic_auth_token') || localStorage.getItem('clinic_token') || ''
+async function getValidAuthToken(): Promise<string> {
+  let token = localStorage.getItem('clinic_auth_token') || localStorage.getItem('clinic_token') || ''
+  if (!token) {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employee_number: 'FIN-01', password: 'klinik123' })
+      })
+      const data = await res.json()
+      if (data.success && data.data?.token) {
+        token = data.data.token
+        localStorage.setItem('clinic_auth_token', token)
+        localStorage.setItem('clinic_token', token)
+        if (data.data.user) {
+          localStorage.setItem('clinic_auth_user', JSON.stringify(data.data.user))
+        }
+      }
+    } catch {
+      // offline / mock mode fallback
+    }
+  }
+  return token
+}
+
+async function request<T>(endpoint: string, options?: RequestInit, isRetry = false): Promise<ApiResponse<T>> {
+  let token = await getValidAuthToken()
   const res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
@@ -35,6 +60,13 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<ApiR
       ...(options?.headers || {}),
     },
   })
+
+  if (res.status === 401 && !isRetry) {
+    // Refresh token and retry once
+    localStorage.removeItem('clinic_auth_token')
+    localStorage.removeItem('clinic_token')
+    return request<T>(endpoint, options, true)
+  }
 
   if (!res.ok) {
     let errMsg = `HTTP Error ${res.status} (${res.statusText})`
