@@ -6,7 +6,7 @@ import { useJournalsStore } from '@/stores/journals'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportToExcel, printReport } from '@/utils/export'
+import { exportGeneralLedgerToExcel, exportToExcel, printReport } from '@/utils/export'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
@@ -316,20 +316,14 @@ const endingBalance = computed(() => {
 
 function handleExportExcel() {
   const acc = activeAccount.value
-  const data = filteredLedgerEntries.value.map((e, idx) => ({
-    'No': idx + 1,
-    'Tanggal': e.date,
-    'No Jurnal': e.journalNumber,
-    'Sumber': e.source,
-    'Uraian': e.description,
-    'Unit': e.businessUnit,
-    'Debit (IDR)': e.debit,
-    'Kredit (IDR)': e.credit,
-    'Saldo Berjalan (IDR)': e.runningBalance
-  }))
-
-  exportToExcel(data, `Buku_Besar_${acc?.code}_${acc?.name}_Nov2026`, 'Buku Besar')
-  accountingStore.showToast(`Buku Besar Akun ${acc?.code} berhasil diekspor ke Excel`, 'success')
+  const opBal = acc?.currentBalance ? acc.currentBalance * 0.55 : 0
+  exportGeneralLedgerToExcel(acc, filteredLedgerEntries.value, {
+    businessUnit: accountingStore.businessUnit,
+    startDate: startDate.value,
+    endDate: endDate.value,
+    openingBalance: opBal
+  })
+  accountingStore.showToast(`Buku Besar Akun [${acc?.code}] (Format LHP SPHC) berhasil diekspor ke Excel`, 'success')
 }
 </script>
 

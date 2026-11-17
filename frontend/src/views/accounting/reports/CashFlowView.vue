@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
-import { exportToExcel, printReport } from '@/utils/export'
+import { exportCashFlowToExcel, exportToExcel, printReport } from '@/utils/export'
 import {
   Download,
   Printer,
@@ -74,15 +74,12 @@ function openLedgerForAccount(accountCode?: string) {
 }
 
 function handleExportExcel() {
-  const data = cashFlowRows.value.map(r => ({
-    'Line': r.lineNo,
-    'Uraian': r.name,
-    'November 2026 (IDR)': r.amountCurrent,
-    'November 2025 (IDR)': r.amountPrevious
-  }))
-
-  exportToExcel(data, `Laporan_Arus_Kas_${accountingStore.businessUnit}_${endDate.value}`, 'Arus Kas')
-  accountingStore.showToast('Laporan Arus Kas berhasil diekspor ke Excel', 'success')
+  exportCashFlowToExcel(cashFlowRows.value, {
+    businessUnit: accountingStore.businessUnit,
+    asOfDate: endDate.value,
+    startDate: startDate.value
+  })
+  accountingStore.showToast('Laporan Arus Kas Audited (Format LHP SPHC) berhasil diekspor ke Excel', 'success')
 }
 </script>
 

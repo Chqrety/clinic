@@ -7,6 +7,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
+import { exportSptTahunan1771ToExcel } from '@/utils/export'
 import {
   FileText,
   CheckCircle2,
@@ -81,7 +82,15 @@ function handlePostJournal() {
 }
 
 function handleExportExcel() {
-  accountingStore.showToast('Kertas Kerja SPT Tahunan PPh Badan 1771 berhasil diekspor ke Excel', 'success')
+  exportSptTahunan1771ToExcel({
+    annual1771: annual1771.value,
+    monthlyMatrix: sptMatrix.value,
+    linkedJournals: journalsStore.journals
+  }, {
+    fiscalYear: annual1771.value.fiscalYear,
+    businessUnit: accountingStore.businessUnit
+  })
+  accountingStore.showToast('Kertas Kerja SPT Tahunan PPh Badan (Formulir 1771 & Audit Workpaper) berhasil diekspor ke Excel', 'success')
 }
 
 function printReport() {

@@ -5,7 +5,7 @@ import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
-import { exportToExcel, printReport } from '@/utils/export'
+import { exportProfitLossToExcel, exportToExcel, printReport } from '@/utils/export'
 import {
   Download,
   Printer,
@@ -363,16 +363,12 @@ function openLedgerForAccount(accountCode?: string) {
 }
 
 function handleExportExcel() {
-  const data = flattenedRows.value.map(r => ({
-    'Line': r.node.lineNo,
-    'Kode': r.node.code || '',
-    'Uraian': '  '.repeat(r.node.level - 1) + r.node.name,
-    'Level': r.node.level,
-    'Jumlah (IDR)': r.node.amount
-  }))
-
-  exportToExcel(data, `Laporan_Laba_Rugi_${accountingStore.businessUnit}_${endDate.value}`, 'Laba Rugi')
-  accountingStore.showToast('Laporan Laba Rugi berhasil diekspor ke Excel', 'success')
+  exportProfitLossToExcel(plTree.value, {
+    businessUnit: accountingStore.businessUnit,
+    asOfDate: endDate.value,
+    startDate: startDate.value
+  })
+  accountingStore.showToast('Laporan Laba Rugi Komprehensif (Format LHP SPHC) berhasil diekspor ke Excel', 'success')
 }
 </script>
 

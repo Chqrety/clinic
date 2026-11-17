@@ -7,6 +7,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
+import { exportSptMasaToExcel } from '@/utils/export'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import {
   Calculator,
@@ -160,6 +161,20 @@ function drillDownToJournals(month: number, taxType: string) {
   taxStore.selectedSptMasaTypeFilter = taxType
   sptMasaSubTab.value = 'JURNAL_TERKAIT'
 }
+
+function handleExportExcel() {
+  exportSptMasaToExcel({
+    sptList: sptMasaList.value,
+    doctorList: doctorTaxRecords.value,
+    txList: txList.value,
+    summary: summary.value
+  }, {
+    businessUnit: accountingStore.businessUnit,
+    masaMonth: taxStore.selectedMonth,
+    fiscalYear: taxStore.selectedYear
+  })
+  accountingStore.showToast('Dokumen & Kertas Kerja SPT Masa (Format LHP SPHC & DJP) berhasil diekspor ke Excel', 'success')
+}
 </script>
 
 <template>
@@ -195,6 +210,15 @@ function drillDownToJournals(month: number, taxType: string) {
         >
           <Landmark class="w-3.5 h-3.5 text-zinc-600" />
           <span>Penyetoran via Bank (NTPN)</span>
+        </button>
+
+        <button
+          @click="handleExportExcel"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+          title="Ekspor Excel SPT Masa PPh & PPN Lengkap (Format LHP SPHC Audit)"
+        >
+          <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600" />
+          <span>Ekspor SPT (.xlsx)</span>
         </button>
 
         <button
