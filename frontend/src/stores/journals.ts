@@ -566,6 +566,315 @@ export const useJournalsStore = defineStore('journals', () => {
       postedByName: 'Budi Santoso, SE, Ak., CA',
       postedAt: '2026-03-20 14:35:00',
       isManual: false
+    },
+    {
+      id: 'jv-202611-01',
+      journalNumber: 'JV-2026-11-001',
+      journalDate: '2026-11-15',
+      journalSource: 'MANUAL',
+      sourceReference: 'BUPOT-21-202611-001',
+      businessUnit: 'KIDINEST',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Pembayaran Honor & Pemotongan PPh 21 Dokter Spesialis Anak (dr. Hendra Wijaya, Sp.A)',
+      totalDebit: 48500000,
+      totalCredit: 48500000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-2611-1',
+          accountId: 'acc-5106',
+          accountCode: '5106',
+          accountName: 'Beban Bagi Hasil Dokter Spesialis Anak (Kidinest)',
+          debit: 48500000,
+          credit: 0,
+          description: 'Honor Jasa Medis Konsultasi & Tindakan Dokter Sp.A'
+        },
+        {
+          id: 'jl-2611-2',
+          accountId: 'acc-2501-1',
+          accountCode: '2501.001',
+          accountName: 'PPh 21 Dokter Tenaga Ahli (PMK 168/2023)',
+          debit: 0,
+          credit: 1212500,
+          description: 'Withholding Tax PPh 21 Dokter 5% atas DPP 50%'
+        },
+        {
+          id: 'jl-2611-3',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 47287500,
+          description: 'Transfer Honor Bersih via Bank BCA TRF-BCA-DOC-202611-01'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-11-15 11:30:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-11-15 13:00:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-11-15 13:05:00',
+      isManual: false
+    },
+    {
+      id: 'jv-202611-02',
+      journalNumber: 'JV-2026-11-002',
+      journalDate: '2026-11-18',
+      journalSource: 'MANUAL',
+      sourceReference: 'BUPOT-21-202611-002',
+      businessUnit: 'SSC',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Pembayaran Honor Medis & Pemotongan PPh 21 Dokter Spesialis Kulit (dr. Maya Sandria, Sp.KK)',
+      totalDebit: 82500000,
+      totalCredit: 82500000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-2611-4',
+          accountId: 'acc-5107',
+          accountCode: '5107',
+          accountName: 'Beban Bagi Hasil Dokter Estetika & Kulit SSC',
+          debit: 82500000,
+          credit: 0,
+          description: 'Jasa Medis Tindakan Laser & Aesthetic Dokter Kulit'
+        },
+        {
+          id: 'jl-2611-5',
+          accountId: 'acc-2501-1',
+          accountCode: '2501.001',
+          accountName: 'PPh 21 Dokter Tenaga Ahli (PMK 168/2023)',
+          debit: 0,
+          credit: 2062500,
+          description: 'Pemotongan PPh 21 Tenaga Ahli Dokter Sp.KK'
+        },
+        {
+          id: 'jl-2611-6',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 80437500,
+          description: 'Transfer Bank BCA TRF-BCA-DOC-202611-02'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-11-18 10:00:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-11-18 11:30:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-11-18 11:35:00',
+      isManual: false
+    },
+    {
+      id: 'jv-202611-03',
+      journalNumber: 'JV-2026-11-003',
+      journalDate: '2026-11-20',
+      journalSource: 'MANUAL',
+      sourceReference: 'INV-WST-202611',
+      businessUnit: 'ALL',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Pengolahan & Pemusnahan Limbah Medis B3 PT Wastec International - PPh 23 (2%)',
+      totalDebit: 47500000,
+      totalCredit: 47500000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-2611-7',
+          accountId: 'acc-5202',
+          accountCode: '5202',
+          accountName: 'Beban Umum & Operasional Limbah Medis B3',
+          debit: 47500000,
+          credit: 0,
+          description: 'Biaya Pengolahan & Pemusnahan Limbah B3 Klinis'
+        },
+        {
+          id: 'jl-2611-8',
+          accountId: 'acc-2502',
+          accountCode: '2502',
+          accountName: 'PPh 23 (Jasa Limbah B3 & Maintenance Alkes)',
+          debit: 0,
+          credit: 950000,
+          description: 'Withholding Tax PPh 23 (2%) atas Jasa Teknik & Limbah'
+        },
+        {
+          id: 'jl-2611-9',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 46550000,
+          description: 'Transfer Pembayaran Vendor Limbah Medis BCA'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-11-20 09:30:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-11-20 10:15:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-11-20 10:20:00',
+      isManual: false
+    },
+    {
+      id: 'jv-202611-04',
+      journalNumber: 'JV-2026-11-004',
+      journalDate: '2026-11-22',
+      journalSource: 'MANUAL',
+      sourceReference: 'SEWA-RUKO-202611',
+      businessUnit: 'ALL',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Sewa Gedung Fasilitas Operasional Klinik - PPh Final Pasal 4(2) (10%)',
+      totalDebit: 17500000,
+      totalCredit: 17500000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-2611-10',
+          accountId: 'acc-5202',
+          accountCode: '5202',
+          accountName: 'Beban Umum & Sewa Gedung Klinik',
+          debit: 17500000,
+          credit: 0,
+          description: 'Sewa Fasilitas Ruang Rawat & Operasional'
+        },
+        {
+          id: 'jl-2611-11',
+          accountId: 'acc-2503',
+          accountCode: '2503',
+          accountName: 'PPh Final Pasal 4(2) (Sewa Ruko & Fasilitas)',
+          debit: 0,
+          credit: 1750000,
+          description: 'Withholding Tax PPh Final 4(2) Sewa Gedung 10%'
+        },
+        {
+          id: 'jl-2611-12',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 15750000,
+          description: 'Transfer Pembayaran Sewa via Bank BCA'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-11-22 14:00:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-11-22 15:00:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-11-22 15:05:00',
+      isManual: false
+    },
+    {
+      id: 'jv-202611-05',
+      journalNumber: 'JV-2026-11-005',
+      journalDate: '2026-11-25',
+      journalSource: 'MANUAL',
+      sourceReference: 'NTPN-BCA-PPH25-11',
+      businessUnit: 'ALL',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Setoran Angsuran Pajak Badan PPh Pasal 25 Masa November 2026 via Bank BCA',
+      totalDebit: 27000000,
+      totalCredit: 27000000,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-2611-13',
+          accountId: 'acc-1504',
+          accountCode: '1504',
+          accountName: 'Pajak Dibayar di Muka PPh 25 (Kredit Pajak Badan)',
+          debit: 27000000,
+          credit: 0,
+          description: 'Setoran Angsuran PPh 25 Badan Bulanan via Bank BCA NTPN-BCA-20261125-9925'
+        },
+        {
+          id: 'jl-2611-14',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 0,
+          credit: 27000000,
+          description: 'Debet Giro BCA e-Billing DJP'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-11-25 10:00:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-11-25 11:00:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-11-25 11:05:00',
+      isManual: false
+    },
+    {
+      id: 'jv-202611-06',
+      journalNumber: 'JV-2026-11-006',
+      journalDate: '2026-11-28',
+      journalSource: 'MANUAL',
+      sourceReference: 'FP-PPN-202611',
+      businessUnit: 'SSC',
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kebayoran Baru (Pusat)',
+      description: 'Faktur Pajak PPN Keluaran 11% Penjualan Produk Skincare & Treatment Non-Medis SSC Masa November',
+      totalDebit: 95611919,
+      totalCredit: 95611919,
+      status: 'POSTED',
+      lines: [
+        {
+          id: 'jl-2611-15',
+          accountId: 'acc-1102-1',
+          accountCode: '1102.001',
+          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          debit: 95611919,
+          credit: 0,
+          description: 'Penerimaan Penjualan Skincare + PPN EDC BCA'
+        },
+        {
+          id: 'jl-2611-16',
+          accountId: 'acc-4109',
+          accountCode: '4109',
+          accountName: 'Pendapatan Penjualan Produk Skincare & Kosmetika SSC',
+          debit: 0,
+          credit: 86136864,
+          description: 'DPP Penjualan Produk Skincare Terkena PPN'
+        },
+        {
+          id: 'jl-2611-17',
+          accountId: 'acc-2504',
+          accountCode: '2504',
+          accountName: 'PPN Keluaran (Penjualan Kosmetika & Skincare)',
+          debit: 0,
+          credit: 9475055,
+          description: 'PPN Keluaran 11% Terutang Masa November 2026'
+        }
+      ],
+      createdBy: 'rian.pratama',
+      createdByName: 'Rian Pratama, S.Ak.',
+      createdAt: '2026-11-28 16:30:00',
+      approvedBy: 'budi.santoso',
+      approvedByName: 'Budi Santoso, SE, Ak., CA',
+      approvedAt: '2026-11-28 17:00:00',
+      postedBy: 'budi.santoso',
+      postedByName: 'Budi Santoso, SE, Ak., CA',
+      postedAt: '2026-11-28 17:05:00',
+      isManual: false
     }
   ])
 
@@ -576,11 +885,11 @@ export const useJournalsStore = defineStore('journals', () => {
         return false
       }
       if (accountingStore.fiscalMonth && j.journalDate) {
-        const parts = j.journalDate.split('-')
-        if (parts.length >= 2) {
-          const m = parseInt(parts[1], 10)
-          if (m !== accountingStore.fiscalMonth) return false
-        }
+        const str = String(j.journalDate).trim()
+        const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/]/)
+        const dmyMatch = str.match(/^\d{1,2}[-/](\d{1,2})[-/]\d{4}/)
+        const m = isoMatch ? parseInt(isoMatch[2], 10) : (dmyMatch ? parseInt(dmyMatch[1], 10) : null)
+        if (m !== null && m !== accountingStore.fiscalMonth) return false
       }
       return true
     })

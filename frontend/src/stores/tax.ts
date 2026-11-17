@@ -36,6 +36,75 @@ export interface SptMasaRecord {
   businessUnit: BusinessUnit
   createdAt: string
   createdBy: string
+  linkedJournals?: LinkedTaxJournalEntry[]
+}
+
+/**
+ * Robust date parser supporting YYYY-MM-DD, ISO, DD-MM-YYYY, and DD/MM/YYYY
+ */
+export function parseDateMonthYear(dateStr?: string | Date | null): { month: number; year: number } | null {
+  if (!dateStr) return null
+  if (dateStr instanceof Date) {
+    return { year: dateStr.getFullYear(), month: dateStr.getMonth() + 1 }
+  }
+  const str = String(dateStr).trim()
+  if (!str) return null
+
+  // Format 1: YYYY-MM-DD or YYYY/MM/DD or ISO 8601 (2026-11-17T...)
+  const matchIso = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/)
+  if (matchIso) {
+    return { year: parseInt(matchIso[1], 10), month: parseInt(matchIso[2], 10) }
+  }
+
+  // Format 2: DD-MM-YYYY or DD/MM/YYYY
+  const matchDmy = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/)
+  if (matchDmy) {
+    return { year: parseInt(matchDmy[3], 10), month: parseInt(matchDmy[2], 10) }
+  }
+
+  const d = new Date(str)
+  if (!isNaN(d.getTime())) {
+    return { year: d.getFullYear(), month: d.getMonth() + 1 }
+  }
+  return null
+}
+
+/**
+ * Universal classifier mapping accounts & memos to SptMasaType
+ */
+export function detectTaxType(accountCode?: string, accountName?: string, desc?: string): SptMasaType | null {
+  const code = (accountCode || '').trim()
+  const name = (accountName || '').toUpperCase()
+  const d = (desc || '').toUpperCase()
+
+  const isTax =
+    code.startsWith('25') ||
+    code.startsWith('2-15') ||
+    code.startsWith('1504') ||
+    code.startsWith('1505') ||
+    code === '1-1180' ||
+    code === '2-1300' || code === '2-1301' ||
+    name.includes('PAJAK') || name.includes('PPH') || name.includes('PPN') ||
+    d.includes('PAJAK') || d.includes('PPH') || d.includes('PPN')
+
+  if (!isTax) return null
+
+  if (code.includes('2502') || code === '2-1510' || name.includes('23') || d.includes('23') || name.includes('LIMBAH')) {
+    return 'PPH_23'
+  }
+  if (code.includes('2503') || name.includes('4(2)') || name.includes('4 (2)') || name.includes('FINAL') || d.includes('4(2)') || d.includes('FINAL') || d.includes('SEWA')) {
+    return 'PPH_4_2'
+  }
+  if (code.includes('2505') || code.includes('1504') || code === '2-1520' || name.includes('25') || d.includes('25') || d.includes('ANGSURAN')) {
+    return 'PPH_25'
+  }
+  if (code.includes('2504') || code.includes('1505') || code === '1-1180' || name.includes('PPN') || d.includes('PPN') || name.includes('FAKTUR') || d.includes('FAKTUR')) {
+    return 'PPN'
+  }
+  if (code.includes('2501') || code === '2-1500' || name.includes('21') || d.includes('21') || name.includes('DOKTER') || name.includes('GAJI') || name.includes('HONOR')) {
+    return 'PPH_21'
+  }
+  return 'PPH_21'
 }
 
 export interface LinkedTaxJournalEntry {
@@ -663,18 +732,173 @@ export const useTaxStore = defineStore('tax', () => {
     })
   ])
 
-  // Filtered SPT Masa Records (STRICTLY BANK VERIFIED)
+  // =========================================================================
+  // LINKED JOURNAL ENTRIES (TERIKAT KE JURNAL UMUM SECARA REAL-TIME)
+  // Menghubungkan SPT Masa & Tahunan langsung ke voucher Jurnal Umum
+  // =========================================================================
+  const linkedTaxJournalEntries = computed<LinkedTaxJournalEntry[]>(() => {
+    const allJournals = journalsStore.journals
+    const result: LinkedTaxJournalEntry[] = []
+
+    for (const j of allJournals) {
+      const parsedDate = parseDateMonthYear(j.journalDate)
+      if (!parsedDate) continue
+      const { month, year } = parsedDate
+
+      for (const line of j.lines) {
+        const detectedTaxType = detectTaxType(line.accountCode, line.accountName, line.description || j.description)
+        if (!detectedTaxType) continue
+
+        // Find counterpart line (not this line)
+        const counterpart = j.lines.find(l => l.id !== line.id)
+        const bankLine = j.lines.find(l =>
+          l.accountCode?.startsWith('1102') ||
+          l.accountCode?.startsWith('1101') ||
+          (l.accountName && (l.accountName.toLowerCase().includes('bank') || l.accountName.toLowerCase().includes('kas')))
+        )
+
+        const taxAmt = line.credit > 0 ? line.credit : line.debit
+        const isWithheld = line.credit > 0 // Withheld on credit, paid on debit
+
+        let dpp = taxAmt
+        if (detectedTaxType === 'PPH_23') dpp = taxAmt / 0.02
+        else if (detectedTaxType === 'PPH_4_2') dpp = taxAmt / 0.10
+        else if (detectedTaxType === 'PPN') dpp = taxAmt / 0.11
+        else if (detectedTaxType === 'PPH_21') dpp = taxAmt / 0.025
+        else dpp = taxAmt
+
+        result.push({
+          id: `${j.id}-${line.id}`,
+          journalId: j.id,
+          journalNumber: j.journalNumber,
+          journalDate: j.journalDate,
+          description: line.description || j.description,
+          businessUnit: j.businessUnit || 'ALL',
+          status: j.status,
+          taxType: detectedTaxType,
+          taxAccountCode: line.accountCode || '2501',
+          taxAccountName: line.accountName || `Akun Pajak ${detectedTaxType}`,
+          counterpartAccountCode: counterpart?.accountCode || '-',
+          counterpartAccountName: counterpart?.accountName || '-',
+          grossAmount: Math.round(dpp),
+          dppAmount: Math.round(dpp),
+          taxAmount: taxAmt,
+          direction: isWithheld ? 'WITHHELD' : 'PAID',
+          bankAccount: bankLine ? `[${bankLine.accountCode}] ${bankLine.accountName}` : 'Bank BCA Operasional (1102.001)',
+          month,
+          year,
+          rawJournal: j
+        })
+      }
+    }
+
+    return result
+  })
+
+  const filteredLinkedTaxJournalEntries = computed(() => {
+    return linkedTaxJournalEntries.value.filter(entry => {
+      if (accountingStore.businessUnit !== 'ALL' && entry.businessUnit && entry.businessUnit !== 'ALL' && entry.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
+      if (selectedYear.value && entry.year !== selectedYear.value) return false
+      if (selectedMonth.value && entry.month !== selectedMonth.value) return false
+      if (selectedSptMasaTypeFilter.value !== 'ALL' && entry.taxType !== selectedSptMasaTypeFilter.value) return false
+      return true
+    })
+  })
+
+  function getLinkedJournalsForMonth(month: number, year: number, taxType?: string) {
+    return linkedTaxJournalEntries.value.filter(entry => {
+      if (entry.month !== month || entry.year !== year) return false
+      if (taxType && taxType !== 'ALL' && entry.taxType !== taxType) return false
+      if (accountingStore.businessUnit !== 'ALL' && entry.businessUnit && entry.businessUnit !== 'ALL' && entry.businessUnit !== accountingStore.businessUnit) {
+        return false
+      }
+      return true
+    })
+  }
+
+  // Filtered SPT Masa Records with Dynamic Journal Linkage
   const filteredSptMasa = computed(() => {
-    return sptMasaRecords.value.filter(s => {
+    const m = selectedMonth.value
+    const y = selectedYear.value
+
+    // 1. Base records from sptMasaRecords
+    const baseForMonth = sptMasaRecords.value.filter(s => {
       if (accountingStore.businessUnit !== 'ALL' && s.businessUnit && s.businessUnit !== 'ALL' && s.businessUnit !== accountingStore.businessUnit) {
         return false
       }
-      if (s.masaYear !== selectedYear.value) return false
-      if (selectedMonth.value && s.masaMonth !== selectedMonth.value) return false
+      if (s.masaYear !== y) return false
+      if (m && s.masaMonth !== m) return false
       if (selectedSptMasaTypeFilter.value !== 'ALL' && s.taxType !== selectedSptMasaTypeFilter.value) return false
-      // STRICTLY REQUIRE BANK VERIFICATION
       return s.isBankVerified !== false
     })
+
+    // 2. Map of taxType -> LinkedTaxJournalEntry[] for this month & year
+    const journalsByTaxType = new Map<SptMasaType, LinkedTaxJournalEntry[]>()
+    for (const entry of linkedTaxJournalEntries.value) {
+      if (entry.month === m && entry.year === y) {
+        if (accountingStore.businessUnit === 'ALL' || !entry.businessUnit || entry.businessUnit === 'ALL' || entry.businessUnit === accountingStore.businessUnit) {
+          if (!journalsByTaxType.has(entry.taxType)) {
+            journalsByTaxType.set(entry.taxType, [])
+          }
+          journalsByTaxType.get(entry.taxType)!.push(entry)
+        }
+      }
+    }
+
+    // 3. Enrich existing base records with their matching journals
+    const existingTypes = new Set<string>()
+    const enrichedList: SptMasaRecord[] = baseForMonth.map(s => {
+      existingTypes.add(s.taxType)
+      const matchingJournals = journalsByTaxType.get(s.taxType) || []
+      
+      const jTax = matchingJournals.reduce((sum, j) => sum + j.taxAmount, 0)
+      const jDpp = matchingJournals.reduce((sum, j) => sum + j.dppAmount, 0)
+
+      return {
+        ...s,
+        taxAmount: jTax > 0 ? jTax : s.taxAmount,
+        dppAmount: jDpp > 0 ? jDpp : s.dppAmount,
+        linkedJournals: matchingJournals
+      }
+    })
+
+    // 4. Add dynamic records for any tax types found in journals not yet in baseForMonth
+    for (const [tType, jList] of journalsByTaxType.entries()) {
+      if (!existingTypes.has(tType)) {
+        if (selectedSptMasaTypeFilter.value !== 'ALL' && selectedSptMasaTypeFilter.value !== tType) continue
+        const jTax = jList.reduce((sum, j) => sum + j.taxAmount, 0)
+        const jDpp = jList.reduce((sum, j) => sum + j.dppAmount, 0)
+        const first = jList[0]
+
+        enrichedList.push({
+          id: `spt-dyn-${tType}-${y}-${m}`,
+          sptNumber: `SPT-${tType.replace('_', '')}-${y}-${String(m).padStart(2, '0')}`,
+          masaMonth: m,
+          masaYear: y,
+          taxType: tType,
+          accountCode: first?.taxAccountCode || '2501',
+          accountName: first?.taxAccountName || `Kewajiban Pajak ${tType}`,
+          bankAccountCode: '1102.001',
+          bankAccountName: 'Bank BCA Operasional (Giro & EDC)',
+          paymentChannel: 'BANK_TRANSFER',
+          isBankVerified: true,
+          grossAmount: jDpp,
+          dppAmount: jDpp,
+          taxRate: tType === 'PPH_23' ? '2%' : tType === 'PPH_4_2' ? '10%' : tType === 'PPN' ? '11%' : '5%',
+          taxAmount: jTax,
+          status: 'DRAFT',
+          notes: `Dihasilkan otomatis dari ${jList.length} voucher Jurnal Umum Masa ${m}/${y}`,
+          businessUnit: accountingStore.businessUnit,
+          createdAt: new Date().toISOString(),
+          createdBy: 'Sistem Terintegrasi Jurnal',
+          linkedJournals: jList
+        })
+      }
+    }
+
+    return enrichedList
   })
 
   // Action: Buat Dokumen SPT Masa Baru (STRICTLY REKening BANK ONLY, NO CASH)
@@ -1161,9 +1385,45 @@ export const useTaxStore = defineStore('tax', () => {
     }
   })
 
-  // Filtered Tax Transactions based on selected Tax Account
-  const filteredTaxTransactions = computed(() => {
-    return taxTransactions.value.filter(tx => {
+  // Filtered Tax Transactions (Combined from real Jurnal Umum entries & Base records)
+  const filteredTaxTransactions = computed<TaxTransaction[]>(() => {
+    // 1. Convert linkedTaxJournalEntries for selected month & year into TaxTransaction objects
+    const journalTxs: TaxTransaction[] = filteredLinkedTaxJournalEntries.value.map(entry => ({
+      id: `tx-j-${entry.id}`,
+      taxNumber: `BUPOT-${entry.taxType}-${entry.year}${String(entry.month).padStart(2, '0')}-${entry.journalNumber.slice(-4)}`,
+      taxDate: entry.journalDate,
+      businessUnit: entry.businessUnit,
+      taxCategory: entry.taxType,
+      accountCode: entry.taxAccountCode,
+      journalNumber: entry.journalNumber,
+      counterpartyName: `${entry.counterpartAccountName} (${entry.bankAccount || 'Perbankan'})`,
+      counterpartyNPWP: '-',
+      counterpartyNIK: '-',
+      objectCode: `${entry.taxType} - ${entry.description}`,
+      grossAmount: entry.grossAmount,
+      dppAmount: entry.dppAmount,
+      taxRate: entry.taxType === 'PPH_23' ? 0.02 : entry.taxType === 'PPH_4_2' ? 0.10 : entry.taxType === 'PPN' ? 0.11 : 0.05,
+      taxAmount: entry.taxAmount,
+      documentReference: entry.journalNumber,
+      reconciliationStatus: 'RECONCILED',
+      isReported: entry.status === 'POSTED',
+      periodMonth: entry.month,
+      periodYear: entry.year
+    }))
+
+    // 2. Base taxTransactions filtered strictly by selectedMonth and selectedYear
+    const baseTxs = taxTransactions.value.filter(tx => {
+      if (selectedYear.value && tx.periodYear !== selectedYear.value) return false
+      if (selectedMonth.value && tx.periodMonth !== selectedMonth.value) return false
+      return true
+    })
+
+    // 3. Merge avoiding duplicates by journal number
+    const jNumbers = new Set(journalTxs.map(j => j.journalNumber))
+    const uniqueBase = baseTxs.filter(t => !t.journalNumber || !jNumbers.has(t.journalNumber))
+    const combined = [...journalTxs, ...uniqueBase]
+
+    return combined.filter(tx => {
       if (accountingStore.businessUnit !== 'ALL' && tx.businessUnit && tx.businessUnit !== 'ALL' && tx.businessUnit !== accountingStore.businessUnit) {
         return false
       }
@@ -1172,7 +1432,7 @@ export const useTaxStore = defineStore('tax', () => {
         if (selectedTaxAccountCode.value === '2501.002' && tx.accountCode !== '2501.002') return false
         if (selectedTaxAccountCode.value === '2502' && tx.taxCategory !== 'PPH_23') return false
         if (selectedTaxAccountCode.value === '2503' && tx.taxCategory !== 'PPH_4_2') return false
-        if (selectedTaxAccountCode.value === '2504' && tx.taxCategory !== 'PPN_OUTPUT') return false
+        if (selectedTaxAccountCode.value === '2504' && tx.taxCategory !== 'PPN_OUTPUT' && tx.taxCategory !== 'PPN') return false
       }
       return true
     })
@@ -1454,100 +1714,6 @@ export const useTaxStore = defineStore('tax', () => {
 
     exportToCSV(csvData, `DJP_eBupot_21_${selectedYear.value}_${selectedMonth.value}`)
     accountingStore.showToast('File e-Bupot PPh 21 format DJP berhasil diunduh!', 'success')
-  }
-
-  // =========================================================================
-  // 4. LINKED JOURNAL ENTRIES (TERIKAT KE JURNAL UMUM & BRAYO RECONCILIATION)
-  // Menghubungkan SPT Masa & Tahunan langsung ke voucher Jurnal Umum
-  // =========================================================================
-  const linkedTaxJournalEntries = computed<LinkedTaxJournalEntry[]>(() => {
-    const allJournals = journalsStore.journals
-    const result: LinkedTaxJournalEntry[] = []
-
-    for (const j of allJournals) {
-      if (!j.journalDate) continue
-      const parts = j.journalDate.split('-')
-      const year = parseInt(parts[0], 10)
-      const month = parseInt(parts[1], 10)
-
-      for (const line of j.lines) {
-        const code = line.accountCode || ''
-        const name = line.accountName || ''
-        const isTaxLine =
-          code.startsWith('2501') || code.startsWith('2502') || code.startsWith('2503') ||
-          code.startsWith('2504') || code.startsWith('2505') || code.startsWith('2506') ||
-          code.startsWith('1504') || code.startsWith('1505') ||
-          code === '2-1300' || code === '2-1301' ||
-          name.toUpperCase().includes('PPH') || name.toUpperCase().includes('PAJAK') || name.toUpperCase().includes('PPN')
-
-        if (isTaxLine) {
-          let detectedTaxType: SptMasaType = 'PPH_21'
-          if (code.includes('2502') || name.includes('23')) detectedTaxType = 'PPH_23'
-          else if (code.includes('2503') || name.includes('4(2)') || name.toLowerCase().includes('final')) detectedTaxType = 'PPH_4_2'
-          else if (code.includes('2505') || code.includes('1504') || name.includes('25')) detectedTaxType = 'PPH_25'
-          else if (code.includes('2504') || code.includes('1505') || name.toUpperCase().includes('PPN')) detectedTaxType = 'PPN'
-
-          // Find counterpart line (not this line)
-          const counterpart = j.lines.find(l => l.id !== line.id)
-          const bankLine = j.lines.find(l => l.accountCode?.startsWith('1102') || l.accountName?.toLowerCase().includes('bank'))
-
-          const taxAmt = line.credit > 0 ? line.credit : line.debit
-          const isWithheld = line.credit > 0 // Withheld on credit, paid on debit
-
-          let dpp = taxAmt
-          if (detectedTaxType === 'PPH_23') dpp = taxAmt / 0.02
-          else if (detectedTaxType === 'PPH_4_2') dpp = taxAmt / 0.10
-          else if (detectedTaxType === 'PPN') dpp = taxAmt / 0.11
-          else if (detectedTaxType === 'PPH_21') dpp = taxAmt / 0.025
-          else dpp = taxAmt
-
-          result.push({
-            id: `${j.id}-${line.id}`,
-            journalId: j.id,
-            journalNumber: j.journalNumber,
-            journalDate: j.journalDate,
-            description: line.description || j.description,
-            businessUnit: j.businessUnit || 'ALL',
-            status: j.status,
-            taxType: detectedTaxType,
-            taxAccountCode: code,
-            taxAccountName: name,
-            counterpartAccountCode: counterpart?.accountCode || '-',
-            counterpartAccountName: counterpart?.accountName || '-',
-            grossAmount: Math.round(dpp),
-            dppAmount: Math.round(dpp),
-            taxAmount: taxAmt,
-            direction: isWithheld ? 'WITHHELD' : 'PAID',
-            bankAccount: bankLine ? `${bankLine.accountCode} - ${bankLine.accountName}` : 'Bank BCA Operasional (1102.001)',
-            month,
-            year,
-            rawJournal: j
-          })
-        }
-      }
-    }
-
-    return result
-  })
-
-  const filteredLinkedTaxJournalEntries = computed(() => {
-    return linkedTaxJournalEntries.value.filter(entry => {
-      if (accountingStore.businessUnit !== 'ALL' && entry.businessUnit && entry.businessUnit !== 'ALL' && entry.businessUnit !== accountingStore.businessUnit) {
-        return false
-      }
-      if (selectedYear.value && entry.year !== selectedYear.value) return false
-      if (selectedMonth.value && entry.month !== selectedMonth.value) return false
-      if (selectedSptMasaTypeFilter.value !== 'ALL' && entry.taxType !== selectedSptMasaTypeFilter.value) return false
-      return true
-    })
-  })
-
-  function getLinkedJournalsForMonth(month: number, year: number, taxType?: string) {
-    return linkedTaxJournalEntries.value.filter(entry => {
-      if (entry.month !== month || entry.year !== year) return false
-      if (taxType && taxType !== 'ALL' && entry.taxType !== taxType) return false
-      return true
-    })
   }
 
   return {

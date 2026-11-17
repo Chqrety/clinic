@@ -210,7 +210,7 @@ export interface TaxTransaction {
   taxNumber: string
   taxDate: string
   businessUnit: BusinessUnit
-  taxCategory: 'PPN_OUTPUT' | 'PPN_INPUT' | 'PPH_21' | 'PPH_23' | 'PPH_4_2' | 'PPH_25' | 'PPH_29'
+  taxCategory: 'PPN_OUTPUT' | 'PPN_INPUT' | 'PPN' | 'PPH_21' | 'PPH_23' | 'PPH_4_2' | 'PPH_25' | 'PPH_29'
   accountCode?: string
   journalId?: string
   journalNumber?: string
