@@ -10,6 +10,7 @@ import { exportToExcel, printReport } from '@/utils/export'
 import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
+import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { JournalEntry } from '@/types/accounting'
 import {
   FileText,
@@ -202,6 +203,14 @@ const allAccountsGrouped = computed(() => {
     }
     return true
   })
+})
+
+const ledgerAccountOptions = computed(() => {
+  return allAccountsGrouped.value.map(acc => ({
+    value: acc.code,
+    label: `[${acc.code}] ${acc.name}`,
+    sublabel: `${acc.type} • Saldo Normal: ${acc.normalBalance}`
+  }))
 })
 
 watch(
@@ -433,18 +442,13 @@ function handleExportExcel() {
     <div class="bg-[#121826] border border-slate-800 rounded-xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-300">
       <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
         <span class="font-bold text-slate-400">Pilih Akun Buku Besar:</span>
-        <select
-          v-model="selectedAccountCode"
-          class="px-3 py-1.5 bg-[#1E293B] border border-slate-700 rounded-lg font-bold text-xs text-white focus:ring-2 focus:ring-blue-500 focus:outline-none min-w-[340px] cursor-pointer"
-        >
-          <option
-            v-for="acc in allAccountsGrouped"
-            :key="acc.code"
-            :value="acc.code"
-          >
-            {{ acc.code }} - {{ acc.name }} ({{ acc.normalBalance }})
-          </option>
-        </select>
+        <div class="min-w-[340px]">
+          <SearchableSelect
+            v-model="selectedAccountCode"
+            :options="ledgerAccountOptions"
+            placeholder="Ketik kode atau nama akun COA..."
+          />
+        </div>
 
         <!-- Search in Ledger Filter -->
         <div class="relative">

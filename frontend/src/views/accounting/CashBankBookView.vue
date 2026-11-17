@@ -8,6 +8,7 @@ import { useCashBankStore } from '@/stores/cashbank'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
+import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { CashBankTransaction, BusinessUnit } from '@/types/accounting'
 import {
   Wallet,
@@ -136,6 +137,14 @@ const totalCreditMutation = computed(() => {
 // Accounts for counterpart selection in forms (non-header active accounts)
 const counterpartAccounts = computed(() => {
   return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
+})
+
+const counterpartAccountOptions = computed(() => {
+  return counterpartAccounts.value.map(acc => ({
+    value: acc.code,
+    label: `[${acc.code}] ${acc.name}`,
+    sublabel: `${acc.type} • Saldo Normal: ${acc.normalBalance}`
+  }))
 })
 
 // Auto switch selected account when switching tab
@@ -894,14 +903,11 @@ function terbilang(n: number): string {
 
           <div>
             <label class="block font-bold text-zinc-700 mb-1">Akun Lawan Kredit (Sumber Pengakuan)</label>
-            <select
+            <SearchableSelect
               v-model="cashInForm.counterpartAccountCode"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl focus:ring-1 focus:ring-zinc-950 font-medium"
-            >
-              <option v-for="acc in counterpartAccounts" :key="acc.code" :value="acc.code">
-                {{ acc.code }} - {{ acc.name }} ({{ acc.type }})
-              </option>
-            </select>
+              :options="counterpartAccountOptions"
+              placeholder="Cari atau pilih akun lawan..."
+            />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -1034,14 +1040,11 @@ function terbilang(n: number): string {
 
           <div>
             <label class="block font-bold text-zinc-700 mb-1">Akun Lawan Beban / Hutang (Dr)</label>
-            <select
+            <SearchableSelect
               v-model="cashOutForm.counterpartAccountCode"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl focus:ring-1 focus:ring-zinc-950 font-medium"
-            >
-              <option v-for="acc in counterpartAccounts" :key="acc.code" :value="acc.code">
-                {{ acc.code }} - {{ acc.name }} ({{ acc.type }})
-              </option>
-            </select>
+              :options="counterpartAccountOptions"
+              placeholder="Cari atau pilih akun lawan..."
+            />
           </div>
 
           <div class="grid grid-cols-2 gap-3">

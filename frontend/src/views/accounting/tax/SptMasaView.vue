@@ -67,6 +67,17 @@ const taxFilterOptions = [
   { value: 'PPH_25', label: 'PPh Pasal 25', sublabel: 'Angsuran Badan' },
   { value: 'PPN', label: 'PPN', sublabel: 'Keluaran & Masukan' }
 ]
+
+const taxAccountOptions = computed(() => {
+  return [
+    { value: 'ALL', label: 'Semua Akun Pajak (2500 - 2504)' },
+    ...taxStore.taxAccountOptions.map(opt => ({
+      value: opt.code,
+      label: `[${opt.code}] ${opt.name}`,
+      sublabel: opt.description
+    }))
+  ]
+})
 const sptMasaList = computed(() => taxStore.filteredSptMasa)
 
 // Subview under SPT Masa: 'DOKUMEN_SPT' | 'EBUPOT_DOKTER' | 'BUKU_PEMBANTU'
@@ -374,16 +385,13 @@ function viewSptDetail(item: any) {
             <h3 class="text-sm font-bold text-zinc-900">Buku Pembantu Mutasi Transaksi Pajak</h3>
             <p class="text-xs text-zinc-500 mt-0.5">Rincian invoice operasional yang memicu timbulnya hutang pajak klinik.</p>
           </div>
-          <div class="flex items-center gap-2">
-            <select
+          <div class="w-80">
+            <SearchableSelect
               v-model="taxStore.selectedTaxAccountCode"
-              class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-800"
-            >
-              <option value="ALL">Semua Akun Pajak (2500 - 2504)</option>
-              <option v-for="opt in taxStore.taxAccountOptions" :key="opt.code" :value="opt.code">
-                {{ opt.code }} - {{ opt.name }}
-              </option>
-            </select>
+              :options="taxAccountOptions"
+              placeholder="Cari akun pajak..."
+              input-class="!py-1.5"
+            />
           </div>
         </div>
 
