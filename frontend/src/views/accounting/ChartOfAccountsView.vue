@@ -14,7 +14,10 @@ import {
   Filter,
   X,
   ChevronRight,
+  ChevronDown,
+  ChevronsUpDown,
   Folder,
+  FolderOpen,
   FileText,
   BookOpen,
   Receipt,
@@ -121,6 +124,41 @@ const typeOptions = [
   { value: 'EXPENSE', label: '52 - BEBAN OPERASIONAL & 7 - NON USAHA' }
 ]
 
+// Expand & Collapse Tree Nodes
+const collapsedCodes = ref<Set<string>>(new Set())
+
+function toggleCollapse(code: string) {
+  const next = new Set(collapsedCodes.value)
+  if (next.has(code)) {
+    next.delete(code)
+  } else {
+    next.add(code)
+  }
+  collapsedCodes.value = next
+}
+
+function expandAll() {
+  collapsedCodes.value = new Set()
+}
+
+function collapseAll() {
+  const headers = ledgerStore.accounts
+    .filter(a => a.isHeader || a.level <= 2)
+    .map(a => a.code)
+  collapsedCodes.value = new Set(headers)
+}
+
+function isAncestorCollapsed(acc: any): boolean {
+  if (searchQuery.value.trim() || selectedLevel.value !== 'ALL') return false
+  let curr = acc.parentCode
+  while (curr) {
+    if (collapsedCodes.value.has(curr)) return true
+    const parentAcc = ledgerStore.accounts.find(a => a.code === curr)
+    curr = parentAcc ? parentAcc.parentCode : undefined
+  }
+  return false
+}
+
 const filteredAccounts = computed(() => {
   return ledgerStore.accounts.filter(a => {
     if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
@@ -147,6 +185,9 @@ const filteredAccounts = computed(() => {
       const matchTax = a.taxCategory ? a.taxCategory.toLowerCase().includes(q) : false
       if (!matchCode && !matchName && !matchTax) return false
     }
+    if (isAncestorCollapsed(a)) {
+      return false
+    }
     return true
   })
 })
@@ -156,7 +197,7 @@ function openLedgerForAccount(accountCode: string) {
 }
 
 function openTaxModule(taxCategory?: string) {
-  router.push({ path: '/accounting/tax', query: { taxCategory } })
+  router.push({ path: '/accounting/tax/spt-masa', query: { taxCategory } })
 }
 </script>
 
@@ -311,8 +352,28 @@ function openTaxModule(taxCategory?: string) {
         </div>
       </div>
 
-      <div class="text-xs text-zinc-500 font-medium">
-        Menampilkan <strong>{{ filteredAccounts.length }}</strong> akun
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            @click="expandAll"
+            class="px-2.5 py-1 text-xs font-semibold text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg border border-zinc-200 transition-colors cursor-pointer"
+            title="Buka seluruh sub-akun"
+          >
+            Buka Semua
+          </button>
+          <button
+            type="button"
+            @click="collapseAll"
+            class="px-2.5 py-1 text-xs font-semibold text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg border border-zinc-200 transition-colors cursor-pointer"
+            title="Ciutkan seluruh sub-akun"
+          >
+            Ciutkan Semua
+          </button>
+        </div>
+        <div class="text-xs text-zinc-500 font-medium">
+          Menampilkan <strong>{{ filteredAccounts.length }}</strong> akun
+        </div>
       </div>
     </div>
 
@@ -341,34 +402,49 @@ function openTaxModule(taxCategory?: string) {
                 'transition-colors',
                 acc.isActive === false ? 'opacity-50 bg-zinc-50/50' : '',
                 acc.level === 1
-                  ? 'bg-zinc-900 text-white font-black hover:bg-zinc-800'
+                  ? 'bg-zinc-100/90 text-zinc-950 font-extrabold border-t-2 border-b border-zinc-200/90 hover:bg-zinc-200/60'
                   : acc.level === 2
-                  ? 'bg-zinc-100/90 font-bold text-zinc-950 hover:bg-zinc-200/70'
+                  ? 'bg-zinc-50/80 font-bold text-zinc-900 border-b border-zinc-100 hover:bg-zinc-100/70'
                   : acc.level === 3
-                  ? 'bg-zinc-50/60 font-semibold text-zinc-900 hover:bg-zinc-100/80'
-                  : 'hover:bg-zinc-50/70 text-zinc-700'
+                  ? 'bg-white font-medium text-zinc-800 hover:bg-zinc-50/70'
+                  : 'bg-white/80 text-zinc-600 hover:bg-zinc-50/70'
               ]"
             >
               <!-- Kode Akun -->
               <td class="px-4 py-2.5 font-mono font-bold whitespace-nowrap">
-                <span :class="acc.level === 1 ? 'text-amber-400 font-extrabold text-sm' : acc.level === 2 ? 'text-zinc-900 font-bold' : 'text-zinc-600'">
+                <span :class="acc.level === 1 ? 'text-zinc-950 font-black text-xs tracking-tight' : acc.level === 2 ? 'text-zinc-900 font-bold text-xs' : 'text-zinc-600 text-xs'">
                   {{ acc.code }}
                 </span>
               </td>
 
-              <!-- Nama Akun dengan Indentasi Hierarki -->
+              <!-- Nama Akun dengan Indentasi Hierarki & Collapsible Toggle -->
               <td class="px-4 py-2.5">
                 <div
                   :class="[
                     'flex items-center gap-2',
-                    acc.level === 2 ? 'pl-4' : acc.level === 3 ? 'pl-8' : acc.level === 4 ? 'pl-12' : ''
+                    acc.level === 2 ? 'pl-4 border-l-2 border-zinc-200/80 ml-1' :
+                    acc.level === 3 ? 'pl-8 border-l-2 border-zinc-200/50 ml-1' :
+                    acc.level === 4 ? 'pl-12 border-l-2 border-zinc-200/30 ml-1' : ''
                   ]"
                 >
-                  <Folder v-if="acc.isHeader" :class="['w-4 h-4 shrink-0', acc.level === 1 ? 'text-amber-400' : 'text-amber-500']" />
+                  <!-- Expand / Collapse chevron for headers -->
+                  <button
+                    v-if="acc.isHeader"
+                    type="button"
+                    @click.stop="toggleCollapse(acc.code)"
+                    class="p-0.5 -ml-1 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/80 rounded transition-colors cursor-pointer"
+                    :title="collapsedCodes.has(acc.code) ? 'Buka Sub-Akun' : 'Ciutkan Sub-Akun'"
+                  >
+                    <ChevronRight v-if="collapsedCodes.has(acc.code)" class="w-3.5 h-3.5" />
+                    <ChevronDown v-else class="w-3.5 h-3.5" />
+                  </button>
+
+                  <Folder v-if="acc.isHeader" :class="['w-4 h-4 shrink-0', acc.level === 1 ? 'text-amber-600' : 'text-amber-500']" />
                   <FileText v-else class="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+
                   <span
                     :class="[
-                      acc.level === 1 ? 'font-extrabold text-white text-xs tracking-wide' : acc.level === 2 ? 'font-bold text-zinc-950' : 'font-medium',
+                      acc.level === 1 ? 'font-black text-zinc-950 text-xs tracking-wide uppercase' : acc.level === 2 ? 'font-bold text-zinc-900' : acc.level === 3 ? 'font-semibold text-zinc-800' : 'font-normal text-zinc-600',
                       acc.isActive === false ? 'line-through text-zinc-400' : ''
                     ]"
                   >
@@ -388,10 +464,10 @@ function openTaxModule(taxCategory?: string) {
                 <span
                   :class="[
                     'px-2 py-0.5 rounded text-[10px] font-bold',
-                    acc.level === 1 ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40' :
-                    acc.level === 2 ? 'bg-zinc-200 text-zinc-800' :
-                    acc.level === 3 ? 'bg-zinc-100 text-zinc-700' :
-                    'bg-zinc-50 text-zinc-500'
+                    acc.level === 1 ? 'bg-zinc-200 text-zinc-900 border border-zinc-300' :
+                    acc.level === 2 ? 'bg-zinc-100 text-zinc-800 border border-zinc-200' :
+                    acc.level === 3 ? 'bg-zinc-50 text-zinc-700 border border-zinc-200/70' :
+                    'bg-transparent text-zinc-400 border border-zinc-200/50'
                   ]"
                 >
                   L{{ acc.level }}
@@ -400,7 +476,7 @@ function openTaxModule(taxCategory?: string) {
 
               <!-- Tipe Klasifikasi -->
               <td class="px-4 py-2.5">
-                <span :class="['text-[11px] font-semibold', acc.level === 1 ? 'text-zinc-300' : 'text-zinc-600']">
+                <span :class="['text-[11px] font-semibold', acc.level === 1 ? 'text-zinc-900 font-bold' : 'text-zinc-600']">
                   {{ acc.type }}
                 </span>
               </td>
@@ -425,7 +501,7 @@ function openTaxModule(taxCategory?: string) {
               </td>
 
               <!-- Saldo Saat Ini (Strict Tabular Nums) -->
-              <td :class="['px-4 py-2.5 text-right tabular-nums font-bold whitespace-nowrap', acc.level === 1 ? 'text-white' : 'text-zinc-950']">
+              <td :class="['px-4 py-2.5 text-right tabular-nums font-bold whitespace-nowrap', acc.level === 1 ? 'text-zinc-950 font-black' : 'text-zinc-900']">
                 {{ acc.currentBalance !== undefined ? formatIDR(acc.currentBalance) : '-' }}
               </td>
 
