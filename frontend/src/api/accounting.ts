@@ -30,7 +30,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<ApiR
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      'X-Branch-ID': '11111111-1111-1111-1111-111111111111',
+      'X-Branch-ID': localStorage.getItem('clinic_branch_id') || 'ALL',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options?.headers || {}),
     },

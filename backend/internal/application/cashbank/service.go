@@ -96,7 +96,7 @@ func (s *Service) RecordCashIn(ctx context.Context, cmd RecordCashInCommand) (*c
 		return nil, nil, ErrCounterpartNotFound
 	}
 
-	txNumber := fmt.Sprintf("BKM-%s-%04d", cmd.TransactionDate.Format("20060102"), time.Now().UnixNano()%10000)
+	txNumber := fmt.Sprintf("BKM-%s-%04d-%04x", cmd.TransactionDate.Format("20060102"), (time.Now().UnixNano()/10000)%10000, time.Now().UnixNano()&0xffff)
 
 	// Double-entry: Debit Cash/Bank Account, Credit Counterpart Account
 	journalLines := []accountingApp.CreateLineCommand{
@@ -180,7 +180,7 @@ func (s *Service) RecordCashOut(ctx context.Context, cmd RecordCashOutCommand) (
 		return nil, nil, ErrCounterpartNotFound
 	}
 
-	txNumber := fmt.Sprintf("BKK-%s-%04d", cmd.TransactionDate.Format("20060102"), time.Now().UnixNano()%10000)
+	txNumber := fmt.Sprintf("BKK-%s-%04d-%04x", cmd.TransactionDate.Format("20060102"), (time.Now().UnixNano()/10000)%10000, time.Now().UnixNano()&0xffff)
 
 	// Double-entry: Debit Expense/Liability Account, Credit Cash/Bank Account
 	journalLines := []accountingApp.CreateLineCommand{
@@ -266,7 +266,7 @@ func (s *Service) TransferCashBank(ctx context.Context, cmd TransferCommand) (*c
 		return nil, nil, fmt.Errorf("target account: %w", ErrAccountNotFound)
 	}
 
-	txNumber := fmt.Sprintf("TRF-%s-%04d", cmd.TransactionDate.Format("20060102"), time.Now().UnixNano()%10000)
+	txNumber := fmt.Sprintf("TRF-%s-%04d-%04x", cmd.TransactionDate.Format("20060102"), (time.Now().UnixNano()/10000)%10000, time.Now().UnixNano()&0xffff)
 
 	// Double-entry: Debit Destination Account, Credit Source Account
 	journalLines := []accountingApp.CreateLineCommand{

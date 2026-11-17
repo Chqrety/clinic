@@ -37,6 +37,10 @@ VALUES
 ('2-1125', 'Hutang Jasa Medis Dokter Kulit & Terapis (SSC)', 'LIABILITY', 'CREDIT', 3, FALSE, TRUE, 'Bagi Hasil Honor Dokter Kulit & Terapis SSC'),
 ('2-1130', 'Hutang Gaji & Karyawan', 'LIABILITY', 'CREDIT', 3, FALSE, TRUE, 'Akrual Beban Gaji Karyawan'),
 ('2-1140', 'Uang Muka Pasien / Deposit', 'LIABILITY', 'CREDIT', 3, FALSE, TRUE, 'Deposit & Uang Muka Tindakan Pasien'),
+('2-1500', 'Hutang Pajak (PPh 21, 23, Final 4(2), PPN)', 'LIABILITY', 'CREDIT', 3, FALSE, TRUE, 'Kewajiban Pajak Klinik'),
+('2-1510', 'Kredit Pajak PPh 23', 'LIABILITY', 'DEBIT', 3, FALSE, TRUE, 'Pajak Dibayar di Muka PPh 23'),
+('2-1520', 'Uang Muka PPh 25 Badan', 'LIABILITY', 'DEBIT', 3, FALSE, TRUE, 'Angsuran Pajak PPh 25 Berjalan'),
+('2-1530', 'Hutang PPh 29', 'LIABILITY', 'CREDIT', 3, FALSE, TRUE, 'Kurang Bayar SPT Tahunan Badan'),
 
 -- ==========================================
 -- 3. EKUITAS / EQUITY (CREDIT)
@@ -83,7 +87,8 @@ VALUES
 ('6-1110', 'Beban Honor Jasa Dokter Kulit & Terapis Estetika', 'EXPENSE', 'DEBIT', 2, FALSE, TRUE, 'Bagi Hasil Dokter Spesialis Kulit & Terapis SSC'),
 ('6-1200', 'Beban Gaji Karyawan, Perawat & Staf', 'EXPENSE', 'DEBIT', 2, FALSE, TRUE, 'Gaji Perawat dan Karyawan Backoffice'),
 ('6-1300', 'Beban Listrik, Air & Telepon', 'EXPENSE', 'DEBIT', 2, FALSE, TRUE, 'Utilitas Fasilitas Klinik'),
-('6-1400', 'Beban Administrasi Bank & EDC', 'EXPENSE', 'DEBIT', 2, FALSE, TRUE, 'Biaya Admin Bank & Transaksi')
+('6-1400', 'Beban Administrasi Bank & EDC', 'EXPENSE', 'DEBIT', 2, FALSE, TRUE, 'Biaya Admin Bank & Transaksi'),
+('6-1500', 'Beban Pajak Penghasilan Badan (PPh Badan Berjalan)', 'EXPENSE', 'DEBIT', 2, FALSE, TRUE, 'Beban Pajak Penghasilan Badan')
 ON CONFLICT (code) DO UPDATE SET
     name = EXCLUDED.name,
     type = EXCLUDED.type,

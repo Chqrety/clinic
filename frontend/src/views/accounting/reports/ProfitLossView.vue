@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
+import { useLedgerStore } from '@/stores/ledger'
+import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel, printReport } from '@/utils/export'
 import ReportSignatures from '@/components/accounting/ReportSignatures.vue'
@@ -15,6 +17,13 @@ import {
 
 const router = useRouter()
 const accountingStore = useAccountingStore()
+const ledgerStore = useLedgerStore()
+const journalsStore = useJournalsStore()
+
+onMounted(() => {
+  ledgerStore.fetchAccounts()
+  journalsStore.fetchJournals()
+})
 
 // State
 const startDate = ref('01-09-2026')
@@ -193,6 +202,39 @@ const plTree = ref<PLTreeNode[]>([
     isBold: true
   }
 ])
+
+// Dynamically sync P&L amounts with ledger trial balance
+watchEffect(() => {
+  if (!ledgerStore.trialBalanceRows || ledgerStore.trialBalanceRows.length === 0) return
+
+  const tbMap = new Map<string, number>()
+  for (const row of ledgerStore.trialBalanceRows) {
+    const bal = row.accountType === 'REVENUE' ? (row.endingCredit - row.endingDebit) : (row.endingDebit - row.endingCredit)
+    tbMap.set(row.accountCode, Math.max(bal, 0))
+  }
+
+  function updatePLNode(node: PLTreeNode): number {
+    if (node.children && node.children.length > 0) {
+      let sum = 0
+      for (const child of node.children) {
+        sum += updatePLNode(child)
+      }
+      node.amount = sum
+      return sum
+    }
+    const code = node.accountCode || node.code || ''
+    if (tbMap.has(code)) {
+      node.amount = tbMap.get(code)!
+    }
+    return node.amount
+  }
+
+  for (const root of plTree.value) {
+    if (root.children) {
+      updatePLNode(root)
+    }
+  }
+})
 
 const expandedIds = ref<Set<string>>(new Set([
   'sec_pendapatan', 'grp_pendapatan',

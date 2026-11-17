@@ -95,8 +95,8 @@ const initialAccount = (route.query.account as string) || '1101.001'
 const resolvedInitial = accountAliases[initialAccount] || initialAccount
 const selectedAccountCode = ref(resolvedInitial)
 const searchQuery = ref('')
-const startDate = ref('01-11-2026')
-const endDate = ref('30-11-2026')
+const startDate = ref('2026-01-01')
+const endDate = ref('2026-12-31')
 
 onMounted(() => {
   ledgerStore.fetchAccounts()
@@ -244,61 +244,14 @@ interface SubsidiaryLedgerItem {
   runningBalance: number
 }
 
-// Generate realistic comprehensive clinical transaction history for November 2026
-function generateCompleteLedgerForAccount(acc: typeof ledgerStore.accounts[0]): SubsidiaryLedgerItem[] {
-  const isDebit = acc.normalBalance === 'DEBIT'
-  const baseBal = acc.currentBalance || 25000000
-  let currentRunning = baseBal * 0.55
-
-  // Account-specific comprehensive transaction templates
-  const items: SubsidiaryLedgerItem[] = []
-
-  const clinicDays = [
-    { day: '01', j: '001', desc: `Penerimaan kasir awal bulan & posting reguler ${acc.name}`, mult: 0.08, dr: isDebit, unit: 'KIDINEST', src: 'CASHIER_CLOSING' },
-    { day: '03', j: '004', desc: `Pemeriksaan dokter spesialis anak & vaksinasi pasien Kidinest`, mult: 0.06, dr: isDebit, unit: 'KIDINEST', src: 'OPERATIONAL_BILLING' },
-    { day: '05', j: '008', desc: `Tindakan laser Nd:YAG Q-Switch & facial treatment estetika SSC`, mult: 0.10, dr: isDebit, unit: 'SSC', src: 'OPERATIONAL_BILLING' },
-    { day: '07', j: '012', desc: `Pembelian perbekalan farmasi, vaksin & krim distributor PBF`, mult: 0.07, dr: !isDebit, unit: 'KIDINEST', src: 'PHARMACY_PURCHASE' },
-    { day: '09', j: '015', desc: `Settlement EDC & pembayaran QRIS harian pasien`, mult: 0.09, dr: isDebit, unit: 'ALL', src: 'SETTLEMENT' },
-    { day: '11', j: '018', desc: `Tagihan klaim asuransi kesehatan Sinarmas & Prudential`, mult: 0.08, dr: isDebit, unit: 'KIDINEST', src: 'OPERATIONAL_BILLING' },
-    { day: '13', j: '022', desc: `Pemakaian bahan medis habis pakai (BMHP) & obat dispensing`, mult: 0.05, dr: !isDebit, unit: 'KIDINEST', src: 'OPERATIONAL_BILLING' },
-    { day: '15', j: '025', desc: `Penerimaan deposit uang muka paket perawatan 10x Facial Glow`, mult: 0.06, dr: isDebit, unit: 'SSC', src: 'CASHIER_CLOSING' },
-    { day: '17', j: '029', desc: `Pencairan klaim asuransi rawat jalan via transfer bank`, mult: 0.09, dr: isDebit, unit: 'KIDINEST', src: 'SETTLEMENT' },
-    { day: '19', j: '032', desc: `Pengeluaran operasional petty cash & logistik klinik harian`, mult: 0.03, dr: !isDebit, unit: 'ALL', src: 'EXPENSE' },
-    { day: '21', j: '035', desc: `Pengolahan & incinerasi limbah medis B3 oleh PT Medivest`, mult: 0.04, dr: !isDebit, unit: 'ALL', src: 'EXPENSE' },
-    { day: '23', j: '038', desc: `Pelunasan hutang tempo distributor supplier PBF via Giro`, mult: 0.07, dr: !isDebit, unit: 'KIDINEST', src: 'PAYMENT' },
-    { day: '25', j: '041', desc: `Akrual bagi hasil dokter spesialis (Sp.A & Sp.DVE) & PPh 21 Dokter`, mult: 0.12, dr: !isDebit, unit: 'ALL', src: 'DOCTOR_FEE' },
-    { day: '27', j: '044', desc: `Pencairan honor dokter spesialis via transfer payroll Bank Mandiri`, mult: 0.10, dr: isDebit, unit: 'ALL', src: 'DOCTOR_FEE' },
-    { day: '28', j: '047', desc: `Pembayaran gaji tenaga kesehatan, perawat & staf administrasi`, mult: 0.08, dr: !isDebit, unit: 'ALL', src: 'PAYROLL' },
-    { day: '29', j: '050', desc: `Pembayaran rekening listrik PLN daya medis & internet WiFi ruko`, mult: 0.03, dr: !isDebit, unit: 'ALL', src: 'EXPENSE' },
-    { day: '30', j: '053', desc: `Alokasi penyusutan aset tetap & peralatan medis laser/USG 4D`, mult: 0.04, dr: !isDebit, unit: 'ALL', src: 'DEPRECIATION' },
-    { day: '30', j: '056', desc: `Rekonsiliasi tutup buku bulanan & selisih kas kasir akhir periode`, mult: 0.05, dr: isDebit, unit: 'ALL', src: 'CASHIER_CLOSING' }
-  ]
-
-  for (const step of clinicDays) {
-    const amt = Math.round(baseBal * step.mult)
-    const debit = step.dr ? amt : 0
-    const credit = !step.dr ? amt : 0
-
-    if (isDebit) {
-      currentRunning += (debit - credit)
-    } else {
-      currentRunning += (credit - debit)
-    }
-
-    items.push({
-      id: `gl-${acc.code}-${step.day}`,
-      date: `2026-11-${step.day}`,
-      journalNumber: `JV/2026/11/${step.j}`,
-      source: step.src,
-      description: step.desc,
-      businessUnit: step.unit,
-      debit,
-      credit,
-      runningBalance: currentRunning
-    })
+function normalizeDate(d: string): string {
+  if (!d) return ''
+  const trimmed = d.trim()
+  if (trimmed.includes('-') && trimmed.indexOf('-') === 2) {
+    const [day, mon, yr] = trimmed.split('-')
+    return `${yr}-${mon}-${day}`
   }
-
-  return items
+  return trimmed
 }
 
 const accountLedgerEntries = computed<SubsidiaryLedgerItem[]>(() => {
@@ -306,45 +259,43 @@ const accountLedgerEntries = computed<SubsidiaryLedgerItem[]>(() => {
   if (!acc) return []
 
   const isDebit = acc.normalBalance === 'DEBIT'
-
-  // Match real entries in store
   const targetCode = acc.code
   const realEntries = ledgerStore.generalLedgerEntries.filter(
     e => e.accountCode === targetCode || (acc.isHeader && e.accountCode.startsWith(targetCode.slice(0, 3)))
   )
 
-  if (realEntries.length >= 8) {
-    let bal = (acc.currentBalance || 20000000) * 0.55
-    return realEntries.map(e => {
-      if (isDebit) {
-        bal += (e.debit - e.credit)
-      } else {
-        bal += (e.credit - e.debit)
-      }
-      return {
-        id: e.id,
-        date: e.date,
-        journalNumber: e.journalNumber,
-        source: e.source,
-        description: e.description,
-        businessUnit: e.businessUnit,
-        branchName: e.branchName,
-        debit: e.debit,
-        credit: e.credit,
-        runningBalance: bal
-      }
-    })
-  }
-
-  // Generate full complete transactions for the month of November 2026
-  return generateCompleteLedgerForAccount(acc)
+  let bal = acc.currentBalance || 0
+  return realEntries.map(e => {
+    if (isDebit) {
+      bal += (e.debit - e.credit)
+    } else {
+      bal += (e.credit - e.debit)
+    }
+    return {
+      id: e.id,
+      date: e.date,
+      journalNumber: e.journalNumber,
+      source: e.source,
+      description: e.description,
+      businessUnit: e.businessUnit,
+      branchName: e.branchName,
+      debit: e.debit,
+      credit: e.credit,
+      runningBalance: bal
+    }
+  })
 })
 
 const filteredLedgerEntries = computed(() => {
+  const start = normalizeDate(startDate.value)
+  const end = normalizeDate(endDate.value)
+
   return accountLedgerEntries.value.filter(e => {
     if (accountingStore.businessUnit !== 'ALL' && e.businessUnit && e.businessUnit !== 'ALL' && e.businessUnit !== accountingStore.businessUnit) {
       return false
     }
+    if (start && e.date < start) return false
+    if (end && e.date > end) return false
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.toLowerCase().trim()
       const match = e.journalNumber.toLowerCase().includes(q) ||

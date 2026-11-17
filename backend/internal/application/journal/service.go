@@ -277,6 +277,6 @@ func (s *Service) GenerateJournalNumber(jType accounting.JournalType, date time.
 		prefix = "JT"
 	}
 
-	seq := atomic.AddUint64(&s.seqCounter, 1) % 10000
-	return fmt.Sprintf("%s-%s-%04d", prefix, date.Format("20060102"), seq)
+	seq := atomic.AddUint64(&s.seqCounter, 1)
+	return fmt.Sprintf("%s-%s-%04d-%04x", prefix, date.Format("20060102"), seq%10000, time.Now().UnixNano()&0xffff)
 }

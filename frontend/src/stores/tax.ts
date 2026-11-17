@@ -1288,8 +1288,8 @@ export const useTaxStore = defineStore('tax', () => {
     // Build balanced double-entry lines
     const lines = [
       {
-        accountId: 'acc-5501',
-        accountCode: '5501',
+        accountId: 'acc-6-1500',
+        accountCode: '6-1500',
         accountName: 'Beban Pajak Penghasilan Badan (PPh Badan Berjalan)',
         debit: totalBeban,
         credit: 0,
@@ -1299,8 +1299,8 @@ export const useTaxStore = defineStore('tax', () => {
 
     if (kreditPph23 > 0) {
       lines.push({
-        accountId: 'acc-2502',
-        accountCode: '2502',
+        accountId: 'acc-2-1510',
+        accountCode: '2-1510',
         accountName: 'Kredit Pajak PPh 23 (Jasa Limbah & IT)',
         debit: 0,
         credit: kreditPph23,
@@ -1310,8 +1310,8 @@ export const useTaxStore = defineStore('tax', () => {
 
     if (kreditPph25 > 0) {
       lines.push({
-        accountId: 'acc-2505',
-        accountCode: '2505',
+        accountId: 'acc-2-1520',
+        accountCode: '2-1520',
         accountName: 'Uang Muka / Angsuran PPh 25 Badan',
         debit: 0,
         credit: kreditPph25,
@@ -1321,8 +1321,8 @@ export const useTaxStore = defineStore('tax', () => {
 
     if (hutangPph29 > 0) {
       lines.push({
-        accountId: 'acc-2506',
-        accountCode: '2506',
+        accountId: 'acc-2-1530',
+        accountCode: '2-1530',
         accountName: 'Hutang PPh 29 (Kurang Bayar SPT Tahunan Badan)',
         debit: 0,
         credit: hutangPph29,

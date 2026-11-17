@@ -24,8 +24,8 @@ export const useJournalsStore = defineStore('journals', () => {
       lines: [
         {
           id: 'jl-101-1',
-          accountId: 'acc-1101.001',
-          accountCode: '1101.001',
+          accountId: 'acc-1-1111',
+          accountCode: '1-1111',
           accountName: 'Kas Kasir Kidinest',
           debit: 12500000,
           credit: 0,
@@ -33,27 +33,27 @@ export const useJournalsStore = defineStore('journals', () => {
         },
         {
           id: 'jl-101-2',
-          accountId: 'acc-1102.001',
-          accountCode: '1102.001',
-          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          accountId: 'acc-1-1113',
+          accountCode: '1-1113',
+          accountName: 'Bank BCA Operasional',
           debit: 6000000,
           credit: 0,
           description: 'Penerimaan EDC & QRIS BCA'
         },
         {
           id: 'jl-101-3',
-          accountId: 'acc-4101',
-          accountCode: '4101',
-          accountName: 'Pendapatan Jasa Medis Kidinest',
+          accountId: 'acc-4-1200',
+          accountCode: '4-1200',
+          accountName: 'Pendapatan Jasa Dokter Spesialis Anak (Sp.A)',
           debit: 0,
           credit: 14000000,
           description: 'Konsultasi Spesialis Anak & Tumbuh Kembang'
         },
         {
           id: 'jl-101-4',
-          accountId: 'acc-4101',
-          accountCode: '4101',
-          accountName: 'Pendapatan Farmasi & Obat',
+          accountId: 'acc-4-1500',
+          accountCode: '4-1500',
+          accountName: 'Pendapatan Penjualan Obat & Racikan Anak',
           debit: 0,
           credit: 4500000,
           description: 'Penjualan Obat Resep Pasien Anak'
@@ -89,8 +89,8 @@ export const useJournalsStore = defineStore('journals', () => {
       lines: [
         {
           id: 'jl-102-1',
-          accountId: 'acc-1101.002',
-          accountCode: '1101.002',
+          accountId: 'acc-1-1112',
+          accountCode: '1-1112',
           accountName: 'Kas Kasir Semarang Skin Center (SSC)',
           debit: 7800000,
           credit: 0,
@@ -98,27 +98,27 @@ export const useJournalsStore = defineStore('journals', () => {
         },
         {
           id: 'jl-102-2',
-          accountId: 'acc-1102.001',
-          accountCode: '1102.001',
-          accountName: 'Bank BCA Operasional (Giro & EDC)',
+          accountId: 'acc-1-1113',
+          accountCode: '1-1113',
+          accountName: 'Bank BCA Operasional',
           debit: 20000000,
           credit: 0,
           description: 'Penerimaan Gesek EDC Kartu Kredit & Debit'
         },
         {
           id: 'jl-102-3',
-          accountId: 'acc-4101',
-          accountCode: '4101',
-          accountName: 'Pendapatan Jasa Medis SSC',
+          accountId: 'acc-4-2300',
+          accountCode: '4-2300',
+          accountName: 'Pendapatan Tindakan Laser, Cauter & Peeling',
           debit: 0,
           credit: 18000000,
           description: 'Tindakan Laser & Aesthetic Dokter Sp.KK'
         },
         {
           id: 'jl-102-4',
-          accountId: 'acc-4101',
-          accountCode: '4101',
-          accountName: 'Pendapatan Skincare & Produk Slimming',
+          accountId: 'acc-4-2400',
+          accountCode: '4-2400',
+          accountName: 'Pendapatan Penjualan Produk Skincare & Sunscreen',
           debit: 0,
           credit: 9800000,
           description: 'Penjualan Krim & Suplemen'

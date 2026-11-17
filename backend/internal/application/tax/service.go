@@ -41,7 +41,7 @@ type CreateWithholdingCommand struct {
 }
 
 func (s *Service) CreateWithholding(ctx context.Context, cmd CreateWithholdingCommand) (*tax.TaxWithholding, error) {
-	bupotNumber := fmt.Sprintf("BP-%s-%d%02d-%04d", cmd.TaxType, cmd.PeriodYear, cmd.PeriodMonth, time.Now().UnixNano()%10000)
+	bupotNumber := fmt.Sprintf("BP-%s-%d%02d-%04d-%04x", cmd.TaxType, cmd.PeriodYear, cmd.PeriodMonth, (time.Now().UnixNano()/10000)%10000, time.Now().UnixNano()&0xffff)
 
 	tw := &tax.TaxWithholding{
 		BaseEntity:   shared.BaseEntity{ID: uuid.New()},

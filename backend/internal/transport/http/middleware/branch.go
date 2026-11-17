@@ -33,9 +33,9 @@ var DefaultBranchID = uuid.MustParse("11111111-1111-1111-1111-111111111111")
 func BranchContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		branchHeader := r.Header.Get("X-Branch-ID")
-		if branchHeader == "" {
-			// In development or single-branch clinic, proceed with default branch context
-			ctx := context.WithValue(r.Context(), BranchIDKey, DefaultBranchID)
+		if branchHeader == "" || branchHeader == "ALL" {
+			// Consolidated view across all branches or fallback to default
+			ctx := context.WithValue(r.Context(), BranchIDKey, uuid.Nil)
 			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}

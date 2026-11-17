@@ -49,6 +49,9 @@ export const useLedgerStore = defineStore('ledger', () => {
     { id: '2-1130', code: '2-1130', name: 'Hutang Gaji & Karyawan', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0 },
     { id: '2-1140', code: '2-1140', name: 'Uang Muka Pasien / Deposit Tindakan', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0 },
     { id: '2-1500', code: '2-1500', name: 'Hutang Pajak (PPh 21, 23, Final 4(2), PPN)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0, taxCategory: 'PPH_21' },
+    { id: '2-1510', code: '2-1510', name: 'Kredit Pajak PPh 23 (Jasa Limbah & IT)', type: 'LIABILITY', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0, taxCategory: 'PPH_23' },
+    { id: '2-1520', code: '2-1520', name: 'Uang Muka / Angsuran PPh 25 Badan', type: 'LIABILITY', normalBalance: 'DEBIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0 },
+    { id: '2-1530', code: '2-1530', name: 'Hutang PPh 29 (Kurang Bayar SPT Tahunan Badan)', type: 'LIABILITY', normalBalance: 'CREDIT', level: 3, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '2-1000', currentBalance: 0 },
 
     // ==========================================
     // 3. EKUITAS / EQUITY (CREDIT)
@@ -93,7 +96,8 @@ export const useLedgerStore = defineStore('ledger', () => {
     { id: '6-1110', code: '6-1110', name: 'Beban Honor Jasa Dokter Kulit & Terapis Estetika', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'SSC', parentCode: '6-0000', currentBalance: 0 },
     { id: '6-1200', code: '6-1200', name: 'Beban Gaji Karyawan, Perawat & Staf', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 },
     { id: '6-1300', code: '6-1300', name: 'Beban Listrik, Air & Telepon', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 },
-    { id: '6-1400', code: '6-1400', name: 'Beban Administrasi Bank & EDC', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 }
+    { id: '6-1400', code: '6-1400', name: 'Beban Administrasi Bank & EDC', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 },
+    { id: '6-1500', code: '6-1500', name: 'Beban Pajak Penghasilan Badan (PPh Badan Berjalan)', type: 'EXPENSE', normalBalance: 'DEBIT', level: 2, isHeader: false, isActive: true, businessUnit: 'ALL', parentCode: '6-0000', currentBalance: 0 }
   ])
 
   // Accounting Periods
