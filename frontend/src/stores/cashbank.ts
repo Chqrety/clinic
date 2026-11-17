@@ -5,6 +5,7 @@ import { useAccountingStore } from './accounting'
 import { useLedgerStore } from './ledger'
 import { useJournalsStore } from './journals'
 import { accountingApi, type BackendCashBankAccount, type BackendCashBankTransaction } from '@/api/accounting'
+import { formatIDR } from '@/utils/currency'
 
 export const useCashBankStore = defineStore('cashbank', () => {
   const accountingStore = useAccountingStore()
@@ -473,6 +474,121 @@ export const useCashBankStore = defineStore('cashbank', () => {
     return newTx
   }
 
+  // Action: Catat Voucher Multi-Line Kas & Bank (BKM / BKK / TRF ala Jurnal Umum)
+  function recordMultiLineVoucher(data: {
+    voucherType: 'CASH_IN' | 'CASH_OUT' | 'TRANSFER'
+    primaryAccountCode: string
+    transactionDate: string
+    recipientOrPayer: string
+    description: string
+    referenceNo?: string
+    businessUnit?: BusinessUnit
+    lines: {
+      accountCode: string
+      accountName?: string
+      debit: number
+      credit: number
+      description?: string
+    }[]
+  }) {
+    const totalDebit = data.lines.reduce((s, l) => s + (Number(l.debit) || 0), 0)
+    const totalCredit = data.lines.reduce((s, l) => s + (Number(l.credit) || 0), 0)
+
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+      throw new Error(`Total Debit (${totalDebit}) tidak seimbang dengan Total Kredit (${totalCredit})`)
+    }
+
+    const primaryAcc = ledgerStore.accounts.find(a => a.code === data.primaryAccountCode)
+    const primaryName = primaryAcc?.name || data.primaryAccountCode
+    const isBank = data.primaryAccountCode.startsWith('1102') || data.primaryAccountCode.startsWith('1103')
+
+    let prefix = 'BKK'
+    if (data.voucherType === 'CASH_IN') {
+      prefix = isBank ? 'BBM' : 'BKM'
+    } else if (data.voucherType === 'CASH_OUT') {
+      prefix = isBank ? 'BBK' : 'BKK'
+    } else {
+      prefix = 'TRF'
+    }
+
+    const seq = transactions.value.filter(t => t.type === data.voucherType).length + 1
+    const txNumber = `${prefix}-${data.transactionDate.slice(0, 7)}-${String(seq).padStart(3, '0')}`
+    const bu = data.businessUnit || accountingStore.businessUnit
+
+    // Calculate total flow amount on primary cash/bank account
+    const primaryLines = data.lines.filter(l => l.accountCode === data.primaryAccountCode)
+    let amount = 0
+    if (data.voucherType === 'CASH_IN') {
+      amount = primaryLines.reduce((s, l) => s + (Number(l.debit) || 0), 0) || totalDebit
+    } else if (data.voucherType === 'CASH_OUT') {
+      amount = primaryLines.reduce((s, l) => s + (Number(l.credit) || 0), 0) || totalCredit
+    } else {
+      amount = totalDebit
+    }
+
+    // Resolve counterpart account summary
+    const counterpartLines = data.lines.filter(l => l.accountCode !== data.primaryAccountCode)
+    let counterpartCode = 'MULTIPLE'
+    let counterpartName = 'Multi-Akun Lawan'
+    if (counterpartLines.length === 1) {
+      counterpartCode = counterpartLines[0].accountCode
+      counterpartName = counterpartLines[0].accountName || ledgerStore.accounts.find(a => a.code === counterpartCode)?.name || counterpartCode
+    } else if (counterpartLines.length > 1) {
+      counterpartCode = 'MULTIPLE'
+      counterpartName = `${counterpartLines.length} Akun Lawan (${counterpartLines.map(c => c.accountCode).slice(0, 2).join(', ')}...)`
+    }
+
+    // Map lines with proper account names
+    const resolvedLines = data.lines.map(l => {
+      const acc = ledgerStore.accounts.find(a => a.code === l.accountCode)
+      return {
+        accountCode: l.accountCode,
+        accountName: l.accountName || acc?.name || l.accountCode,
+        debit: Number(l.debit) || 0,
+        credit: Number(l.credit) || 0,
+        description: l.description || data.description
+      }
+    })
+
+    // Create journal entry automatically
+    const journal = journalsStore.createManualJournal({
+      journalDate: data.transactionDate,
+      businessUnit: bu,
+      branchId: 'BRANCH-MAIN',
+      branchName: 'Kantor Pusat Semarang',
+      description: `Voucher Kas/Bank [${txNumber}]: ${data.description}`,
+      journalSource: 'MANUAL',
+      sourceReference: txNumber,
+      status: 'POSTED',
+      lines: resolvedLines
+    })
+
+    const newTx: CashBankTransaction = {
+      id: 'cb-' + Date.now(),
+      transactionNumber: txNumber,
+      date: data.transactionDate,
+      type: data.voucherType,
+      accountCode: data.primaryAccountCode,
+      accountName: primaryName,
+      counterpartAccountCode: counterpartCode,
+      counterpartAccountName: counterpartName,
+      amount,
+      description: data.description,
+      referenceNo: data.referenceNo || '-',
+      recipientOrPayer: data.recipientOrPayer,
+      businessUnit: bu,
+      journalId: journal.id,
+      journalNumber: journal.journalNumber,
+      lines: resolvedLines,
+      createdAt: new Date().toISOString(),
+      createdBy: accountingStore.currentUserName
+    }
+
+    transactions.value.unshift(newTx)
+    accountingStore.showToast(`Voucher ${txNumber} (${formatIDR(amount)}) berhasil dibukukan!`, 'success')
+    return newTx
+  }
+
   // Action: Buat Buku Kas / Rekening Bank Baru (Tambah ke COA & Database)
   async function createCashBankAccount(data: {
     category: 'CASH' | 'BANK'
@@ -556,6 +672,7 @@ export const useCashBankStore = defineStore('cashbank', () => {
     recordCashIn,
     recordCashOut,
     recordTransfer,
+    recordMultiLineVoucher,
     createCashBankAccount
   }
 })

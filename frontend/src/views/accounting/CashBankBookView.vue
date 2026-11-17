@@ -380,29 +380,29 @@ function terbilang(n: number): string {
 
       <!-- Quick Action Buttons -->
       <div class="flex flex-wrap items-center gap-2">
-        <button
-          @click="showCashInModal = true"
+        <router-link
+          to="/accounting/cash-bank/create?type=CASH_IN"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
         >
           <ArrowDownLeft class="w-3.5 h-3.5" />
           <span>+ Penerimaan (BKM)</span>
-        </button>
+        </router-link>
 
-        <button
-          @click="showCashOutModal = true"
+        <router-link
+          to="/accounting/cash-bank/create?type=CASH_OUT"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
         >
           <ArrowUpRight class="w-3.5 h-3.5" />
           <span>- Pengeluaran (BKK)</span>
-        </button>
+        </router-link>
 
-        <button
-          @click="showTransferModal = true"
+        <router-link
+          to="/accounting/cash-bank/create?type=TRANSFER"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
         >
           <ArrowRightLeft class="w-3.5 h-3.5" />
-          <span>⇄ Transfer Antar Akun</span>
-        </button>
+          <span>⇄ Mutasi Transfer</span>
+        </router-link>
 
         <button
           @click="showAddAccountModal = true"
@@ -1306,6 +1306,32 @@ function terbilang(n: number): string {
             <span class="font-mono text-[10px] text-zinc-400">Ref Jurnal: {{ activeVoucher.journalNumber }}</span>
           </div>
           <p class="text-xs text-zinc-800 font-medium">{{ activeVoucher.description }}</p>
+
+          <!-- Multi-line Double-Entry Breakdown if available -->
+          <div v-if="activeVoucher.lines && activeVoucher.lines.length > 0" class="pt-2 border-t border-zinc-200">
+            <span class="block text-[10px] font-bold text-zinc-500 uppercase mb-1">Rincian Multi-Pos Alokasi Jurnal:</span>
+            <div class="border border-zinc-200 rounded-xl overflow-hidden bg-white">
+              <table class="w-full text-left border-collapse text-[11px]">
+                <thead>
+                  <tr class="bg-zinc-50 border-b border-zinc-200 text-[10px] font-bold text-zinc-500 uppercase">
+                    <th class="py-1 px-2.5">Akun COA</th>
+                    <th class="py-1 px-2.5">Uraian</th>
+                    <th class="py-1 px-2.5 text-right">Debit</th>
+                    <th class="py-1 px-2.5 text-right">Kredit</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                  <tr v-for="(line, lIdx) in activeVoucher.lines" :key="lIdx" class="hover:bg-zinc-50">
+                    <td class="py-1 px-2.5 font-mono font-bold text-zinc-900">{{ line.accountCode }} - {{ line.accountName }}</td>
+                    <td class="py-1 px-2.5 text-zinc-600">{{ line.description }}</td>
+                    <td class="py-1 px-2.5 text-right tabular-nums font-semibold">{{ line.debit > 0 ? formatIDR(line.debit) : '-' }}</td>
+                    <td class="py-1 px-2.5 text-right tabular-nums font-semibold">{{ line.credit > 0 ? formatIDR(line.credit) : '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <div class="pt-2 border-t border-zinc-200 flex items-center justify-between">
             <span class="text-xs font-bold text-zinc-700">Total Nominal:</span>
             <span class="tabular-nums font-black text-lg text-zinc-950">{{ formatIDR(activeVoucher.amount) }}</span>

@@ -122,6 +122,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Buku Kas & Bank' }
       },
       {
+        path: 'cash-bank/create',
+        name: 'CashBankCreate',
+        component: () => import('@/views/accounting/CashBankCreateView.vue'),
+        meta: { title: 'Voucher Kas & Bank (BKM / BKK / TRF)' }
+      },
+      {
         path: 'trial-balance',
         name: 'TrialBalance',
         component: () => import('@/views/accounting/TrialBalanceView.vue'),

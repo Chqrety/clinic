@@ -266,6 +266,13 @@ export interface CashBankTransaction {
   businessUnit: BusinessUnit
   journalId?: string
   journalNumber?: string
+  lines?: {
+    accountCode: string
+    accountName: string
+    debit: number
+    credit: number
+    description?: string
+  }[]
   createdAt: string
   createdBy: string
 }
