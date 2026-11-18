@@ -977,13 +977,13 @@ function handlePrint() {
                 <div>
                   <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Original</span>
                   <span class="font-mono text-sm text-zinc-900 font-bold">
-                    Rp {{ formatIDR(totalDppOriginal) }}
+                    {{ formatIDR(totalDppOriginal) }}
                   </span>
                 </div>
                 <div class="pt-2 border-t border-zinc-200">
                   <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Original</span>
                   <span class="font-mono text-sm text-zinc-900 font-bold">
-                    Rp {{ formatIDR(totalPajakOriginal) }}
+                    {{ formatIDR(totalPajakOriginal) }}
                   </span>
                 </div>
               </div>
@@ -993,13 +993,13 @@ function handlePrint() {
                 <div>
                   <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Adjustment</span>
                   <span class="font-mono text-sm text-zinc-900 font-bold">
-                    Rp {{ formatIDR(totalDppAdjustment) }}
+                    {{ formatIDR(totalDppAdjustment) }}
                   </span>
                 </div>
                 <div class="pt-2 border-t border-zinc-200">
                   <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Adjustment</span>
                   <span class="font-mono text-sm text-zinc-900 font-bold">
-                    Rp {{ formatIDR(totalPajakAdjustment) }}
+                    {{ formatIDR(totalPajakAdjustment) }}
                   </span>
                 </div>
               </div>
@@ -1009,13 +1009,13 @@ function handlePrint() {
                 <div>
                   <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Final</span>
                   <span class="font-mono text-sm text-teal-700 font-bold">
-                    Rp {{ formatIDR(totalDppFinal) }}
+                    {{ formatIDR(totalDppFinal) }}
                   </span>
                 </div>
                 <div class="pt-2 border-t border-zinc-200">
                   <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Final</span>
                   <span class="font-mono text-sm text-teal-700 font-extrabold">
-                    Rp {{ formatIDR(totalPajakFinal) }}
+                    {{ formatIDR(totalPajakFinal) }}
                   </span>
                 </div>
               </div>
@@ -1137,11 +1137,11 @@ function handlePrint() {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
             <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
               <span class="text-zinc-500 font-sans block font-semibold text-[11px]">SALDO AKUN BUKU BESAR ({{ selectedTaxAccountCode }})</span>
-              <span class="text-lg font-bold text-zinc-900 block mt-1">Rp {{ formatIDR(totalPajakOriginal) }}</span>
+              <span class="text-lg font-bold text-zinc-900 block mt-1">{{ formatIDR(totalPajakOriginal) }}</span>
             </div>
             <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
               <span class="text-zinc-500 font-sans block font-semibold text-[11px]">TOTAL PELAPORAN SPT MASA FINAL</span>
-              <span class="text-lg font-bold text-teal-700 block mt-1">Rp {{ formatIDR(totalPajakFinal) }}</span>
+              <span class="text-lg font-bold text-teal-700 block mt-1">{{ formatIDR(totalPajakFinal) }}</span>
             </div>
             <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
               <span class="text-emerald-800 font-sans block font-semibold text-[11px]">VARIANCE / SELISIH REKONSILIASI</span>
@@ -1313,10 +1313,10 @@ function handlePrint() {
                 Total Nilai Pelaporan Pajak Final:
               </td>
               <td class="border border-black px-2 py-1 text-right font-mono">
-                Rp {{ formatIDR(totalDppFinal) }}
+                {{ formatIDR(totalDppFinal) }}
               </td>
               <td class="border border-black px-2 py-1 text-right font-mono">
-                Rp {{ formatIDR(totalPajakFinal) }}
+                {{ formatIDR(totalPajakFinal) }}
               </td>
             </tr>
           </tfoot>
@@ -1327,17 +1327,17 @@ function handlePrint() {
       <div class="grid grid-cols-2 gap-4 text-[11px] mb-6">
         <div class="border border-black p-2.5 space-y-1">
           <h5 class="font-bold uppercase text-[10px] border-b border-black pb-0.5">Rekonsiliasi Nilai Pajak (Brayo Standard)</h5>
-          <div class="flex justify-between"><span>Total DPP Original:</span><span class="font-mono">Rp {{ formatIDR(totalDppOriginal) }}</span></div>
-          <div class="flex justify-between"><span>Penyesuaian (Adjustment):</span><span class="font-mono">Rp {{ formatIDR(totalDppAdjustment) }}</span></div>
-          <div class="flex justify-between font-bold border-t border-black/30 pt-0.5"><span>Total DPP Final:</span><span class="font-mono">Rp {{ formatIDR(totalDppFinal) }}</span></div>
-          <div class="flex justify-between font-bold text-xs pt-0.5 border-t border-black"><span>Total Pajak Terutang:</span><span class="font-mono">Rp {{ formatIDR(totalPajakFinal) }}</span></div>
+          <div class="flex justify-between"><span>Total DPP Original:</span><span class="font-mono">{{ formatIDR(totalDppOriginal) }}</span></div>
+          <div class="flex justify-between"><span>Penyesuaian (Adjustment):</span><span class="font-mono">{{ formatIDR(totalDppAdjustment) }}</span></div>
+          <div class="flex justify-between font-bold border-t border-black/30 pt-0.5"><span>Total DPP Final:</span><span class="font-mono">{{ formatIDR(totalDppFinal) }}</span></div>
+          <div class="flex justify-between font-bold text-xs pt-0.5 border-t border-black"><span>Total Pajak Terutang:</span><span class="font-mono">{{ formatIDR(totalPajakFinal) }}</span></div>
         </div>
 
         <div class="border border-black p-2.5 space-y-1">
           <h5 class="font-bold uppercase text-[10px] border-b border-black pb-0.5">Ayat Jurnal Penyetoran Bank Kas Negara</h5>
           <div class="text-[10px] space-y-0.5">
-            <div class="flex justify-between"><span class="font-bold">(Dr) [{{ selectedTaxAccountCode }}] {{ activeTaxAccountCatalog.label }}</span><span class="font-mono">Rp {{ formatIDR(totalPajakFinal) }}</span></div>
-            <div class="flex justify-between pl-3"><span class="font-bold">(Cr) [{{ activeBankAccount.code }}] {{ activeBankAccount.name }}</span><span class="font-mono">Rp {{ formatIDR(totalPajakFinal) }}</span></div>
+            <div class="flex justify-between"><span class="font-bold">(Dr) [{{ selectedTaxAccountCode }}] {{ activeTaxAccountCatalog.label }}</span><span class="font-mono">{{ formatIDR(totalPajakFinal) }}</span></div>
+            <div class="flex justify-between pl-3"><span class="font-bold">(Cr) [{{ activeBankAccount.code }}] {{ activeBankAccount.name }}</span><span class="font-mono">{{ formatIDR(totalPajakFinal) }}</span></div>
             <div class="text-gray-600 italic text-[9px] pt-1">NTPN Resmi: {{ ntpnNumber || '(Nomor NTPN DJP Terlampir)' }}</div>
           </div>
         </div>

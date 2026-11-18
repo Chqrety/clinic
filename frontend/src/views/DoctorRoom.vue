@@ -41,22 +41,24 @@ const clinicStore = useClinicStore()
 
 // Doctor Session State
 const availableDoctors = [
-  { id: 2, name: 'dr. Hendra Pratama, Sp.A', unit: 'KIDINEST', title: 'Dokter Spesialis Anak' },
-  { id: 1, name: 'dr. Patricia Vanessa A., Sp.A', unit: 'KIDINEST', title: 'Dokter Spesialis Anak' },
-  { id: 3, name: 'dr. Dian Paramita, Sp.D.V.E', unit: 'SSC', title: 'Spesialis Dermatologi & Laser' },
-  { id: 4, name: 'dr. Kevin Wijaya, Sp.D.V.E', unit: 'SSC', title: 'Spesialis Kulit & Bedah Minor' },
+  { id: 2, name: 'dr. Patricia Vanessa A., Sp.A', unit: 'KIDINEST', title: 'Dokter Spesialis Anak' },
+  { id: 3, name: 'dr. Hendra Pratama, Sp.A', unit: 'KIDINEST', title: 'Konsultan Tumbang & Nutrisi' },
+  { id: 4, name: 'dr. Dian Paramita, Sp.D.V.E', unit: 'SSC', title: 'Spesialis Dermatologi & Laser' },
+  { id: 5, name: 'dr. Kevin Wijaya, Sp.D.V.E', unit: 'SSC', title: 'Spesialis Kulit & Bedah Minor' },
 ]
 
 function getInitialDoctor() {
   if (authStore.user?.role === 'DOCTOR' && authStore.user.name) {
     const userUnit = authStore.user.clinic_unit || 'KIDINEST'
-    const found = availableDoctors.find((d) =>
-      (authStore.user!.clinic_unit && d.unit === authStore.user!.clinic_unit) ||
-      d.name.toLowerCase().includes(authStore.user!.name.toLowerCase().split(' ')[1] || '')
-    )
+    const userName = authStore.user.name.toLowerCase()
+    const found = availableDoctors.find((d) => {
+      const docName = d.name.toLowerCase()
+      const parts = docName.replace('dr.', '').trim().split(' ')
+      return parts.some((p) => p.length > 3 && userName.includes(p.toLowerCase()))
+    })
     if (found) return found
     return {
-      id: userUnit === 'KIDINEST' ? 1 : 3,
+      id: userUnit === 'KIDINEST' ? 2 : 4,
       name: authStore.user.name,
       unit: userUnit,
       title: userUnit === 'KIDINEST' ? 'Dokter Spesialis Anak' : 'Dokter Spesialis Kulit & Estetika',
@@ -235,14 +237,15 @@ const submitSuccessMsg = ref('')
 const submitErrorMsg = ref('')
 
 // Presets ICD-10
-const countWaiting = computed(() => queues.value.filter((q) => q.queue_status === 'WAITING').length)
-const countCalling = computed(() => queues.value.filter((q) => q.queue_status === 'CALLING').length)
-const countInExam = computed(() => queues.value.filter((q) => q.queue_status === 'IN_EXAM').length)
+const countWaiting = computed(() => (queues.value || []).filter((q) => q.queue_status === 'WAITING').length)
+const countCalling = computed(() => (queues.value || []).filter((q) => q.queue_status === 'CALLING').length)
+const countInExam = computed(() => (queues.value || []).filter((q) => q.queue_status === 'IN_EXAM').length)
 const queueFilter = ref<'ALL' | 'WAITING' | 'CALLING' | 'IN_EXAM'>('ALL')
 
 const filteredQueues = computed(() => {
-  if (queueFilter.value === 'ALL') return queues.value
-  return queues.value.filter((q) => q.queue_status === queueFilter.value)
+  const qList = queues.value || []
+  if (queueFilter.value === 'ALL') return qList
+  return qList.filter((q) => q.queue_status === queueFilter.value)
 })
 
 const icd10PresetsKidinest = [
@@ -278,12 +281,14 @@ const totalRxCost = computed(() => {
 async function loadDoctorQueues() {
   loadingQueues.value = true
   try {
-    queues.value = await api.getDoctorQueues(currentDoctor.value.name, currentDoctor.value.unit)
+    const res = await api.getDoctorQueues(currentDoctor.value.name, currentDoctor.value.unit)
+    queues.value = Array.isArray(res) ? res : []
     if (!activeQueue.value && queues.value.length > 0) {
       selectPatient(queues.value[0])
     }
   } catch (err: any) {
     console.error('Gagal memuat antrian dokter:', err)
+    queues.value = []
   } finally {
     loadingQueues.value = false
   }
@@ -292,9 +297,11 @@ async function loadDoctorQueues() {
 async function loadDrugs() {
   loadingDrugs.value = true
   try {
-    catalogDrugs.value = await api.getDoctorDrugs(currentDoctor.value.unit)
+    const res = await api.getDoctorDrugs(currentDoctor.value.unit)
+    catalogDrugs.value = Array.isArray(res) ? res : []
   } catch (err: any) {
     console.error('Gagal memuat katalog obat:', err)
+    catalogDrugs.value = []
   } finally {
     loadingDrugs.value = false
   }
@@ -476,7 +483,7 @@ async function submitConsultation() {
     await Promise.all([loadDoctorQueues(), loadDrugs()])
 
     // Select next patient if available
-    if (queues.value.length > 0) {
+    if (queues.value && queues.value.length > 0) {
       selectPatient(queues.value[0])
     } else {
       activeQueue.value = null

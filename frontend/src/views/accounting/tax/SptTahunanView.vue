@@ -7,7 +7,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportSptTahunan1771ToExcel, getEntityProfile } from '@/utils/export'
+import { exportSptTahunan1771ToExcel, exportSptTahunan1771ToCSV, getEntityProfile } from '@/utils/export'
 import {
   FileText,
   CheckCircle2,
@@ -101,6 +101,19 @@ function handleExportExcel() {
   accountingStore.showToast('Kertas Kerja SPT Tahunan PPh Badan (Formulir 1771 & Audit Workpaper) berhasil diekspor ke Excel per transaksi jurnal!', 'success')
 }
 
+function handleExportCSV() {
+  exportSptTahunan1771ToCSV({
+    annual1771: annual1771.value,
+    monthlyMatrix: sptMatrix.value,
+    linkedJournals: journalsStore.journals,
+    creditVouchers: linkedTaxCreditVouchers.value
+  }, {
+    fiscalYear: annual1771.value.fiscalYear,
+    businessUnit: accountingStore.businessUnit
+  })
+  accountingStore.showToast('Kertas Kerja SPT Tahunan 1771 (Format CSV Akuntansi) berhasil diunduh!', 'success')
+}
+
 function printReport() {
   window.print()
 }
@@ -157,6 +170,15 @@ function printReport() {
         >
           <Download class="w-3.5 h-3.5 text-zinc-600" />
           <span>Ekspor 1771 (.xlsx)</span>
+        </button>
+
+        <button
+          @click="handleExportCSV"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Ekspor Rekonsiliasi Fiskal 1771 & Kredit Pajak ke CSV"
+        >
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
+          <span>Ekspor CSV (.csv)</span>
         </button>
 
         <button

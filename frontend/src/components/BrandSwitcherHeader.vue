@@ -5,7 +5,8 @@ import {
   ArrowUpRight,
   Menu,
   X,
-  MapPin
+  MapPin,
+  ShieldCheck
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -131,13 +132,13 @@ function scrollToSection(id: string) {
           </button>
         </nav>
 
-        <!-- Right: Link Santai Sister Clinic + Single Primary CTA -->
-        <div class="hidden sm:flex items-center gap-4">
+        <!-- Right: Link Santai Sister Clinic + Login Staf + Single Primary CTA -->
+        <div class="hidden sm:flex items-center gap-3">
           <!-- Link Santai Sister Clinic (Bukan Switcher Tab) -->
           <button
             v-if="currentBrand === 'kidinest'"
             @click="emit('navigate', 'ssc')"
-            class="text-xs font-semibold text-[#0C3B36]/70 hover:text-[#0C3B36] flex items-center gap-1 transition-colors hover:underline underline-offset-4"
+            class="text-xs font-semibold text-[#0C3B36]/70 hover:text-[#0C3B36] flex items-center gap-1 transition-colors hover:underline underline-offset-4 cursor-pointer"
             title="Kunjungi Klinik Kulit Semarang Skin Center"
           >
             <span>Layanan Kulit (SSC)</span>
@@ -147,17 +148,32 @@ function scrollToSection(id: string) {
           <button
             v-else
             @click="emit('navigate', 'kidinest')"
-            class="text-xs font-semibold text-[#2D1E24]/70 hover:text-[#2D1E24] flex items-center gap-1 transition-colors hover:underline underline-offset-4"
+            class="text-xs font-semibold text-[#2D1E24]/70 hover:text-[#2D1E24] flex items-center gap-1 transition-colors hover:underline underline-offset-4 cursor-pointer"
             title="Kunjungi Kidinest Pediatric Care"
           >
             <span>Poli Anak (Kidinest)</span>
             <ArrowUpRight class="w-3.5 h-3.5 opacity-60" />
           </button>
 
+          <!-- Login Staf Medis Button -->
+          <button
+            @click="emit('navigate', currentBrand === 'kidinest' ? 'login-kidinest' : 'login-ssc')"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs hover:bg-black/5 active:scale-95"
+            :class="
+              currentBrand === 'kidinest'
+                ? 'border-[#0C3B36]/25 text-[#0C3B36] bg-[#0C3B36]/5'
+                : 'border-[#9E606D]/25 text-[#2D1E24] bg-[#9E606D]/5'
+            "
+            title="Masuk ke Portal & Workstation Staf Medis"
+          >
+            <ShieldCheck class="w-3.5 h-3.5" />
+            <span>Login Staf</span>
+          </button>
+
           <!-- Single Primary CTA Button -->
           <button
             @click="emit('navigate', currentBrand === 'kidinest' ? 'kiosk-kidinest' : 'kiosk-ssc')"
-            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all shadow-xs active:scale-95"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all shadow-xs active:scale-95 cursor-pointer"
             :class="
               currentBrand === 'kidinest'
                 ? 'bg-[#0C3B36] hover:bg-[#134E48]'
@@ -236,6 +252,19 @@ function scrollToSection(id: string) {
         >
           <span>Poli Anak (Kidinest)</span>
           <ArrowUpRight class="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <!-- Mobile Staff Login Link -->
+      <div class="pt-1.5 flex items-center justify-between text-xs px-3">
+        <span class="text-zinc-500 font-medium">Akses Internal:</span>
+        <button
+          @click="emit('navigate', currentBrand === 'kidinest' ? 'login-kidinest' : 'login-ssc'); mobileMenuOpen = false"
+          class="font-bold flex items-center gap-1.5 hover:underline"
+          :class="currentBrand === 'kidinest' ? 'text-[#0C3B36]' : 'text-[#2D1E24]'"
+        >
+          <ShieldCheck class="w-3.5 h-3.5" />
+          <span>Login Staf Medis</span>
         </button>
       </div>
 

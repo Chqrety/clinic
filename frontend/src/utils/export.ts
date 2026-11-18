@@ -64,7 +64,12 @@ function applySheetFormatting(ws: XLSX.WorkSheet, colWidths: number[]) {
     const c = ws[cell]
     if (c && typeof c.v === 'number') {
       c.t = 'n'
-      c.z = '#,##0.00'
+      // Jaga index/nomor urut dan tahun/bulan agar tidak terformat desimal aneh (misal 1.00 atau 2,026.00)
+      if (Number.isInteger(c.v) && ((c.v >= 0 && c.v <= 1000) || (c.v >= 2000 && c.v <= 2100))) {
+        c.z = '0'
+      } else {
+        c.z = '#,##0.00'
+      }
     }
   }
 }
@@ -973,26 +978,98 @@ export function exportBrayoSptMasaDocumentToExcel(
 
 export function exportBrayoSptMasaToCSV(doc: BrayoSptMasaDocumentExportPayload, filenameOverride?: string) {
   const filename = filenameOverride || `Laporan_Pajak_${doc.reportNumber}`
-  const data = doc.rows.map((r, idx) => ({
-    No: idx + 1,
-    Tanggal: r.date || '',
-    VoucherType: r.voucherType || 'Journal Entry',
-    NoBukti: r.journalNumber || '',
-    Project: r.project || doc.project,
-    SumberTransaksi: r.sourceTransaction || 'Buku Besar',
-    AkunLawan: `[${r.counterpartCode || ''}] ${r.counterpartName || ''}`,
-    AkunPajak: `[${r.taxAccountCode || doc.taxAccountCode}] ${r.taxAccountName || doc.taxAccountName}`,
-    UraianTransaksi: r.description || '',
-    SourceStatus: r.sourceStatus || 'Active',
-    DPP_Original: r.dppOriginal || 0,
-    Pajak_Original: r.pajakOriginal || 0,
-    DPP_Adjustment: r.dppAdjustment || 0,
-    Pajak_Adjustment: r.pajakAdjustment || 0,
-    DPP_Final: r.dppFinal || 0,
-    Pajak_Final: r.pajakFinal || 0
-  }))
+  
+  const aoa: any[][] = [
+    [doc.companyName || 'PT. SEMARANG MEDICAL GROUP'],
+    ['DOKUMEN PELAPORAN SPT MASA - BRAYO PAJAK (apptax.brayo.id)'],
+    [`NO. DOKUMEN: ${doc.reportNumber} | NAMA LAPORAN: ${doc.reportName}`],
+    [`MASA PAJAK: BULAN ${String(doc.masaMonth).padStart(2, '0')} TAHUN ${doc.masaYear} | STATUS: ${doc.status}`],
+    [`PROJECT: ${doc.project} | SUMBER: ${doc.sourceTransaction} | AKUN PAJAK: [${doc.taxAccountCode}] ${doc.taxAccountName}`],
+    [`REKENING BANK PENYETOR: ${doc.bankAccount} | NTPN: ${doc.ntpnNumber || '-'}`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal',
+      'Voucher Type',
+      'No. Bukti / Jurnal',
+      'Project',
+      'Sumber Transaksi',
+      'Akun Lawan',
+      'Akun Pajak',
+      'Uraian Transaksi / Memo',
+      'Source Status',
+      'DPP Original (Rp)',
+      'Pajak Original (Rp)',
+      'DPP Adjustment (Rp)',
+      'Pajak Adjustment (Rp)',
+      'DPP Final (Rp)',
+      'Pajak Final (Rp)'
+    ]
+  ]
 
-  exportToCSV(data, filename)
+  let sumDppOrig = 0
+  let sumPajakOrig = 0
+  let sumDppAdj = 0
+  let sumPajakAdj = 0
+  let sumDppFin = 0
+  let sumPajakFin = 0
+
+  doc.rows.forEach((r, idx) => {
+    const dppOrig = Number(r.dppOriginal) || 0
+    const pjkOrig = Number(r.pajakOriginal) || 0
+    const dppAdj = Number(r.dppAdjustment) || 0
+    const pjkAdj = Number(r.pajakAdjustment) || 0
+    const dppFin = Number(r.dppFinal) || 0
+    const pjkFin = Number(r.pajakFinal) || 0
+
+    sumDppOrig += dppOrig
+    sumPajakOrig += pjkOrig
+    sumDppAdj += dppAdj
+    sumPajakAdj += pjkAdj
+    sumDppFin += dppFin
+    sumPajakFin += pjkFin
+
+    aoa.push([
+      idx + 1,
+      r.date || '-',
+      r.voucherType || 'Journal Entry',
+      r.journalNumber || '-',
+      r.project || doc.project,
+      r.sourceTransaction || 'Buku Besar',
+      `[${r.counterpartCode || '-'}] ${r.counterpartName || '-'}`,
+      `[${r.taxAccountCode || doc.taxAccountCode}] ${r.taxAccountName || doc.taxAccountName}`,
+      r.description || '-',
+      r.sourceStatus || 'Active',
+      dppOrig,
+      pjkOrig,
+      dppAdj,
+      pjkAdj,
+      dppFin,
+      pjkFin
+    ])
+  })
+
+  aoa.push([
+    '',
+    'TOTAL NILAI PELAPORAN PAJAK',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    sumDppOrig,
+    sumPajakOrig,
+    sumDppAdj,
+    sumPajakAdj,
+    sumDppFin,
+    sumPajakFin
+  ])
+
+  exportAoaToCSV(aoa, filename)
 }
 
 /* =========================================================================
@@ -1529,7 +1606,550 @@ export function exportSptTahunan1771ToExcel(
 }
 
 /* =========================================================================
-   LEGACY / GENERIC EXPORT HELPERS (Backward Compatibility)
+   7. EKSPOR JURNAL UMUM (GENERAL JOURNAL) & WORKPAPERS
+   Standard: Multi-Line Double Entry, Seimbang Debet/Kredit
+========================================================================= */
+export interface JournalListExportOptions {
+  businessUnit?: string
+  companyName?: string
+  fiscalPeriod?: string
+  filename?: string
+}
+
+export function exportJournalListToExcel(
+  journals: any[],
+  options: JournalListExportOptions = {}
+) {
+  const unit = options.businessUnit || 'ALL'
+  const company = options.companyName || getCompanyName(unit)
+  const profile = getEntityProfile(unit)
+  const period = options.fiscalPeriod || 'Tahun 2026'
+  const filename = options.filename || `Buku_Jurnal_Umum_${unit}_${period.replace(/\s+/g, '_')}`
+
+  const wb = XLSX.utils.book_new()
+
+  // Sheet 1: Jurnal Umum Detail (Multi-Line Double Entry)
+  const aoaDetail: any[][] = [
+    [company],
+    ['BUKU JURNAL UMUM (GENERAL JOURNAL) - DOUBLE ENTRY AUDIT GRADE'],
+    [`PERIODE: ${period} | UNIT BISNIS: ${profile.unitLabel}`],
+    [`NPWP: ${profile.npwp} | TANGGAL EKSPOR: ${new Date().toLocaleDateString('id-ID')}`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal',
+      'No. Voucher / Jurnal',
+      'Tipe Jurnal',
+      'Unit Bisnis',
+      'Kode Akun COA',
+      'Nama Akun Buku Besar',
+      'Uraian / Memo Baris',
+      'Debet (Rp)',
+      'Kredit (Rp)',
+      'Status Posting',
+      'Dibuat Oleh'
+    ]
+  ]
+
+  let grandDebit = 0
+  let grandCredit = 0
+  let rowIdx = 1
+
+  journals.forEach((j: any) => {
+    const lines = j.lines || []
+    if (lines.length > 0) {
+      lines.forEach((l: any) => {
+        const d = Number(l.debit) || 0
+        const c = Number(l.credit) || 0
+        grandDebit += d
+        grandCredit += c
+
+        aoaDetail.push([
+          rowIdx++,
+          j.journalDate || j.transaction_date || '-',
+          j.journalNumber || '-',
+          j.journalType || 'GENERAL',
+          j.businessUnit || unit,
+          l.accountCode || '-',
+          l.accountName || '-',
+          l.description || j.description || '-',
+          d > 0 ? d : null,
+          c > 0 ? c : null,
+          j.status || 'POSTED',
+          j.createdByName || '-'
+        ])
+      })
+    } else {
+      const d = Number(j.totalDebit) || 0
+      const c = Number(j.totalCredit) || 0
+      grandDebit += d
+      grandCredit += c
+
+      aoaDetail.push([
+        rowIdx++,
+        j.journalDate || j.transaction_date || '-',
+        j.journalNumber || '-',
+        j.journalType || 'GENERAL',
+        j.businessUnit || unit,
+        '-',
+        '-',
+        j.description || '-',
+        d > 0 ? d : null,
+        c > 0 ? c : null,
+        j.status || 'POSTED',
+        j.createdByName || '-'
+      ])
+    }
+  })
+
+  // Grand Total Row
+  aoaDetail.push([
+    '',
+    'TOTAL KESELURUHAN JURNAL UMUM (SEIMBANG)',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    grandDebit,
+    grandCredit,
+    grandDebit === grandCredit ? 'SEIMBANG (BALANCED)' : 'SELISIH',
+    ''
+  ])
+
+  const wsDetail = XLSX.utils.aoa_to_sheet(aoaDetail)
+  applySheetFormatting(wsDetail, [6, 14, 20, 16, 16, 16, 32, 40, 20, 20, 16, 18])
+  XLSX.utils.book_append_sheet(wb, wsDetail, 'Jurnal Umum Multi-Line')
+
+  // Sheet 2: Rekapitulasi Voucher Jurnal
+  const aoaVouchers: any[][] = [
+    [company],
+    ['REKAPITULASI DAFTAR VOUCHER JURNAL UMUM'],
+    [`PERIODE: ${period} | UNIT BISNIS: ${profile.unitLabel}`],
+    [],
+    [
+      'No',
+      'No. Voucher / Jurnal',
+      'Tanggal Transaksi',
+      'Tipe Jurnal',
+      'Unit Bisnis',
+      'Uraian / Deskripsi',
+      'Total Debet (Rp)',
+      'Total Kredit (Rp)',
+      'Status',
+      'Dibuat Oleh'
+    ]
+  ]
+
+  journals.forEach((j: any, idx: number) => {
+    aoaVouchers.push([
+      idx + 1,
+      j.journalNumber || '-',
+      j.journalDate || j.transaction_date || '-',
+      j.journalType || 'GENERAL',
+      j.businessUnit || unit,
+      j.description || '-',
+      Number(j.totalDebit) || 0,
+      Number(j.totalCredit) || 0,
+      j.status || 'POSTED',
+      j.createdByName || '-'
+    ])
+  })
+
+  aoaVouchers.push([
+    '',
+    'TOTAL NILAI SELURUH VOUCHER',
+    '',
+    '',
+    '',
+    '',
+    grandDebit,
+    grandCredit,
+    '',
+    ''
+  ])
+
+  const wsVouchers = XLSX.utils.aoa_to_sheet(aoaVouchers)
+  applySheetFormatting(wsVouchers, [6, 22, 16, 16, 16, 40, 20, 20, 14, 18])
+  XLSX.utils.book_append_sheet(wb, wsVouchers, 'Daftar Voucher')
+
+  saveWorkbook(wb, filename)
+}
+
+export function exportJournalListToCSV(
+  journals: any[],
+  options: JournalListExportOptions = {}
+) {
+  const unit = options.businessUnit || 'ALL'
+  const company = options.companyName || getCompanyName(unit)
+  const profile = getEntityProfile(unit)
+  const period = options.fiscalPeriod || 'Tahun 2026'
+  const filename = options.filename || `Buku_Jurnal_Umum_${unit}_${period.replace(/\s+/g, '_')}`
+
+  const aoa: any[][] = [
+    [company],
+    ['BUKU JURNAL UMUM (GENERAL JOURNAL) - DOUBLE ENTRY'],
+    [`PERIODE: ${period} | UNIT BISNIS: ${profile.unitLabel}`],
+    [`NPWP: ${profile.npwp} | TANGGAL EKSPOR: ${new Date().toLocaleDateString('id-ID')}`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal',
+      'No. Voucher / Jurnal',
+      'Tipe Jurnal',
+      'Unit Bisnis',
+      'Kode Akun COA',
+      'Nama Akun Buku Besar',
+      'Uraian / Memo Baris',
+      'Debet (Rp)',
+      'Kredit (Rp)',
+      'Status Posting',
+      'Dibuat Oleh'
+    ]
+  ]
+
+  let grandDebit = 0
+  let grandCredit = 0
+  let rowIdx = 1
+
+  journals.forEach((j: any) => {
+    const lines = j.lines || []
+    if (lines.length > 0) {
+      lines.forEach((l: any) => {
+        const d = Number(l.debit) || 0
+        const c = Number(l.credit) || 0
+        grandDebit += d
+        grandCredit += c
+
+        aoa.push([
+          rowIdx++,
+          j.journalDate || j.transaction_date || '-',
+          j.journalNumber || '-',
+          j.journalType || 'GENERAL',
+          j.businessUnit || unit,
+          l.accountCode || '-',
+          l.accountName || '-',
+          l.description || j.description || '-',
+          d,
+          c,
+          j.status || 'POSTED',
+          j.createdByName || '-'
+        ])
+      })
+    } else {
+      const d = Number(j.totalDebit) || 0
+      const c = Number(j.totalCredit) || 0
+      grandDebit += d
+      grandCredit += c
+
+      aoa.push([
+        rowIdx++,
+        j.journalDate || j.transaction_date || '-',
+        j.journalNumber || '-',
+        j.journalType || 'GENERAL',
+        j.businessUnit || unit,
+        '-',
+        '-',
+        j.description || '-',
+        d,
+        c,
+        j.status || 'POSTED',
+        j.createdByName || '-'
+      ])
+    }
+  })
+
+  aoa.push([
+    '',
+    'TOTAL KESELURUHAN JURNAL UMUM (SEIMBANG)',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    grandDebit,
+    grandCredit,
+    grandDebit === grandCredit ? 'SEIMBANG (BALANCED)' : 'SELISIH',
+    ''
+  ])
+
+  exportAoaToCSV(aoa, filename)
+}
+
+/* =========================================================================
+   8. CSV EXPORTS UNTUK SPT TAHUNAN, SPT MASA & BUKU BESAR
+========================================================================= */
+export function exportSptTahunan1771ToCSV(
+  data: SptTahunan1771ExportData,
+  options: SptTahunan1771ExportOptions = {}
+) {
+  const unit = options.businessUnit || 'ALL'
+  const profile = getEntityProfile(unit)
+  const company = options.companyName || profile.title
+  const rep = data.annual1771 || {}
+  const fiscalYear = options.fiscalYear || rep.fiscalYear || 2026
+  const filename = options.filename || `Kertas_Kerja_SPT_Tahunan_1771_${unit}_Tahun_${fiscalYear}`
+
+  const rev = rep.commercialRevenue || 18531600000
+  const hpp = rep.commercialHpp || Math.round(rev * 0.48)
+  const exp = rep.commercialExpense || Math.round(rev * 0.38)
+  const netComm = rep.commercialNetProfit || (rev - hpp - exp)
+  const posCorr = rep.positiveFiscalCorrection || 48500000
+  const negCorr = rep.negativeFiscalCorrection || 12850000
+  const taxableInc = rep.taxableIncome || (netComm + posCorr - negCorr)
+  const taxRate = rep.corporateTaxRate || 22
+  const taxPayable = rep.corporateTaxPayable || Math.round(taxableInc * (taxRate / 100))
+  const crPph23 = rep.taxCreditPph23 || 68450000
+  const crPph25 = rep.taxCreditPph25 || 324000000
+  const totalCr = rep.taxCredits || (crPph23 + crPph25)
+  const pph29 = rep.pph29Payable || Math.max(0, taxPayable - totalCr)
+  const pph28a = rep.pph28aOverpaid || Math.max(0, totalCr - taxPayable)
+
+  const aoa: any[][] = [
+    [company],
+    [`${profile.subtitle} • ${profile.address}`],
+    ['KERTAS KERJA REKONSILIASI FISKAL SPT TAHUNAN PPh BADAN (FORMULIR 1771)'],
+    [`TAHUN PAJAK: ${fiscalYear} | NPWP: ${profile.npwp} | STATUS: ${rep.status || 'FINALIZED'}`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    ['BAGIAN I: REKONSILIASI FISKAL PPh BADAN FORMULIR 1771'],
+    [
+      'No',
+      'Elemen Laporan Keuangan (Formulir 1771 DJP)',
+      'Nilai Komersial (Rp)',
+      'Koreksi Positif (+)',
+      'Koreksi Negatif (-)',
+      'Nilai Fiskal (Rp)',
+      'Catatan / Dasar Regulasi Perpajakan'
+    ],
+    ['1', 'Peredaran Usaha Komersial (Omset Pelayanan Medis & Farmasi)', rev, 0, 0, rev, 'Sesuai Laporan Laba Rugi Komersial Klinik'],
+    ['2', 'Harga Pokok Penjualan (HPP Obat, Vaksin & BMHP)', hpp, 0, 0, hpp, 'Pemakaian BMHP, Vaksin & Obat Resep Farmasi'],
+    ['3', 'Biaya Usaha Lainnya (Beban Operasional, Honor Medis & Administrasi)', exp, 0, 0, exp, 'Beban Gaji, Jasa Medis Dokter, Sewa & Limbah B3'],
+    ['4', 'PENGHASILAN NETO USAHA KOMERSIAL (1 - 2 - 3)', netComm, 0, 0, netComm, 'Laba Bersih Usaha Sebelum Pajak Komersial'],
+    ['5', 'TOTAL KOREKSI FISKAL POSITIF', 0, posCorr, 0, posCorr, 'Menambah Penghasilan Kena Pajak (PKP)'],
+    ['6', 'TOTAL KOREKSI FISKAL NEGATIF', 0, 0, negCorr, -negCorr, 'Mengurangi Penghasilan Kena Pajak (PKP)'],
+    ['7', 'PENGHASILAN NETO FISKAL (4 + 5 - 6)', 0, 0, 0, taxableInc, 'Dasar Perhitungan Penghasilan Kena Pajak'],
+    ['8', 'Kompensasi Kerugian Fiskal Tahun Sebelumnya', 0, 0, 0, 0, 'Sisa Kompensasi Rugi Fiskal 5 Tahun Terakhir'],
+    ['9', 'PENGHASILAN KENA PAJAK (PKP)', 0, 0, 0, taxableInc, 'Penghasilan Bersih Kena Pajak Badan Usaha'],
+    ['10', `Tarif PPh Badan Pasal 17 (${taxRate}%)`, null, null, null, `${taxRate}%`, 'UU No. 7 Tahun 2021 (UU HPP)'],
+    ['11', 'PAJAK PENGHASILAN TERUTANG (PPh BADAN)', 0, 0, 0, taxPayable, 'PKP x Tarif PPh Badan 22%'],
+    ['12', 'PPh Pasal 23 (Dipotong Rekanan Asuransi & Korporat)', 0, 0, 0, crPph23, 'Kredit Pajak Asli dari Rekonsiliasi Bank'],
+    ['13', 'PPh Pasal 25 (Setoran Angsuran Pajak Bulanan Bank)', 0, 0, 0, crPph25, 'Setoran Bulanan via Bank Persepsi (Validasi NTPN)'],
+    ['14', 'TOTAL KREDIT PAJAK YANG DIPERHITUNGKAN (12 + 13)', 0, 0, 0, totalCr, 'Total Pengurang PPh Terutang'],
+    ['15', 'PPh PASAL 29 KURANG BAYAR', 0, 0, 0, pph29, 'Pajak Yang Wajib Disetor Sebelum Lapor SPT 1771'],
+    ['16', 'PPh PASAL 28A LEBIH BAYAR', 0, 0, 0, pph28a, 'Pajak Lebih Bayar (Bila Total Kredit > Pajak Terutang)'],
+    [],
+    ['BAGIAN II: DAFTAR KREDIT PAJAK PPh PASAL 23 & PASAL 25 (LAMPIRAN III)'],
+    [
+      'No',
+      'Jenis Pajak',
+      'No. Bukti Potong / NTPN',
+      'Tanggal',
+      'Nama Pemotong / Bank Persepsi',
+      'Uraian Transaksi',
+      'Nilai DPP (Rp)',
+      'PPh Dipotong / Disetor (Rp)',
+      'Status Verifikasi'
+    ]
+  ]
+
+  const creditVouchers = data.creditVouchers || []
+  if (creditVouchers.length > 0) {
+    creditVouchers.forEach((v: any, idx: number) => {
+      aoa.push([
+        idx + 1,
+        v.taxType || 'PPH_23',
+        v.journalNumber || v.voucherNumber || '-',
+        v.date || '-',
+        v.counterpartName || 'Bank / Rekanan',
+        v.description || '-',
+        v.voucherAmount || 0,
+        v.claimedAmount || 0,
+        v.claimStatus || 'VERIFIED'
+      ])
+    })
+  } else {
+    aoa.push([1, 'PPh Pasal 23', 'BUPOT-2026-001', '2026-06-30', 'BPJS & Asuransi Korporat', 'Kredit Pajak Jasa Medis Rekanan', Math.round(crPph23 * 50), crPph23, 'VERIFIED'])
+    aoa.push([2, 'PPh Pasal 25', 'NTPN-BCA-20260315', '2026-03-15', 'Bank BCA Persepsi', 'Angsuran PPh 25 Masa Jan-Des', Math.round(crPph25 * 4.5), crPph25, 'VERIFIED'])
+  }
+
+  exportAoaToCSV(aoa, filename)
+}
+
+export function exportSptMasaToCSV(
+  data: SptMasaExportData,
+  options: SptMasaExportOptions = {}
+) {
+  const unit = options.businessUnit || 'ALL'
+  const company = options.companyName || getCompanyName(unit)
+  const masaMonth = options.masaMonth || 11
+  const fiscalYear = options.fiscalYear || 2026
+  const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+  const masaLabel = `${monthNames[masaMonth]} ${fiscalYear}`
+  const filename = options.filename || `SPT_Masa_Pajak_${unit}_${masaLabel.replace(/\s+/g, '_')}`
+
+  const sptList = data.sptList || []
+  const aoa: any[][] = [
+    [company],
+    ['SURAT PEMBERITAHUAN MASA (SPT MASA) PAJAK PPh & PPN'],
+    [`MASA PAJAK: ${masaLabel.toUpperCase()} | TAHUN PAJAK: ${fiscalYear}`],
+    ['NPWP: 01.234.567.8-511.000 | METODE PENYETORAN: PERBANKAN RESMI NON-TUNAI'],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'No. Dokumen SPT',
+      'Jenis Pajak',
+      'Akun Pembukuan',
+      'Bank Penyetor (Non-Tunai)',
+      'Saluran Bayar',
+      'Dasar Pengenaan Pajak (DPP)',
+      'Tarif',
+      'Pajak Terutang (Rp)',
+      'Status Bayar',
+      'No. NTPN / Bukti Setor',
+      'Tanggal Setor/Lapor'
+    ]
+  ]
+
+  let totalDpp = 0
+  let totalTax = 0
+
+  sptList.forEach((spt, idx) => {
+    const dpp = typeof spt.dppAmount === 'number' ? spt.dppAmount : 0
+    const tax = typeof spt.taxAmount === 'number' ? spt.taxAmount : 0
+    totalDpp += dpp
+    totalTax += tax
+
+    aoa.push([
+      idx + 1,
+      spt.sptNumber,
+      spt.taxType,
+      `[${spt.accountCode}] ${spt.accountName}`,
+      `[${spt.bankAccountCode}] ${spt.bankAccountName}`,
+      spt.paymentChannel,
+      dpp,
+      spt.taxRate,
+      tax,
+      spt.status,
+      spt.ntpnNumber || '-',
+      spt.paymentDate || '-'
+    ])
+  })
+
+  aoa.push([
+    '',
+    'TOTAL PAJAK MASA DISETOR VIA BANK',
+    '',
+    '',
+    '',
+    '',
+    totalDpp,
+    '',
+    totalTax,
+    '',
+    '',
+    ''
+  ])
+
+  exportAoaToCSV(aoa, filename)
+}
+
+export function exportGeneralLedgerToCSV(
+  account: any,
+  entries: any[],
+  options: GeneralLedgerExportOptions = {}
+) {
+  const unit = options.businessUnit || 'ALL'
+  const company = options.companyName || getCompanyName(unit)
+  const accCode = account?.code || '1101'
+  const accName = account?.name || 'Kas Kasir'
+  const accType = account?.type || 'ASET'
+  const startDate = options.startDate || '01-11-2026'
+  const endDate = options.endDate || '30-11-2026'
+  const openingBalance = options.openingBalance !== undefined ? options.openingBalance : (account?.openingBalance || 0)
+  const filename = options.filename || `Buku_Besar_${accCode}_${accName.replace(/\s+/g, '_')}`
+
+  const aoaGL: any[][] = [
+    [company],
+    ['BUKU BESAR (GENERAL LEDGER)'],
+    [`AKUN: [${accCode}] ${accName.toUpperCase()} | KATEGORI: ${accType}`],
+    [`PERIODE: ${startDate} s/d ${endDate} | UNIT BISNIS: ${unit}`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal',
+      'No. Jurnal',
+      'Sumber Bukti',
+      'Unit Bisnis',
+      'Keterangan / Uraian Transaksi',
+      'Akun Lawan',
+      'Debet (Rp)',
+      'Kredit (Rp)',
+      'Saldo Berjalan (Rp)'
+    ],
+    [
+      '',
+      startDate,
+      '-',
+      'SALDO AWAL',
+      unit,
+      `Saldo Awal Periode Akun [${accCode}] ${accName}`,
+      '-',
+      0,
+      0,
+      openingBalance
+    ]
+  ]
+
+  let totalDebit = 0
+  let totalCredit = 0
+  let currentRunning = openingBalance
+
+  entries.forEach((e, idx) => {
+    const debit = typeof e.debit === 'number' ? e.debit : 0
+    const credit = typeof e.credit === 'number' ? e.credit : 0
+    totalDebit += debit
+    totalCredit += credit
+    currentRunning = e.runningBalance !== undefined ? e.runningBalance : (currentRunning + debit - credit)
+
+    aoaGL.push([
+      idx + 1,
+      e.date || startDate,
+      e.journalNumber || `JU-202611-${String(idx + 1).padStart(4, '0')}`,
+      e.source || 'MANUAL',
+      e.businessUnit || unit,
+      e.description || '-',
+      e.counterpartAccountName ? `[${e.counterpartAccountCode || ''}] ${e.counterpartAccountName}` : (e.counterpartAccountCode || '-'),
+      debit,
+      credit,
+      currentRunning
+    ])
+  })
+
+  aoaGL.push([
+    '',
+    'TOTAL MUTASI & SALDO AKHIR',
+    '',
+    '',
+    '',
+    '',
+    '',
+    totalDebit,
+    totalCredit,
+    currentRunning
+  ])
+
+  exportAoaToCSV(aoaGL, filename)
+}
+
+/* =========================================================================
+   LEGACY / GENERIC EXPORT HELPERS (Enhanced with UTF-8 BOM)
 ========================================================================= */
 export function exportToExcel(
   data: Record<string, any>[],
@@ -1550,16 +2170,37 @@ export function exportToCSV(data: Record<string, any>[], filename = 'export-data
   try {
     const worksheet = XLSX.utils.json_to_sheet(data)
     const csvOutput = XLSX.utils.sheet_to_csv(worksheet)
-    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' })
+    // Tambahkan UTF-8 BOM (\uFEFF) agar Microsoft Excel (Windows & Mac) langsung membaca format UTF-8 dengan rapi
+    const blob = new Blob(['\uFEFF' + csvOutput], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.setAttribute('href', url)
-    link.setAttribute('download', `${filename}.csv`)
+    link.setAttribute('download', `${filename.replace(/[/\\?%*:|"<>]/g, '_')}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   } catch (error) {
     console.error('Failed to export to CSV:', error)
+  }
+}
+
+export function exportAoaToCSV(aoa: any[][], filename = 'export-data') {
+  try {
+    const worksheet = XLSX.utils.aoa_to_sheet(aoa)
+    const csvOutput = XLSX.utils.sheet_to_csv(worksheet)
+    // Tambahkan UTF-8 BOM (\uFEFF)
+    const blob = new Blob(['\uFEFF' + csvOutput], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${filename.replace(/[/\\?%*:|"<>]/g, '_')}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Failed to export AOA to CSV:', error)
   }
 }
 

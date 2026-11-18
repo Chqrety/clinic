@@ -57,7 +57,7 @@ func (r *PostgresConsultationRepository) ListDoctorQueues(ctx context.Context, d
 	}
 	defer rows.Close()
 
-	var list []*domain.DoctorQueuePatient
+	list := make([]*domain.DoctorQueuePatient, 0)
 	for rows.Next() {
 		var p domain.DoctorQueuePatient
 		var doctorID sql.NullInt64
@@ -333,7 +333,7 @@ func (r *PostgresConsultationRepository) ListActiveDrugs(ctx context.Context, cl
 	}
 	defer rows.Close()
 
-	var list []*domain.CatalogDrug
+	list := make([]*domain.CatalogDrug, 0)
 	for rows.Next() {
 		var d domain.CatalogDrug
 		err := rows.Scan(

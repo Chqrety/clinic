@@ -518,7 +518,7 @@ async function handleSubmit(autoPost: boolean = false) {
                 v-else
                 class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px]"
               >
-                Selisih: Rp {{ formatIDR(Math.abs(difference)) }}
+                Selisih: {{ formatIDR(Math.abs(difference)) }}
               </span>
             </div>
             <p class="text-[11px] mt-0.5 opacity-80">
@@ -531,18 +531,18 @@ async function handleSubmit(autoPost: boolean = false) {
         <div class="flex items-center gap-4 bg-white/90 px-4 py-2 rounded-xl border border-zinc-200/80 shadow-2xs self-end sm:self-auto font-mono">
           <div>
             <span class="text-[10px] text-zinc-500 font-sans block font-bold">TOTAL DEBET</span>
-            <span class="font-extrabold text-zinc-950 text-sm">Rp {{ formatIDR(totalDebit) }}</span>
+            <span class="font-extrabold text-zinc-950 text-sm">{{ formatIDR(totalDebit) }}</span>
           </div>
           <div class="h-6 w-px bg-zinc-200"></div>
           <div>
             <span class="text-[10px] text-zinc-500 font-sans block font-bold">TOTAL KREDIT</span>
-            <span class="font-extrabold text-zinc-950 text-sm">Rp {{ formatIDR(totalCredit) }}</span>
+            <span class="font-extrabold text-zinc-950 text-sm">{{ formatIDR(totalCredit) }}</span>
           </div>
           <div class="h-6 w-px bg-zinc-200"></div>
           <div>
             <span class="text-[10px] text-zinc-500 font-sans block font-bold">SELISIH</span>
             <span :class="['font-extrabold text-sm', isBalanced ? 'text-emerald-700' : 'text-rose-600']">
-              Rp {{ formatIDR(Math.abs(difference)) }}
+              {{ formatIDR(Math.abs(difference)) }}
             </span>
           </div>
         </div>
@@ -678,10 +678,10 @@ async function handleSubmit(autoPost: boolean = false) {
                 Total Jurnal:
               </td>
               <td class="px-4 py-3 text-right font-mono text-emerald-800 text-sm">
-                Rp {{ formatIDR(totalDebit) }}
+                {{ formatIDR(totalDebit) }}
               </td>
               <td class="px-4 py-3 text-right font-mono text-rose-800 text-sm">
-                Rp {{ formatIDR(totalCredit) }}
+                {{ formatIDR(totalCredit) }}
               </td>
               <td></td>
             </tr>

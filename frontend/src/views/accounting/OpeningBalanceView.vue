@@ -463,7 +463,7 @@ async function handleSaveOpeningBalance() {
       <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs">
         <span class="text-[10px] font-bold text-zinc-500 uppercase block">1. Total Aktiva (Aset)</span>
         <span class="text-base font-extrabold text-emerald-700 font-mono block mt-1">
-          Rp {{ formatIDR(totalAsset) }}
+          {{ formatIDR(totalAsset) }}
         </span>
       </div>
 
@@ -471,7 +471,7 @@ async function handleSaveOpeningBalance() {
       <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs">
         <span class="text-[10px] font-bold text-zinc-500 uppercase block">2. Total Kewajiban (Hutang)</span>
         <span class="text-base font-extrabold text-rose-700 font-mono block mt-1">
-          Rp {{ formatIDR(totalLiability) }}
+          {{ formatIDR(totalLiability) }}
         </span>
       </div>
 
@@ -479,7 +479,7 @@ async function handleSaveOpeningBalance() {
       <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs">
         <span class="text-[10px] font-bold text-zinc-500 uppercase block">3. Total Ekuitas (Modal)</span>
         <span class="text-base font-extrabold text-blue-700 font-mono block mt-1">
-          Rp {{ formatIDR(totalEquity) }}
+          {{ formatIDR(totalEquity) }}
         </span>
       </div>
 
@@ -506,7 +506,7 @@ async function handleSaveOpeningBalance() {
         <div class="mt-1 font-mono">
           <span class="text-[10px] opacity-75 block">Selisih Debit - Kredit:</span>
           <span :class="['text-sm font-extrabold', isBalanced ? 'text-emerald-800' : 'text-rose-700']">
-            Rp {{ formatIDR(Math.abs(difference)) }}
+            {{ formatIDR(Math.abs(difference)) }}
           </span>
         </div>
       </div>

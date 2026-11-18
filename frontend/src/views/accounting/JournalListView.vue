@@ -6,7 +6,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportToExcel } from '@/utils/export'
+import { exportJournalListToExcel, exportJournalListToCSV } from '@/utils/export'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
@@ -250,21 +250,19 @@ const filteredJournals = computed(() => {
 })
 
 function handleExportExcel() {
-  const data = filteredJournals.value.map(j => ({
-    'Nomor Jurnal': j.journalNumber,
-    'Tanggal': j.journalDate,
-    'Unit Bisnis': j.businessUnit,
-    'Sumber': j.journalSource,
-    'Referensi': j.sourceReference,
-    'Uraian': j.description,
-    'Total Nilai (IDR)': j.totalDebit,
-    'Status': j.status,
-    'Dibuat Oleh': j.createdByName,
-    'Diposting Oleh': j.postedByName || '-'
-  }))
+  exportJournalListToExcel(filteredJournals.value, {
+    businessUnit: accountingStore.businessUnit,
+    fiscalPeriod: `Masa ${String(accountingStore.fiscalMonth).padStart(2, '0')}/2026`
+  })
+  accountingStore.showToast('Buku Jurnal Umum (Multi-Line Double Entry) berhasil diekspor ke Excel (.xlsx)', 'success')
+}
 
-  exportToExcel(data, `Daftar_Jurnal_${accountingStore.businessUnit}_2026-${String(accountingStore.fiscalMonth).padStart(2, '0')}`, 'Jurnal Umum')
-  accountingStore.showToast('Data jurnal berhasil diekspor ke Excel (.xlsx)', 'success')
+function handleExportCSV() {
+  exportJournalListToCSV(filteredJournals.value, {
+    businessUnit: accountingStore.businessUnit,
+    fiscalPeriod: `Masa ${String(accountingStore.fiscalMonth).padStart(2, '0')}/2026`
+  })
+  accountingStore.showToast('Buku Jurnal Umum (Format CSV Akuntansi) berhasil diunduh!', 'success')
 }
 </script>
 
@@ -297,9 +295,19 @@ function handleExportExcel() {
         <button
           @click="handleExportExcel"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+          title="Ekspor Buku Jurnal Umum Lengkap beserta Rincian Debet Kredit Akun ke Excel"
         >
           <Download class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Ekspor Excel</span>
+          <span>Ekspor Excel (.xlsx)</span>
+        </button>
+
+        <button
+          @click="handleExportCSV"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+          title="Ekspor Buku Jurnal Umum Double-Entry ke Format CSV"
+        >
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
+          <span>Ekspor CSV (.csv)</span>
         </button>
       </div>
     </header>

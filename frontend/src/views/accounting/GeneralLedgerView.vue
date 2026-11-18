@@ -7,7 +7,7 @@ import { useAccountingStore } from '@/stores/accounting'
 import { accountingApi, type BackendGeneralLedger } from '@/api/accounting'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportGeneralLedgerToExcel, printReport } from '@/utils/export'
+import { exportGeneralLedgerToExcel, exportGeneralLedgerToCSV, printReport } from '@/utils/export'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
@@ -463,6 +463,17 @@ function handleExportExcel() {
   })
   accountingStore.showToast(`Buku Besar Akun [${acc?.code}] (Format LHP SPHC) berhasil diekspor ke Excel`, 'success')
 }
+
+function handleExportCSV() {
+  const acc = activeAccount.value
+  exportGeneralLedgerToCSV(acc, filteredLedgerEntries.value, {
+    businessUnit: accountingStore.businessUnit,
+    startDate: startDate.value,
+    endDate: endDate.value,
+    openingBalance: openingBalanceVal.value
+  })
+  accountingStore.showToast(`Buku Besar Akun [${acc?.code}] berhasil diekspor ke format CSV`, 'success')
+}
 </script>
 
 <template>
@@ -520,9 +531,19 @@ function handleExportExcel() {
         <button
           @click="handleExportExcel"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Ekspor Buku Besar Akun ke Format Excel (.xlsx)"
         >
           <Download class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Ekspor</span>
+          <span>Ekspor (.xlsx)</span>
+        </button>
+
+        <button
+          @click="handleExportCSV"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Ekspor Buku Besar Akun ke Format CSV (.csv)"
+        >
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
+          <span>Ekspor (.csv)</span>
         </button>
 
         <button

@@ -7,7 +7,7 @@ import { useJournalsStore } from '@/stores/journals'
 import { useLedgerStore } from '@/stores/ledger'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportSptTahunan1771ToExcel, getEntityProfile } from '@/utils/export'
+import { exportSptTahunan1771ToExcel, exportSptTahunan1771ToCSV, getEntityProfile } from '@/utils/export'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import {
   ArrowLeft,
@@ -390,6 +390,41 @@ function handleExportExcel() {
   accountingStore.showToast('Kertas Kerja SPT Tahunan PPh Badan 1771 berhasil diekspor per transaksi jurnal!', 'success')
 }
 
+// 📥 Ekspor Kertas Kerja 1771 ke CSV (Format Akuntansi & DJP)
+function handleExportCSV() {
+  const commHpp = Math.round(form.value.commercialRevenue * 0.48)
+  const commNet = form.value.commercialRevenue - commHpp - form.value.commercialExpense
+
+  exportSptTahunan1771ToCSV({
+    annual1771: {
+      ...annual1771.value,
+      commercialRevenue: form.value.commercialRevenue,
+      commercialExpense: form.value.commercialExpense,
+      commercialHpp: commHpp,
+      commercialNetProfit: commNet,
+      positiveFiscalCorrection: form.value.positiveFiscalCorrection,
+      positiveCorrectionNotes: form.value.positiveCorrectionNotes,
+      negativeFiscalCorrection: form.value.negativeFiscalCorrection,
+      negativeCorrectionNotes: form.value.negativeCorrectionNotes,
+      taxableIncome: computedPKP.value,
+      corporateTaxRate: form.value.corporateTaxRate,
+      corporateTaxPayable: computedTaxPayable.value,
+      taxCreditPph23: form.value.taxCreditPph23,
+      taxCreditPph25: form.value.taxCreditPph25,
+      taxCredits: computedTotalCredits.value,
+      pph29Payable: computedPph29.value,
+      pph28aOverpaid: computedPph28A.value
+    },
+    monthlyMatrix: sptMatrix.value,
+    linkedJournals: journalsStore.journals,
+    creditVouchers: creditVoucherRows.value
+  }, {
+    fiscalYear: annual1771.value.fiscalYear,
+    businessUnit: accountingStore.businessUnit
+  })
+  accountingStore.showToast('Kertas Kerja SPT Tahunan 1771 berhasil diekspor ke CSV!', 'success')
+}
+
 // 🖨️ Cetak Resmi Formulir 1771 DJP
 function handlePrint() {
   window.print()
@@ -454,6 +489,16 @@ function handlePrint() {
 
         <button
           type="button"
+          @click="handleExportCSV"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Ekspor Kertas Kerja 1771 ke format CSV"
+        >
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
+          <span>Ekspor CSV (.csv)</span>
+        </button>
+
+        <button
+          type="button"
           @click="handlePrint"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
           title="Cetak Formulir Resmi 1771 DJP"
@@ -491,7 +536,7 @@ function handlePrint() {
             class="text-xl font-black tabular-nums"
             :class="computedPph28A > 0 ? 'text-emerald-700' : 'text-amber-700'"
           >
-            Rp {{ formatIDR(computedPph28A > 0 ? computedPph28A : computedPph29) }}
+            {{ formatIDR(computedPph28A > 0 ? computedPph28A : computedPph29) }}
           </span>
         </div>
       </div>
@@ -499,19 +544,19 @@ function handlePrint() {
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
         <div class="bg-zinc-50 p-3 rounded-xl border border-zinc-200/80">
           <span class="text-[10px] text-zinc-500 uppercase font-bold block">1. Laba Komersial</span>
-          <span class="text-sm font-bold text-zinc-900 tabular-nums">Rp {{ formatIDR(computedNetProfit) }}</span>
+          <span class="text-sm font-bold text-zinc-900 tabular-nums">{{ formatIDR(computedNetProfit) }}</span>
         </div>
         <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200/70">
           <span class="text-[10px] text-amber-700 uppercase font-bold block">2. Penghasilan Kena Pajak</span>
-          <span class="text-sm font-bold text-amber-800 tabular-nums">Rp {{ formatIDR(computedPKP) }}</span>
+          <span class="text-sm font-bold text-amber-800 tabular-nums">{{ formatIDR(computedPKP) }}</span>
         </div>
         <div class="bg-zinc-50 p-3 rounded-xl border border-zinc-200/80">
           <span class="text-[10px] text-zinc-500 uppercase font-bold block">3. PPh Terutang</span>
-          <span class="text-sm font-bold text-zinc-900 tabular-nums">Rp {{ formatIDR(computedTaxPayable) }}</span>
+          <span class="text-sm font-bold text-zinc-900 tabular-nums">{{ formatIDR(computedTaxPayable) }}</span>
         </div>
         <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200/80 text-emerald-950">
           <span class="text-[10px] text-emerald-700 uppercase font-bold block">4. Total Kredit Pajak</span>
-          <span class="text-sm font-bold text-emerald-800 tabular-nums">Rp {{ formatIDR(computedTotalCredits) }}</span>
+          <span class="text-sm font-bold text-emerald-800 tabular-nums">{{ formatIDR(computedTotalCredits) }}</span>
         </div>
       </div>
     </div>
@@ -554,7 +599,7 @@ function handlePrint() {
           <div class="flex items-center justify-between p-2.5 bg-zinc-100 rounded-xl font-mono text-xs">
             <span class="text-zinc-600 font-medium">Laba Bersih Komersial:</span>
             <span class="font-bold text-zinc-950 tabular-nums">
-              Rp {{ formatIDR(computedNetProfit) }}
+              {{ formatIDR(computedNetProfit) }}
             </span>
           </div>
         </div>
@@ -644,12 +689,12 @@ function handlePrint() {
 
           <div class="p-2.5 bg-amber-50 rounded-xl font-mono text-xs border border-amber-200 flex items-center justify-between">
             <span class="text-amber-900 font-bold">Penghasilan Kena Pajak:</span>
-            <span class="font-black text-amber-950 tabular-nums">Rp {{ formatIDR(computedPKP) }}</span>
+            <span class="font-black text-amber-950 tabular-nums">{{ formatIDR(computedPKP) }}</span>
           </div>
 
           <div class="p-2.5 bg-zinc-100 rounded-xl font-mono text-xs border border-zinc-200 flex items-center justify-between">
             <span class="text-zinc-700 font-bold">PPh Badan Terutang:</span>
-            <span class="font-extrabold text-amber-800 tabular-nums">Rp {{ formatIDR(computedTaxPayable) }}</span>
+            <span class="font-extrabold text-amber-800 tabular-nums">{{ formatIDR(computedTaxPayable) }}</span>
           </div>
         </div>
       </div>
@@ -775,7 +820,7 @@ function handlePrint() {
 
               <!-- Original Voucher Amount -->
               <td class="px-3 py-2.5 text-right font-mono tabular-nums font-semibold text-zinc-700">
-                Rp {{ formatIDR(row.voucherAmount) }}
+                {{ formatIDR(row.voucherAmount) }}
               </td>
 
               <!-- Claim Status Buttons -->
@@ -844,13 +889,13 @@ function handlePrint() {
                 Total Kredit Pajak Diakui di 1771:
               </td>
               <td class="px-3 py-3 text-right font-mono tabular-nums text-zinc-500">
-                Rp {{ formatIDR(creditVoucherRows.reduce((s, r) => s + r.voucherAmount, 0)) }}
+                {{ formatIDR(creditVoucherRows.reduce((s, r) => s + r.voucherAmount, 0)) }}
               </td>
               <td class="px-3 py-3 text-center text-emerald-700 text-[11px]">
-                PPh 23: Rp {{ formatIDR(form.taxCreditPph23) }} • PPh 25: Rp {{ formatIDR(form.taxCreditPph25) }}
+                PPh 23: {{ formatIDR(form.taxCreditPph23) }} • PPh 25: {{ formatIDR(form.taxCreditPph25) }}
               </td>
               <td class="px-4 py-3 text-right font-mono tabular-nums text-emerald-700 font-extrabold text-sm">
-                Rp {{ formatIDR(computedTotalCredits) }}
+                {{ formatIDR(computedTotalCredits) }}
               </td>
               <td class="px-3 py-3"></td>
             </tr>
@@ -899,7 +944,7 @@ function handlePrint() {
                 Pengakuan Beban PPh Badan Formulir 1771 Tahun {{ annual1771.fiscalYear }}
               </td>
               <td class="px-4 py-2.5 text-right font-bold text-zinc-950 tabular-nums">
-                Rp {{ formatIDR(computedTaxPayable) }}
+                {{ formatIDR(computedTaxPayable) }}
               </td>
               <td class="px-4 py-2.5 text-right text-zinc-400">
                 -
@@ -919,7 +964,7 @@ function handlePrint() {
                 -
               </td>
               <td class="px-4 py-2.5 text-right font-bold text-emerald-700 tabular-nums">
-                Rp {{ formatIDR(form.taxCreditPph23) }}
+                {{ formatIDR(form.taxCreditPph23) }}
               </td>
             </tr>
 
@@ -936,7 +981,7 @@ function handlePrint() {
                 -
               </td>
               <td class="px-4 py-2.5 text-right font-bold text-emerald-700 tabular-nums">
-                Rp {{ formatIDR(form.taxCreditPph25) }}
+                {{ formatIDR(form.taxCreditPph25) }}
               </td>
             </tr>
 
@@ -953,7 +998,7 @@ function handlePrint() {
                 -
               </td>
               <td class="px-4 py-2.5 text-right font-bold text-amber-600 tabular-nums">
-                Rp {{ formatIDR(computedPph29) }}
+                {{ formatIDR(computedPph29) }}
               </td>
             </tr>
           </tbody>
@@ -963,10 +1008,10 @@ function handlePrint() {
                 Total Jurnal Penutup (Status: Seimbang):
               </td>
               <td class="px-4 py-2 text-right font-mono font-extrabold text-emerald-800">
-                Rp {{ formatIDR(computedTaxPayable) }}
+                {{ formatIDR(computedTaxPayable) }}
               </td>
               <td class="px-4 py-2 text-right font-mono font-extrabold text-emerald-800">
-                Rp {{ formatIDR(computedTaxPayable) }}
+                {{ formatIDR(computedTaxPayable) }}
               </td>
             </tr>
           </tfoot>

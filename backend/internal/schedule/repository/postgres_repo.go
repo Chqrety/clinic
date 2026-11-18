@@ -69,7 +69,7 @@ func (r *PostgresScheduleRepository) GetDoctorSchedules(ctx context.Context, doc
 	}
 	defer rows.Close()
 
-	var schedules []domain.DoctorSchedule
+	schedules := make([]domain.DoctorSchedule, 0)
 	for rows.Next() {
 		var s domain.DoctorSchedule
 		if err := rows.Scan(
@@ -96,7 +96,7 @@ func (r *PostgresScheduleRepository) GetDoctorOverrides(ctx context.Context, doc
 	}
 	defer rows.Close()
 
-	var overrides []domain.ScheduleOverride
+	overrides := make([]domain.ScheduleOverride, 0)
 	for rows.Next() {
 		var o domain.ScheduleOverride
 		if err := rows.Scan(&o.ID, &o.DoctorID, &o.OverrideDate, &o.IsCancelled, &o.Reason, &o.CreatedAt); err != nil {

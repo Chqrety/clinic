@@ -47,20 +47,21 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/LoginView.vue'),
+    props: { brand: 'kidinest' },
     meta: { title: 'Portal Staf Medis' }
   },
   {
     path: '/login-kidinest',
     name: 'LoginKidinest',
     component: () => import('@/views/LoginView.vue'),
-    props: { defaultBrand: 'kidinest' },
+    props: { brand: 'kidinest' },
     meta: { title: 'Login Staf Kidinest' }
   },
   {
     path: '/login-ssc',
     name: 'LoginSSC',
     component: () => import('@/views/LoginView.vue'),
-    props: { defaultBrand: 'ssc' },
+    props: { brand: 'ssc' },
     meta: { title: 'Login Staf SSC' }
   },
   {

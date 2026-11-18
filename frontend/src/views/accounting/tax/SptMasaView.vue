@@ -7,7 +7,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportSptMasaToExcel, getEntityProfile } from '@/utils/export'
+import { exportSptMasaToExcel, exportSptMasaToCSV, getEntityProfile } from '@/utils/export'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import {
   Calculator,
@@ -203,6 +203,21 @@ function handleExportExcel() {
   accountingStore.showToast('Dokumen & Kertas Kerja SPT Masa (Beserta Rincian Per Jurnal) berhasil diekspor ke Excel', 'success')
 }
 
+function handleExportCSV() {
+  exportSptMasaToCSV({
+    sptList: sptMasaList.value,
+    doctorList: doctorTaxRecords.value,
+    txList: txList.value,
+    summary: summary.value,
+    linkedJournals: taxStore.filteredLinkedTaxJournalEntries
+  }, {
+    businessUnit: accountingStore.businessUnit,
+    masaMonth: taxStore.selectedMonth,
+    fiscalYear: taxStore.selectedYear
+  })
+  accountingStore.showToast('Data Dokumen SPT Masa & Pajak berhasil diekspor ke CSV!', 'success')
+}
+
 function handlePrint() {
   window.print()
 }
@@ -252,6 +267,15 @@ function handlePrint() {
         >
           <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600" />
           <span>Ekspor SPT (.xlsx)</span>
+        </button>
+
+        <button
+          @click="handleExportCSV"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+          title="Ekspor CSV SPT Masa PPh & PPN Lengkap"
+        >
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
+          <span>Ekspor CSV (.csv)</span>
         </button>
 
         <button
@@ -983,7 +1007,7 @@ function handlePrint() {
           <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1">
             <span class="text-zinc-500 text-[10px] block">Estimasi Jumlah Yang Disetor:</span>
             <span class="text-base font-bold tabular-nums text-zinc-950">
-              Rp {{ formatIDR(summary.totalTax || 39249649) }}
+              {{ formatIDR(summary.totalTax || 39249649) }}
             </span>
           </div>
         </div>
@@ -1122,7 +1146,7 @@ function handlePrint() {
           <div class="space-y-1">
             <div class="flex"><span class="w-36 font-bold">Entitas Unit Bisnis:</span><span>{{ currentEntity.unitLabel }}</span></div>
             <div class="flex"><span class="w-36 font-bold">Metode Penyetoran:</span><span>Kanal Perbankan Resmi Non-Tunai</span></div>
-            <div class="flex"><span class="w-36 font-bold">Total Pajak Disetor:</span><span class="font-bold font-mono">Rp {{ formatIDR(summary.totalTax) }}</span></div>
+            <div class="flex"><span class="w-36 font-bold">Total Pajak Disetor:</span><span class="font-bold font-mono">{{ formatIDR(summary.totalTax) }}</span></div>
           </div>
         </div>
       </div>
@@ -1159,8 +1183,8 @@ function handlePrint() {
           <tfoot>
             <tr class="bg-gray-100 font-bold text-[10px]">
               <td colspan="4" class="border border-black px-3 py-1 text-right uppercase">Total Pajak Masa:</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(summary.totalDpp) }}</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(summary.totalTax) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(summary.totalDpp) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(summary.totalTax) }}</td>
               <td class="border border-black px-2 py-1 text-center text-[9px]">Lunas Terverifikasi</td>
             </tr>
           </tfoot>

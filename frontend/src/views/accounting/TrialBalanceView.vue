@@ -386,7 +386,7 @@ function handlePrint() {
           {{ isBalanced ? '✓ NERACA SALDO SEIMBANG (BALANCED)' : '⚠ TERDAPAT SELISIH KESEIMBANGAN' }}
         </span>
         <span class="font-mono text-zinc-600 font-normal">
-          (Saldo Akhir: Rp {{ formatIDR(totals.endingDebit) }})
+          (Saldo Akhir: {{ formatIDR(totals.endingDebit) }})
         </span>
       </div>
     </div>
@@ -505,10 +505,10 @@ function handlePrint() {
                 {{ formatIDR(totals.periodCredit, false) }}
               </td>
               <td class="px-3 py-3 text-right font-mono font-black text-sm border-r border-zinc-200 text-zinc-950">
-                Rp {{ formatIDR(totals.endingDebit) }}
+                {{ formatIDR(totals.endingDebit) }}
               </td>
               <td class="px-3 py-3 text-right font-mono font-black text-sm text-zinc-950">
-                Rp {{ formatIDR(totals.endingCredit) }}
+                {{ formatIDR(totals.endingCredit) }}
               </td>
             </tr>
           </tfoot>
