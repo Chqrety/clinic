@@ -24,6 +24,7 @@ func RegisterPharmacyRoutes(
 		// 2. Drugs & FEFO Batches
 		pr.Get("/drugs", h.HandleListDrugs)
 		pr.Post("/drugs", h.HandleCreateDrug)
+		pr.Post("/drugs/bulk", h.HandleBulkCreateDrugs)
 		pr.Post("/drugs/{id}/restock", h.HandleRestock)
 
 		// 3. Stock Opname CSV Export & Import

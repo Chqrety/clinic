@@ -493,6 +493,22 @@ export const api = {
     buy_price: number
     sell_price: number
   }) => request<PharmacyDrug>('/pharmacy/drugs', { method: 'POST', body: JSON.stringify(data) }),
+  bulkCreatePharmacyDrugs: (drugs: Array<{
+    clinic_unit: string
+    name: string
+    kfa_code?: string
+    unit: string
+    category: string
+    min_stock_alert: number
+    buy_price: number
+    sell_price: number
+    initial_stock?: number
+    batch_number?: string
+    expired_date?: string
+  }>) => request<{ imported_count: number; message: string }>('/pharmacy/drugs/bulk', {
+    method: 'POST',
+    body: JSON.stringify({ drugs }),
+  }),
   restockPharmacyDrug: (
     drugId: number,
     data: { batch_number: string; expired_date: string; quantity: number; buy_price: number }

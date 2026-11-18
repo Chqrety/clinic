@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"clinic-api/internal/pharmacy/domain"
@@ -371,7 +372,7 @@ func (r *PostgresPharmacyRepository) ListDrugs(ctx context.Context, clinicUnit s
 	now := time.Now()
 	ninetyDaysLater := now.AddDate(0, 3, 0)
 
-	var drugs []*domain.Drug
+	drugs := make([]*domain.Drug, 0)
 	for rows.Next() {
 		var d domain.Drug
 		err := rows.Scan(
@@ -497,6 +498,95 @@ func (r *PostgresPharmacyRepository) CreateDrug(ctx context.Context, in *domain.
 	return &d, nil
 }
 
+func (r *PostgresPharmacyRepository) BulkCreateDrugs(ctx context.Context, drugs []domain.CreateDrugInput) (int, error) {
+	if len(drugs) == 0 {
+		return 0, nil
+	}
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	query := `
+		INSERT INTO drugs (
+			clinic_unit, name, kfa_code, unit, category,
+			min_stock_alert, buy_price, sell_price, is_active,
+			created_at, updated_at
+		) VALUES (
+			$1, $2, $3, $4, $5,
+			$6, $7, $8, TRUE,
+			CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+		)
+		ON CONFLICT (name, clinic_unit) DO UPDATE SET
+			unit = EXCLUDED.unit,
+			category = EXCLUDED.category,
+			buy_price = EXCLUDED.buy_price,
+			sell_price = EXCLUDED.sell_price,
+			updated_at = CURRENT_TIMESTAMP
+		RETURNING id;
+	`
+
+	insertedCount := 0
+	for _, in := range drugs {
+		name := strings.TrimSpace(in.Name)
+		if name == "" {
+			continue
+		}
+		clinicUnit := in.ClinicUnit
+		if clinicUnit == "" {
+			clinicUnit = "KIDINEST"
+		}
+		minAlert := in.MinStockAlert
+		if minAlert <= 0 {
+			minAlert = 10
+		}
+		unit := in.Unit
+		if unit == "" {
+			unit = "Pcs"
+		}
+		cat := in.Category
+		if cat == "" {
+			cat = "Farmasi Pediatri"
+		}
+
+		var drugID int64
+		err := tx.QueryRowContext(
+			ctx, query,
+			clinicUnit, name, in.KFACode, unit, cat,
+			minAlert, in.BuyPrice, in.SellPrice,
+		).Scan(&drugID)
+		if err != nil {
+			return insertedCount, fmt.Errorf("gagal upsert obat %s: %w", name, err)
+		}
+
+		if in.InitialStock > 0 {
+			batchNum := in.BatchNumber
+			if batchNum == "" {
+				batchNum = fmt.Sprintf("BCH-IMP-%04d", drugID)
+			}
+			expDate := in.ExpiredDate
+			if expDate == "" {
+				expDate = "2028-12-31"
+			}
+			batchQuery := `
+				INSERT INTO drug_batches (drug_id, batch_number, expired_date, physical_stock, reserved_stock, created_at)
+				SELECT $1, $2, $3::date, $4, 0, CURRENT_TIMESTAMP
+				WHERE NOT EXISTS (SELECT 1 FROM drug_batches WHERE drug_batches.drug_id = $1);
+			`
+			_, _ = tx.ExecContext(ctx, batchQuery, drugID, batchNum, expDate, in.InitialStock)
+		}
+
+		insertedCount++
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return insertedCount, nil
+}
+
 func (r *PostgresPharmacyRepository) RestockBatch(ctx context.Context, in *domain.RestockInput) error {
 	expTime, err := time.Parse("2006-01-02", in.ExpiredDate)
 	if err != nil {
@@ -592,7 +682,7 @@ func (r *PostgresPharmacyRepository) ListOpnameLogs(ctx context.Context, limit i
 	}
 	defer rows.Close()
 
-	var logs []*domain.StockOpnameLog
+	logs := make([]*domain.StockOpnameLog, 0)
 	for rows.Next() {
 		var l domain.StockOpnameLog
 		var batchID sql.NullInt64

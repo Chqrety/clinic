@@ -74,6 +74,9 @@ type CreateDrugInput struct {
 	MinStockAlert int    `json:"min_stock_alert"`
 	BuyPrice      int    `json:"buy_price"`
 	SellPrice     int    `json:"sell_price"`
+	InitialStock  int    `json:"initial_stock,omitempty"`
+	BatchNumber   string `json:"batch_number,omitempty"`
+	ExpiredDate   string `json:"expired_date,omitempty"`
 }
 
 type RestockInput struct {
@@ -119,6 +122,7 @@ type PharmacyRepository interface {
 	ListDrugs(ctx context.Context, clinicUnit string) ([]*Drug, error)
 	GetDrugByID(ctx context.Context, id int64) (*Drug, error)
 	CreateDrug(ctx context.Context, in *CreateDrugInput) (*Drug, error)
+	BulkCreateDrugs(ctx context.Context, drugs []CreateDrugInput) (int, error)
 	RestockBatch(ctx context.Context, in *RestockInput) error
 	ApplyStockOpnameTx(ctx context.Context, items []StockOpnameItem, adjustedBy string) error
 	ListOpnameLogs(ctx context.Context, limit int) ([]*StockOpnameLog, error)

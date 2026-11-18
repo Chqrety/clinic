@@ -140,6 +140,36 @@ func (h *PharmacyHandler) HandleCreateDrug(w http.ResponseWriter, r *http.Reques
 	response.Success(w, http.StatusCreated, drug)
 }
 
+func (h *PharmacyHandler) HandleBulkCreateDrugs(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "gagal membaca payload request")
+		return
+	}
+
+	var drugs []domain.CreateDrugInput
+	var in struct {
+		Drugs []domain.CreateDrugInput `json:"drugs"`
+	}
+
+	if err := json.Unmarshal(body, &in); err == nil && len(in.Drugs) > 0 {
+		drugs = in.Drugs
+	} else if err := json.Unmarshal(body, &drugs); err != nil || len(drugs) == 0 {
+		response.Error(w, http.StatusBadRequest, "format payload bulk obat tidak valid atau kosong")
+		return
+	}
+
+	count, err := h.usecase.BulkCreateDrugs(r.Context(), drugs)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	response.Success(w, http.StatusCreated, map[string]any{
+		"imported_count": count,
+		"message":        fmt.Sprintf("Berhasil mengimpor %d obat/vaksin ke katalog", count),
+	})
+}
+
 func (h *PharmacyHandler) HandleRestock(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	drugID, err := strconv.ParseInt(idStr, 10, 64)

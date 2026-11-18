@@ -72,6 +72,10 @@ func (uc *PharmacyUsecase) CreateDrug(ctx context.Context, in *domain.CreateDrug
 	return uc.repo.CreateDrug(ctx, in)
 }
 
+func (uc *PharmacyUsecase) BulkCreateDrugs(ctx context.Context, drugs []domain.CreateDrugInput) (int, error) {
+	return uc.repo.BulkCreateDrugs(ctx, drugs)
+}
+
 func (uc *PharmacyUsecase) Restock(ctx context.Context, in *domain.RestockInput) error {
 	in.BatchNumber = strings.TrimSpace(in.BatchNumber)
 	in.ExpiredDate = strings.TrimSpace(in.ExpiredDate)
