@@ -27,20 +27,22 @@ func (r *PostgresPharmacyRepository) ListIncomingPrescriptions(ctx context.Conte
 		JOIN queues q ON pr.queue_id = q.id
 		JOIN patients p ON q.patient_id = p.id
 		JOIN consultations c ON pr.consultation_id = c.id
-		WHERE pr.status IN ('RESERVED', 'PREPARING', 'DISPENSED')
+		WHERE (
+			pr.status IN ('RESERVED', 'PREPARING')
+			OR (pr.status = 'DISPENSED' AND DATE(pr.updated_at) = CURRENT_DATE)
+		)
 	`
 	var args []any
 	if clinicUnit != "" && clinicUnit != "ALL" {
 		query += " AND q.clinic_unit = $1"
 		args = append(args, clinicUnit)
 	}
-	query += " ORDER BY CASE pr.status WHEN 'RESERVED' THEN 1 WHEN 'PREPARING' THEN 2 ELSE 3 END, pr.created_at DESC LIMIT 50"
+	query += " ORDER BY CASE pr.status WHEN 'RESERVED' THEN 1 WHEN 'PREPARING' THEN 2 ELSE 3 END, pr.created_at DESC LIMIT 100"
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
 	var list []*domain.PharmacyPrescription
 	for rows.Next() {
@@ -51,10 +53,16 @@ func (r *PostgresPharmacyRepository) ListIncomingPrescriptions(ctx context.Conte
 			&rx.Notes, &rx.CreatedAt, &rx.UpdatedAt,
 		)
 		if err != nil {
+			rows.Close()
 			return nil, err
 		}
+		rx.Items = make([]domain.PrescriptionItemDetail, 0)
+		list = append(list, &rx)
+	}
+	rows.Close()
 
-		// Fetch items for each prescription
+	// Fetch items for each prescription after closing the main cursor
+	for _, rx := range list {
 		itemQuery := `
 			SELECT id, prescription_id, drug_id, item_name, is_manual, quantity, unit_price, subtotal, dosage_instruction
 			FROM prescription_items
@@ -79,7 +87,6 @@ func (r *PostgresPharmacyRepository) ListIncomingPrescriptions(ctx context.Conte
 			}
 			iRows.Close()
 		}
-		list = append(list, &rx)
 	}
 	return list, nil
 }

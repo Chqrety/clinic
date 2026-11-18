@@ -250,26 +250,18 @@ func (r *PostgresConsultationRepository) SaveConsultationTx(ctx context.Context,
 		// 3. Insert items and reserve stock
 		queryItem := `
 			INSERT INTO prescription_items (
-				prescription_id, drug_id, item_name, is_manual,
+				prescription_id, drug_id, batch_id, item_name, is_manual,
 				quantity, unit_price, subtotal, dosage_instruction, created_at
 			) VALUES (
-				$1, $2, $3, $4,
-				$5, $6, $7, $8, CURRENT_TIMESTAMP
+				$1, $2, $3, $4, $5,
+				$6, $7, $8, $9, CURRENT_TIMESTAMP
 			) RETURNING id, created_at
 		`
 		for i := range items {
 			items[i].PrescriptionID = rxID
 			items[i].Subtotal = items[i].Quantity * items[i].UnitPrice
 
-			err = tx.QueryRowContext(
-				ctx, queryItem,
-				rxID, items[i].DrugID, items[i].ItemName, items[i].IsManual,
-				items[i].Quantity, items[i].UnitPrice, items[i].Subtotal, items[i].DosageInstruction,
-			).Scan(&items[i].ID, &items[i].CreatedAt)
-			if err != nil {
-				return fmt.Errorf("gagal simpan item resep %s: %w", items[i].ItemName, err)
-			}
-
+			var batchID *int64
 			// Invariant: Reserve physical stock for non-manual catalog drugs
 			if !items[i].IsManual && items[i].DrugID != nil {
 				// Atomically increment reserved_stock on the earliest expiring active batch
@@ -283,17 +275,25 @@ func (r *PostgresConsultationRepository) SaveConsultationTx(ctx context.Context,
 					)
 					RETURNING id
 				`
-				var batchID int64
-				err := tx.QueryRowContext(ctx, resQuery, items[i].Quantity, *items[i].DrugID).Scan(&batchID)
+				var bID int64
+				err := tx.QueryRowContext(ctx, resQuery, items[i].Quantity, *items[i].DrugID).Scan(&bID)
 				if err != nil {
 					if errors.Is(err, sql.ErrNoRows) {
 						return domain.ErrInsufficientStock
 					}
-					return fmt.Errorf("gagal update reserved stock obat: %w", err)
+					return fmt.Errorf("gagal update reserved stock obat %s: %w", items[i].ItemName, err)
 				}
-				// Link exact batch_id to prescription item for precise FEFO dispensing
-				items[i].BatchID = &batchID
-				_, _ = tx.ExecContext(ctx, `UPDATE prescription_items SET batch_id = $1 WHERE id = $2`, batchID, items[i].ID)
+				batchID = &bID
+				items[i].BatchID = batchID
+			}
+
+			err = tx.QueryRowContext(
+				ctx, queryItem,
+				rxID, items[i].DrugID, batchID, items[i].ItemName, items[i].IsManual,
+				items[i].Quantity, items[i].UnitPrice, items[i].Subtotal, items[i].DosageInstruction,
+			).Scan(&items[i].ID, &items[i].CreatedAt)
+			if err != nil {
+				return fmt.Errorf("gagal simpan item resep %s: %w", items[i].ItemName, err)
 			}
 		}
 		c.Prescription.Items = items

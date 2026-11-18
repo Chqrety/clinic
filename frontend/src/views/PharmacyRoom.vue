@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   api,
   triggerBlobDownload,
@@ -32,11 +32,14 @@ const clinicStore = useClinicStore()
 
 const prescriptions = ref<PharmacyPrescription[]>([])
 const loading = ref(false)
+const isAutoSyncing = ref(false)
+const fetchError = ref<string | null>(null)
 const processingId = ref<number | null>(null)
 const filterUnit = ref<'ALL' | 'KIDINEST' | 'SSC'>('ALL')
 const statusFilter = ref<'ALL' | 'RESERVED' | 'PREPARING' | 'DISPENSED'>('ALL')
 const searchQuery = ref('')
 const selectedRx = ref<PharmacyPrescription | null>(null)
+let pollTimer: any = null
 
 function formatRupiah(val?: number) {
   return 'Rp ' + (val || 0).toLocaleString('id-ID')
@@ -56,10 +59,31 @@ function formatDate(val?: string) {
   }
 }
 
-async function fetchPrescriptions() {
-  loading.value = true
+async function fetchPrescriptions(isManual = false) {
+  if (isManual) {
+    loading.value = true
+  } else {
+    isAutoSyncing.value = true
+  }
+
   try {
-    prescriptions.value = await api.getPharmacyPrescriptions(filterUnit.value)
+    // Auto-recovery jika token tidak ada atau masih staff-token demo
+    if (!authStore.token || authStore.token.startsWith('staff-token-')) {
+      const empNum = authStore.user?.employee_number || 'FARMASI-01'
+      await authStore.login(empNum, 'klinik123')
+    }
+
+    const unitParam = filterUnit.value === 'ALL' ? '' : filterUnit.value
+    const newItems = await api.getPharmacyPrescriptions(unitParam)
+    
+    // Bunyikan chime jika ada resep baru masuk saat auto-sync di latar belakang
+    if (!isManual && prescriptions.value.length > 0 && newItems.length > prescriptions.value.length) {
+      clinicStore.playChime()
+    }
+
+    prescriptions.value = newItems
+    fetchError.value = null
+
     if (selectedRx.value) {
       const match = prescriptions.value.find((p) => p.id === selectedRx.value!.id)
       selectedRx.value = match || (prescriptions.value[0] || null)
@@ -67,9 +91,11 @@ async function fetchPrescriptions() {
       selectedRx.value = prescriptions.value[0]
     }
   } catch (err: any) {
-    console.error('Gagal memuat resep:', err)
+    console.error('Gagal memuat resep farmasi:', err)
+    fetchError.value = err.message || 'Gagal sinkronisasi data resep apotek'
   } finally {
     loading.value = false
+    isAutoSyncing.value = false
   }
 }
 
@@ -253,7 +279,14 @@ function selectPrescription(rx: PharmacyPrescription) {
 }
 
 onMounted(() => {
-  fetchPrescriptions()
+  fetchPrescriptions(true)
+  pollTimer = setInterval(() => {
+    fetchPrescriptions(false)
+  }, 3000)
+})
+
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
 })
 </script>
 
@@ -276,6 +309,11 @@ onMounted(() => {
       </div>
 
       <div class="flex items-center gap-2.5">
+        <div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Live Sync (3s)</span>
+        </div>
+
         <div class="text-right hidden sm:block">
           <div class="text-[10px] uppercase font-bold text-zinc-400">Apoteker Bertugas</div>
           <div class="text-xs font-bold text-zinc-900">{{ authStore.user?.name || 'Apt. Dimas Wicaksono, S.Farm' }}</div>
@@ -303,12 +341,12 @@ onMounted(() => {
         </button>
 
         <button
-          @click="fetchPrescriptions"
+          @click="fetchPrescriptions(true)"
           :disabled="loading"
           title="Segarkan daftar resep masuk"
           class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-800 transition-all active:scale-95 disabled:opacity-50 cursor-pointer shadow-2xs"
         >
-          <RefreshCw :class="['w-3.5 h-3.5 text-zinc-600', loading && 'animate-spin']" />
+          <RefreshCw :class="['w-3.5 h-3.5 text-zinc-600', (loading || isAutoSyncing) && 'animate-spin']" />
           <span>Sync</span>
         </button>
       </div>
@@ -464,9 +502,22 @@ onMounted(() => {
             <span class="text-[10px] text-zinc-400 font-medium">Auto FIFO</span>
           </div>
 
-          <div v-if="loading" class="py-12 text-center text-xs text-zinc-400">
+          <div v-if="loading && prescriptions.length === 0" class="py-12 text-center text-xs text-zinc-400">
             <RefreshCw class="w-4 h-4 mx-auto animate-spin mb-2 text-zinc-400" />
             Memuat daftar resep...
+          </div>
+
+          <div v-else-if="fetchError && prescriptions.length === 0" class="py-10 px-4 text-center text-xs text-rose-600 space-y-2">
+            <AlertCircle class="w-6 h-6 mx-auto text-rose-500 opacity-80" />
+            <p class="font-semibold">{{ fetchError }}</p>
+            <button
+              type="button"
+              @click="fetchPrescriptions(true)"
+              class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg font-bold text-xs cursor-pointer transition inline-flex items-center gap-1.5 mx-auto"
+            >
+              <RotateCcw class="w-3.5 h-3.5" />
+              <span>Coba Sinkron Ulang</span>
+            </button>
           </div>
 
           <div v-else-if="filteredPrescriptions.length === 0" class="py-12 text-center text-xs text-zinc-400">

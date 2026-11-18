@@ -127,19 +127,32 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     authHeaders['Authorization'] = `Bearer ${token}`
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-      ...(options?.headers || {}),
-    },
-  })
-  const json = await res.json()
-  if (!json.success) {
-    throw new Error(json.error || 'Terjadi kesalahan sistem')
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 8000)
+
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      signal: options?.signal || controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders,
+        ...(options?.headers || {}),
+      },
+    })
+    clearTimeout(timeoutId)
+    const json = await res.json()
+    if (!json.success) {
+      throw new Error(json.error || 'Terjadi kesalahan sistem')
+    }
+    return json.data as T
+  } catch (err: any) {
+    clearTimeout(timeoutId)
+    if (err.name === 'AbortError') {
+      throw new Error('Koneksi ke server apotek timeout (8 detik). Silakan muat ulang.')
+    }
+    throw err
   }
-  return json.data as T
 }
 
 export interface PendingBill {

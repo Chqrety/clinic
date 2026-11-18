@@ -365,6 +365,7 @@ func MigrateConsultationSchema(db *sql.DB) error {
 		id SERIAL PRIMARY KEY,
 		prescription_id INTEGER NOT NULL REFERENCES prescriptions(id) ON DELETE CASCADE,
 		drug_id INTEGER REFERENCES drugs(id),
+		batch_id INTEGER REFERENCES drug_batches(id) ON DELETE SET NULL,
 		item_name VARCHAR(150) NOT NULL,
 		is_manual BOOLEAN NOT NULL DEFAULT FALSE,
 		quantity INTEGER NOT NULL DEFAULT 1,
@@ -374,6 +375,7 @@ func MigrateConsultationSchema(db *sql.DB) error {
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);
 	CREATE INDEX IF NOT EXISTS idx_prescription_items_rx_id ON prescription_items(prescription_id);
+	ALTER TABLE prescription_items ADD COLUMN IF NOT EXISTS batch_id INTEGER REFERENCES drug_batches(id) ON DELETE SET NULL;
 
 	CREATE TABLE IF NOT EXISTS stock_opname_logs (
 		id SERIAL PRIMARY KEY,
