@@ -472,6 +472,27 @@ func (u *QueueUsecase) ListRefundRequests(ctx context.Context, unit string) ([]d
 	return u.queueRepo.ListRefundRequests(ctx, unit)
 }
 
+func isDoctorMatch(doctorNameInQueue, targetDoctorName string) bool {
+	docA := strings.ToLower(strings.TrimSpace(doctorNameInQueue))
+	docB := strings.ToLower(strings.TrimSpace(targetDoctorName))
+	if docA == docB {
+		return true
+	}
+	if strings.Contains(docA, "patricia") && strings.Contains(docB, "patricia") {
+		return true
+	}
+	if strings.Contains(docA, "hendra") && strings.Contains(docB, "hendra") {
+		return true
+	}
+	if strings.Contains(docA, "dian") && strings.Contains(docB, "dian") {
+		return true
+	}
+	if strings.Contains(docA, "kevin") && strings.Contains(docB, "kevin") {
+		return true
+	}
+	return false
+}
+
 func (u *QueueUsecase) GetDoctorRoomsStatus(ctx context.Context) ([]domain.DoctorRoomStatus, error) {
 	activeQueues, err := u.queueRepo.ListActiveDoctorQueues(ctx)
 	if err != nil {
@@ -499,7 +520,7 @@ func (u *QueueUsecase) GetDoctorRoomsStatus(ctx context.Context) ([]domain.Docto
 		}
 
 		for _, q := range activeQueues {
-			if q.DoctorName == doc.name {
+			if isDoctorMatch(q.DoctorName, doc.name) {
 				if q.QueueStatus == domain.QueueCalling || q.QueueStatus == domain.QueueInExam {
 					room.Status = "BUSY"
 					curr := q

@@ -517,7 +517,14 @@ func (r *PostgresQueueRepository) Reschedule(ctx context.Context, id int64, newD
 
 	query := `
 	UPDATE queues
-	SET appointment_date = $1, appointment_time = $2, reschedule_count = reschedule_count + 1
+	SET appointment_date = $1, 
+	    appointment_time = $2, 
+	    reschedule_count = reschedule_count + 1,
+	    queue_status = CASE 
+	        WHEN $1 <= TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD') AND payment_status = 'PAID' THEN 'WAITING'
+	        WHEN $1 > TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD') THEN 'BOOKED'
+	        ELSE queue_status
+	    END
 	WHERE id = $3;
 	`
 	res, err := r.db.ExecContext(ctx, query, newDate, newTime, id)

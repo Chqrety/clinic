@@ -52,44 +52,8 @@ const soundEnabled = ref(true)
 const userInteracted = ref(false)
 
 const monitorData = ref<MonitorData>({
-  currently_calling: {
-    id: 1,
-    patient_name: 'Budi P****',
-    clinic_unit: 'KIDINEST',
-    category: 'A_VAKSIN',
-    doctor_name: 'dr. Hendra Pratama, Sp.A',
-    queue_number: 'A-001',
-    queue_status: 'CALLING',
-  },
-  upcoming_queue: [
-    {
-      id: 2,
-      patient_name: 'Clarissa W*****',
-      clinic_unit: 'SSC',
-      category: 'SSC_TREATMENT',
-      doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
-      queue_number: 'S-001',
-      queue_status: 'WAITING',
-    },
-    {
-      id: 3,
-      patient_name: 'Ahmad F****',
-      clinic_unit: 'KIDINEST',
-      category: 'B_SAKIT',
-      doctor_name: 'dr. Hendra Pratama, Sp.A',
-      queue_number: 'B-001',
-      queue_status: 'WAITING',
-    },
-    {
-      id: 4,
-      patient_name: 'Siti R*******',
-      clinic_unit: 'KIDINEST',
-      category: 'A_VAKSIN',
-      doctor_name: 'dr. Patricia Vanessa, Sp.A',
-      queue_number: 'A-002',
-      queue_status: 'WAITING',
-    },
-  ],
+  currently_calling: null,
+  upcoming_queue: [],
   clinic_unit: 'ALL',
 })
 
@@ -97,23 +61,30 @@ const doctorRooms = ref<DoctorRoomLive[]>([
   {
     doctor_name: 'dr. Hendra Pratama, Sp.A',
     clinic_unit: 'KIDINEST',
-    room_name: 'Ruang Poli Anak 1',
-    status: 'BUSY',
-    waiting_count: 3,
+    room_name: 'Poli Anak 1',
+    status: 'READY',
+    waiting_count: 0,
   },
   {
-    doctor_name: 'dr. Patricia Vanessa, Sp.A',
+    doctor_name: 'dr. Patricia, Sp.A',
     clinic_unit: 'KIDINEST',
-    room_name: 'Ruang Poli Anak 2',
+    room_name: 'Poli Anak 2',
     status: 'READY',
-    waiting_count: 2,
+    waiting_count: 0,
   },
   {
     doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
     clinic_unit: 'SSC',
-    room_name: 'Ruang Tindakan Laser 1',
-    status: 'BUSY',
-    waiting_count: 1,
+    room_name: 'Poli Estetika 1',
+    status: 'READY',
+    waiting_count: 0,
+  },
+  {
+    doctor_name: 'dr. Kevin Wijaya, Sp.D.V.E',
+    clinic_unit: 'SSC',
+    room_name: 'Poli Estetika 2',
+    status: 'READY',
+    waiting_count: 0,
   },
 ])
 
@@ -164,6 +135,8 @@ async function fetchMonitorData() {
             lastCalledQueueNumber.value = calling.queue_number
           }
         }
+      } else {
+        lastCalledQueueNumber.value = ''
       }
       monitorData.value = data.data
     }
@@ -194,11 +167,15 @@ function initSSE() {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-        if (data && data.currently_calling) {
-          const calling = data.currently_calling
-          if (calling.queue_number !== lastCalledQueueNumber.value) {
-            triggerVoiceCall(calling)
-            lastCalledQueueNumber.value = calling.queue_number
+        if (data) {
+          if (data.currently_calling) {
+            const calling = data.currently_calling
+            if (calling.queue_number !== lastCalledQueueNumber.value) {
+              triggerVoiceCall(calling)
+              lastCalledQueueNumber.value = calling.queue_number
+            }
+          } else {
+            lastCalledQueueNumber.value = ''
           }
           monitorData.value = data
         }
