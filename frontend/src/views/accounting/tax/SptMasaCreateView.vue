@@ -38,8 +38,13 @@ import {
   MessageSquare,
   Clock,
   Pencil,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Printer
 } from 'lucide-vue-next'
+import {
+  exportBrayoSptMasaDocumentToExcel,
+  exportBrayoSptMasaToCSV
+} from '@/utils/export'
 
 const router = useRouter()
 const route = useRoute()
@@ -111,6 +116,10 @@ const taxAccountCatalog = [
   { code: '2505', taxType: 'PPH_25' as SptMasaType, label: '2505 - PPH 25 ANGSURAN BADAN (BRAYO)', sublabel: 'Format Standar Brayo Pajak PPh 25' },
   { code: '2504', taxType: 'PPN' as SptMasaType, label: '2504 - PPN KELUARAN & MASUKAN (BRAYO)', sublabel: 'Format Standar Brayo Pajak PPN 11%' }
 ]
+
+const activeTaxAccountCatalog = computed(() => {
+  return taxAccountCatalog.find(c => c.code === selectedTaxAccountCode.value) || taxAccountCatalog[0]
+})
 
 // COA accounts for dropdowns
 const availableAccounts = computed(() => {
@@ -443,11 +452,76 @@ function handleSave() {
   accountingStore.showToast(`Dokumen Pelaporan Pajak ${reportNumber.value} berhasil disimpan & terekam di Buku Besar!`, 'success')
   router.push('/accounting/tax/spt-masa')
 }
+
+// 📥 Export Per Jurnal ke Excel (.xlsx) sesuai format Brayo & Dokumen Laporan_Pajak_PJK
+function handleExportExcel() {
+  const curCatalog = taxAccountCatalog.find(c => c.code === selectedTaxAccountCode.value) || taxAccountCatalog[0]
+  exportBrayoSptMasaDocumentToExcel({
+    reportNumber: reportNumber.value,
+    reportName: reportName.value,
+    masaMonth: Number(masaMonth.value),
+    masaYear: Number(masaYear.value),
+    companyName: companyName.value,
+    createdDate: createdDate.value,
+    project: unit.value === 'ALL' ? 'KONSOLIDASI' : unit.value,
+    sourceTransaction: sourceTransactionFilter.value,
+    taxAccountCode: selectedTaxAccountCode.value,
+    taxAccountName: curCatalog.label,
+    bankAccount: `[${activeBankAccount.value.code}] ${activeBankAccount.value.name}`,
+    ntpnNumber: ntpnNumber.value,
+    status: status.value === 'DATA_DIAMBIL' ? 'Data Diambil' : (status.value === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft'),
+    notes: notes.value,
+    rows: rows.value,
+    totalDppOriginal: totalDppOriginal.value,
+    totalPajakOriginal: totalPajakOriginal.value,
+    totalDppAdjustment: totalDppAdjustment.value,
+    totalPajakAdjustment: totalPajakAdjustment.value,
+    totalDppFinal: totalDppFinal.value,
+    totalPajakFinal: totalPajakFinal.value
+  }, `Laporan_Pajak_${reportNumber.value}`)
+  accountingStore.showToast(`Dokumen ${reportNumber.value} berhasil diekspor ke Excel per transaksi jurnal!`, 'success')
+}
+
+// 📥 Export Per Jurnal ke CSV
+function handleExportCSV() {
+  const curCatalog = taxAccountCatalog.find(c => c.code === selectedTaxAccountCode.value) || taxAccountCatalog[0]
+  exportBrayoSptMasaToCSV({
+    reportNumber: reportNumber.value,
+    reportName: reportName.value,
+    masaMonth: Number(masaMonth.value),
+    masaYear: Number(masaYear.value),
+    companyName: companyName.value,
+    createdDate: createdDate.value,
+    project: unit.value === 'ALL' ? 'KONSOLIDASI' : unit.value,
+    sourceTransaction: sourceTransactionFilter.value,
+    taxAccountCode: selectedTaxAccountCode.value,
+    taxAccountName: curCatalog.label,
+    bankAccount: `[${activeBankAccount.value.code}] ${activeBankAccount.value.name}`,
+    ntpnNumber: ntpnNumber.value,
+    status: status.value === 'DATA_DIAMBIL' ? 'Data Diambil' : (status.value === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft'),
+    notes: notes.value,
+    rows: rows.value,
+    totalDppOriginal: totalDppOriginal.value,
+    totalPajakOriginal: totalPajakOriginal.value,
+    totalDppAdjustment: totalDppAdjustment.value,
+    totalPajakAdjustment: totalPajakAdjustment.value,
+    totalDppFinal: totalDppFinal.value,
+    totalPajakFinal: totalPajakFinal.value
+  }, `Laporan_Pajak_${reportNumber.value}`)
+  accountingStore.showToast(`Data transaksi pajak ${reportNumber.value} berhasil diekspor ke CSV!`, 'success')
+}
+
+// 🖨️ Cetak Resmi Formulir SPT Masa (DJP / Brayo Layout)
+function handlePrint() {
+  window.print()
+}
 </script>
 
 <template>
-  <div class="space-y-6 font-['Plus_Jakarta_Sans',sans-serif] max-w-7xl mx-auto pb-16">
-    <!-- Top Header: Brayo Pajak Breadcrumb & Actions -->
+  <div class="font-['Plus_Jakarta_Sans',sans-serif] max-w-7xl mx-auto pb-16">
+    <!-- Screen UI Container (Hidden upon print) -->
+    <div class="print:hidden space-y-6">
+      <!-- Top Header: Brayo Pajak Breadcrumb & Actions -->
     <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
       <div class="space-y-1">
         <div class="flex items-center gap-2 text-xs font-semibold text-zinc-500">
@@ -477,7 +551,9 @@ function handleSave() {
       <div class="flex items-center gap-2 flex-wrap">
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition cursor-pointer"
+          @click="handleExportExcel"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Ekspor Laporan SPT Masa beserta rincian per voucher jurnal ke format Excel"
         >
           <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600" />
           <span>Export Excel (.xlsx)</span>
@@ -485,10 +561,22 @@ function handleSave() {
 
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition cursor-pointer"
+          @click="handleExportCSV"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Ekspor rincian per transaksi jurnal ke CSV"
         >
           <Download class="w-3.5 h-3.5 text-zinc-600" />
           <span>Export CSV</span>
+        </button>
+
+        <button
+          type="button"
+          @click="handlePrint"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+          title="Cetak Formulir Resmi Bukti Pelaporan SPT Masa DJP"
+        >
+          <Printer class="w-3.5 h-3.5 text-blue-600" />
+          <span>Cetak Formulir</span>
         </button>
 
         <button
@@ -1173,5 +1261,179 @@ function handleSave() {
         </div>
       </div>
     </div>
+    </div>
+    <!-- END OF SCREEN UI CONTAINER (print:hidden) -->
+
+    <!-- ========================================================================= -->
+    <!-- CETAK RESMI FORMULIR PELAPORAN SPT MASA (DJP / BRAYO AUDIT GRADE)         -->
+    <!-- HANYA MUNCUL PADA SAAT PRINT (PRINT MEDIA ONLY)                           -->
+    <!-- ========================================================================= -->
+    <div class="hidden print:block print-document font-['Times_New_Roman',serif] text-black bg-white">
+      <!-- Kop Surat Resmi -->
+      <div class="border-b-2 border-black pb-3 mb-4">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <h2 class="text-xl font-bold uppercase tracking-wide">PT. SEMARANG MEDICAL GROUP</h2>
+            <h3 class="text-xs font-semibold text-gray-800">Klinik Spesialis Anak (Kidinest) & Spesialis Kulit (Semarang Skin Center)</h3>
+            <p class="text-[10px] text-gray-600">Jl. MH Thamrin No. 88, Semarang, Jawa Tengah • Telp: (024) 841-2345 • NPWP: 01.234.567.8-511.000</p>
+          </div>
+          <div class="text-right border border-black p-2 rounded text-xs font-mono">
+            <div class="font-bold text-sm">{{ reportNumber }}</div>
+            <div class="text-[9px] text-gray-600">STATUS: {{ status === 'DATA_DIAMBIL' ? 'TERVERIFIKASI JURNAL' : status }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Judul Dokumen Resmi -->
+      <div class="text-center my-4 space-y-0.5">
+        <h1 class="text-base font-black uppercase underline tracking-wider">
+          SURAT PEMBERITAHUAN (SPT) MASA PAJAK & BUKTI REKONSILIASI JURNAL
+        </h1>
+        <p class="text-[11px] italic text-gray-700">
+          Formulir Resmi Pelaporan Pajak Bulanan Terintegrasi Jurnal Umum & Buku Besar
+        </p>
+      </div>
+
+      <!-- Identitas & Parameter Dokumen (2 Kolom) -->
+      <div class="grid grid-cols-2 gap-4 text-[11px] mb-4 border border-black p-2.5 bg-gray-50/50">
+        <div class="space-y-1">
+          <div class="flex"><span class="w-36 font-bold">Nama Dokumen / Pajak:</span><span>{{ reportName }}</span></div>
+          <div class="flex"><span class="w-36 font-bold">Kode Akun Pajak:</span><span class="font-mono">[{{ selectedTaxAccountCode }}] {{ activeTaxAccountCatalog.label }}</span></div>
+          <div class="flex"><span class="w-36 font-bold">Masa / Tahun Pajak:</span><span>Masa {{ String(masaMonth).padStart(2, '0') }} / {{ masaYear }}</span></div>
+          <div class="flex"><span class="w-36 font-bold">Unit Bisnis / Entitas:</span><span>{{ unit === 'ALL' ? 'Semua Unit (Konsolidasi SMG)' : unit }}</span></div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex"><span class="w-36 font-bold">Kanal Bank Penyetor:</span><span>{{ activeBankAccount.name }} ([{{ activeBankAccount.code }}])</span></div>
+          <div class="flex"><span class="w-36 font-bold">Nomor NTPN / DJP:</span><span class="font-mono font-bold">{{ ntpnNumber || '(NTPN-BCA-TERVERIFIKASI)' }}</span></div>
+          <div class="flex"><span class="w-36 font-bold">Tanggal Pelaporan:</span><span>{{ createdDate }}</span></div>
+          <div class="flex"><span class="w-36 font-bold">Sumber Transaksi:</span><span>{{ sourceTransactionFilter }} (Buku Besar)</span></div>
+        </div>
+      </div>
+
+      <!-- Tabel Rincian Transaksi Per Jurnal -->
+      <div class="mb-4">
+        <h4 class="text-[11px] font-bold uppercase mb-1.5">I. DAFTAR RINCIAN TRANSAKSI PER VOUCHER JURNAL UMUM</h4>
+        <table class="w-full text-[10px] border-collapse border border-black">
+          <thead>
+            <tr class="bg-gray-200 text-center font-bold">
+              <th class="border border-black px-2 py-1 w-7">No</th>
+              <th class="border border-black px-2 py-1 w-20">Tanggal</th>
+              <th class="border border-black px-2 py-1 w-28">No. Bukti Jurnal</th>
+              <th class="border border-black px-2 py-1 w-16">Unit</th>
+              <th class="border border-black px-2 py-1">Akun Lawan & Uraian Transaksi</th>
+              <th class="border border-black px-2 py-1 w-24 text-right">DPP (Rp)</th>
+              <th class="border border-black px-2 py-1 w-24 text-right">Pajak (Rp)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, idx) in rows" :key="row.id">
+              <td class="border border-black px-2 py-1 text-center">{{ idx + 1 }}</td>
+              <td class="border border-black px-2 py-1 font-mono text-center">{{ row.date }}</td>
+              <td class="border border-black px-2 py-1 font-mono font-bold">{{ row.journalNumber || '-' }}</td>
+              <td class="border border-black px-2 py-1 text-center">{{ row.project }}</td>
+              <td class="border border-black px-2 py-1">
+                <div class="font-bold text-[9px]">[{{ row.counterpartCode }}] {{ row.counterpartName }}</div>
+                <div class="text-[9px] text-gray-700 italic">{{ row.description }}</div>
+              </td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(row.dppFinal) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold">{{ formatIDR(row.pajakFinal) }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="bg-gray-100 font-bold text-[10px]">
+              <td colspan="5" class="border border-black px-3 py-1 text-right uppercase">
+                Total Nilai Pelaporan Pajak Final:
+              </td>
+              <td class="border border-black px-2 py-1 text-right font-mono">
+                Rp {{ formatIDR(totalDppFinal) }}
+              </td>
+              <td class="border border-black px-2 py-1 text-right font-mono">
+                Rp {{ formatIDR(totalPajakFinal) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Ringkasan Rekonsiliasi 3 Kolom & Ayat Jurnal Bank -->
+      <div class="grid grid-cols-2 gap-4 text-[11px] mb-6">
+        <div class="border border-black p-2.5 space-y-1">
+          <h5 class="font-bold uppercase text-[10px] border-b border-black pb-0.5">Rekonsiliasi Nilai Pajak (Brayo Standard)</h5>
+          <div class="flex justify-between"><span>Total DPP Original:</span><span class="font-mono">Rp {{ formatIDR(totalDppOriginal) }}</span></div>
+          <div class="flex justify-between"><span>Penyesuaian (Adjustment):</span><span class="font-mono">Rp {{ formatIDR(totalDppAdjustment) }}</span></div>
+          <div class="flex justify-between font-bold border-t border-black/30 pt-0.5"><span>Total DPP Final:</span><span class="font-mono">Rp {{ formatIDR(totalDppFinal) }}</span></div>
+          <div class="flex justify-between font-bold text-xs pt-0.5 border-t border-black"><span>Total Pajak Terutang:</span><span class="font-mono">Rp {{ formatIDR(totalPajakFinal) }}</span></div>
+        </div>
+
+        <div class="border border-black p-2.5 space-y-1">
+          <h5 class="font-bold uppercase text-[10px] border-b border-black pb-0.5">Ayat Jurnal Penyetoran Bank Kas Negara</h5>
+          <div class="text-[10px] space-y-0.5">
+            <div class="flex justify-between"><span class="font-bold">(Dr) [{{ selectedTaxAccountCode }}] {{ activeTaxAccountCatalog.label }}</span><span class="font-mono">Rp {{ formatIDR(totalPajakFinal) }}</span></div>
+            <div class="flex justify-between pl-3"><span class="font-bold">(Cr) [{{ activeBankAccount.code }}] {{ activeBankAccount.name }}</span><span class="font-mono">Rp {{ formatIDR(totalPajakFinal) }}</span></div>
+            <div class="text-gray-600 italic text-[9px] pt-1">NTPN Resmi: {{ ntpnNumber || '(Nomor NTPN DJP Terlampir)' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lembar Pengesahan Tanda Tangan -->
+      <div class="grid grid-cols-2 text-center text-xs pt-4 border-t border-black break-inside-avoid">
+        <div class="space-y-14">
+          <div>
+            <p>Menyetujui & Mengesahkan,</p>
+            <p class="font-bold">Direktur Utama SMG</p>
+          </div>
+          <div>
+            <p class="font-bold underline">dr. Ratna Paramita, M.Kes</p>
+            <p class="text-[10px] text-gray-600">SIP: 503/449.1/01/DS/2020</p>
+          </div>
+        </div>
+
+        <div class="space-y-14">
+          <div>
+            <p>Semarang, {{ new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}</p>
+            <p class="font-bold">Finance & Tax Manager</p>
+          </div>
+          <div>
+            <p class="font-bold underline">{{ accountingStore.currentUserName }}</p>
+            <p class="text-[10px] text-gray-600">Register Akuntan Negara: CA-78291</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style>
+@media print {
+  /* Hide all app chrome during print */
+  aside,
+  header.app-navbar,
+  nav.app-navbar,
+  .no-print,
+  button,
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  body, html, main, #app {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .print-document {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 10mm 15mm !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+</style>

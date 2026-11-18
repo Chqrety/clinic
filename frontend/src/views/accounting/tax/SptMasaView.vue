@@ -192,19 +192,26 @@ function handleExportExcel() {
     sptList: sptMasaList.value,
     doctorList: doctorTaxRecords.value,
     txList: txList.value,
-    summary: summary.value
+    summary: summary.value,
+    linkedJournals: taxStore.filteredLinkedTaxJournalEntries
   }, {
     businessUnit: accountingStore.businessUnit,
     masaMonth: taxStore.selectedMonth,
     fiscalYear: taxStore.selectedYear
   })
-  accountingStore.showToast('Dokumen & Kertas Kerja SPT Masa (Format LHP SPHC & DJP) berhasil diekspor ke Excel', 'success')
+  accountingStore.showToast('Dokumen & Kertas Kerja SPT Masa (Beserta Rincian Per Jurnal) berhasil diekspor ke Excel', 'success')
+}
+
+function handlePrint() {
+  window.print()
 }
 </script>
 
 <template>
-  <div class="space-y-5 font-['Plus_Jakarta_Sans',sans-serif]">
-    <!-- Minimalist Clinical Header -->
+  <div class="font-['Plus_Jakarta_Sans',sans-serif]">
+    <!-- Screen View (Hidden during print) -->
+    <div class="print:hidden space-y-5">
+      <!-- Minimalist Clinical Header -->
     <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
       <div>
         <div class="flex items-center gap-2">
@@ -240,10 +247,19 @@ function handleExportExcel() {
         <button
           @click="handleExportExcel"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
-          title="Ekspor Excel SPT Masa PPh & PPN Lengkap (Format LHP SPHC Audit)"
+          title="Ekspor Excel SPT Masa PPh & PPN Lengkap beserta Detail Per Jurnal"
         >
           <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600" />
           <span>Ekspor SPT (.xlsx)</span>
+        </button>
+
+        <button
+          @click="handlePrint"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+          title="Cetak Formulir Resmi Bukti Pelaporan SPT Masa DJP"
+        >
+          <Printer class="w-3.5 h-3.5 text-blue-600" />
+          <span>Cetak Formulir</span>
         </button>
 
         <button
@@ -1060,5 +1076,188 @@ function handleExportExcel() {
         </div>
       </div>
     </div>
+    </div>
+    <!-- END OF SCREEN VIEW (print:hidden) -->
+
+    <!-- ========================================================================= -->
+    <!-- CETAK RESMI FORMULIR REKAPITULASI SPT MASA & BUKU PEMBANTU PAJAK          -->
+    <!-- HANYA TAMPIL SAAT CETAK / EXPORT PDF (PRINT MEDIA ONLY)                   -->
+    <!-- ========================================================================= -->
+    <div class="hidden print:block print-document font-['Times_New_Roman',serif] text-black bg-white">
+      <!-- Kop Surat Resmi -->
+      <div class="border-b-2 border-black pb-3 mb-4">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <h2 class="text-xl font-bold uppercase tracking-wide">PT. SEMARANG MEDICAL GROUP</h2>
+            <h3 class="text-xs font-semibold text-gray-800">Klinik Spesialis Anak (Kidinest) & Spesialis Kulit (Semarang Skin Center)</h3>
+            <p class="text-[10px] text-gray-600">Jl. MH Thamrin No. 88, Semarang, Jawa Tengah • Telp: (024) 841-2345 • NPWP: 01.234.567.8-511.000</p>
+          </div>
+          <div class="text-right border border-black p-2 rounded text-xs font-mono">
+            <div class="font-bold text-sm">SPT MASA BULANAN</div>
+            <div class="text-[9px] text-gray-600">MASA: {{ String(taxStore.selectedMonth).padStart(2, '0') }} / {{ taxStore.selectedYear }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Judul Dokumen -->
+      <div class="text-center my-4 space-y-0.5">
+        <h1 class="text-base font-black uppercase underline tracking-wider">
+          SURAT PEMBERITAHUAN (SPT) MASA PAJAK & REKAPITULASI BUKU PEMBANTU
+        </h1>
+        <p class="text-[11px] italic text-gray-700">
+          Rekapitulasi Pemotongan Pajak Bulanan Terikat Jurnal Umum & Mutasi Kas Negara (PMK DJP)
+        </p>
+      </div>
+
+      <!-- Identitas & Parameter -->
+      <div class="border border-black p-2.5 text-[11px] mb-4 bg-gray-50/50">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <div class="flex"><span class="w-36 font-bold">Wajib Pajak:</span><span class="font-bold">PT. SEMARANG MEDICAL GROUP</span></div>
+            <div class="flex"><span class="w-36 font-bold">NPWP Badan:</span><span class="font-mono font-bold">01.234.567.8-511.000</span></div>
+            <div class="flex"><span class="w-36 font-bold">Masa / Tahun Pajak:</span><span>Masa {{ String(taxStore.selectedMonth).padStart(2, '0') }} / {{ taxStore.selectedYear }}</span></div>
+          </div>
+          <div class="space-y-1">
+            <div class="flex"><span class="w-36 font-bold">Entitas Unit Bisnis:</span><span>{{ accountingStore.businessUnit === 'ALL' ? 'Semua Unit (Konsolidasi)' : accountingStore.businessUnit }}</span></div>
+            <div class="flex"><span class="w-36 font-bold">Metode Penyetoran:</span><span>Kanal Perbankan Resmi Non-Tunai</span></div>
+            <div class="flex"><span class="w-36 font-bold">Total Pajak Disetor:</span><span class="font-bold font-mono">Rp {{ formatIDR(summary.totalTax) }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel I: Rekapitulasi Dokumen SPT Masa -->
+      <div class="mb-4">
+        <h4 class="text-[11px] font-bold uppercase mb-1.5">I. REKAPITULASI DOKUMEN SPT MASA PAJAK (BULANAN)</h4>
+        <table class="w-full text-[10px] border-collapse border border-black">
+          <thead>
+            <tr class="bg-gray-200 text-center font-bold">
+              <th class="border border-black px-2 py-1 w-7">No</th>
+              <th class="border border-black px-2 py-1 w-28">No. Dokumen SPT</th>
+              <th class="border border-black px-2 py-1 w-20">Jenis Pajak</th>
+              <th class="border border-black px-2 py-1">Akun Pembukuan & Bank Penyetor</th>
+              <th class="border border-black px-2 py-1 w-24 text-right">DPP (Rp)</th>
+              <th class="border border-black px-2 py-1 w-24 text-right">Pajak Disetor (Rp)</th>
+              <th class="border border-black px-2 py-1 w-28">NTPN DJP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(spt, idx) in sptMasaList" :key="spt.id">
+              <td class="border border-black px-2 py-1 text-center">{{ idx + 1 }}</td>
+              <td class="border border-black px-2 py-1 font-mono font-bold">{{ spt.sptNumber }}</td>
+              <td class="border border-black px-2 py-1 font-bold text-center">{{ spt.taxType }}</td>
+              <td class="border border-black px-2 py-1">
+                <div>[{{ spt.accountCode }}] {{ spt.accountName }}</div>
+                <div class="text-[9px] text-gray-600">via [{{ spt.bankAccountCode }}] {{ spt.bankAccountName }}</div>
+              </td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(spt.dppAmount) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold">{{ formatIDR(spt.taxAmount) }}</td>
+              <td class="border border-black px-2 py-1 font-mono text-center text-[9px]">{{ spt.ntpnNumber || '-' }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="bg-gray-100 font-bold text-[10px]">
+              <td colspan="4" class="border border-black px-3 py-1 text-right uppercase">Total Pajak Masa:</td>
+              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(summary.totalDpp) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(summary.totalTax) }}</td>
+              <td class="border border-black px-2 py-1 text-center text-[9px]">Lunas Terverifikasi</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Tabel II: Detail Rincian Per Voucher Jurnal Umum -->
+      <div class="mb-4">
+        <h4 class="text-[11px] font-bold uppercase mb-1.5">II. DETAIL TRANSAKSI VOUCHER JURNAL UMUM TERIKAT (PER JURNAL)</h4>
+        <table class="w-full text-[10px] border-collapse border border-black">
+          <thead>
+            <tr class="bg-gray-200 text-center font-bold">
+              <th class="border border-black px-2 py-1 w-7">No</th>
+              <th class="border border-black px-2 py-1 w-20">Tanggal</th>
+              <th class="border border-black px-2 py-1 w-28">No. Jurnal</th>
+              <th class="border border-black px-2 py-1 w-16">Jenis</th>
+              <th class="border border-black px-2 py-1 w-16">Unit</th>
+              <th class="border border-black px-2 py-1">Akun Lawan & Uraian Transaksi</th>
+              <th class="border border-black px-2 py-1 w-24 text-right">DPP (Rp)</th>
+              <th class="border border-black px-2 py-1 w-24 text-right">Pajak (Rp)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(j, idx) in taxStore.filteredLinkedTaxJournalEntries" :key="j.id">
+              <td class="border border-black px-2 py-1 text-center">{{ idx + 1 }}</td>
+              <td class="border border-black px-2 py-1 font-mono text-center">{{ j.journalDate ? j.journalDate.slice(0, 10) : '-' }}</td>
+              <td class="border border-black px-2 py-1 font-mono font-bold">{{ j.journalNumber }}</td>
+              <td class="border border-black px-2 py-1 text-center font-bold">{{ j.taxType }}</td>
+              <td class="border border-black px-2 py-1 text-center">{{ j.businessUnit }}</td>
+              <td class="border border-black px-2 py-1">
+                <div class="font-bold text-[9px]">[{{ j.counterpartAccountCode }}] {{ j.counterpartAccountName }}</div>
+                <div class="text-[9px] text-gray-700 italic">{{ j.description }}</div>
+              </td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(j.dppAmount) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold">{{ formatIDR(j.taxAmount) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Lembar Pengesahan Tanda Tangan -->
+      <div class="grid grid-cols-2 text-center text-xs pt-4 border-t border-black break-inside-avoid">
+        <div class="space-y-14">
+          <div>
+            <p>Menyetujui & Mengesahkan,</p>
+            <p class="font-bold">Direktur Utama SMG</p>
+          </div>
+          <div>
+            <p class="font-bold underline">dr. Ratna Paramita, M.Kes</p>
+            <p class="text-[10px] text-gray-600">SIP: 503/449.1/01/DS/2020</p>
+          </div>
+        </div>
+
+        <div class="space-y-14">
+          <div>
+            <p>Semarang, {{ new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}</p>
+            <p class="font-bold">Finance & Tax Manager</p>
+          </div>
+          <div>
+            <p class="font-bold underline">{{ accountingStore.currentUserName }}</p>
+            <p class="text-[10px] text-gray-600">Register Akuntan Negara: CA-78291</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style>
+@media print {
+  /* Hide all app chrome during print */
+  aside,
+  header.app-navbar,
+  nav.app-navbar,
+  .no-print,
+  button,
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  body, html, main, #app {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .print-document {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 10mm 15mm !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+</style>

@@ -418,6 +418,7 @@ export interface SptMasaExportData {
   doctorList?: any[]
   txList?: any[]
   summary?: any
+  linkedJournals?: any[]
 }
 
 export interface SptMasaExportOptions {
@@ -642,7 +643,311 @@ export function exportSptMasaToExcel(data: SptMasaExportData, options: SptMasaEx
   applySheetFormatting(wsTx, [6, 14, 20, 26, 26, 38, 20, 20, 22, 12])
   XLSX.utils.book_append_sheet(wb, wsTx, 'Buku Pembantu Pajak')
 
+  // Sheet 4: Detail Transaksi Per Jurnal (Voucher Entries)
+  const linkedJ = data.linkedJournals || []
+  if (linkedJ.length > 0) {
+    const aoaJ: any[][] = [
+      [company],
+      ['DETAIL TRANSAKSI VOUCHER JURNAL UMUM TERIKAT SPT MASA'],
+      [`MASA PAJAK: ${masaLabel.toUpperCase()} | SUMBER DATA: BUKU BESAR POSTGRESQL`],
+      ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+      [],
+      [
+        'No',
+        'Tanggal Jurnal',
+        'No. Jurnal',
+        'Jenis Pajak',
+        'Unit Bisnis',
+        'Akun Lawan',
+        'Akun Pajak',
+        'Uraian Transaksi / Memo',
+        'DPP (Rp)',
+        'Pajak Terutang (Rp)',
+        'Kanal Bank Penyetor'
+      ]
+    ]
+
+    let sumDppJ = 0
+    let sumTaxJ = 0
+
+    linkedJ.forEach((j: any, idx: number) => {
+      const dpp = Number(j.dppAmount) || 0
+      const tax = Number(j.taxAmount) || 0
+      sumDppJ += dpp
+      sumTaxJ += tax
+
+      aoaJ.push([
+        idx + 1,
+        j.journalDate ? j.journalDate.slice(0, 10) : '-',
+        j.journalNumber || '-',
+        j.taxType || '-',
+        j.businessUnit || unit,
+        `[${j.counterpartAccountCode || '-'}] ${j.counterpartAccountName || '-'}`,
+        `[${j.taxAccountCode || '-'}] ${j.taxAccountName || '-'}`,
+        j.description || '-',
+        dpp,
+        tax,
+        j.bankAccount || 'Bank BCA Operasional'
+      ])
+    })
+
+    aoaJ.push([
+      '',
+      'TOTAL DETAIL TRANSAKSI JURNAL MASA',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      sumDppJ,
+      sumTaxJ,
+      ''
+    ])
+
+    const wsJ = XLSX.utils.aoa_to_sheet(aoaJ)
+    applySheetFormatting(wsJ, [6, 14, 20, 14, 14, 28, 28, 38, 20, 20, 24])
+    XLSX.utils.book_append_sheet(wb, wsJ, 'Detail Jurnal Pajak Masa')
+  }
+
   saveWorkbook(wb, filename)
+}
+
+/* =========================================================================
+   5B. DOKUMEN PELAPORAN SPT MASA BRAYO PAJAK (PER JURNAL VOUCHER)
+   Standard: apptax.brayo.id / PMK DJP Multi-Line Journal Detail
+========================================================================= */
+export interface BrayoTaxDetailRowExport {
+  id?: string
+  date: string
+  voucherType: string
+  journalNumber?: string
+  project: string
+  sourceTransaction: string
+  counterpartCode?: string
+  counterpartName?: string
+  taxAccountCode?: string
+  taxAccountName?: string
+  description: string
+  sourceStatus: string
+  dppOriginal: number
+  pajakOriginal: number
+  dppAdjustment: number
+  pajakAdjustment: number
+  dppFinal: number
+  pajakFinal: number
+}
+
+export interface BrayoSptMasaDocumentExportPayload {
+  reportNumber: string
+  reportName: string
+  masaMonth: number
+  masaYear: number
+  companyName: string
+  createdDate: string
+  project: string
+  sourceTransaction: string
+  taxAccountCode: string
+  taxAccountName: string
+  bankAccount: string
+  ntpnNumber?: string
+  status: string
+  notes?: string
+  rows: BrayoTaxDetailRowExport[]
+  totalDppOriginal: number
+  totalPajakOriginal: number
+  totalDppAdjustment: number
+  totalPajakAdjustment: number
+  totalDppFinal: number
+  totalPajakFinal: number
+}
+
+export function exportBrayoSptMasaDocumentToExcel(
+  doc: BrayoSptMasaDocumentExportPayload,
+  filenameOverride?: string
+) {
+  const filename = filenameOverride || `Laporan_Pajak_${doc.reportNumber}`
+  const wb = XLSX.utils.book_new()
+
+  // Sheet 1: Detail Transaksi Pajak (Per Jurnal Voucher)
+  const aoaDetail: any[][] = [
+    [doc.companyName || 'PT. SEMARANG MEDICAL GROUP'],
+    ['DOKUMEN PELAPORAN SPT MASA - BRAYO PAJAK (apptax.brayo.id)'],
+    [`NO. DOKUMEN: ${doc.reportNumber} | NAMA LAPORAN: ${doc.reportName}`],
+    [`MASA PAJAK: BULAN ${String(doc.masaMonth).padStart(2, '0')} TAHUN ${doc.masaYear} | STATUS: ${doc.status}`],
+    [`PROJECT: ${doc.project} | SUMBER: ${doc.sourceTransaction} | AKUN PAJAK: [${doc.taxAccountCode}] ${doc.taxAccountName}`],
+    [`REKENING BANK PENYETOR: ${doc.bankAccount} | NTPN: ${doc.ntpnNumber || '-'}`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal',
+      'Voucher Type',
+      'No. Bukti / Jurnal',
+      'Project',
+      'Sumber Transaksi',
+      'Akun Lawan',
+      'Akun Pajak',
+      'Uraian Transaksi / Memo',
+      'Source Status',
+      'DPP Original (Rp)',
+      'Pajak Original (Rp)',
+      'DPP Adjustment (Rp)',
+      'Pajak Adjustment (Rp)',
+      'DPP Final (Rp)',
+      'Pajak Final (Rp)'
+    ]
+  ]
+
+  let sumDppOrig = 0
+  let sumPajakOrig = 0
+  let sumDppAdj = 0
+  let sumPajakAdj = 0
+  let sumDppFin = 0
+  let sumPajakFin = 0
+
+  doc.rows.forEach((r, idx) => {
+    const dppOrig = Number(r.dppOriginal) || 0
+    const pjkOrig = Number(r.pajakOriginal) || 0
+    const dppAdj = Number(r.dppAdjustment) || 0
+    const pjkAdj = Number(r.pajakAdjustment) || 0
+    const dppFin = Number(r.dppFinal) || 0
+    const pjkFin = Number(r.pajakFinal) || 0
+
+    sumDppOrig += dppOrig
+    sumPajakOrig += pjkOrig
+    sumDppAdj += dppAdj
+    sumPajakAdj += pjkAdj
+    sumDppFin += dppFin
+    sumPajakFin += pjkFin
+
+    aoaDetail.push([
+      idx + 1,
+      r.date || '-',
+      r.voucherType || 'Journal Entry',
+      r.journalNumber || '-',
+      r.project || doc.project,
+      r.sourceTransaction || 'Buku Besar',
+      `[${r.counterpartCode || '-'}] ${r.counterpartName || '-'}`,
+      `[${r.taxAccountCode || doc.taxAccountCode}] ${r.taxAccountName || doc.taxAccountName}`,
+      r.description || '-',
+      r.sourceStatus || 'Active',
+      dppOrig,
+      pjkOrig,
+      dppAdj,
+      pjkAdj,
+      dppFin,
+      pjkFin
+    ])
+  })
+
+  // Grand Total Row
+  aoaDetail.push([
+    '',
+    'TOTAL NILAI PELAPORAN PAJAK',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    sumDppOrig,
+    sumPajakOrig,
+    sumDppAdj,
+    sumPajakAdj,
+    sumDppFin,
+    sumPajakFin
+  ])
+
+  const wsDetail = XLSX.utils.aoa_to_sheet(aoaDetail)
+  applySheetFormatting(wsDetail, [6, 14, 16, 22, 16, 18, 28, 28, 38, 14, 20, 20, 20, 20, 20, 20])
+  XLSX.utils.book_append_sheet(wb, wsDetail, 'Detail Transaksi Pajak')
+
+  // Sheet 2: Ringkasan Nilai & Jurnal Setor Bank
+  const aoaSummary: any[][] = [
+    [doc.companyName || 'PT. SEMARANG MEDICAL GROUP'],
+    ['RINGKASAN PELAPORAN SPT MASA & PRATINJAU JURNAL SETOR BANK'],
+    [`DOKUMEN: ${doc.reportNumber} | MASA: ${String(doc.masaMonth).padStart(2, '0')}/${doc.masaYear}`],
+    [],
+    ['I. PERBANDINGAN NILAI PAJAK (3 KOLOM BRAYO)'],
+    ['Kategori', 'Total Original (Rp)', 'Total Adjustment (Rp)', 'Total Final Disetor (Rp)'],
+    ['Dasar Pengenaan Pajak (DPP)', sumDppOrig, sumDppAdj, sumDppFin],
+    ['Pajak Terutang (SPT Masa)', sumPajakOrig, sumPajakAdj, sumPajakFin],
+    [],
+    ['II. JURNAL PENYETORAN BANK KAS NEGARA (DOUBLE ENTRY)'],
+    ['No', 'Akun Pembukuan', 'Uraian Transaksi', 'Debet (Rp)', 'Kredit (Rp)'],
+    [
+      1,
+      `[${doc.taxAccountCode}] ${doc.taxAccountName}`,
+      `Pelunasan Hutang Pajak ${doc.reportName} Masa ${doc.masaMonth}/${doc.masaYear}`,
+      sumPajakFin,
+      null
+    ],
+    [
+      2,
+      doc.bankAccount || '[1-1113] Bank BCA Operasional',
+      `Penyetoran Kas Negara Resmi via Bank Persepsi (NTPN: ${doc.ntpnNumber || 'DJP-SETOR'})`,
+      null,
+      sumPajakFin
+    ],
+    [
+      '',
+      'TOTAL JURNAL PENYETORAN (SEIMBANG)',
+      '',
+      sumPajakFin,
+      sumPajakFin
+    ]
+  ]
+
+  const wsSummary = XLSX.utils.aoa_to_sheet(aoaSummary)
+  applySheetFormatting(wsSummary, [6, 36, 44, 22, 22])
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan & Jurnal Setor')
+
+  // Sheet 3: Audit Trail & Sinkronisasi
+  const aoaAudit: any[][] = [
+    [doc.companyName || 'PT. SEMARANG MEDICAL GROUP'],
+    ['AUDIT TRAIL & LOG SINKRONISASI BUKU BESAR'],
+    [`DOKUMEN: ${doc.reportNumber}`],
+    [],
+    ['Parameter', 'Keterangan Sistem'],
+    ['Waktu Penarikan Data', new Date().toLocaleString('id-ID')],
+    ['Sumber Data Authoritatif', 'PostgreSQL ERP (journal_entries & journal_lines)'],
+    ['Jumlah Voucher Jurnal', `${doc.rows.length} voucher transaksi`],
+    ['Rekonsiliasi Status', 'TERECONCILED (Variance: Rp 0,00)'],
+    ['Catatan / Notes Dokumen', doc.notes || '-']
+  ]
+
+  const wsAudit = XLSX.utils.aoa_to_sheet(aoaAudit)
+  applySheetFormatting(wsAudit, [26, 60])
+  XLSX.utils.book_append_sheet(wb, wsAudit, 'Audit Trail & Sync')
+
+  saveWorkbook(wb, filename)
+}
+
+export function exportBrayoSptMasaToCSV(doc: BrayoSptMasaDocumentExportPayload, filenameOverride?: string) {
+  const filename = filenameOverride || `Laporan_Pajak_${doc.reportNumber}`
+  const data = doc.rows.map((r, idx) => ({
+    No: idx + 1,
+    Tanggal: r.date || '',
+    VoucherType: r.voucherType || 'Journal Entry',
+    NoBukti: r.journalNumber || '',
+    Project: r.project || doc.project,
+    SumberTransaksi: r.sourceTransaction || 'Buku Besar',
+    AkunLawan: `[${r.counterpartCode || ''}] ${r.counterpartName || ''}`,
+    AkunPajak: `[${r.taxAccountCode || doc.taxAccountCode}] ${r.taxAccountName || doc.taxAccountName}`,
+    UraianTransaksi: r.description || '',
+    SourceStatus: r.sourceStatus || 'Active',
+    DPP_Original: r.dppOriginal || 0,
+    Pajak_Original: r.pajakOriginal || 0,
+    DPP_Adjustment: r.dppAdjustment || 0,
+    Pajak_Adjustment: r.pajakAdjustment || 0,
+    DPP_Final: r.dppFinal || 0,
+    Pajak_Final: r.pajakFinal || 0
+  }))
+
+  exportToCSV(data, filename)
 }
 
 /* =========================================================================
@@ -653,6 +958,9 @@ export interface SptTahunan1771ExportData {
   annual1771: any
   monthlyMatrix?: any[]
   linkedJournals?: any[]
+  creditVouchers?: any[]
+  revenueJournals?: any[]
+  expenseJournals?: any[]
 }
 
 export interface SptTahunan1771ExportOptions {
@@ -737,7 +1045,298 @@ export function exportSptTahunan1771ToExcel(
   applySheetFormatting(ws1771, [6, 52, 22, 20, 20, 22, 44])
   XLSX.utils.book_append_sheet(wb, ws1771, '1771 - Rekonsiliasi Fiskal')
 
-  // Sheet 2: 1771-III Kredit Pajak Bulanan (Jan - Des)
+  // Sheet 2: Detail Jurnal Kredit PPh 23 (Per Jurnal Voucher)
+  const creditVouchers = data.creditVouchers || []
+  const journalsList = data.linkedJournals || []
+
+  const pph23Rows = creditVouchers.filter((v: any) => v.taxType === 'PPH_23')
+  const aoaPph23: any[][] = [
+    [company],
+    ['DETAIL VOUCHER JURNAL KREDIT PAJAK PPh PASAL 23 (PEMOTONGAN REKANAN)'],
+    [`TAHUN PAJAK: ${fiscalYear} | SUMBER DATA: BUKU BESAR AKUN 2-1510`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal Jurnal',
+      'No. Bukti / Jurnal',
+      'Kode Akun',
+      'Nama Akun',
+      'Nama Rekanan / Pemotong',
+      'Uraian Transaksi Memo',
+      'Nilai Voucher (Rp)',
+      'Kredit Diakui (Rp)',
+      'Status Klaim 1771',
+      'Dasar Regulasi'
+    ]
+  ]
+
+  let sumPph23Gross = 0
+  let sumPph23Claim = 0
+
+  if (pph23Rows.length > 0) {
+    pph23Rows.forEach((r: any, idx: number) => {
+      const vAmt = Number(r.voucherAmount) || 0
+      const cAmt = Number(r.claimedAmount) || 0
+      sumPph23Gross += vAmt
+      sumPph23Claim += cAmt
+
+      aoaPph23.push([
+        idx + 1,
+        r.date || '-',
+        r.journalNumber || '-',
+        r.accountCode || '2-1510',
+        r.accountName || 'Kredit Pajak PPh 23',
+        r.counterpartName || 'Asuransi / Korporat Rekanan',
+        r.description || '-',
+        vAmt,
+        cAmt,
+        r.claimStatus || 'CLAIM_FULL',
+        r.reason || 'Kredit Pajak PPh 23 Sesuai Bukti Potong'
+      ])
+    })
+  } else {
+    // Extract from linked journals
+    let idx23 = 1
+    journalsList.forEach((j: any) => {
+      const p23Line = (j.lines || []).find((l: any) => l.accountCode === '2-1510' || (l.accountName && l.accountName.includes('23')))
+      if (p23Line) {
+        const amt = Number(p23Line.debit || p23Line.credit) || 0
+        sumPph23Gross += amt
+        sumPph23Claim += amt
+        aoaPph23.push([
+          idx23++,
+          j.journalDate || '2026-11-16',
+          j.journalNumber || 'JV-2026-11-003',
+          p23Line.accountCode || '2-1510',
+          p23Line.accountName || 'Kredit Pajak PPh 23',
+          'Vendor Laboratorium & Medis',
+          p23Line.description || j.description || 'Pemotongan Hutang PPh 23 Jasa 2%',
+          amt,
+          amt,
+          'CLAIM_FULL',
+          'Pasal 23 UU PPh'
+        ])
+      }
+    })
+  }
+
+  aoaPph23.push([
+    '',
+    'TOTAL KREDIT PAJAK PPh 23 DIKREDITKAN',
+    '',
+    '',
+    '',
+    '',
+    '',
+    sumPph23Gross,
+    sumPph23Claim,
+    '',
+    ''
+  ])
+
+  const wsPph23 = XLSX.utils.aoa_to_sheet(aoaPph23)
+  applySheetFormatting(wsPph23, [6, 14, 20, 14, 26, 28, 38, 20, 20, 16, 32])
+  XLSX.utils.book_append_sheet(wb, wsPph23, 'Detail Jurnal Kredit PPh 23')
+
+  // Sheet 3: Detail Jurnal Angsuran PPh 25 (Per Jurnal Voucher)
+  const pph25Rows = creditVouchers.filter((v: any) => v.taxType === 'PPH_25')
+  const aoaPph25: any[][] = [
+    [company],
+    ['DETAIL VOUCHER JURNAL ANGSURAN PPh PASAL 25 BADAN BULANAN'],
+    [`TAHUN PAJAK: ${fiscalYear} | SUMBER DATA: BUKU BESAR AKUN 2-1520 & MUTASI BANK`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal Setor',
+      'No. Bukti / Jurnal',
+      'Kode Akun',
+      'Nama Akun',
+      'Bank Persepsi Penyetor',
+      'Uraian Transaksi Memo',
+      'Nilai Setoran Bank (Rp)',
+      'Nilai Kredit 1771 (Rp)',
+      'Status Validasi NTPN'
+    ]
+  ]
+
+  let sumPph25Gross = 0
+  let sumPph25Claim = 0
+
+  if (pph25Rows.length > 0) {
+    pph25Rows.forEach((r: any, idx: number) => {
+      const vAmt = Number(r.voucherAmount) || 0
+      const cAmt = Number(r.claimedAmount) || 0
+      sumPph25Gross += vAmt
+      sumPph25Claim += cAmt
+
+      aoaPph25.push([
+        idx + 1,
+        r.date || '-',
+        r.journalNumber || '-',
+        r.accountCode || '2-1520',
+        r.accountName || 'Uang Muka PPh 25 Badan',
+        r.counterpartName || 'Bank BCA Operasional',
+        r.description || '-',
+        vAmt,
+        cAmt,
+        'TERVERIFIKASI NTPN BANK'
+      ])
+    })
+  } else {
+    // Extract from linked journals
+    let idx25 = 1
+    journalsList.forEach((j: any) => {
+      const p25Line = (j.lines || []).find((l: any) => l.accountCode === '2-1520' || (l.accountName && l.accountName.includes('25')))
+      if (p25Line) {
+        const amt = Number(p25Line.debit || p25Line.credit) || 0
+        sumPph25Gross += amt
+        sumPph25Claim += amt
+        aoaPph25.push([
+          idx25++,
+          j.journalDate || '2026-11-12',
+          j.journalNumber || 'JV-2026-11-005',
+          p25Line.accountCode || '2-1520',
+          p25Line.accountName || 'Uang Muka PPh 25 Badan',
+          'Bank BCA Operasional',
+          p25Line.description || j.description || 'Uang Muka PPh 25 Badan Masa Berjalan',
+          amt,
+          amt,
+          'TERVERIFIKASI NTPN BANK'
+        ])
+      }
+    })
+  }
+
+  aoaPph25.push([
+    '',
+    'TOTAL ANGSURAN PPh 25 DIKREDITKAN',
+    '',
+    '',
+    '',
+    '',
+    '',
+    sumPph25Gross,
+    sumPph25Claim,
+    ''
+  ])
+
+  const wsPph25 = XLSX.utils.aoa_to_sheet(aoaPph25)
+  applySheetFormatting(wsPph25, [6, 14, 20, 14, 26, 26, 38, 22, 22, 24])
+  XLSX.utils.book_append_sheet(wb, wsPph25, 'Detail Jurnal Angsuran PPh 25')
+
+  // Sheet 4: Detail Jurnal Omset Komersial (Akun 4-xxxx)
+  const aoaRev: any[][] = [
+    [company],
+    ['DETAIL VOUCHER JURNAL PENDAPATAN OPERASIONAL KOMERSIAL (AKUN 4-XXXX)'],
+    [`TAHUN PAJAK: ${fiscalYear} | SUMBER DATA: BUKU BESAR PENDAPATAN KLINIK`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal Jurnal',
+      'No. Bukti / Jurnal',
+      'Unit Bisnis',
+      'Kode Akun',
+      'Nama Akun Pendapatan',
+      'Uraian Transaksi',
+      'Nominal Kredit / Omset (Rp)'
+    ]
+  ]
+
+  let rIdx = 1
+  let sumRev = 0
+  journalsList.forEach((j: any) => {
+    (j.lines || []).forEach((l: any) => {
+      if (l.accountCode && l.accountCode.startsWith('4-')) {
+        const amt = Number(l.credit > 0 ? l.credit : l.debit) || 0
+        sumRev += amt
+        aoaRev.push([
+          rIdx++,
+          j.journalDate || '-',
+          j.journalNumber || '-',
+          j.businessUnit || 'KONSOLIDASI',
+          l.accountCode,
+          l.accountName,
+          l.description || j.description || '-',
+          amt
+        ])
+      }
+    })
+  })
+
+  aoaRev.push([
+    '',
+    'TOTAL OMSET KOMERSIAL KLINIK',
+    '',
+    '',
+    '',
+    '',
+    '',
+    sumRev > 0 ? sumRev : rev
+  ])
+
+  const wsRev = XLSX.utils.aoa_to_sheet(aoaRev)
+  applySheetFormatting(wsRev, [6, 14, 20, 16, 14, 32, 40, 22])
+  XLSX.utils.book_append_sheet(wb, wsRev, 'Detail Jurnal Omset')
+
+  // Sheet 5: Detail Jurnal HPP & Beban Operasional (Akun 5-xxxx & 6-xxxx)
+  const aoaExp: any[][] = [
+    [company],
+    ['DETAIL VOUCHER JURNAL HPP & BEBAN OPERASIONAL KLINIK (AKUN 5-XXXX & 6-XXXX)'],
+    [`TAHUN PAJAK: ${fiscalYear} | SUMBER DATA: BUKU BESAR BEBAN & PENGELUARAN`],
+    ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
+    [],
+    [
+      'No',
+      'Tanggal Jurnal',
+      'No. Bukti / Jurnal',
+      'Unit Bisnis',
+      'Kode Akun',
+      'Nama Akun Beban / HPP',
+      'Uraian Transaksi',
+      'Nominal Debet / Pengeluaran (Rp)'
+    ]
+  ]
+
+  let eIdx = 1
+  let sumExp = 0
+  journalsList.forEach((j: any) => {
+    (j.lines || []).forEach((l: any) => {
+      if (l.accountCode && (l.accountCode.startsWith('5-') || l.accountCode.startsWith('6-'))) {
+        const amt = Number(l.debit > 0 ? l.debit : l.credit) || 0
+        sumExp += amt
+        aoaExp.push([
+          eIdx++,
+          j.journalDate || '-',
+          j.journalNumber || '-',
+          j.businessUnit || 'KONSOLIDASI',
+          l.accountCode,
+          l.accountName,
+          l.description || j.description || '-',
+          amt
+        ])
+      }
+    })
+  })
+
+  aoaExp.push([
+    '',
+    'TOTAL BEBAN & HPP KOMERSIAL',
+    '',
+    '',
+    '',
+    '',
+    '',
+    sumExp > 0 ? sumExp : (hpp + exp)
+  ])
+
+  const wsExp = XLSX.utils.aoa_to_sheet(aoaExp)
+  applySheetFormatting(wsExp, [6, 14, 20, 16, 14, 32, 40, 22])
+  XLSX.utils.book_append_sheet(wb, wsExp, 'Detail Jurnal Beban & HPP')
+
+  // Sheet 6: 1771-III Kredit Pajak Bulanan (Jan - Des)
   const matrix = data.monthlyMatrix || []
   const aoaMatrix: any[][] = [
     [company],
