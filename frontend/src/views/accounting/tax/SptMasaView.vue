@@ -7,7 +7,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportSptMasaToExcel } from '@/utils/export'
+import { exportSptMasaToExcel, getEntityProfile } from '@/utils/export'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import {
   Calculator,
@@ -63,6 +63,7 @@ const doctorTaxRecords = computed(() => taxStore.filteredDoctorTax)
 const ppn = computed(() => taxStore.ppnSummary)
 const txList = computed(() => taxStore.filteredTaxTransactions)
 const summary = computed(() => taxStore.monthlyTaxSummary)
+const currentEntity = computed(() => getEntityProfile(accountingStore.businessUnit))
 
 const taxFilterOptions = [
   { value: 'ALL', label: 'Semua Jenis SPT Masa' },
@@ -1088,13 +1089,14 @@ function handlePrint() {
       <div class="border-b-2 border-black pb-3 mb-4">
         <div class="flex items-center justify-between">
           <div class="space-y-1">
-            <h2 class="text-xl font-bold uppercase tracking-wide">PT. SEMARANG MEDICAL GROUP</h2>
-            <h3 class="text-xs font-semibold text-gray-800">Klinik Spesialis Anak (Kidinest) & Spesialis Kulit (Semarang Skin Center)</h3>
-            <p class="text-[10px] text-gray-600">Jl. MH Thamrin No. 88, Semarang, Jawa Tengah • Telp: (024) 841-2345 • NPWP: 01.234.567.8-511.000</p>
+            <h2 class="text-xl font-bold uppercase tracking-wide">{{ currentEntity.title }}</h2>
+            <h3 class="text-xs font-semibold text-gray-800">{{ currentEntity.subtitle }}</h3>
+            <p class="text-[10px] text-gray-600">{{ currentEntity.address }}</p>
           </div>
           <div class="text-right border border-black p-2 rounded text-xs font-mono">
             <div class="font-bold text-sm">SPT MASA BULANAN</div>
             <div class="text-[9px] text-gray-600">MASA: {{ String(taxStore.selectedMonth).padStart(2, '0') }} / {{ taxStore.selectedYear }}</div>
+            <div class="text-[9px] font-bold text-gray-800 mt-0.5">NPWP: {{ currentEntity.npwp }}</div>
           </div>
         </div>
       </div>
@@ -1113,12 +1115,12 @@ function handlePrint() {
       <div class="border border-black p-2.5 text-[11px] mb-4 bg-gray-50/50">
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <div class="flex"><span class="w-36 font-bold">Wajib Pajak:</span><span class="font-bold">PT. SEMARANG MEDICAL GROUP</span></div>
-            <div class="flex"><span class="w-36 font-bold">NPWP Badan:</span><span class="font-mono font-bold">01.234.567.8-511.000</span></div>
+            <div class="flex"><span class="w-36 font-bold">Wajib Pajak:</span><span class="font-bold">{{ currentEntity.title }}</span></div>
+            <div class="flex"><span class="w-36 font-bold">NPWP Badan:</span><span class="font-mono font-bold">{{ currentEntity.npwp }}</span></div>
             <div class="flex"><span class="w-36 font-bold">Masa / Tahun Pajak:</span><span>Masa {{ String(taxStore.selectedMonth).padStart(2, '0') }} / {{ taxStore.selectedYear }}</span></div>
           </div>
           <div class="space-y-1">
-            <div class="flex"><span class="w-36 font-bold">Entitas Unit Bisnis:</span><span>{{ accountingStore.businessUnit === 'ALL' ? 'Semua Unit (Konsolidasi)' : accountingStore.businessUnit }}</span></div>
+            <div class="flex"><span class="w-36 font-bold">Entitas Unit Bisnis:</span><span>{{ currentEntity.unitLabel }}</span></div>
             <div class="flex"><span class="w-36 font-bold">Metode Penyetoran:</span><span>Kanal Perbankan Resmi Non-Tunai</span></div>
             <div class="flex"><span class="w-36 font-bold">Total Pajak Disetor:</span><span class="font-bold font-mono">Rp {{ formatIDR(summary.totalTax) }}</span></div>
           </div>
@@ -1204,11 +1206,11 @@ function handlePrint() {
         <div class="space-y-14">
           <div>
             <p>Menyetujui & Mengesahkan,</p>
-            <p class="font-bold">Direktur Utama SMG</p>
+            <p class="font-bold">{{ currentEntity.directorRole }}</p>
           </div>
           <div>
-            <p class="font-bold underline">dr. Ratna Paramita, M.Kes</p>
-            <p class="text-[10px] text-gray-600">SIP: 503/449.1/01/DS/2020</p>
+            <p class="font-bold underline">{{ currentEntity.director }}</p>
+            <p class="text-[10px] text-gray-600">{{ currentEntity.sip }}</p>
           </div>
         </div>
 

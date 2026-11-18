@@ -43,7 +43,8 @@ import {
 } from 'lucide-vue-next'
 import {
   exportBrayoSptMasaDocumentToExcel,
-  exportBrayoSptMasaToCSV
+  exportBrayoSptMasaToCSV,
+  getEntityProfile
 } from '@/utils/export'
 
 const router = useRouter()
@@ -62,7 +63,8 @@ const reportName = ref<string>('PPH 21 DOKTER & KARYAWAN')
 const masaMonth = ref<number>(accountingStore.fiscalMonth || (new Date().getMonth() + 1))
 const masaYear = ref<number>(accountingStore.fiscalYear || new Date().getFullYear())
 const unit = ref<BusinessUnit>(accountingStore.businessUnit || 'ALL')
-const companyName = ref<string>('PT. SEMARANG MEDICAL GROUP')
+const currentEntity = computed(() => getEntityProfile(unit.value))
+const companyName = ref<string>(currentEntity.value.title)
 const createdDate = ref<string>(new Date().toISOString().slice(0, 10))
 const sourceTransactionFilter = ref<string>('Semua Transaksi')
 const taxType = ref<SptMasaType>('PPH_21')
@@ -149,7 +151,12 @@ watch(selectedTaxAccountCode, (code) => {
 
 // Matching journals in store for current period and tax type
 const matchingJournalsInStore = computed(() => {
-  return taxStore.getLinkedJournalsForMonth(masaMonth.value, masaYear.value, taxType.value)
+  const allJournals = taxStore.getLinkedJournalsForMonth(masaMonth.value, masaYear.value, taxType.value)
+  if (unit.value === 'ALL') return allJournals
+  return allJournals.filter(entry => {
+    if (!entry.businessUnit || entry.businessUnit === 'ALL') return true
+    return entry.businessUnit === unit.value
+  })
 })
 
 onMounted(async () => {
@@ -169,8 +176,9 @@ onMounted(async () => {
   pullDataFromGeneralJournal(false)
 })
 
-// Watch filters to pull data or reset
-watch([masaMonth, masaYear, taxType, selectedTaxAccountCode], () => {
+// Watch filters & selected unit to update company name and re-pull data
+watch([masaMonth, masaYear, taxType, selectedTaxAccountCode, unit], () => {
+  companyName.value = currentEntity.value.title
   pullDataFromGeneralJournal(false)
 })
 
@@ -664,6 +672,7 @@ function handlePrint() {
                 readonly
                 class="w-full px-3 py-2 bg-zinc-100 border border-zinc-200 rounded-xl font-bold text-zinc-600 cursor-not-allowed"
               />
+              <p class="text-[10px] text-zinc-500 mt-1 font-mono">NPWP: {{ currentEntity.npwp }} • {{ currentEntity.subtitle }}</p>
             </div>
 
             <div>
@@ -1273,13 +1282,14 @@ function handlePrint() {
       <div class="border-b-2 border-black pb-3 mb-4">
         <div class="flex items-center justify-between">
           <div class="space-y-1">
-            <h2 class="text-xl font-bold uppercase tracking-wide">PT. SEMARANG MEDICAL GROUP</h2>
-            <h3 class="text-xs font-semibold text-gray-800">Klinik Spesialis Anak (Kidinest) & Spesialis Kulit (Semarang Skin Center)</h3>
-            <p class="text-[10px] text-gray-600">Jl. MH Thamrin No. 88, Semarang, Jawa Tengah • Telp: (024) 841-2345 • NPWP: 01.234.567.8-511.000</p>
+            <h2 class="text-xl font-bold uppercase tracking-wide">{{ currentEntity.title }}</h2>
+            <h3 class="text-xs font-semibold text-gray-800">{{ currentEntity.subtitle }}</h3>
+            <p class="text-[10px] text-gray-600">{{ currentEntity.address }}</p>
           </div>
           <div class="text-right border border-black p-2 rounded text-xs font-mono">
             <div class="font-bold text-sm">{{ reportNumber }}</div>
             <div class="text-[9px] text-gray-600">STATUS: {{ status === 'DATA_DIAMBIL' ? 'TERVERIFIKASI JURNAL' : status }}</div>
+            <div class="text-[9px] font-bold text-gray-800 mt-0.5">NPWP: {{ currentEntity.npwp }}</div>
           </div>
         </div>
       </div>
@@ -1300,7 +1310,7 @@ function handlePrint() {
           <div class="flex"><span class="w-36 font-bold">Nama Dokumen / Pajak:</span><span>{{ reportName }}</span></div>
           <div class="flex"><span class="w-36 font-bold">Kode Akun Pajak:</span><span class="font-mono">[{{ selectedTaxAccountCode }}] {{ activeTaxAccountCatalog.label }}</span></div>
           <div class="flex"><span class="w-36 font-bold">Masa / Tahun Pajak:</span><span>Masa {{ String(masaMonth).padStart(2, '0') }} / {{ masaYear }}</span></div>
-          <div class="flex"><span class="w-36 font-bold">Unit Bisnis / Entitas:</span><span>{{ unit === 'ALL' ? 'Semua Unit (Konsolidasi SMG)' : unit }}</span></div>
+          <div class="flex"><span class="w-36 font-bold">Unit Bisnis / Entitas:</span><span>{{ currentEntity.unitLabel }}</span></div>
         </div>
         <div class="space-y-1">
           <div class="flex"><span class="w-36 font-bold">Kanal Bank Penyetor:</span><span>{{ activeBankAccount.name }} ([{{ activeBankAccount.code }}])</span></div>
@@ -1380,11 +1390,11 @@ function handlePrint() {
         <div class="space-y-14">
           <div>
             <p>Menyetujui & Mengesahkan,</p>
-            <p class="font-bold">Direktur Utama SMG</p>
+            <p class="font-bold">{{ currentEntity.directorRole }}</p>
           </div>
           <div>
-            <p class="font-bold underline">dr. Ratna Paramita, M.Kes</p>
-            <p class="text-[10px] text-gray-600">SIP: 503/449.1/01/DS/2020</p>
+            <p class="font-bold underline">{{ currentEntity.director }}</p>
+            <p class="text-[10px] text-gray-600">{{ currentEntity.sip }}</p>
           </div>
         </div>
 

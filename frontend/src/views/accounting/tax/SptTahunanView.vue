@@ -7,7 +7,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import { exportSptTahunan1771ToExcel } from '@/utils/export'
+import { exportSptTahunan1771ToExcel, getEntityProfile } from '@/utils/export'
 import {
   FileText,
   CheckCircle2,
@@ -45,6 +45,7 @@ onMounted(async () => {
 })
 
 const annual1771 = computed(() => taxStore.annualTaxReport1771)
+const currentEntity = computed(() => getEntityProfile(accountingStore.businessUnit))
 const sptMatrix = computed(() => taxStore.monthlySptMasaMatrix)
 
 const selectedMonthForJournals = ref<number | null>(null)
@@ -985,13 +986,14 @@ function printReport() {
       <div class="border-b-2 border-black pb-3 mb-4">
         <div class="flex items-center justify-between">
           <div class="space-y-1">
-            <h2 class="text-xl font-bold uppercase tracking-wide">PT. SEMARANG MEDICAL GROUP</h2>
-            <h3 class="text-xs font-semibold text-gray-800">Klinik Pratama & Spesialis (Kidinest & Semarang Skin Center)</h3>
-            <p class="text-[10px] text-gray-600">Jl. MH Thamrin No. 88, Semarang, Jawa Tengah • Telp: (024) 841-2345 • KLU: 86101</p>
+            <h2 class="text-xl font-bold uppercase tracking-wide">{{ currentEntity.title }}</h2>
+            <h3 class="text-xs font-semibold text-gray-800">{{ currentEntity.subtitle }}</h3>
+            <p class="text-[10px] text-gray-600">{{ currentEntity.address }} • KLU: 86101</p>
           </div>
           <div class="text-right border border-black p-2 rounded text-xs font-mono">
             <div class="font-bold text-sm">FORMULIR 1771</div>
             <div class="text-[9px] text-gray-600">TAHUN PAJAK: {{ annual1771.fiscalYear }}</div>
+            <div class="text-[9px] font-bold text-gray-800 mt-0.5">NPWP: {{ currentEntity.npwp }}</div>
           </div>
         </div>
       </div>
@@ -1013,14 +1015,14 @@ function printReport() {
       <div class="border border-black p-2.5 text-[11px] mb-4 bg-gray-50/50">
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1">
-            <div class="flex"><span class="w-36 font-bold">NPWP Badan Usaha:</span><span class="font-mono font-bold">01.234.567.8-511.000</span></div>
-            <div class="flex"><span class="w-36 font-bold">Nama Wajib Pajak:</span><span class="font-bold">PT. SEMARANG MEDICAL GROUP</span></div>
+            <div class="flex"><span class="w-36 font-bold">NPWP Badan Usaha:</span><span class="font-mono font-bold">{{ currentEntity.npwp }}</span></div>
+            <div class="flex"><span class="w-36 font-bold">Nama Wajib Pajak:</span><span class="font-bold">{{ currentEntity.title }}</span></div>
             <div class="flex"><span class="w-36 font-bold">Jenis Usaha (KLU):</span><span>86101 - Aktivitas Pelayanan Medis Klinik Swasta</span></div>
           </div>
           <div class="space-y-1">
             <div class="flex"><span class="w-36 font-bold">Status Pelaporan:</span><span class="font-bold">{{ annual1771.status }}</span></div>
-            <div class="flex"><span class="w-36 font-bold">Nomor Telepon:</span><span>(024) 841-2345 / 841-6789</span></div>
-            <div class="flex"><span class="w-36 font-bold">Alamat Resmi:</span><span>Jl. MH Thamrin No. 88, Kota Semarang</span></div>
+            <div class="flex"><span class="w-36 font-bold">Entitas Unit:</span><span>{{ currentEntity.unitLabel }}</span></div>
+            <div class="flex"><span class="w-36 font-bold">Alamat Resmi:</span><span>{{ currentEntity.address }}</span></div>
           </div>
         </div>
       </div>
@@ -1165,11 +1167,11 @@ function printReport() {
         <div class="space-y-14">
           <div>
             <p>Menyetujui & Mengesahkan,</p>
-            <p class="font-bold">Direktur Utama SMG</p>
+            <p class="font-bold">{{ currentEntity.directorRole }}</p>
           </div>
           <div>
-            <p class="font-bold underline">dr. Ratna Paramita, M.Kes</p>
-            <p class="text-[10px] text-gray-600">SIP: 503/449.1/01/DS/2020</p>
+            <p class="font-bold underline">{{ currentEntity.director }}</p>
+            <p class="text-[10px] text-gray-600">{{ currentEntity.sip }}</p>
           </div>
         </div>
 

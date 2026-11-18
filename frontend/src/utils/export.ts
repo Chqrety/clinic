@@ -1,12 +1,57 @@
 import * as XLSX from 'xlsx'
 
+export interface EntityProfile {
+  title: string
+  subtitle: string
+  address: string
+  npwp: string
+  unitLabel: string
+  director: string
+  directorRole: string
+  sip: string
+}
+
+export function getEntityProfile(businessUnit = 'ALL'): EntityProfile {
+  if (businessUnit === 'KIDINEST') {
+    return {
+      title: 'KLINIK SPESIALIS ANAK KIDINEST',
+      subtitle: 'Klinik Pratama & Rawat Jalan Spesialis Anak & Tumbuh Kembang (Sp.A)',
+      address: 'Jl. MH Thamrin No. 88 Lantai 1, Semarang, Jawa Tengah • Telp: (024) 841-2345 • NPWP: 01.234.567.8-511.001',
+      npwp: '01.234.567.8-511.001',
+      unitLabel: 'Unit Kidinest (Klinik Anak)',
+      director: 'dr. Patricia Vanessa A., Sp.A',
+      directorRole: 'Penanggung Jawab Medis Kidinest',
+      sip: 'SIP: 503/449.1/01/SPA/2021'
+    }
+  } else if (businessUnit === 'SSC') {
+    return {
+      title: 'SEMARANG SKIN CENTER (SSC)',
+      subtitle: 'Klinik Spesialis Dermatologi, Venereologi & Estetika Medis (Sp.D.V.E)',
+      address: 'Jl. MH Thamrin No. 88 Lantai 2, Semarang, Jawa Tengah • Telp: (024) 841-6789 • NPWP: 01.234.567.8-511.002',
+      npwp: '01.234.567.8-511.002',
+      unitLabel: 'Unit Semarang Skin Center (SSC)',
+      director: 'dr. Dian Paramita, Sp.D.V.E',
+      directorRole: 'Penanggung Jawab Medis SSC',
+      sip: 'SIP: 503/449.1/02/SPDVE/2022'
+    }
+  }
+  return {
+    title: 'PT. SEMARANG MEDICAL GROUP',
+    subtitle: 'Klinik Spesialis Anak (Kidinest) & Spesialis Kulit (Semarang Skin Center)',
+    address: 'Jl. MH Thamrin No. 88, Semarang, Jawa Tengah • Telp: (024) 841-2345 • NPWP: 01.234.567.8-511.000',
+    npwp: '01.234.567.8-511.000',
+    unitLabel: 'Semua Unit (Konsolidasi SMG)',
+    director: 'dr. Ratna Paramita, M.Kes',
+    directorRole: 'Direktur Utama SMG',
+    sip: 'SIP: 503/449.1/01/DS/2020'
+  }
+}
+
 /**
  * Company name helper resolving business unit to full legal entity title
  */
 export function getCompanyName(businessUnit = 'ALL'): string {
-  if (businessUnit === 'KIDINEST') return 'KLINIK SPESIALIS ANAK KIDINEST'
-  if (businessUnit === 'SSC') return 'SEMARANG SKIN CENTER (SSC)'
-  return 'SEMARANG MEDICAL GROUP (SMG) - KLINIK KIDINEST & SSC'
+  return getEntityProfile(businessUnit).title
 }
 
 /**
