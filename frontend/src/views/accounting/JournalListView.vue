@@ -291,7 +291,7 @@ function handleExportExcel() {
           class="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
         >
           <Plus class="w-3.5 h-3.5 text-emerald-400" />
-          <span>+ Buat Jurnal Baru (New Page)</span>
+          <span>Buat Jurnal Baru (New Page)</span>
         </router-link>
 
         <button

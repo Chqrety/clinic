@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useTaxStore, type SptMasaType, type LinkedTaxJournalEntry } from '@/stores/tax'
+import { useTaxStore, type SptMasaType } from '@/stores/tax'
 import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
-import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { BusinessUnit } from '@/types/accounting'
 import {
+  Folder,
   ArrowLeft,
   Calculator,
   Save,
@@ -128,14 +128,6 @@ const availableAccounts = computed(() => {
   return ledgerStore.accounts.filter(a => !a.isHeader && a.isActive !== false)
 })
 
-const accountSelectOptions = computed(() => {
-  return availableAccounts.value.map(acc => ({
-    value: acc.code,
-    label: `[${acc.code}] ${acc.name}`,
-    sublabel: `${acc.type} • Saldo Normal: ${acc.normalBalance}`
-  }))
-})
-
 // Sync taxType when selectedTaxAccountCode changes
 watch(selectedTaxAccountCode, (code) => {
   const found = taxAccountCatalog.find(c => c.code === code)
@@ -191,7 +183,7 @@ function pullDataFromGeneralJournal(showNotice = true) {
 
   if (journals.length > 0) {
     rows.value = journals.map((j, idx) => {
-      let bu = 'KONSOLIDASI'
+      let bu = j.businessUnit || (unit.value === 'ALL' ? 'KONSOLIDASI' : unit.value)
       const descUpper = (j.description || '').toUpperCase()
       if (descUpper.includes('KIDINEST') || descUpper.includes('ANAK') || descUpper.includes('SP.A')) bu = 'KIDINEST'
       else if (descUpper.includes('SSC') || descUpper.includes('SKIN') || descUpper.includes('ESTETIKA')) bu = 'SSC'
@@ -457,7 +449,7 @@ function handleSave() {
     })
   }
 
-  accountingStore.showToast(`Dokumen Pelaporan Pajak ${reportNumber.value} berhasil disimpan & terekam di Buku Besar!`, 'success')
+  accountingStore.showToast(`Dokumen SPT Masa ${reportNumber.value} berhasil disimpan dan disinkronkan ke Buku Besar!`, 'success')
   router.push('/accounting/tax/spt-masa')
 }
 
@@ -527,749 +519,753 @@ function handlePrint() {
 
 <template>
   <div class="font-['Plus_Jakarta_Sans',sans-serif] max-w-7xl mx-auto pb-16">
-    <!-- Screen UI Container (Hidden upon print) -->
-    <div class="print:hidden space-y-6">
-      <!-- Top Header: Brayo Pajak Breadcrumb & Actions -->
-    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
-      <div class="space-y-1">
-        <div class="flex items-center gap-2 text-xs font-semibold text-zinc-500">
-          <router-link to="/accounting/tax/spt-masa" class="hover:text-zinc-950 transition flex items-center gap-1">
-            <ArrowLeft class="w-3.5 h-3.5" />
+    <!-- ========================================================================= -->
+    <!-- SCREEN UI: BRAYO PAJAK MODERN DARK INTERFACE (apptax.brayo.id)             -->
+    <!-- Meniru 1:1 Tampilan Sederhana & Bersih Sesuai Screenshot User              -->
+    <!-- ========================================================================= -->
+    <div class="print:hidden bg-[#18191c] text-zinc-300 min-h-screen -mx-4 -mt-4 p-5 sm:p-7 rounded-2xl shadow-xl space-y-6">
+      
+      <!-- 1. Header: Breadcrumb & Brayo Action Bar -->
+      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-[#282a31]">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-xs text-zinc-400 flex-wrap">
+          <router-link to="/accounting/tax/spt-masa" class="hover:text-zinc-200 transition flex items-center gap-1.5 text-zinc-400">
+            <Folder class="w-4 h-4 text-zinc-500" />
             <span>Brayo Pajak</span>
           </router-link>
           <span>/</span>
-          <span class="hover:text-zinc-950">Pelaporan Pajak</span>
+          <span class="text-zinc-400">Pelaporan Pajak</span>
           <span>/</span>
-          <span class="font-mono font-bold text-zinc-950">{{ reportNumber }}</span>
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-800 border border-cyan-200">
+          <span class="font-mono font-bold text-zinc-100">{{ reportNumber }}</span>
+          <span class="ml-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-[#143c44] text-[#2dd4bf] border border-[#195663]">
             {{ status === 'DATA_DIAMBIL' ? 'Data Diambil' : (status === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft') }}
           </span>
         </div>
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-zinc-950 tracking-tight">
-            {{ reportName }} - {{ reportNumber }}
-          </h1>
-          <span class="text-xs px-2.5 py-1 bg-zinc-900 text-white rounded-lg font-mono font-bold">
-            Masa {{ String(masaMonth).padStart(2, '0') }}/{{ masaYear }}
-          </span>
+
+        <!-- Top Right Actions matching Brayo Screenshot -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            @click="handleExportExcel"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-200 text-zinc-950 font-bold rounded-lg text-xs shadow-sm transition active:scale-95 cursor-pointer"
+            title="Export Excel (.xlsx)"
+          >
+            <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-700" />
+            <span>Export Excel (.xlsx)</span>
+          </button>
+
+          <button
+            type="button"
+            @click="handleExportCSV"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25272e] hover:bg-[#2d3038] text-zinc-300 font-semibold rounded-lg text-xs border border-[#373a43] transition active:scale-95 cursor-pointer"
+            title="Export CSV"
+          >
+            <Download class="w-3.5 h-3.5 text-zinc-400" />
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            type="button"
+            @click="handlePrint"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25272e] hover:bg-[#2d3038] text-zinc-300 font-semibold rounded-lg text-xs border border-[#373a43] transition active:scale-95 cursor-pointer"
+            title="Cetak Formulir Resmi DJP"
+          >
+            <Printer class="w-3.5 h-3.5 text-blue-400" />
+            <span>Cetak Formulir</span>
+          </button>
+
+          <button
+            type="button"
+            @click="() => pullDataFromGeneralJournal(true)"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold rounded-lg text-xs border border-amber-500/40 transition active:scale-95 cursor-pointer"
+            title="Tarik data transaksi terbaru dari Jurnal Umum & Buku Besar"
+          >
+            <Sparkles class="w-3.5 h-3.5 text-amber-400" />
+            <span>⚡ Ambil Data Otomatis</span>
+          </button>
+
+          <button
+            type="button"
+            @click="handleSave"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs shadow-sm transition active:scale-95 cursor-pointer"
+          >
+            <Save class="w-3.5 h-3.5" />
+            <span>Simpan</span>
+          </button>
+
+          <router-link
+            to="/accounting/tax/spt-masa"
+            class="inline-flex items-center px-3 py-1.5 text-zinc-400 hover:text-zinc-200 text-xs font-semibold transition"
+          >
+            Cancel
+          </router-link>
         </div>
+      </header>
+
+      <!-- 2. Brayo Tabs Navigation -->
+      <div class="border-b border-[#282a31]">
+        <nav class="flex space-x-6 text-xs font-medium">
+          <button
+            type="button"
+            @click="activeTab = 'DETAILS'"
+            class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
+            :class="activeTab === 'DETAILS' ? 'border-b-2 border-white text-white font-bold' : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-200'"
+          >
+            <BookOpen class="w-3.5 h-3.5" />
+            <span>Details</span>
+          </button>
+
+          <button
+            type="button"
+            @click="activeTab = 'RECONCILIATION'"
+            class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
+            :class="activeTab === 'RECONCILIATION' ? 'border-b-2 border-white text-white font-bold' : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-200'"
+          >
+            <Calculator class="w-3.5 h-3.5" />
+            <span>Rekonsiliasi & Status</span>
+          </button>
+
+          <button
+            type="button"
+            @click="activeTab = 'AUDIT'"
+            class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
+            :class="activeTab === 'AUDIT' ? 'border-b-2 border-white text-white font-bold' : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-200'"
+          >
+            <Clock class="w-3.5 h-3.5" />
+            <span>Audit Trail & Sync</span>
+          </button>
+        </nav>
       </div>
 
-      <!-- Brayo Top Right Action Buttons -->
-      <div class="flex items-center gap-2 flex-wrap">
-        <button
-          type="button"
-          @click="handleExportExcel"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
-          title="Ekspor Laporan SPT Masa beserta rincian per voucher jurnal ke format Excel"
-        >
-          <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600" />
-          <span>Export Excel (.xlsx)</span>
-        </button>
+      <!-- 3. TAB 1: DETAILS (Brayo 2-Column Split: Left Content + Right Sidebar) -->
+      <div v-if="activeTab === 'DETAILS'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- LEFT MAIN CONTENT (9 Cols) -->
+        <div class="lg:col-span-9 space-y-7">
+          
+          <!-- Section A: Periode Pelaporan (Form 2 Kolom Bersih Sesuai Screenshot) -->
+          <div>
+            <h3 class="text-sm font-semibold text-zinc-200 mb-3.5">
+              Periode Pelaporan
+            </h3>
 
-        <button
-          type="button"
-          @click="handleExportCSV"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
-          title="Ekspor rincian per transaksi jurnal ke CSV"
-        >
-          <Download class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Export CSV</span>
-        </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5 text-xs">
+              <!-- Left Form Col -->
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-zinc-400 mb-1">Nama Laporan / Transaksi *</label>
+                  <input
+                    v-model="reportName"
+                    type="text"
+                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 transition"
+                  />
+                </div>
 
-        <button
-          type="button"
-          @click="handlePrint"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
-          title="Cetak Formulir Resmi Bukti Pelaporan SPT Masa DJP"
-        >
-          <Printer class="w-3.5 h-3.5 text-blue-600" />
-          <span>Cetak Formulir</span>
-        </button>
+                <div>
+                  <label class="block text-zinc-400 mb-1">Company *</label>
+                  <input
+                    v-model="companyName"
+                    type="text"
+                    readonly
+                    class="w-full px-3 py-2 bg-[#1b1c20] border border-[#272930] rounded-lg text-zinc-400 font-semibold cursor-not-allowed"
+                  />
+                  <p class="text-[10px] text-zinc-500 mt-1 font-mono">NPWP: {{ currentEntity.npwp }} • {{ currentEntity.subtitle }}</p>
+                </div>
 
-        <button
-          type="button"
-          @click="() => pullDataFromGeneralJournal(true)"
-          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded-xl text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
-        >
-          <Sparkles class="w-3.5 h-3.5 text-zinc-950" />
-          <span>⚡ Ambil Data Otomatis</span>
-        </button>
+                <div>
+                  <label class="block text-zinc-400 mb-1">Project</label>
+                  <select
+                    v-model="unit"
+                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 cursor-pointer transition"
+                  >
+                    <option value="ALL">Semua Unit (Konsolidasi)</option>
+                    <option value="KIDINEST">Unit Kidinest (Klinik Anak)</option>
+                    <option value="SSC">Unit SSC (Semarang Skin Center)</option>
+                  </select>
+                </div>
 
-        <button
-          type="button"
-          @click="handleSave"
-          class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition active:scale-95 cursor-pointer"
-        >
-          <Save class="w-3.5 h-3.5" />
-          <span>Simpan Pelaporan</span>
-        </button>
-      </div>
-    </header>
+                <div>
+                  <label class="block text-zinc-400 mb-1">Sumber Transaksi *</label>
+                  <select
+                    v-model="sourceTransactionFilter"
+                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 cursor-pointer transition"
+                  >
+                    <option value="Semua Transaksi">Semua Transaksi</option>
+                    <option value="Buku Besar">Buku Besar (General Ledger)</option>
+                    <option value="Jurnal Umum">Jurnal Umum (Journal Entry)</option>
+                    <option value="Kasir Closing">Transaksi Kasir Otomatis</option>
+                  </select>
+                </div>
 
-    <!-- Brayo Tabs Navigation: Details | Rekonsiliasi & Status | Audit Trail & Sync -->
-    <div class="border-b border-zinc-200">
-      <nav class="flex space-x-6 text-xs font-bold">
-        <button
-          type="button"
-          @click="activeTab = 'DETAILS'"
-          class="pb-3 border-b-2 transition flex items-center gap-1.5 cursor-pointer"
-          :class="activeTab === 'DETAILS' ? 'border-zinc-950 text-zinc-950' : 'border-transparent text-zinc-400 hover:text-zinc-700'"
-        >
-          <BookOpen class="w-3.5 h-3.5" />
-          <span>Details</span>
-        </button>
+                <div>
+                  <label class="block text-zinc-400 mb-1">Jenis Pajak</label>
+                  <select
+                    v-model="selectedTaxAccountCode"
+                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 cursor-pointer transition"
+                  >
+                    <option
+                      v-for="c in taxAccountCatalog"
+                      :key="c.code"
+                      :value="c.code"
+                    >
+                      {{ c.label }}
+                    </option>
+                  </select>
+                </div>
 
-        <button
-          type="button"
-          @click="activeTab = 'RECONCILIATION'"
-          class="pb-3 border-b-2 transition flex items-center gap-1.5 cursor-pointer"
-          :class="activeTab === 'RECONCILIATION' ? 'border-zinc-950 text-zinc-950' : 'border-transparent text-zinc-400 hover:text-zinc-700'"
-        >
-          <Calculator class="w-3.5 h-3.5" />
-          <span>Rekonsiliasi & Status</span>
-        </button>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-zinc-400 mb-1">Bulan *</label>
+                    <select
+                      v-model.number="masaMonth"
+                      class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none cursor-pointer"
+                    >
+                      <option :value="1">01 - Januari</option>
+                      <option :value="2">02 - Februari</option>
+                      <option :value="3">03 - Maret</option>
+                      <option :value="4">04 - April</option>
+                      <option :value="5">05 - Mei</option>
+                      <option :value="6">06 - Juni</option>
+                      <option :value="7">07 - Juli</option>
+                      <option :value="8">08 - Agustus</option>
+                      <option :value="9">09 - September</option>
+                      <option :value="10">10 - Oktober</option>
+                      <option :value="11">11 - November</option>
+                      <option :value="12">12 - Desember</option>
+                    </select>
+                  </div>
 
-        <button
-          type="button"
-          @click="activeTab = 'AUDIT'"
-          class="pb-3 border-b-2 transition flex items-center gap-1.5 cursor-pointer"
-          :class="activeTab === 'AUDIT' ? 'border-zinc-950 text-zinc-950' : 'border-transparent text-zinc-400 hover:text-zinc-700'"
-        >
-          <Clock class="w-3.5 h-3.5" />
-          <span>Audit Trail & Sync</span>
-        </button>
-      </nav>
-    </div>
+                  <div>
+                    <label class="block text-zinc-400 mb-1">Tahun *</label>
+                    <input
+                      v-model.number="masaYear"
+                      type="number"
+                      class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg font-mono text-zinc-100 font-semibold focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
 
-    <!-- TAB 1: DETAILS -->
-    <div v-if="activeTab === 'DETAILS'" class="space-y-6">
-      <!-- Section 1: Periode Pelaporan (Brayo Layout) -->
-      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-5 space-y-4">
-        <div class="border-b border-zinc-100 pb-2">
-          <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">
-            Periode Pelaporan
-          </h3>
-        </div>
+              <!-- Right Form Col -->
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-zinc-400 mb-1">Status</label>
+                  <input
+                    type="text"
+                    readonly
+                    :value="status === 'DATA_DIAMBIL' ? 'Data Diambil' : (status === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft')"
+                    class="w-full px-3 py-2 bg-[#1b1c20] border border-[#272930] rounded-lg text-teal-400 font-semibold cursor-not-allowed"
+                  />
+                </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-xs">
-          <!-- Col 1 -->
-          <div class="space-y-3">
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Nama Laporan / Transaksi *</label>
-              <input
-                v-model="reportName"
-                type="text"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950"
-              />
-            </div>
+                <div>
+                  <label class="block text-zinc-400 mb-1">Tanggal Dibuat</label>
+                  <input
+                    v-model="createdDate"
+                    type="date"
+                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg font-mono text-zinc-100 focus:outline-none"
+                  />
+                </div>
 
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Company *</label>
-              <input
-                v-model="companyName"
-                type="text"
-                readonly
-                class="w-full px-3 py-2 bg-zinc-100 border border-zinc-200 rounded-xl font-bold text-zinc-600 cursor-not-allowed"
-              />
-              <p class="text-[10px] text-zinc-500 mt-1 font-mono">NPWP: {{ currentEntity.npwp }} • {{ currentEntity.subtitle }}</p>
-            </div>
+                <div>
+                  <label class="block text-zinc-400 mb-1">Rekening Bank Penyetor</label>
+                  <select
+                    v-model="bankAccountCode"
+                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none cursor-pointer"
+                  >
+                    <option
+                      v-for="b in taxStore.availableBankAccounts"
+                      :key="b.code"
+                      :value="b.code"
+                    >
+                      [{{ b.code }}] {{ b.name }}
+                    </option>
+                  </select>
+                </div>
 
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Project / Unit Bisnis</label>
-              <select
-                v-model="unit"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 cursor-pointer"
-              >
-                <option value="ALL">Semua Unit (Konsolidasi)</option>
-                <option value="KIDINEST">Unit Kidinest (Klinik Anak)</option>
-                <option value="SSC">Unit SSC (Semarang Skin Center)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Sumber Transaksi *</label>
-              <select
-                v-model="sourceTransactionFilter"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:outline-none cursor-pointer"
-              >
-                <option value="Semua Transaksi">Semua Transaksi</option>
-                <option value="Buku Besar">Buku Besar (General Ledger)</option>
-                <option value="Jurnal Umum">Jurnal Umum (Journal Entry)</option>
-                <option value="Kasir Closing">Transaksi Kasir Otomatis</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Jenis Pajak (Akun COA) *</label>
-              <select
-                v-model="selectedTaxAccountCode"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950 cursor-pointer"
-              >
-                <option
-                  v-for="c in taxAccountCatalog"
-                  :key="c.code"
-                  :value="c.code"
-                >
-                  {{ c.label }}
-                </option>
-              </select>
+                <div>
+                  <label class="block text-zinc-400 mb-1">Nomor NTPN / Kode Billing DJP</label>
+                  <input
+                    v-model="ntpnNumber"
+                    type="text"
+                    placeholder="Contoh: NTPN-BCA-20261120-9901"
+                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg font-mono text-zinc-100 placeholder-zinc-600 focus:outline-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Col 2 -->
-          <div class="space-y-3">
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Status</label>
+          <!-- Section B: Detail Transaksi Pajak (Brayo Clean Dark Table) -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h3 class="text-sm font-semibold text-zinc-200">
+                  Detail Transaksi Pajak
+                </h3>
+                <span class="text-xs text-zinc-500">Detail</span>
+              </div>
+
               <div class="flex items-center gap-2">
-                <span class="px-3 py-1.5 rounded-xl font-bold text-xs bg-cyan-50 text-cyan-800 border border-cyan-200 flex-1">
-                  {{ status === 'DATA_DIAMBIL' ? 'Data Diambil (Terintegrasi)' : (status === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft') }}
-                </span>
                 <button
                   type="button"
-                  @click="() => pullDataFromGeneralJournal(true)"
-                  class="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl font-bold text-xs transition cursor-pointer"
+                  @click="toggleSelectAll"
+                  class="text-[11px] font-medium text-cyan-400 hover:text-cyan-300 transition px-2 py-1 rounded cursor-pointer"
                 >
-                  Sync Ulang
+                  {{ isAllSelected ? 'Batal Pilih Semua' : 'Pilih Semua' }}
+                </button>
+                <button
+                  type="button"
+                  @click="addRow"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 bg-[#24262c] hover:bg-[#2e3138] text-zinc-200 rounded-lg text-xs font-semibold border border-[#373a43] transition cursor-pointer"
+                >
+                  <Plus class="w-3 h-3" />
+                  <span>Tambah Baris</span>
                 </button>
               </div>
             </div>
 
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Tanggal Dibuat</label>
-              <input
-                v-model="createdDate"
-                type="date"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 focus:outline-none"
-              />
-            </div>
+            <!-- Brayo Clean Dark Table -->
+            <div class="border border-[#282a31] rounded-xl overflow-hidden bg-[#18191d]">
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                  <thead class="bg-[#1e2025] text-zinc-400 font-semibold border-b border-[#282a31] text-[11px]">
+                    <tr>
+                      <th class="px-3 py-2.5 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          :checked="isAllSelected"
+                          @change="toggleSelectAll"
+                          class="w-3.5 h-3.5 rounded bg-[#25272e] border-zinc-600 text-cyan-500 focus:ring-0 cursor-pointer"
+                        />
+                      </th>
+                      <th class="px-2 py-2.5 w-8 text-center text-zinc-500">No.</th>
+                      <th class="px-3 py-2.5 w-24">Tanggal</th>
+                      <th class="px-3 py-2.5 w-28">Voucher Type</th>
+                      <th class="px-3 py-2.5 w-36">No Bukti</th>
+                      <th class="px-3 py-2.5 w-28">Project</th>
+                      <th class="px-3 py-2.5 w-28">Sumber Transaksi</th>
+                      <th class="px-3 py-2.5 min-w-[180px]">Akun Pajak</th>
+                      <th class="px-3 py-2.5 w-20 text-center">Source Status</th>
+                      <th class="px-3 py-2.5 w-32 text-right">DPP Final</th>
+                      <th class="px-3 py-2.5 w-32 text-right">Pajak Final</th>
+                      <th class="px-2 py-2.5 w-8 text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-[#23252c] text-zinc-300">
+                    <tr
+                      v-for="(row, idx) in rows"
+                      :key="row.id"
+                      :class="[
+                        'hover:bg-[#1f2127] transition',
+                        row.selected ? 'bg-transparent' : 'opacity-40'
+                      ]"
+                    >
+                      <!-- Checkbox -->
+                      <td class="px-3 py-2 text-center">
+                        <input
+                          v-model="row.selected"
+                          type="checkbox"
+                          class="w-3.5 h-3.5 rounded bg-[#25272e] border-zinc-600 text-cyan-500 focus:ring-0 cursor-pointer"
+                        />
+                      </td>
 
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-bold text-zinc-700 mb-1">Bulan *</label>
-                <select
-                  v-model.number="masaMonth"
-                  class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:outline-none cursor-pointer"
-                >
-                  <option :value="1">01 - Januari</option>
-                  <option :value="2">02 - Februari</option>
-                  <option :value="3">03 - Maret</option>
-                  <option :value="4">04 - April</option>
-                  <option :value="5">05 - Mei</option>
-                  <option :value="6">06 - Juni</option>
-                  <option :value="7">07 - Juli</option>
-                  <option :value="8">08 - Agustus</option>
-                  <option :value="9">09 - September</option>
-                  <option :value="10">10 - Oktober</option>
-                  <option :value="11">11 - November</option>
-                  <option :value="12">12 - Desember</option>
-                </select>
+                      <!-- No -->
+                      <td class="px-2 py-2 text-center text-zinc-500 font-mono">
+                        {{ idx + 1 }}
+                      </td>
+
+                      <!-- Tanggal -->
+                      <td class="px-3 py-2 font-mono text-zinc-300">
+                        <input
+                          v-model="row.date"
+                          type="date"
+                          class="bg-transparent border-b border-transparent hover:border-zinc-600 text-xs text-zinc-200 focus:outline-none"
+                        />
+                      </td>
+
+                      <!-- Voucher Type -->
+                      <td class="px-3 py-2 text-zinc-400">
+                        {{ row.voucherType }}
+                      </td>
+
+                      <!-- No Bukti -->
+                      <td class="px-3 py-2 font-mono">
+                        <button
+                          v-if="row.journalNumber"
+                          type="button"
+                          @click="openJournalPreview(row)"
+                          class="text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                          title="Klik pratinjau voucher jurnal"
+                        >
+                          <span>{{ row.journalNumber }}</span>
+                          <ExternalLink class="w-2.5 h-2.5 text-zinc-500" />
+                        </button>
+                        <span v-else class="text-zinc-500 italic">[Manual]</span>
+                      </td>
+
+                      <!-- Project -->
+                      <td class="px-3 py-2">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-300 font-medium">
+                          {{ row.project }}
+                        </span>
+                      </td>
+
+                      <!-- Sumber Transaksi -->
+                      <td class="px-3 py-2 text-zinc-400">
+                        {{ row.sourceTransaction }}
+                      </td>
+
+                      <!-- Akun Pajak -->
+                      <td class="px-3 py-2 font-mono">
+                        <span class="text-zinc-200 font-semibold">{{ row.taxAccountCode }}</span>
+                        <span class="text-zinc-400 text-[11px] block truncate max-w-[180px]">{{ row.taxAccountName }}</span>
+                      </td>
+
+                      <!-- Source Status -->
+                      <td class="px-3 py-2 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#163628] text-[#4ade80]">
+                          {{ row.sourceStatus }}
+                        </span>
+                      </td>
+
+                      <!-- DPP Final -->
+                      <td class="px-3 py-2 text-right font-mono">
+                        <input
+                          v-model.number="row.dppFinal"
+                          @input="() => onDppFinalChange(row)"
+                          type="number"
+                          class="w-28 px-2 py-1 bg-[#202227] border border-[#2f323a] rounded text-right font-mono text-zinc-100 focus:outline-none focus:border-zinc-500"
+                        />
+                      </td>
+
+                      <!-- Pajak Final with Pen Icon -->
+                      <td class="px-3 py-2 text-right font-mono">
+                        <div class="flex items-center justify-end gap-1">
+                          <input
+                            v-model.number="row.pajakFinal"
+                            @input="() => onPajakFinalChange(row)"
+                            type="number"
+                            class="w-28 px-2 py-1 bg-[#202227] border border-[#2f323a] rounded text-right font-mono font-bold text-teal-400 focus:outline-none focus:border-zinc-500"
+                          />
+                          <Pencil class="w-3 h-3 text-zinc-500 shrink-0" />
+                        </div>
+                      </td>
+
+                      <!-- Delete -->
+                      <td class="px-2 py-2 text-center">
+                        <button
+                          type="button"
+                          @click="removeRow(idx)"
+                          class="text-zinc-600 hover:text-rose-400 transition cursor-pointer"
+                        >
+                          <Trash2 class="w-3 h-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section C: Ringkasan Nilai Pajak (3 Kolom Bersih Sesuai Screenshot) -->
+          <div>
+            <h3 class="text-sm font-semibold text-zinc-200 mb-3">
+              Ringkasan Nilai Pajak
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs bg-[#1a1b1f] border border-[#282a31] rounded-xl p-4">
+              <!-- Col 1: Original -->
+              <div class="space-y-3">
+                <div>
+                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total DPP Original</span>
+                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                    Rp {{ formatIDR(totalDppOriginal) }}
+                  </span>
+                </div>
+                <div class="pt-2 border-t border-[#26282e]">
+                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total Pajak Original</span>
+                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                    Rp {{ formatIDR(totalPajakOriginal) }}
+                  </span>
+                </div>
               </div>
 
-              <div>
-                <label class="block font-bold text-zinc-700 mb-1">Tahun *</label>
+              <!-- Col 2: Adjustment -->
+              <div class="space-y-3">
+                <div>
+                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total DPP Adjustment</span>
+                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                    Rp {{ formatIDR(totalDppAdjustment) }}
+                  </span>
+                </div>
+                <div class="pt-2 border-t border-[#26282e]">
+                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total Pajak Adjustment</span>
+                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                    Rp {{ formatIDR(totalPajakAdjustment) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Col 3: Final -->
+              <div class="space-y-3">
+                <div>
+                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total DPP Final</span>
+                  <span class="font-mono text-sm text-teal-400 font-bold">
+                    Rp {{ formatIDR(totalDppFinal) }}
+                  </span>
+                </div>
+                <div class="pt-2 border-t border-[#26282e]">
+                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total Pajak Final</span>
+                  <span class="font-mono text-sm text-teal-400 font-extrabold">
+                    Rp {{ formatIDR(totalPajakFinal) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section D: Comments (Sesuai Screenshot Brayo) -->
+          <div class="pt-2">
+            <h3 class="text-sm font-semibold text-zinc-200 mb-3">
+              Comments
+            </h3>
+
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-full bg-pink-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                AP
+              </div>
+              <div class="flex-1 flex items-center gap-2">
                 <input
-                  v-model.number="masaYear"
-                  type="number"
-                  class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono font-bold text-zinc-900 focus:outline-none"
+                  v-model="commentText"
+                  type="text"
+                  placeholder="Type a reply / comment..."
+                  class="flex-1 px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+                  @keyup.enter="accountingStore.showToast('Komentar berhasil ditambahkan!', 'success')"
                 />
+                <button
+                  type="button"
+                  @click="accountingStore.showToast('Komentar berhasil ditambahkan!', 'success')"
+                  class="px-3 py-2 bg-[#2a2c33] hover:bg-[#343740] text-zinc-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR (3 Cols - Matching Brayo Screenshot) -->
+        <div class="lg:col-span-3 space-y-5 lg:border-l lg:border-[#282a31] lg:pl-6">
+          <!-- Document Header -->
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold text-zinc-100 uppercase">
+              {{ reportName }}
+            </h4>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs text-zinc-400">{{ reportNumber }}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#143c44] text-[#2dd4bf]">
+                {{ status === 'DATA_DIAMBIL' ? 'Data Diambil' : status }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Brayo Action Items with '+' icon -->
+          <div class="space-y-3.5 text-xs text-zinc-300">
+            <!-- Assign -->
+            <div class="flex items-center justify-between py-1 border-b border-[#24262c]">
+              <span class="flex items-center gap-2 text-zinc-400">
+                <UserPlus class="w-3.5 h-3.5 text-zinc-500" />
+                <span>Assign</span>
+              </span>
+              <button type="button" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
+            </div>
+
+            <!-- Attachments -->
+            <div class="space-y-2 py-1 border-b border-[#24262c]">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-2 text-zinc-400">
+                  <Paperclip class="w-3.5 h-3.5 text-zinc-500" />
+                  <span>Attachments</span>
+                </span>
+                <button type="button" @click="handleExportExcel" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
+              </div>
+
+              <!-- Attached file chip (matching screenshot) -->
+              <div
+                @click="handleExportExcel"
+                class="flex items-center gap-2.5 p-2 bg-[#202227] hover:bg-[#252830] border border-[#2c2f38] rounded-lg cursor-pointer transition"
+                title="Klik untuk mengunduh Excel"
+              >
+                <FileSpreadsheet class="w-4 h-4 text-emerald-400 shrink-0" />
+                <div class="min-w-0 flex-1">
+                  <div class="text-[11px] font-semibold text-zinc-200 truncate">
+                    Laporan_Pajak_{{ reportNumber }}.xlsx
+                  </div>
+                  <div class="text-[10px] text-zinc-500 font-mono">
+                    XLSX • 6.4 KB
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Rekening Bank Penyetor (PMK DJP Non-Cash)</label>
-              <select
-                v-model="bankAccountCode"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:outline-none cursor-pointer"
-              >
-                <option
-                  v-for="b in taxStore.availableBankAccounts"
-                  :key="b.code"
-                  :value="b.code"
-                >
-                  [{{ b.code }}] {{ b.name }}
-                </option>
-              </select>
+            <!-- Tags -->
+            <div class="space-y-2 py-1 border-b border-[#24262c]">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-2 text-zinc-400">
+                  <Tag class="w-3.5 h-3.5 text-zinc-500" />
+                  <span>Tags</span>
+                </span>
+                <button type="button" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-400 border border-[#2e3038]">
+                  SPT Masa
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-400 border border-[#2e3038]">
+                  {{ unit }}
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-400 border border-[#2e3038]">
+                  PMK DJP
+                </span>
+              </div>
             </div>
 
-            <div>
-              <label class="block font-bold text-zinc-700 mb-1">Nomor NTPN / Kode Billing DJP</label>
-              <input
-                v-model="ntpnNumber"
-                type="text"
-                placeholder="e.g. NTPN-BCA-20261120-9901"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono font-bold text-zinc-900 focus:outline-none"
-              />
+            <!-- Share -->
+            <div class="flex items-center justify-between py-1 border-b border-[#24262c]">
+              <span class="flex items-center gap-2 text-zinc-400">
+                <Share2 class="w-3.5 h-3.5 text-zinc-500" />
+                <span>Share</span>
+              </span>
+              <button type="button" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
             </div>
+          </div>
+
+          <!-- Metadata timestamps (matching Brayo screenshot) -->
+          <div class="space-y-1 text-[11px] text-zinc-500 pt-2">
+            <div>You last edited this · Just now</div>
+            <div>You created this · Today</div>
           </div>
         </div>
       </div>
 
-      <!-- Section 2: Detail Transaksi Pajak (Brayo Detail Table from Image 2) -->
-      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
-        <div class="p-4 border-b border-zinc-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50">
-          <div>
-            <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">
-              Detail Transaksi Pajak
-            </h3>
-            <span class="text-[11px] text-zinc-500">
-              Rincian voucher Jurnal Umum dan Buku Besar yang menjadi dasar pemotongan pajak periode ini
+      <!-- TAB 2: RECONCILIATION & STATUS -->
+      <div v-else-if="activeTab === 'RECONCILIATION'" class="space-y-6">
+        <div class="bg-[#1e2025] border border-[#282a31] rounded-xl p-5 space-y-4">
+          <div class="border-b border-[#282a31] pb-3 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-zinc-100">
+                Rekonsiliasi Saldo Akun Pajak di Buku Besar vs SPT Masa
+              </h3>
+              <p class="text-xs text-zinc-400">
+                Memverifikasi bahwa seluruh pemotongan pada Jurnal Umum telah tercakup 100% pada pelaporan SPT Masa tanpa selisih.
+              </p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-[#143c44] text-[#2dd4bf] border border-[#195663]">
+              Status: Tereconciled
             </span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              @click="toggleSelectAll"
-              class="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition px-2.5 py-1 bg-blue-50 rounded-lg cursor-pointer"
-            >
-              {{ isAllSelected ? 'Batal Pilih Semua' : 'Pilih Semua' }}
-            </button>
-
-            <button
-              type="button"
-              @click="addRow"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
-            >
-              <Plus class="w-3.5 h-3.5" />
-              <span>Tambah Baris</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Table Grid matching Brayo in Image 2 -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs text-left">
-            <thead class="bg-zinc-50 text-zinc-600 font-bold border-b border-zinc-200/90 text-[11px]">
-              <tr>
-                <th class="px-3 py-2.5 w-10 text-center">
-                  <input
-                    type="checkbox"
-                    :checked="isAllSelected"
-                    @change="toggleSelectAll"
-                    class="w-4 h-4 rounded text-zinc-950 focus:ring-0 cursor-pointer"
-                  />
-                </th>
-                <th class="px-2 py-2.5 w-10 text-center">No.</th>
-                <th class="px-3 py-2.5 w-28">Tanggal</th>
-                <th class="px-3 py-2.5 w-32">Voucher Type</th>
-                <th class="px-3 py-2.5 w-36">No Bukti</th>
-                <th class="px-3 py-2.5 w-28">Project</th>
-                <th class="px-3 py-2.5 w-28">Sumber Transaksi</th>
-                <th class="px-4 py-2.5 min-w-[200px]">Akun Pajak</th>
-                <th class="px-3 py-2.5 w-24 text-center">Source Status</th>
-                <th class="px-4 py-2.5 w-40 text-right">DPP Final</th>
-                <th class="px-4 py-2.5 w-40 text-right">Pajak Final</th>
-                <th class="px-3 py-2.5 w-12 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 text-zinc-700">
-              <tr
-                v-for="(row, idx) in rows"
-                :key="row.id"
-                :class="[
-                  'hover:bg-zinc-50/70 transition',
-                  row.selected ? 'bg-white' : 'opacity-40 bg-zinc-50/30'
-                ]"
-              >
-                <!-- Checkbox -->
-                <td class="px-3 py-2.5 text-center">
-                  <input
-                    v-model="row.selected"
-                    type="checkbox"
-                    class="w-4 h-4 rounded text-zinc-950 focus:ring-0 cursor-pointer"
-                  />
-                </td>
-
-                <!-- Row Number -->
-                <td class="px-2 py-2.5 text-center font-bold text-zinc-400">
-                  {{ idx + 1 }}
-                </td>
-
-                <!-- Tanggal -->
-                <td class="px-3 py-2.5 font-mono text-zinc-700">
-                  <input
-                    v-model="row.date"
-                    type="date"
-                    class="w-full px-1.5 py-1 bg-transparent border-b border-transparent hover:border-zinc-300 font-mono text-xs focus:outline-none"
-                  />
-                </td>
-
-                <!-- Voucher Type -->
-                <td class="px-3 py-2.5 text-zinc-600 font-medium">
-                  {{ row.voucherType }}
-                </td>
-
-                <!-- No Bukti (Clickable to preview Journal) -->
-                <td class="px-3 py-2.5 font-mono">
-                  <button
-                    v-if="row.journalNumber"
-                    type="button"
-                    @click="openJournalPreview(row)"
-                    class="font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer"
-                    title="Klik untuk membuka voucher jurnal lengkap"
-                  >
-                    <span>{{ row.journalNumber }}</span>
-                    <ExternalLink class="w-2.5 h-2.5 text-zinc-400" />
-                  </button>
-                  <span v-else class="text-zinc-400 italic">[Manual]</span>
-                </td>
-
-                <!-- Project / Unit Bisnis -->
-                <td class="px-3 py-2.5">
-                  <span class="px-2 py-0.5 rounded-md font-bold text-[10px] bg-zinc-100 text-zinc-800">
-                    {{ row.project }}
-                  </span>
-                </td>
-
-                <!-- Sumber Transaksi -->
-                <td class="px-3 py-2.5 text-zinc-600">
-                  {{ row.sourceTransaction }}
-                </td>
-
-                <!-- Akun Pajak -->
-                <td class="px-4 py-2.5 font-mono text-zinc-800">
-                  <span class="font-bold">[{{ row.taxAccountCode }}]</span>
-                  <span class="ml-1 text-zinc-600 text-[11px] truncate block max-w-[200px]">{{ row.taxAccountName }}</span>
-                </td>
-
-                <!-- Source Status -->
-                <td class="px-3 py-2.5 text-center">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    {{ row.sourceStatus }}
-                  </span>
-                </td>
-
-                <!-- DPP Final (Editable with pen icon) -->
-                <td class="px-4 py-2.5 text-right font-mono">
-                  <div class="relative">
-                    <span class="absolute left-2 top-1.5 text-zinc-400 text-xs">Rp</span>
-                    <input
-                      v-model.number="row.dppFinal"
-                      @input="() => onDppFinalChange(row)"
-                      type="number"
-                      class="w-full pl-7 pr-2 py-1 bg-zinc-50 hover:bg-white border border-zinc-200 rounded-lg text-right font-mono font-bold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-                    />
-                  </div>
-                </td>
-
-                <!-- Pajak Final (Editable with pen icon) -->
-                <td class="px-4 py-2.5 text-right font-mono">
-                  <div class="relative">
-                    <span class="absolute left-2 top-1.5 text-zinc-400 text-xs">Rp</span>
-                    <input
-                      v-model.number="row.pajakFinal"
-                      @input="() => onPajakFinalChange(row)"
-                      type="number"
-                      class="w-full pl-7 pr-2 py-1 bg-emerald-50/50 hover:bg-white border border-emerald-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-                    />
-                  </div>
-                </td>
-
-                <!-- Action: Delete -->
-                <td class="px-3 py-2.5 text-center">
-                  <button
-                    type="button"
-                    @click="removeRow(idx)"
-                    class="p-1 text-zinc-400 hover:text-rose-600 transition cursor-pointer"
-                    title="Hapus Baris"
-                  >
-                    <Trash2 class="w-3.5 h-3.5" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Section 3: Ringkasan Nilai Pajak (Brayo 3-Column Grid from Image 2) -->
-      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-5 space-y-3">
-        <div class="border-b border-zinc-100 pb-2">
-          <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">
-            Ringkasan Nilai Pajak
-          </h3>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-          <!-- Col 1: Original (dari Buku Besar / JU) -->
-          <div class="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
-            <div>
-              <span class="text-[11px] font-bold text-zinc-500 block">Total DPP Original</span>
-              <span class="font-mono font-bold text-sm text-zinc-900">
-                Rp {{ formatIDR(totalDppOriginal) }}
-              </span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+            <div class="p-4 rounded-xl bg-[#18191d] border border-[#282a31]">
+              <span class="text-zinc-400 font-sans block font-semibold text-[11px]">SALDO AKUN BUKU BESAR ({{ selectedTaxAccountCode }})</span>
+              <span class="text-lg font-bold text-zinc-100 block mt-1">Rp {{ formatIDR(totalPajakOriginal) }}</span>
             </div>
-            <div class="border-t border-zinc-200/60 pt-2">
-              <span class="text-[11px] font-bold text-zinc-500 block">Total Pajak Original</span>
-              <span class="font-mono font-bold text-sm text-zinc-900">
-                Rp {{ formatIDR(totalPajakOriginal) }}
-              </span>
+            <div class="p-4 rounded-xl bg-[#18191d] border border-[#282a31]">
+              <span class="text-zinc-400 font-sans block font-semibold text-[11px]">TOTAL PELAPORAN SPT MASA FINAL</span>
+              <span class="text-lg font-bold text-teal-400 block mt-1">Rp {{ formatIDR(totalPajakFinal) }}</span>
             </div>
-          </div>
-
-          <!-- Col 2: Adjustment (Koreksi) -->
-          <div class="p-3.5 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
-            <div>
-              <span class="text-[11px] font-bold text-amber-800 block">Total DPP Adjustment</span>
-              <span class="font-mono font-bold text-sm text-amber-900">
-                Rp {{ formatIDR(totalDppAdjustment) }}
-              </span>
-            </div>
-            <div class="border-t border-amber-200/60 pt-2">
-              <span class="text-[11px] font-bold text-amber-800 block">Total Pajak Adjustment</span>
-              <span class="font-mono font-bold text-sm text-amber-900">
-                Rp {{ formatIDR(totalPajakAdjustment) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Col 3: Final (Siap Setor & Lapor) -->
-          <div class="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-2">
-            <div>
-              <span class="text-[11px] font-bold text-emerald-800 block">Total DPP Final</span>
-              <span class="font-mono font-extrabold text-sm text-emerald-950">
-                Rp {{ formatIDR(totalDppFinal) }}
-              </span>
-            </div>
-            <div class="border-t border-emerald-200/60 pt-2">
-              <span class="text-[11px] font-bold text-emerald-800 block">Total Pajak Final</span>
-              <span class="font-mono font-black text-base text-emerald-700">
-                Rp {{ formatIDR(totalPajakFinal) }}
-              </span>
+            <div class="p-4 rounded-xl bg-[#163628] border border-[#1e5239]">
+              <span class="text-emerald-300 font-sans block font-semibold text-[11px]">VARIANCE / SELISIH REKONSILIASI</span>
+              <span class="text-lg font-black text-emerald-400 block mt-1">Rp 0,00 (SEIMBANG)</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Section 4: Pratinjau Jurnal Penyetoran Bank (Double-Entry Balanced) -->
-      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-5 space-y-3">
-        <div class="flex items-center justify-between border-b border-zinc-100 pb-2.5">
-          <div class="flex items-center gap-2">
-            <Landmark class="w-4 h-4 text-emerald-700" />
-            <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">
-              Pratinjau Jurnal Penyetoran Bank ke Kas Negara (PMK DJP Non-Cash)
+      <!-- TAB 3: AUDIT TRAIL & SYNC -->
+      <div v-else class="space-y-6">
+        <div class="bg-[#1e2025] border border-[#282a31] rounded-xl p-5 space-y-4">
+          <div class="border-b border-[#282a31] pb-3">
+            <h3 class="text-sm font-bold text-zinc-100">
+              Audit Trail & Log Sinkronisasi Jurnal
             </h3>
-          </div>
-          <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            Balanced Double-Entry
-          </span>
-        </div>
-
-        <div class="border border-zinc-200 rounded-xl overflow-hidden text-xs">
-          <table class="w-full text-left font-mono">
-            <thead class="bg-zinc-50 border-b border-zinc-200 text-[10px] font-bold text-zinc-600 uppercase font-sans">
-              <tr>
-                <th class="px-4 py-2">Posisi Akun Akuntansi</th>
-                <th class="px-4 py-2">Uraian / Memo Baris</th>
-                <th class="px-4 py-2 text-right w-40">Debet (Rp)</th>
-                <th class="px-4 py-2 text-right w-40">Kredit (Rp)</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 text-zinc-700">
-              <tr>
-                <td class="px-4 py-2.5 font-sans">
-                  <span class="font-bold text-zinc-950">[{{ selectedTaxAccountCode }}]</span>
-                  <span class="ml-1 font-semibold text-zinc-800">Hutang Pajak ({{ reportName }})</span>
-                </td>
-                <td class="px-4 py-2.5 font-sans text-zinc-600 text-[11px]">
-                  Eliminasi Hutang Pajak {{ reportNumber }} Masa {{ masaMonth }}/{{ masaYear }}
-                </td>
-                <td class="px-4 py-2.5 text-right font-bold text-emerald-700 tabular-nums">
-                  Rp {{ formatIDR(totalPajakFinal) }}
-                </td>
-                <td class="px-4 py-2.5 text-right text-zinc-400">
-                  -
-                </td>
-              </tr>
-              <tr>
-                <td class="px-4 py-2.5 font-sans">
-                  <span class="font-bold text-zinc-950">[{{ activeBankAccount.code }}]</span>
-                  <span class="ml-1 font-semibold text-zinc-800">{{ activeBankAccount.name }}</span>
-                </td>
-                <td class="px-4 py-2.5 font-sans text-zinc-600 text-[11px]">
-                  Penyetoran Resmi via NTPN: {{ ntpnNumber || '(Nomor NTPN DJP)' }}
-                </td>
-                <td class="px-4 py-2.5 text-right text-zinc-400">
-                  -
-                </td>
-                <td class="px-4 py-2.5 text-right font-bold text-emerald-700 tabular-nums">
-                  Rp {{ formatIDR(totalPajakFinal) }}
-                </td>
-              </tr>
-            </tbody>
-            <tfoot class="bg-zinc-50 font-bold border-t border-zinc-200 text-xs font-sans">
-              <tr>
-                <td colspan="2" class="px-4 py-2 text-right uppercase tracking-wider text-zinc-600">
-                  Total Jurnal Penyetoran (Seimbang):
-                </td>
-                <td class="px-4 py-2 text-right font-mono font-extrabold text-emerald-800">
-                  Rp {{ formatIDR(totalPajakFinal) }}
-                </td>
-                <td class="px-4 py-2 text-right font-mono font-extrabold text-emerald-800">
-                  Rp {{ formatIDR(totalPajakFinal) }}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-
-      <!-- Section 5: Comments & Catatan Audit (from Image 2) -->
-      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-5 space-y-3">
-        <div class="border-b border-zinc-100 pb-2">
-          <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-            <MessageSquare class="w-4 h-4 text-zinc-600" />
-            <span>Comments & Catatan Verifikasi</span>
-          </h3>
-        </div>
-
-        <div class="flex items-start gap-3">
-          <div class="w-8 h-8 rounded-full bg-zinc-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
-            AP
-          </div>
-          <div class="flex-1 space-y-2">
-            <textarea
-              v-model="commentText"
-              rows="2"
-              placeholder="Type a reply / comment..."
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-950"
-            ></textarea>
-            <div class="flex justify-end">
-              <button
-                type="button"
-                @click="accountingStore.showToast('Komentar berhasil disimpan!', 'success')"
-                class="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold transition cursor-pointer"
-              >
-                Kirim Komentar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: RECONCILIATION & STATUS -->
-    <div v-else-if="activeTab === 'RECONCILIATION'" class="space-y-6">
-      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-6 space-y-4">
-        <div class="border-b border-zinc-100 pb-3 flex items-center justify-between">
-          <div>
-            <h3 class="text-sm font-bold text-zinc-900">
-              Rekonsiliasi Saldo Akun Pajak di Buku Besar vs SPT Masa
-            </h3>
-            <p class="text-xs text-zinc-500">
-              Memverifikasi bahwa seluruh pemotongan pada Jurnal Umum telah tercakup 100% pada pelaporan SPT Masa tanpa selisih.
+            <p class="text-xs text-zinc-400">
+              Catatan riwayat penarikan data dari Jurnal Umum & Buku Besar klinik.
             </p>
           </div>
-          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            Status: Tereconciled
-          </span>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-          <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
-            <span class="text-zinc-500 font-sans block font-bold text-[11px]">SALDO AKUN BUKU BESAR ({{ selectedTaxAccountCode }})</span>
-            <span class="text-lg font-bold text-zinc-900 block mt-1">Rp {{ formatIDR(totalPajakOriginal) }}</span>
-          </div>
-          <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
-            <span class="text-zinc-500 font-sans block font-bold text-[11px]">TOTAL PELAPORAN SPT MASA FINAL</span>
-            <span class="text-lg font-bold text-emerald-700 block mt-1">Rp {{ formatIDR(totalPajakFinal) }}</span>
-          </div>
-          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-            <span class="text-emerald-800 font-sans block font-bold text-[11px]">VARIANCE / SELISIH REKONSILIASI</span>
-            <span class="text-lg font-black text-emerald-900 block mt-1">Rp 0,00 (SEIMBANG)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: AUDIT TRAIL & SYNC -->
-    <div v-else class="space-y-6">
-      <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-6 space-y-4">
-        <div class="border-b border-zinc-100 pb-3">
-          <h3 class="text-sm font-bold text-zinc-900">
-            Audit Trail & Log Sinkronisasi Jurnal
-          </h3>
-          <p class="text-xs text-zinc-500">
-            Catatan riwayat penarikan data dari Jurnal Umum & Buku Besar klinik.
-          </p>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <div class="flex items-start gap-3 p-3 bg-zinc-50 rounded-xl border border-zinc-200">
-            <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <p class="font-bold text-zinc-900">Data Diambil dari Jurnal Umum</p>
-              <p class="text-zinc-500 text-[11px]">
-                Menarik {{ rows.length }} voucher transaksi jurnal untuk akun {{ selectedTaxAccountCode }} Masa {{ masaMonth }}/{{ masaYear }}.
-              </p>
-              <span class="text-[10px] text-zinc-400 font-mono">{{ createdDate }} • Operator: {{ accountingStore.currentUserName }}</span>
+          <div class="space-y-3 text-xs">
+            <div class="flex items-start gap-3 p-3 bg-[#18191d] rounded-xl border border-[#282a31]">
+              <CheckCircle2 class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <p class="font-bold text-zinc-100">Data Diambil dari Jurnal Umum</p>
+                <p class="text-zinc-400 text-[11px]">
+                  Menarik {{ rows.length }} voucher transaksi jurnal untuk akun {{ selectedTaxAccountCode }} Masa {{ masaMonth }}/{{ masaYear }}.
+                </p>
+                <span class="text-[10px] text-zinc-500 font-mono">{{ createdDate }} • Operator: {{ accountingStore.currentUserName }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal Preview Voucher Jurnal Sumber -->
-    <div
-      v-if="showJournalPreviewModal"
-      class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
-      @click.self="showJournalPreviewModal = false"
-    >
-      <div class="bg-white rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-xl">
-        <div class="flex items-center justify-between border-b border-zinc-200 pb-3">
-          <div class="flex items-center gap-2">
-            <Layers class="w-4 h-4 text-blue-600" />
-            <h3 class="font-bold text-sm text-zinc-950">
-              Voucher Jurnal Umum Sumber: {{ activeJournal?.journalNumber }}
-            </h3>
+      <!-- Modal Preview Voucher Jurnal Sumber -->
+      <div
+        v-if="showJournalPreviewModal"
+        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+        @click.self="showJournalPreviewModal = false"
+      >
+        <div class="bg-[#1e2025] border border-[#2f323a] rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl text-zinc-200">
+          <div class="flex items-center justify-between border-b border-[#2f323a] pb-3">
+            <div class="flex items-center gap-2">
+              <Layers class="w-4 h-4 text-cyan-400" />
+              <h3 class="font-bold text-sm text-zinc-100">
+                Voucher Jurnal Umum Sumber: {{ activeJournal?.journalNumber }}
+              </h3>
+            </div>
+            <button @click="showJournalPreviewModal = false" class="text-zinc-400 hover:text-white transition cursor-pointer">
+              <X class="w-4 h-4" />
+            </button>
           </div>
-          <button @click="showJournalPreviewModal = false" class="text-zinc-400 hover:text-zinc-950 transition cursor-pointer">
-            <X class="w-4 h-4" />
-          </button>
-        </div>
 
-        <div class="text-xs space-y-1 text-zinc-600">
-          <p><strong class="text-zinc-900">Tanggal Posting:</strong> {{ formatDate(activeJournal?.journalDate || activeJournal?.transaction_date) }}</p>
-          <p><strong class="text-zinc-900">Keterangan:</strong> {{ activeJournal?.description }}</p>
-        </div>
+          <div class="text-xs space-y-1 text-zinc-400">
+            <p><strong class="text-zinc-200">Tanggal Posting:</strong> {{ formatDate(activeJournal?.journalDate || activeJournal?.transaction_date) }}</p>
+            <p><strong class="text-zinc-200">Keterangan:</strong> {{ activeJournal?.description }}</p>
+          </div>
 
-        <div class="border border-zinc-200 rounded-xl overflow-hidden text-xs">
-          <table class="w-full text-left">
-            <thead class="bg-zinc-50 border-b border-zinc-200 text-[10px] font-bold text-zinc-600 uppercase">
-              <tr>
-                <th class="px-3 py-2">Akun Buku Besar (COA)</th>
-                <th class="px-3 py-2 text-right w-28">Debet (Rp)</th>
-                <th class="px-3 py-2 text-right w-28">Kredit (Rp)</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100">
-              <tr v-for="(l, idx) in (activeJournal?.lines || [])" :key="idx">
-                <td class="px-3 py-2">
-                  <span class="font-bold font-mono text-zinc-900">{{ l.accountCode || l.account_code }}</span> -
-                  <span class="text-zinc-700">{{ l.accountName || l.account_name }}</span>
-                </td>
-                <td class="px-3 py-2 text-right font-mono tabular-nums">
-                  {{ Number(l.debit) > 0 ? formatIDR(Number(l.debit), false) : '-' }}
-                </td>
-                <td class="px-3 py-2 text-right font-mono tabular-nums">
-                  {{ Number(l.credit) > 0 ? formatIDR(Number(l.credit), false) : '-' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <div class="border border-[#2f323a] rounded-xl overflow-hidden text-xs">
+            <table class="w-full text-left">
+              <thead class="bg-[#18191d] border-b border-[#2f323a] text-[10px] font-bold text-zinc-400 uppercase">
+                <tr>
+                  <th class="px-3 py-2">Akun Buku Besar (COA)</th>
+                  <th class="px-3 py-2 text-right w-28">Debet (Rp)</th>
+                  <th class="px-3 py-2 text-right w-28">Kredit (Rp)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#282a31] text-zinc-300 font-mono">
+                <tr v-for="(line, lIdx) in activeJournal?.lines || []" :key="lIdx">
+                  <td class="px-3 py-2 font-sans">
+                    <span class="font-bold text-zinc-100">[{{ line.accountCode }}]</span> {{ line.accountName }}
+                  </td>
+                  <td class="px-3 py-2 text-right">{{ line.debit > 0 ? formatIDR(line.debit) : '-' }}</td>
+                  <td class="px-3 py-2 text-right">{{ line.credit > 0 ? formatIDR(line.credit) : '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <div class="flex justify-end pt-2">
-          <button
-            @click="showJournalPreviewModal = false"
-            class="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-bold hover:bg-zinc-800 transition cursor-pointer"
-          >
-            Tutup
-          </button>
+          <div class="flex justify-end pt-2">
+            <button
+              @click="showJournalPreviewModal = false"
+              class="px-4 py-2 bg-zinc-800 text-white rounded-xl text-xs font-bold hover:bg-zinc-700 transition cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     </div>
     <!-- END OF SCREEN UI CONTAINER (print:hidden) -->
 
@@ -1421,7 +1417,7 @@ function handlePrint() {
   nav.app-navbar,
   .no-print,
   button,
-  .print\\:hidden {
+  .print\:hidden {
     display: none !important;
   }
 
