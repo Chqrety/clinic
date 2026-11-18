@@ -1020,7 +1020,8 @@ export function exportSptTahunan1771ToExcel(
   options: SptTahunan1771ExportOptions = {}
 ) {
   const unit = options.businessUnit || 'ALL'
-  const company = options.companyName || getCompanyName(unit)
+  const profile = getEntityProfile(unit)
+  const company = options.companyName || profile.title
   const rep = data.annual1771 || {}
   const fiscalYear = options.fiscalYear || rep.fiscalYear || 2026
   const filename = options.filename || `Kertas_Kerja_SPT_Tahunan_1771_${unit}_Tahun_${fiscalYear}`
@@ -1045,9 +1046,10 @@ export function exportSptTahunan1771ToExcel(
 
   const aoa1771: any[][] = [
     [company],
+    [`${profile.subtitle} • ${profile.address}`],
     ['KERTAS KERJA REKONSILIASI FISKAL SPT TAHUNAN PPh BADAN (FORMULIR 1771)'],
     [`TAHUN PAJAK: ${fiscalYear} (1 JANUARI s.d 31 DESEMBER ${fiscalYear})`],
-    [`NPWP: 01.234.567.8-511.000 | STATUS: ${rep.status || 'FINALIZED'} | KLU: 86101 - AKTIVITAS KLINIK SWASTA`],
+    [`NPWP: ${profile.npwp} | STATUS: ${rep.status || 'FINALIZED'} | KLU: 86101 - AKTIVITAS KLINIK SWASTA`],
     ['(Dinyatakan dalam Rupiah Indonesia - IDR)'],
     [],
     [

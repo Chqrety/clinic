@@ -439,7 +439,7 @@ function handlePrint() {
           class="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded-xl text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
         >
           <Sparkles class="w-3.5 h-3.5 text-zinc-950" />
-          <span>⚡ Ambil Data Otomatis dari Jurnal Umum & Buku Besar</span>
+          <span>Ambil Data Otomatis dari Jurnal Umum & Buku Besar</span>
         </button>
 
         <button
@@ -1110,13 +1110,13 @@ function handlePrint() {
 
       <!-- Tabel Induk 1771 Rekonsiliasi Fiskal -->
       <div class="mb-4">
-        <h4 class="text-[11px] font-bold uppercase mb-1.5">BAGIAN A s.d. D: PENGHITUNGAN PENGHASILAN KENA PAJAK & PPh TERUTANG</h4>
+        <h4 class="text-[11px] font-bold uppercase mb-1.5 text-zinc-900">BAGIAN A s.d. D: PENGHITUNGAN PENGHASILAN KENA PAJAK & PPh TERUTANG</h4>
         <table class="w-full text-[10px] border-collapse border border-black">
           <thead>
             <tr class="bg-gray-200 text-center font-bold">
               <th class="border border-black px-2 py-1 w-8">No</th>
               <th class="border border-black px-2 py-1">Uraian Elemen Formulir 1771</th>
-              <th class="border border-black px-2 py-1 w-32 text-right">Nilai Rupiah (IDR)</th>
+              <th class="border border-black px-2 py-1 w-36 text-right">Nilai Rupiah (IDR)</th>
               <th class="border border-black px-2 py-1 w-52">Dasar Regulasi Perpajakan</th>
             </tr>
           </thead>
@@ -1124,43 +1124,43 @@ function handlePrint() {
             <tr>
               <td class="border border-black px-2 py-1 text-center font-bold">1</td>
               <td class="border border-black px-2 py-1">Peredaran Usaha Komersial (Omset Layanan Medis & Farmasi)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(form.commercialRevenue) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-medium">{{ formatIDR(form.commercialRevenue) }}</td>
               <td class="border border-black px-2 py-1 text-[9px] text-gray-700">Laporan Laba Rugi Komersial Klinik</td>
             </tr>
             <tr>
               <td class="border border-black px-2 py-1 text-center font-bold">2</td>
               <td class="border border-black px-2 py-1">Harga Pokok Penjualan (HPP Obat, Vaksin & BMHP Medis)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(Math.round(form.commercialRevenue * 0.48)) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-medium">{{ formatIDR(Math.round(form.commercialRevenue * 0.48)) }}</td>
               <td class="border border-black px-2 py-1 text-[9px] text-gray-700">Pemakaian Obat Resep & Tindakan</td>
             </tr>
             <tr>
               <td class="border border-black px-2 py-1 text-center font-bold">3</td>
               <td class="border border-black px-2 py-1">Biaya Usaha Lainnya (Beban Operasional, Gaji & Honor Dokter)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(form.commercialExpense) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-medium">{{ formatIDR(form.commercialExpense) }}</td>
               <td class="border border-black px-2 py-1 text-[9px] text-gray-700">Beban Operasional & Administrasi</td>
             </tr>
             <tr class="bg-gray-100 font-bold">
               <td class="border border-black px-2 py-1 text-center">4</td>
               <td class="border border-black px-2 py-1 uppercase">PENGHASILAN NETO KOMERSIAL (1 - 2 - 3)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(form.commercialRevenue - Math.round(form.commercialRevenue * 0.48) - form.commercialExpense) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold">{{ formatIDR(form.commercialRevenue - Math.round(form.commercialRevenue * 0.48) - form.commercialExpense) }}</td>
               <td class="border border-black px-2 py-1 text-[9px]">Laba Bersih Sebelum Koreksi Fiskal</td>
             </tr>
             <tr>
               <td class="border border-black px-2 py-1 text-center font-bold text-amber-900">5</td>
               <td class="border border-black px-2 py-1">Koreksi Fiskal Positif (+) Biaya Non-Deductible</td>
-              <td class="border border-black px-2 py-1 text-right font-mono font-bold text-amber-900">Rp {{ formatIDR(form.positiveFiscalCorrection) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold text-amber-900">{{ formatIDR(form.positiveFiscalCorrection) }}</td>
               <td class="border border-black px-2 py-1 text-[9px] text-gray-700">{{ form.positiveCorrectionNotes || 'PMK 66/2023 & UU PPh' }}</td>
             </tr>
             <tr>
               <td class="border border-black px-2 py-1 text-center font-bold text-emerald-900">6</td>
               <td class="border border-black px-2 py-1">Koreksi Fiskal Negatif (-) Penghasilan PPh Final & Depresiasi</td>
-              <td class="border border-black px-2 py-1 text-right font-mono font-bold text-emerald-900">(Rp {{ formatIDR(form.negativeFiscalCorrection) }})</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold text-emerald-900">{{ formatIDR(-form.negativeFiscalCorrection) }}</td>
               <td class="border border-black px-2 py-1 text-[9px] text-gray-700">{{ form.negativeCorrectionNotes || 'Pasal 4 ayat (2) UU PPh' }}</td>
             </tr>
             <tr class="bg-gray-200 font-bold">
               <td class="border border-black px-2 py-1 text-center">7</td>
               <td class="border border-black px-2 py-1 uppercase">PENGHASILAN KENA PAJAK (PKP) BADAN (4 + 5 - 6)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono font-bold">Rp {{ formatIDR(computedPKP) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold">{{ formatIDR(computedPKP) }}</td>
               <td class="border border-black px-2 py-1 text-[9px]">Dasar Penghitungan PPh Terutang</td>
             </tr>
             <tr>
@@ -1172,75 +1172,65 @@ function handlePrint() {
             <tr class="bg-blue-50 font-bold">
               <td class="border border-black px-2 py-1 text-center">9</td>
               <td class="border border-black px-2 py-1 uppercase">PAJAK PENGHASILAN TERUTANG (PPh BADAN)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono font-bold">Rp {{ formatIDR(computedTaxPayable) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono font-bold">{{ formatIDR(computedTaxPayable) }}</td>
               <td class="border border-black px-2 py-1 text-[9px]">PKP x Tarif 22%</td>
             </tr>
             <tr>
               <td class="border border-black px-2 py-1 text-center">10a</td>
               <td class="border border-black px-2 py-1 pl-4">Kredit Pajak PPh Pasal 23 (Dipotong Rekanan Asuransi & Korporat)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(form.taxCreditPph23) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(form.taxCreditPph23) }}</td>
               <td class="border border-black px-2 py-1 text-[9px] text-gray-700">Bukti Potong Akun 2-1510</td>
             </tr>
             <tr>
               <td class="border border-black px-2 py-1 text-center">10b</td>
               <td class="border border-black px-2 py-1 pl-4">Kredit Pajak PPh Pasal 25 (Setoran Angsuran Bulanan Bank)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(form.taxCreditPph25) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(form.taxCreditPph25) }}</td>
               <td class="border border-black px-2 py-1 text-[9px] text-gray-700">Validasi NTPN Akun 2-1520</td>
             </tr>
             <tr class="bg-gray-100 font-bold">
               <td class="border border-black px-2 py-1 text-center">10</td>
               <td class="border border-black px-2 py-1 uppercase">TOTAL KREDIT PAJAK TAHUN BERJALAN (10a + 10b)</td>
-              <td class="border border-black px-2 py-1 text-right font-mono">Rp {{ formatIDR(computedTotalCredits) }}</td>
+              <td class="border border-black px-2 py-1 text-right font-mono">{{ formatIDR(computedTotalCredits) }}</td>
               <td class="border border-black px-2 py-1 text-[9px]">Pengurang PPh Terutang</td>
             </tr>
             <tr class="bg-emerald-100 font-black text-emerald-950">
               <td class="border border-black px-2 py-1.5 text-center text-sm">11</td>
-              <td class="border border-black px-2 py-1.5 uppercase text-xs">PPh PASAL 29 KURANG BAYAR (9 - 10)</td>
-              <td class="border border-black px-2 py-1.5 text-right font-mono text-sm font-black">Rp {{ formatIDR(computedPph29) }}</td>
-              <td class="border border-black px-2 py-1.5 text-[9px] font-bold">Wajib Disetor Sebelum Lapor 1771</td>
+              <td class="border border-black px-2 py-1.5 uppercase text-xs">
+                {{ computedPph28A > 0 ? 'PPh PASAL 28A LEBIH BAYAR (10 - 9)' : 'PPh PASAL 29 KURANG BAYAR (9 - 10)' }}
+              </td>
+              <td class="border border-black px-2 py-1.5 text-right font-mono text-sm font-black">
+                {{ formatIDR(computedPph28A > 0 ? computedPph28A : computedPph29) }}
+              </td>
+              <td class="border border-black px-2 py-1.5 text-[9px] font-bold">
+                {{ computedPph28A > 0 ? 'Dapat Dikompensasikan / Restitusi' : 'Wajib Disetor Sebelum Lapor 1771' }}
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Lampiran: Detail Voucher Jurnal Kredit Pajak (Per Jurnal) -->
-      <div class="mb-4">
-        <h4 class="text-[11px] font-bold uppercase mb-1.5">LAMPIRAN 1771-III: RINCIAN VOUCHER JURNAL KREDIT PAJAK (PPh 23 & 25)</h4>
-        <table class="w-full text-[10px] border-collapse border border-black">
-          <thead>
-            <tr class="bg-gray-200 text-center font-bold">
-              <th class="border border-black px-2 py-1 w-7">No</th>
-              <th class="border border-black px-2 py-1 w-20">Tanggal</th>
-              <th class="border border-black px-2 py-1 w-28">No. Jurnal</th>
-              <th class="border border-black px-2 py-1 w-16">Jenis</th>
-              <th class="border border-black px-2 py-1">Rekanan / Kanal Bank Penyetor & Uraian</th>
-              <th class="border border-black px-2 py-1 w-28 text-right">Nilai Kredit (Rp)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(v, idx) in creditVoucherRows.filter(r => r.selected)" :key="v.id">
-              <td class="border border-black px-2 py-1 text-center">{{ idx + 1 }}</td>
-              <td class="border border-black px-2 py-1 font-mono text-center">{{ v.date }}</td>
-              <td class="border border-black px-2 py-1 font-mono font-bold">{{ v.journalNumber }}</td>
-              <td class="border border-black px-2 py-1 text-center font-bold">{{ v.taxType }}</td>
-              <td class="border border-black px-2 py-1">
-                <div class="font-bold text-[9px]">{{ v.counterpartName }}</div>
-                <div class="text-[9px] text-gray-700 italic">{{ v.description }}</div>
-              </td>
-              <td class="border border-black px-2 py-1 text-right font-mono font-bold">{{ formatIDR(v.claimedAmount) }}</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr class="bg-gray-100 font-bold text-[10px]">
-              <td colspan="5" class="border border-black px-3 py-1 text-right uppercase">
-                Total Akumulasi Kredit Pajak Riil Per Jurnal:
-              </td>
-              <td class="border border-black px-2 py-1 text-right font-mono">
-                Rp {{ formatIDR(computedTotalCredits) }}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+      <!-- Keterangan Resmi: Kertas Kerja Detail Dilaporkan via Ekspor Excel (Sesuai Standar DJP) -->
+      <div class="border border-black p-3 mb-6 bg-gray-50 text-[10px] break-inside-avoid">
+        <div class="font-bold uppercase tracking-wide text-zinc-900 mb-1 flex items-center justify-between">
+          <span>CATATAN DOKUMEN & LAMPIRAN KERTAS KERJA RESMI (FORMAT EXCEL .XLSX):</span>
+          <span class="font-mono text-[9px] bg-white px-2 py-0.5 border border-black font-bold">LAMPIRAN 1771-I S.D. 1771-VI</span>
+        </div>
+        <p class="text-zinc-700 leading-relaxed text-[9.5px]">
+          Sesuai dengan regulasi pelaporan SPT Tahunan PPh Badan DJP, seluruh detail bukti transaksi per voucher jurnal telah disajikan secara terpisah dan komprehensif ke dalam <strong>File Kertas Kerja Resmi SPT Tahunan (Workbook Excel .xlsx)</strong> yang mencakup:
+        </p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2 text-[9px] text-zinc-800">
+          <div>• <strong>Sheet 1 (Induk 1771):</strong> Rekonsiliasi Fiskal Lengkap Elemen 1 s.d. 16</div>
+          <div>• <strong>Sheet 2 (Kredit PPh 23):</strong> Rincian Per Voucher Jurnal Bukti Potong Rekanan (Akun 2-1510)</div>
+          <div>• <strong>Sheet 3 (Angsuran PPh 25):</strong> Rincian Per Setoran Bank & Validasi NTPN Persepsi (Akun 2-1520)</div>
+          <div>• <strong>Sheet 4 (Rincian Omset):</strong> Rincian Buku Besar Pendapatan Operasional Medis & Farmasi (Akun 4-xxxx)</div>
+          <div>• <strong>Sheet 5 (Rincian Biaya):</strong> Rincian Buku Besar Beban Operasional & HPP BMHP (Akun 5-xxxx & 6-xxxx)</div>
+          <div>• <strong>Sheet 6 (Rekap Bulanan):</strong> Matriks Akumulasi Setoran Pajak Masa Jan s.d. Des Terintegrasi</div>
+          <div>• <strong>Sheet 7 (Jurnal PPh 29):</strong> Rekonsiliasi Jurnal Akrual & Utang Pajak Badan Akhir Tahun</div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-gray-300 flex items-center justify-between text-[9px] italic text-zinc-600">
+          <span>Nama File Rekonsiliasi: <strong>{{ `Kertas_Kerja_SPT_Tahunan_1771_${accountingStore.businessUnit}_Tahun_${annual1771.fiscalYear}.xlsx` }}</strong></span>
+          <span>Status Integritas Data: <strong>TERVERIFIKASI BUKU BESAR KLINIK & MUTASI PERBANKAN</strong></span>
+        </div>
       </div>
 
       <!-- Lembar Pengesahan Tanda Tangan -->
@@ -1271,34 +1261,8 @@ function handlePrint() {
   </div>
 </template>
 
-<style>
+<style scoped>
 @media print {
-  /* Hide all app chrome during print */
-  aside,
-  header.app-navbar,
-  nav.app-navbar,
-  .no-print,
-  button,
-  .print\\:hidden {
-    display: none !important;
-  }
-
-  body, html, main, #app {
-    background: white !important;
-    color: black !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  .print-document {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    padding: 10mm 15mm !important;
-  }
-
   .break-inside-avoid {
     break-inside: avoid !important;
     page-break-inside: avoid !important;

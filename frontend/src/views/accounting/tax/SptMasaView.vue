@@ -1229,34 +1229,8 @@ function handlePrint() {
   </div>
 </template>
 
-<style>
+<style scoped>
 @media print {
-  /* Hide all app chrome during print */
-  aside,
-  header.app-navbar,
-  nav.app-navbar,
-  .no-print,
-  button,
-  .print\\:hidden {
-    display: none !important;
-  }
-
-  body, html, main, #app {
-    background: white !important;
-    color: black !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  .print-document {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    padding: 10mm 15mm !important;
-  }
-
   .break-inside-avoid {
     break-inside: avoid !important;
     page-break-inside: avoid !important;

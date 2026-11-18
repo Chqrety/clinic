@@ -581,7 +581,7 @@ function handlePrint() {
             title="Tarik data transaksi terbaru dari Jurnal Umum & Buku Besar"
           >
             <Sparkles class="w-3.5 h-3.5 text-amber-400" />
-            <span>⚡ Ambil Data Otomatis</span>
+            <span>Ambil Data Otomatis</span>
           </button>
 
           <button
@@ -1025,35 +1025,6 @@ function handlePrint() {
               </div>
             </div>
           </div>
-
-          <!-- Section D: Comments (Sesuai Screenshot Brayo) -->
-          <div class="pt-2">
-            <h3 class="text-sm font-semibold text-zinc-200 mb-3">
-              Comments
-            </h3>
-
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-full bg-pink-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                AP
-              </div>
-              <div class="flex-1 flex items-center gap-2">
-                <input
-                  v-model="commentText"
-                  type="text"
-                  placeholder="Type a reply / comment..."
-                  class="flex-1 px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
-                  @keyup.enter="accountingStore.showToast('Komentar berhasil ditambahkan!', 'success')"
-                />
-                <button
-                  type="button"
-                  @click="accountingStore.showToast('Komentar berhasil ditambahkan!', 'success')"
-                  class="px-3 py-2 bg-[#2a2c33] hover:bg-[#343740] text-zinc-200 rounded-lg text-xs font-semibold transition cursor-pointer"
-                >
-                  Send
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- RIGHT SIDEBAR (3 Cols - Matching Brayo Screenshot) -->
@@ -1409,34 +1380,8 @@ function handlePrint() {
   </div>
 </template>
 
-<style>
+<style scoped>
 @media print {
-  /* Hide all app chrome during print */
-  aside,
-  header.app-navbar,
-  nav.app-navbar,
-  .no-print,
-  button,
-  .print\:hidden {
-    display: none !important;
-  }
-
-  body, html, main, #app {
-    background: white !important;
-    color: black !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  .print-document {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    padding: 10mm 15mm !important;
-  }
-
   .break-inside-avoid {
     break-inside: avoid !important;
     page-break-inside: avoid !important;

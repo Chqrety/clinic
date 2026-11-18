@@ -60,7 +60,7 @@ function navigateTo(path: string) {
     </router-view>
 
     <!-- Discreet Presenter Quick Jump Pill (Bottom-Right, hidden on accounting) -->
-    <div v-if="!route.path.startsWith('/accounting')" class="fixed bottom-4 right-4 z-50">
+    <div v-if="!route.path.startsWith('/accounting')" class="fixed bottom-4 right-4 z-50 print:hidden">
       <div
         v-if="showDemoNav"
         class="mb-2 p-2 bg-white/95 backdrop-blur-md rounded-2xl border border-black/10 shadow-2xl space-y-1 text-xs font-bold text-zinc-800 animate-in fade-in slide-in-from-bottom-2 duration-150 min-w-[240px]"

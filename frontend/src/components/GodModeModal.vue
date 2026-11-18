@@ -98,7 +98,7 @@ async function executeSeed(endpoint: string, actionKey: string) {
 <template>
   <div>
     <!-- Floating Bottom-Right Trigger Pill (Placed next to Demo Switcher, completely clears sidebar logout on the left) -->
-    <div class="fixed bottom-4 right-54 z-50 select-none">
+    <div id="god-mode-pill" class="fixed bottom-4 right-54 z-50 select-none print:hidden">
       <button
         @click="isOpen = true"
         title="Klik atau tekan Ctrl+Shift+G untuk membuka God Mode Seeder"

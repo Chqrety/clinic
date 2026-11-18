@@ -26,3 +26,86 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ==========================================================================
+   GLOBAL PRINT STYLESHEET (DJP / AUDIT WORKPAPER PRINT RESETS)
+   Guarantees that all app chrome (sidebar, navbar, modal switchers, floating pills)
+   are unconditionally suppressed, and printable forms render full-width cleanly.
+   ========================================================================== */
+@media print {
+  /* 1. Unconditionally hide all UI chrome, sidebars, headers, controls */
+  aside,
+  nav,
+  header,
+  footer,
+  #god-mode-pill,
+  [id*="god-mode"],
+  .no-print,
+  .print\:hidden,
+  button,
+  input,
+  select,
+  textarea,
+  .toast,
+  [role="alert"] {
+    display: none !important;
+  }
+
+  /* 2. Reset html, body, and all screen-locking layout containers */
+  html,
+  body,
+  #app,
+  main,
+  .h-screen,
+  .w-screen,
+  .min-h-screen,
+  .overflow-hidden,
+  .overflow-y-auto {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body {
+    font-size: 10.5pt !important;
+    line-height: 1.35 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 3. Page boundary setup */
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  /* 4. Document container reset */
+  .print-document {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print-document * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 5. Page-break prevention */
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
