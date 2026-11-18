@@ -467,66 +467,67 @@ function handleExportExcel() {
 
 <template>
   <div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">
-    <!-- Header with Dark ERP Look -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+    <!-- Header with Clinical Light Design -->
+    <div class="bg-white border border-zinc-200/90 rounded-2xl p-4 sm:p-5 text-zinc-900 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
       <div class="space-y-0.5">
-        <div class="flex items-center gap-2 text-xs text-slate-400">
-          <span class="hover:text-white cursor-pointer font-medium" @click="router.push('/accounting/reports/balance-sheet')">
+        <div class="flex items-center gap-2 text-xs text-zinc-400 font-medium">
+          <span class="hover:text-zinc-700 cursor-pointer" @click="router.push('/accounting/reports/balance-sheet')">
             Laporan Neraca
           </span>
           <span>/</span>
-          <span class="hover:text-white cursor-pointer font-medium" @click="router.push('/accounting/reports/profit-loss')">
+          <span class="hover:text-zinc-700 cursor-pointer" @click="router.push('/accounting/reports/profit-loss')">
             Laba Rugi
           </span>
           <span>/</span>
-          <span class="text-blue-400 font-semibold">Buku Besar (General Ledger)</span>
+          <span class="text-zinc-900 font-bold">Buku Besar (General Ledger)</span>
         </div>
-        <h1 class="text-base font-bold text-white tracking-wide flex items-center gap-2">
+        <h1 class="text-base sm:text-lg font-bold text-zinc-950 tracking-tight flex items-center gap-2">
           <span>Rincian Buku Besar Akun: {{ activeAccount?.code }} - {{ activeAccount?.name }}</span>
-          <span v-if="isLoadingLedger" class="inline-flex items-center gap-1 text-[11px] font-normal text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800">
+          <span v-if="isLoadingLedger" class="inline-flex items-center gap-1 text-[11px] font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
             <RefreshCw class="w-3 h-3 animate-spin" />
             <span>Memuat dari database...</span>
           </span>
         </h1>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 text-xs">
+      <div class="flex flex-wrap items-center gap-2.5 text-xs">
         <!-- Date Range -->
-        <div class="flex items-center gap-1.5 bg-[#1E293B] px-3 py-1.5 rounded-lg border border-slate-700">
+        <div class="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-medium">
+          <span class="text-zinc-500">Periode:</span>
           <input
             v-model="startDate"
             type="text"
-            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+            class="bg-transparent font-mono font-bold text-zinc-900 w-24 text-center focus:outline-none"
           />
-          <span class="text-slate-400">s/d</span>
+          <span class="text-zinc-400">s/d</span>
           <input
             v-model="endDate"
             type="text"
-            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+            class="bg-transparent font-mono font-bold text-zinc-900 w-24 text-center focus:outline-none"
           />
         </div>
 
         <button
           @click="fetchLedgerReport"
           :disabled="isLoadingLedger"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-bold border border-slate-700 transition"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
           title="Segarkan data dari database"
         >
-          <RefreshCw :class="['w-3.5 h-3.5', isLoadingLedger ? 'animate-spin text-blue-400' : '']" />
+          <RefreshCw :class="['w-3.5 h-3.5 text-zinc-600', isLoadingLedger ? 'animate-spin text-blue-600' : '']" />
           <span>Segarkan</span>
         </button>
 
         <button
           @click="handleExportExcel"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs transition-colors"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
         >
-          <Download class="w-3.5 h-3.5" />
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
           <span>Ekspor</span>
         </button>
 
         <button
           @click="printReport"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium transition-colors"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl font-bold shadow-2xs transition active:scale-95 cursor-pointer"
         >
           <Printer class="w-3.5 h-3.5" />
           <span>Cetak</span>
@@ -534,11 +535,11 @@ function handleExportExcel() {
       </div>
     </div>
 
-    <!-- Account Picker & Search Toolbar -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl p-3.5 space-y-3 text-xs text-slate-300 shadow-md">
+    <!-- Account Picker & Search Toolbar (Clean Light Theme) -->
+    <div class="bg-white border border-zinc-200/90 rounded-2xl p-4 space-y-3 text-xs text-zinc-700 shadow-2xs">
       <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3 flex-1">
-          <span class="font-bold text-slate-400 shrink-0">Pilih Akun Buku Besar:</span>
+          <span class="font-bold text-zinc-700 shrink-0">Pilih Akun Buku Besar:</span>
           <div class="min-w-[340px] flex-1 max-w-md">
             <SearchableSelect
               v-model="selectedAccountCode"
@@ -553,40 +554,40 @@ function handleExportExcel() {
               v-model="searchQuery"
               type="text"
               placeholder="Cari transaksi / no jurnal / nominal..."
-              class="w-full pl-7 pr-3 py-1.5 bg-[#1E293B] border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              class="w-full pl-7 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 placeholder-zinc-400 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
             />
-            <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5 pointer-events-none" />
+            <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2.5 pointer-events-none" />
           </div>
         </div>
 
         <!-- Quick Metrics -->
-        <div class="flex items-center gap-4 font-mono text-xs shrink-0 bg-[#0F172A] px-3 py-1.5 rounded-lg border border-slate-800">
+        <div class="flex items-center gap-4 font-mono text-xs shrink-0 bg-zinc-50 px-3.5 py-2 rounded-xl border border-zinc-200">
           <div>
-            <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Normal</span>
-            <span class="font-bold text-blue-400">{{ activeAccount?.normalBalance }}</span>
+            <span class="text-zinc-500 block text-[10px] uppercase font-bold">Saldo Normal</span>
+            <span class="font-bold text-blue-600">{{ activeAccount?.normalBalance }}</span>
           </div>
-          <div class="h-6 w-px bg-slate-800"></div>
+          <div class="h-6 w-px bg-zinc-200"></div>
           <div>
-            <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Awal</span>
-            <span class="font-bold text-slate-300 text-xs">{{ formatIDR(openingBalanceVal) }}</span>
+            <span class="text-zinc-500 block text-[10px] uppercase font-bold">Saldo Awal</span>
+            <span class="font-bold text-zinc-700 text-xs">{{ formatIDR(openingBalanceVal) }}</span>
           </div>
-          <div class="h-6 w-px bg-slate-800"></div>
+          <div class="h-6 w-px bg-zinc-200"></div>
           <div>
-            <span class="text-slate-500 block text-[10px] uppercase font-bold">Saldo Akhir</span>
-            <span class="font-bold text-emerald-400 text-sm">{{ formatIDR(endingBalance) }}</span>
+            <span class="text-zinc-500 block text-[10px] uppercase font-bold">Saldo Akhir</span>
+            <span class="font-bold text-emerald-700 text-sm">{{ formatIDR(endingBalance) }}</span>
           </div>
         </div>
       </div>
 
       <!-- Smart Account Suggestions if search query matches another COA account -->
-      <div v-if="matchingAccountSuggestions.length > 0" class="flex items-center gap-2 pt-1 border-t border-slate-800/80 text-[11px]">
-        <span class="text-slate-400">Pindah ke Buku Besar Akun Terkait:</span>
+      <div v-if="matchingAccountSuggestions.length > 0" class="flex items-center gap-2 pt-1 border-t border-zinc-100 text-[11px]">
+        <span class="text-zinc-500">Pindah ke Buku Besar Akun Terkait:</span>
         <div class="flex flex-wrap gap-1.5">
           <button
             v-for="sug in matchingAccountSuggestions"
             :key="sug.code"
             @click="switchToAccount(sug.code)"
-            class="px-2.5 py-0.5 rounded-md bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800/60 transition inline-flex items-center gap-1 cursor-pointer"
+            class="px-2.5 py-0.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition inline-flex items-center gap-1 cursor-pointer"
           >
             <span class="font-mono font-bold">[{{ sug.code }}]</span>
             <span>{{ sug.name }}</span>
@@ -596,54 +597,54 @@ function handleExportExcel() {
       </div>
     </div>
 
-    <!-- Ledger Table (High-Contrast Dark Look matching Images 2, 3, 4) -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl overflow-hidden shadow-2xl text-slate-200">
+    <!-- Ledger Table (Clean Light Theme) -->
+    <div class="bg-white border border-zinc-200/90 rounded-2xl overflow-hidden shadow-2xs text-zinc-800">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs select-none">
           <thead>
-            <tr class="border-b border-slate-800 bg-[#0F172A] text-[11px] font-bold text-slate-400">
-              <th class="py-2.5 px-4 w-12 text-slate-500">#</th>
+            <tr class="border-b border-zinc-200 bg-zinc-50/90 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              <th class="py-2.5 px-4 w-12 text-zinc-400">#</th>
               <th class="py-2.5 px-4 w-28">Tanggal</th>
               <th class="py-2.5 px-4 w-36">No Jurnal</th>
               <th class="py-2.5 px-4 w-32">Sumber</th>
               <th class="py-2.5 px-4">Uraian / Memo Transaksi</th>
               <th class="py-2.5 px-4 text-center w-24">Unit</th>
-              <th class="py-2.5 px-5 text-right w-44 text-emerald-400">Debet (Dr)</th>
-              <th class="py-2.5 px-5 text-right w-44 text-rose-400">Kredit (Cr)</th>
-              <th class="py-2.5 px-6 text-right w-48 font-bold text-white bg-slate-800/40">Saldo Berjalan</th>
+              <th class="py-2.5 px-5 text-right w-44 text-emerald-700">Debet (Dr)</th>
+              <th class="py-2.5 px-5 text-right w-44 text-rose-700">Kredit (Cr)</th>
+              <th class="py-2.5 px-6 text-right w-48 font-bold text-zinc-900 bg-zinc-50/60">Saldo Berjalan</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/60 font-mono">
+          <tbody class="divide-y divide-zinc-100 font-mono">
             <!-- Opening Balance Row -->
-            <tr class="bg-[#141D2E] font-bold text-slate-300">
-              <td class="py-2.5 px-4 text-slate-500 font-mono text-[11px]">0</td>
-              <td class="py-2.5 px-4 text-slate-400">{{ formatDate(startDate) || '01/01/2026' }}</td>
-              <td colspan="4" class="py-2.5 px-4 italic font-sans text-slate-400">
+            <tr class="bg-zinc-100/70 font-bold text-zinc-800">
+              <td class="py-2.5 px-4 text-zinc-400 font-mono text-[11px]">0</td>
+              <td class="py-2.5 px-4 text-zinc-500">{{ formatDate(startDate) || '01/01/2026' }}</td>
+              <td colspan="4" class="py-2.5 px-4 italic font-sans text-zinc-600">
                 Saldo Awal Buku Besar Akun {{ activeAccount?.code }} (Periode {{ startDate }} s/d {{ endDate }})
               </td>
-              <td class="py-2.5 px-5 text-right text-slate-500">-</td>
-              <td class="py-2.5 px-5 text-right text-slate-500">-</td>
-              <td class="py-2.5 px-6 text-right font-bold text-slate-100 bg-slate-800/60">
+              <td class="py-2.5 px-5 text-right text-zinc-400">-</td>
+              <td class="py-2.5 px-5 text-right text-zinc-400">-</td>
+              <td class="py-2.5 px-6 text-right font-bold text-zinc-950 bg-zinc-50">
                 {{ formatIDR(openingBalanceVal) }}
               </td>
             </tr>
 
             <!-- Empty State when no transactions -->
-            <tr v-if="!isLoadingLedger && filteredLedgerEntries.length === 0" class="bg-[#121826]">
+            <tr v-if="!isLoadingLedger && filteredLedgerEntries.length === 0" class="bg-white">
               <td colspan="9" class="py-8 px-4 text-center">
-                <div class="flex flex-col items-center justify-center gap-2 text-slate-400 font-sans">
-                  <AlertCircle class="w-7 h-7 text-slate-500" />
-                  <p class="font-medium text-sm text-slate-300">
+                <div class="flex flex-col items-center justify-center gap-2 text-zinc-500 font-sans">
+                  <AlertCircle class="w-7 h-7 text-zinc-400" />
+                  <p class="font-medium text-sm text-zinc-700">
                     Belum ada transaksi mutasi buku besar untuk akun {{ activeAccount?.code }} - {{ activeAccount?.name }} pada periode ini.
                   </p>
-                  <p class="text-xs text-slate-500">
+                  <p class="text-xs text-zinc-400">
                     Transaksi akan tercatat otomatis saat Jurnal Umum dengan akun ini diposting.
                   </p>
                   <router-link
                     to="/accounting/journals/create"
-                    class="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs"
+                    class="mt-2 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold transition shadow-2xs"
                   >
-                    <Plus class="w-3.5 h-3.5" />
+                    <Plus class="w-3.5 h-3.5 text-emerald-400" />
                     <span>Buat Jurnal Baru Untuk Akun Ini</span>
                   </router-link>
                 </div>
@@ -654,57 +655,57 @@ function handleExportExcel() {
             <tr
               v-for="(entry, index) in filteredLedgerEntries"
               :key="entry.id"
-              class="hover:bg-slate-800/40 transition-colors group"
+              class="hover:bg-zinc-50/80 transition-colors group"
             >
-              <td class="py-2.5 px-4 text-slate-500 text-[11px] select-none font-mono">
+              <td class="py-2.5 px-4 text-zinc-400 text-[11px] select-none font-mono">
                 {{ index + 1 }}
               </td>
-              <td class="py-2.5 px-4 text-slate-400 whitespace-nowrap">
+              <td class="py-2.5 px-4 text-zinc-600 whitespace-nowrap">
                 {{ formatDate(entry.date) }}
               </td>
-              <td class="py-2.5 px-4 font-bold text-blue-400 whitespace-nowrap">
+              <td class="py-2.5 px-4 font-bold text-blue-600 whitespace-nowrap">
                 <button
                   @click="inspectJournalByNumber(entry.journalNumber)"
                   class="hover:underline flex items-center gap-1 cursor-pointer"
                   title="Klik untuk membuka voucher jurnal lengkap"
                 >
                   <span>{{ entry.journalNumber }}</span>
-                  <Eye class="w-3 h-3 text-slate-500 group-hover:text-blue-400" />
+                  <Eye class="w-3 h-3 text-zinc-400 group-hover:text-blue-600" />
                 </button>
               </td>
-              <td class="py-2.5 px-4 text-slate-300 font-sans font-semibold text-[11px]">
+              <td class="py-2.5 px-4 text-zinc-700 font-sans font-semibold text-[11px]">
                 {{ entry.source }}
               </td>
-              <td class="py-2.5 px-4 font-sans text-slate-200 max-w-sm">
+              <td class="py-2.5 px-4 font-sans text-zinc-800 max-w-sm">
                 {{ entry.description }}
-                <span class="block text-[10px] text-slate-500 font-mono">{{ entry.branchName }}</span>
+                <span class="block text-[10px] text-zinc-400 font-mono">{{ entry.branchName }}</span>
               </td>
               <td class="py-2.5 px-4 text-center">
                 <StatusBadge :status="entry.businessUnit" size="sm" />
               </td>
-              <td class="py-2.5 px-5 text-right font-mono font-bold text-emerald-400">
+              <td class="py-2.5 px-5 text-right font-mono font-bold text-emerald-700">
                 {{ entry.debit > 0 ? formatIDR(entry.debit, false) : '-' }}
               </td>
-              <td class="py-2.5 px-5 text-right font-mono font-bold text-rose-400">
+              <td class="py-2.5 px-5 text-right font-mono font-bold text-rose-700">
                 {{ entry.credit > 0 ? formatIDR(entry.credit, false) : '-' }}
               </td>
-              <td class="py-2.5 px-6 text-right font-mono font-bold text-white bg-slate-800/40">
+              <td class="py-2.5 px-6 text-right font-mono font-bold text-zinc-900 bg-zinc-50/50">
                 {{ formatIDR(entry.runningBalance) }}
               </td>
             </tr>
           </tbody>
           <tfoot>
-            <tr class="bg-[#0F172A] font-bold border-t-2 border-slate-700 text-slate-100">
-              <td colspan="6" class="py-3 px-4 text-right uppercase tracking-wider text-slate-400 font-sans">
+            <tr class="bg-zinc-50 font-bold border-t-2 border-zinc-200 text-zinc-900">
+              <td colspan="6" class="py-3 px-4 text-right uppercase tracking-wider text-zinc-500 font-sans">
                 TOTAL MUTASI &amp; SALDO AKHIR:
               </td>
-              <td class="py-3 px-5 text-right font-mono text-emerald-400 font-bold">
+              <td class="py-3 px-5 text-right font-mono text-emerald-700 font-bold">
                 {{ formatIDR(totalDebit) }}
               </td>
-              <td class="py-3 px-5 text-right font-mono text-rose-400 font-bold">
+              <td class="py-3 px-5 text-right font-mono text-rose-700 font-bold">
                 {{ formatIDR(totalCredit) }}
               </td>
-              <td class="py-3 px-6 text-right font-mono text-emerald-300 text-sm font-black bg-slate-800/80">
+              <td class="py-3 px-6 text-right font-mono text-emerald-800 text-sm font-black bg-zinc-100">
                 {{ formatIDR(endingBalance) }}
               </td>
             </tr>
@@ -713,13 +714,13 @@ function handleExportExcel() {
       </div>
 
       <!-- Bottom Note -->
-      <div class="px-4 py-3 bg-[#0F172A] border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+      <div class="px-4 py-3 bg-zinc-50/80 border-t border-zinc-200 flex items-center justify-between text-xs text-zinc-500">
         <span class="font-sans">
           Menampilkan <strong>{{ filteredLedgerEntries.length }}</strong> transaksi mutasi buku besar untuk akun {{ activeAccount?.code }} - {{ activeAccount?.name }}.
         </span>
         <button
           @click="router.push('/accounting/journals')"
-          class="text-blue-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+          class="text-blue-600 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
         >
           <span>Lihat Seluruh Voucher Jurnal</span>
           <ArrowLeft class="w-3.5 h-3.5 rotate-180" />

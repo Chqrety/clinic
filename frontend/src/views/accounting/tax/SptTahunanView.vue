@@ -211,37 +211,37 @@ function printReport() {
     </div>
 
     <!-- Annual Tax Summary Box -->
-    <div class="bg-zinc-950 text-white rounded-2xl p-6 shadow-xl border border-zinc-800 space-y-4">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+    <div class="bg-white text-zinc-900 rounded-2xl p-6 shadow-2xs border border-zinc-200/90 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
         <div>
           <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold text-[11px] flex items-center gap-1">
-              <CheckCircle2 class="w-3.5 h-3.5 text-emerald-400" />
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px] flex items-center gap-1">
+              <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
               <span>Validasi Terverifikasi (Kanal Bank Resmi)</span>
             </span>
-            <span class="text-xs text-zinc-400">Tahun Pajak {{ annual1771.fiscalYear }}</span>
+            <span class="text-xs text-zinc-500 font-medium">Tahun Pajak {{ annual1771.fiscalYear }}</span>
             <span
               v-if="annual1771.isCustomOverridden"
-              class="text-xs text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-600/40 font-bold"
+              class="text-xs text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-bold"
             >
               Manual Override Aktif
             </span>
           </div>
-          <h2 class="text-xl font-black text-white mt-1">
+          <h2 class="text-xl font-bold text-zinc-950 mt-1">
             Perhitungan PPh Badan Terutang & PPh Pasal 29 Kurang Bayar
           </h2>
-          <p class="text-xs text-zinc-400">
+          <p class="text-xs text-zinc-500">
             Laba Bersih Komersial dikurangi kredit pajak resmi yang dihimpun dari mutasi perbankan SPT Masa PPh 23 dan PPh 25 serta penyesuaian tahunan 1771.
           </p>
         </div>
 
         <div class="text-right">
-          <span class="text-xs text-zinc-400 block font-medium">
+          <span class="text-xs text-zinc-500 block font-medium">
             {{ annual1771.pph28aOverpaid > 0 ? 'PPh Pasal 28A Lebih Bayar:' : 'PPh Pasal 29 Kurang Bayar:' }}
           </span>
           <span
             class="text-2xl font-black tabular-nums"
-            :class="annual1771.pph28aOverpaid > 0 ? 'text-emerald-400' : 'text-amber-400'"
+            :class="annual1771.pph28aOverpaid > 0 ? 'text-emerald-700' : 'text-amber-700'"
           >
             {{ formatIDR(annual1771.pph28aOverpaid > 0 ? annual1771.pph28aOverpaid : annual1771.pph29Payable) }}
           </span>
@@ -250,56 +250,56 @@ function printReport() {
 
       <!-- 4 Pillars: Komersial -> PKP -> PPh Terutang -> Kredit Pajak Bank -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-        <div class="bg-zinc-900/80 rounded-xl p-4 border border-zinc-800/60 space-y-1">
+        <div class="bg-zinc-50 rounded-xl p-4 border border-zinc-200/80 space-y-1">
           <div class="flex items-center justify-between">
-            <span class="text-zinc-400 font-bold uppercase tracking-wide text-[10px]">1. Laba Bersih Komersial</span>
-            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-500 hover:text-white cursor-pointer" title="Ubah di Halaman Penyesuaian">
+            <span class="text-zinc-500 font-bold uppercase tracking-wide text-[10px]">1. Laba Bersih Komersial</span>
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-400 hover:text-zinc-800 cursor-pointer" title="Ubah di Halaman Penyesuaian">
               <Pencil class="w-3 h-3" />
             </router-link>
           </div>
-          <div class="tabular-nums text-base font-bold text-white">
+          <div class="tabular-nums text-base font-bold text-zinc-950">
             {{ formatIDR(annual1771.commercialNetProfit) }}
           </div>
           <p class="text-[10px] text-zinc-400">Pendapatan dikurangi HPP & Beban Operasional</p>
         </div>
 
-        <div class="bg-zinc-900/80 rounded-xl p-4 border border-zinc-800/60 space-y-1">
+        <div class="bg-amber-50/60 rounded-xl p-4 border border-amber-200/80 space-y-1">
           <div class="flex items-center justify-between">
-            <span class="text-zinc-400 font-bold uppercase tracking-wide text-[10px]">2. Penghasilan Kena Pajak</span>
-            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-500 hover:text-amber-300 cursor-pointer" title="Ubah Koreksi Fiskal">
+            <span class="text-amber-700 font-bold uppercase tracking-wide text-[10px]">2. Penghasilan Kena Pajak</span>
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-amber-500 hover:text-amber-800 cursor-pointer" title="Ubah Koreksi Fiskal">
               <Pencil class="w-3 h-3" />
             </router-link>
           </div>
-          <div class="tabular-nums text-base font-bold text-amber-300">
+          <div class="tabular-nums text-base font-bold text-amber-800">
             {{ formatIDR(annual1771.taxableIncome) }}
           </div>
-          <p class="text-[10px] text-zinc-400">Setelah Koreksi Fiskal Positif & Negatif</p>
+          <p class="text-[10px] text-amber-700/80">Setelah Koreksi Fiskal Positif & Negatif</p>
         </div>
 
-        <div class="bg-zinc-900/80 rounded-xl p-4 border border-zinc-800/60 space-y-1">
+        <div class="bg-zinc-50 rounded-xl p-4 border border-zinc-200/80 space-y-1">
           <div class="flex items-center justify-between">
-            <span class="text-zinc-400 font-bold uppercase tracking-wide text-[10px]">3. PPh Badan Terutang</span>
-            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-500 hover:text-white cursor-pointer" title="Ubah Tarif Pajak">
+            <span class="text-zinc-500 font-bold uppercase tracking-wide text-[10px]">3. PPh Badan Terutang</span>
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-zinc-400 hover:text-zinc-800 cursor-pointer" title="Ubah Tarif Pajak">
               <Pencil class="w-3 h-3" />
             </router-link>
           </div>
-          <div class="tabular-nums text-base font-bold text-white">
+          <div class="tabular-nums text-base font-bold text-zinc-950">
             {{ formatIDR(annual1771.corporateTaxPayable) }}
           </div>
           <p class="text-[10px] text-zinc-400">Tarif Efektif {{ (annual1771.corporateTaxRate * 100).toFixed(0) }}% x PKP</p>
         </div>
 
-        <div class="bg-emerald-950/80 rounded-xl p-4 border border-emerald-700/60 space-y-1 text-emerald-100">
+        <div class="bg-emerald-50/70 rounded-xl p-4 border border-emerald-200/80 space-y-1 text-emerald-950">
           <div class="flex items-center justify-between">
-            <span class="text-emerald-400 font-bold uppercase tracking-wide text-[10px]">4. Kredit Pajak Diakui</span>
-            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-emerald-500 hover:text-emerald-200 cursor-pointer" title="Ubah Kredit Pajak">
+            <span class="text-emerald-700 font-bold uppercase tracking-wide text-[10px]">4. Kredit Pajak Diakui</span>
+            <router-link to="/accounting/tax/spt-tahunan/edit" class="text-emerald-600 hover:text-emerald-900 cursor-pointer" title="Ubah Kredit Pajak">
               <Pencil class="w-3 h-3" />
             </router-link>
           </div>
-          <div class="tabular-nums text-base font-bold text-emerald-300">
+          <div class="tabular-nums text-base font-bold text-emerald-800">
             {{ formatIDR(annual1771.taxCredits) }}
           </div>
-          <p class="text-[10px] text-emerald-400 font-medium">
+          <p class="text-[10px] text-emerald-700 font-medium">
             PPh 23: {{ formatIDR(annual1771.taxCreditPph23) }} | PPh 25: {{ formatIDR(annual1771.taxCreditPph25) }}
           </p>
         </div>
@@ -541,17 +541,17 @@ function printReport() {
                 </router-link>
               </td>
             </tr>
-            <tr class="bg-zinc-950 text-white font-black border-t-2 border-zinc-800">
-              <td class="px-4 py-3 font-black text-amber-400">11</td>
-              <td class="px-4 py-3 uppercase text-amber-400 text-sm">
+            <tr class="bg-zinc-100 font-bold border-t-2 border-zinc-300 text-zinc-900">
+              <td class="px-4 py-3 font-black text-amber-700">11</td>
+              <td class="px-4 py-3 uppercase text-amber-800 text-sm font-bold">
                 {{ annual1771.pph28aOverpaid > 0 ? 'PPH PASAL 28A LEBIH BAYAR (9 + 10 - 8)' : 'PPH PASAL 29 KURANG BAYAR (8 - 9 - 10)' }}
               </td>
-              <td class="px-4 py-3 text-zinc-400 font-sans text-xs">
+              <td class="px-4 py-3 text-zinc-600 font-sans text-xs">
                 {{ annual1771.pph28aOverpaid > 0 ? 'Dapat direstitusi atau dikompensasikan ke tahun depan' : 'Wajib disetor sebelum pelaporan SPT 1771' }}
               </td>
               <td
                 class="px-4 py-3 text-right tabular-nums font-black text-base"
-                :class="annual1771.pph28aOverpaid > 0 ? 'text-emerald-400' : 'text-amber-300'"
+                :class="annual1771.pph28aOverpaid > 0 ? 'text-emerald-700' : 'text-amber-800'"
               >
                 {{ formatIDR(annual1771.pph28aOverpaid > 0 ? annual1771.pph28aOverpaid : annual1771.pph29Payable) }}
               </td>
@@ -685,15 +685,15 @@ function printReport() {
             </tr>
           </tbody>
           <tfoot>
-            <tr class="bg-zinc-950 text-white font-bold border-t-2 border-zinc-800">
-              <td class="px-3 py-3 uppercase font-sans text-amber-400">TOTAL KREDIT PAJAK TAHUNAN:</td>
-              <td class="px-3 py-3 font-sans text-zinc-400 text-xs">Rekap Kanal Bank & Koreksi 1771</td>
-              <td class="px-3 py-3 text-right tabular-nums text-white">{{ formatIDR(annual1771.taxCreditPph23) }}</td>
-              <td class="px-3 py-3 text-right tabular-nums text-emerald-400">{{ formatIDR(annual1771.taxCreditPph25) }}</td>
+            <tr class="bg-zinc-100 font-bold border-t-2 border-zinc-300 text-zinc-900">
+              <td class="px-3 py-3 uppercase font-sans text-amber-800">TOTAL KREDIT PAJAK TAHUNAN:</td>
+              <td class="px-3 py-3 font-sans text-zinc-600 text-xs">Rekap Kanal Bank & Koreksi 1771</td>
+              <td class="px-3 py-3 text-right tabular-nums text-zinc-900">{{ formatIDR(annual1771.taxCreditPph23) }}</td>
+              <td class="px-3 py-3 text-right tabular-nums text-emerald-700">{{ formatIDR(annual1771.taxCreditPph25) }}</td>
               <td class="px-3 py-3 text-right text-zinc-400">-</td>
               <td class="px-3 py-3 text-right text-zinc-400">-</td>
-              <td class="px-3 py-3 text-right tabular-nums text-amber-300 text-sm font-black bg-zinc-900">{{ formatIDR(annual1771.taxCredits) }}</td>
-              <td class="px-3 py-3 text-center text-emerald-400 font-sans text-xs" colspan="3">
+              <td class="px-3 py-3 text-right tabular-nums text-amber-800 text-sm font-black bg-amber-50/80">{{ formatIDR(annual1771.taxCredits) }}</td>
+              <td class="px-3 py-3 text-center text-emerald-700 font-sans text-xs" colspan="3">
                 {{ annual1771.hasAdjustments ? 'Diakui dengan Penyesuaian' : 'Terverifikasi Penuh' }}
               </td>
             </tr>

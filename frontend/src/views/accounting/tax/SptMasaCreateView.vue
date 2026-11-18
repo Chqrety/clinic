@@ -519,75 +519,71 @@ function handlePrint() {
 
 <template>
   <div class="font-['Plus_Jakarta_Sans',sans-serif] max-w-7xl mx-auto pb-16">
-    <!-- ========================================================================= -->
-    <!-- SCREEN UI: BRAYO PAJAK MODERN DARK INTERFACE (apptax.brayo.id)             -->
-    <!-- Meniru 1:1 Tampilan Sederhana & Bersih Sesuai Screenshot User              -->
-    <!-- ========================================================================= -->
-    <div class="print:hidden bg-[#18191c] text-zinc-300 min-h-screen -mx-4 -mt-4 p-5 sm:p-7 rounded-2xl shadow-xl space-y-6">
+    <div class="print:hidden bg-white text-zinc-800 rounded-2xl border border-zinc-200/90 p-5 sm:p-7 shadow-2xs space-y-6">
       
-      <!-- 1. Header: Breadcrumb & Brayo Action Bar -->
-      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-[#282a31]">
+      <!-- 1. Header: Breadcrumb & Action Bar -->
+      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-zinc-200">
         <!-- Breadcrumb -->
-        <div class="flex items-center gap-2 text-xs text-zinc-400 flex-wrap">
-          <router-link to="/accounting/tax/spt-masa" class="hover:text-zinc-200 transition flex items-center gap-1.5 text-zinc-400">
-            <Folder class="w-4 h-4 text-zinc-500" />
-            <span>Brayo Pajak</span>
+        <div class="flex items-center gap-2 text-xs text-zinc-500 flex-wrap">
+          <router-link to="/accounting/tax/spt-masa" class="hover:text-zinc-900 transition flex items-center gap-1.5 text-zinc-500">
+            <Folder class="w-4 h-4 text-zinc-400" />
+            <span>Pajak Klinik</span>
           </router-link>
           <span>/</span>
-          <span class="text-zinc-400">Pelaporan Pajak</span>
+          <span class="text-zinc-500">Pelaporan Pajak</span>
           <span>/</span>
-          <span class="font-mono font-bold text-zinc-100">{{ reportNumber }}</span>
-          <span class="ml-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-[#143c44] text-[#2dd4bf] border border-[#195663]">
+          <span class="font-mono font-bold text-zinc-900">{{ reportNumber }}</span>
+          <span class="ml-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
             {{ status === 'DATA_DIAMBIL' ? 'Data Diambil' : (status === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft') }}
           </span>
         </div>
 
-        <!-- Top Right Actions matching Brayo Screenshot -->
+        <!-- Top Right Actions -->
         <div class="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             @click="handleExportExcel"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-200 text-zinc-950 font-bold rounded-lg text-xs shadow-sm transition active:scale-95 cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 font-bold rounded-xl text-xs border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
             title="Export Excel (.xlsx)"
           >
-            <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-700" />
+            <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600" />
             <span>Export Excel (.xlsx)</span>
           </button>
 
           <button
             type="button"
             @click="handleExportCSV"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25272e] hover:bg-[#2d3038] text-zinc-300 font-semibold rounded-lg text-xs border border-[#373a43] transition active:scale-95 cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 font-semibold rounded-xl text-xs border border-zinc-200 transition active:scale-95 cursor-pointer"
             title="Export CSV"
           >
-            <Download class="w-3.5 h-3.5 text-zinc-400" />
+            <Download class="w-3.5 h-3.5 text-zinc-500" />
             <span>Export CSV</span>
           </button>
 
           <button
             type="button"
             @click="handlePrint"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25272e] hover:bg-[#2d3038] text-zinc-300 font-semibold rounded-lg text-xs border border-[#373a43] transition active:scale-95 cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 font-semibold rounded-xl text-xs border border-zinc-200 transition active:scale-95 cursor-pointer"
             title="Cetak Formulir Resmi DJP"
           >
-            <Printer class="w-3.5 h-3.5 text-blue-400" />
+            <Printer class="w-3.5 h-3.5 text-blue-600" />
             <span>Cetak Formulir</span>
           </button>
 
           <button
             type="button"
             @click="() => pullDataFromGeneralJournal(true)"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold rounded-lg text-xs border border-amber-500/40 transition active:scale-95 cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl text-xs border border-amber-200 transition active:scale-95 cursor-pointer"
             title="Tarik data transaksi terbaru dari Jurnal Umum & Buku Besar"
           >
-            <Sparkles class="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles class="w-3.5 h-3.5 text-amber-600" />
             <span>Ambil Data Otomatis</span>
           </button>
 
           <button
             type="button"
             @click="handleSave"
-            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs shadow-sm transition active:scale-95 cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white font-bold rounded-xl text-xs shadow-2xs transition active:scale-95 cursor-pointer"
           >
             <Save class="w-3.5 h-3.5" />
             <span>Simpan</span>
@@ -595,21 +591,21 @@ function handlePrint() {
 
           <router-link
             to="/accounting/tax/spt-masa"
-            class="inline-flex items-center px-3 py-1.5 text-zinc-400 hover:text-zinc-200 text-xs font-semibold transition"
+            class="inline-flex items-center px-3 py-1.5 text-zinc-500 hover:text-zinc-800 text-xs font-semibold transition"
           >
             Cancel
           </router-link>
         </div>
       </header>
 
-      <!-- 2. Brayo Tabs Navigation -->
-      <div class="border-b border-[#282a31]">
+      <!-- 2. Tabs Navigation -->
+      <div class="border-b border-zinc-200">
         <nav class="flex space-x-6 text-xs font-medium">
           <button
             type="button"
             @click="activeTab = 'DETAILS'"
             class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
-            :class="activeTab === 'DETAILS' ? 'border-b-2 border-white text-white font-bold' : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-200'"
+            :class="activeTab === 'DETAILS' ? 'border-b-2 border-zinc-950 text-zinc-950 font-bold' : 'border-b-2 border-transparent text-zinc-500 hover:text-zinc-800'"
           >
             <BookOpen class="w-3.5 h-3.5" />
             <span>Details</span>
@@ -619,7 +615,7 @@ function handlePrint() {
             type="button"
             @click="activeTab = 'RECONCILIATION'"
             class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
-            :class="activeTab === 'RECONCILIATION' ? 'border-b-2 border-white text-white font-bold' : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-200'"
+            :class="activeTab === 'RECONCILIATION' ? 'border-b-2 border-zinc-950 text-zinc-950 font-bold' : 'border-b-2 border-transparent text-zinc-500 hover:text-zinc-800'"
           >
             <Calculator class="w-3.5 h-3.5" />
             <span>Rekonsiliasi & Status</span>
@@ -629,7 +625,7 @@ function handlePrint() {
             type="button"
             @click="activeTab = 'AUDIT'"
             class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
-            :class="activeTab === 'AUDIT' ? 'border-b-2 border-white text-white font-bold' : 'border-b-2 border-transparent text-zinc-400 hover:text-zinc-200'"
+            :class="activeTab === 'AUDIT' ? 'border-b-2 border-zinc-950 text-zinc-950 font-bold' : 'border-b-2 border-transparent text-zinc-500 hover:text-zinc-800'"
           >
             <Clock class="w-3.5 h-3.5" />
             <span>Audit Trail & Sync</span>
@@ -637,15 +633,15 @@ function handlePrint() {
         </nav>
       </div>
 
-      <!-- 3. TAB 1: DETAILS (Brayo 2-Column Split: Left Content + Right Sidebar) -->
+      <!-- 3. TAB 1: DETAILS (2-Column Split: Left Content + Right Sidebar) -->
       <div v-if="activeTab === 'DETAILS'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         <!-- LEFT MAIN CONTENT (9 Cols) -->
         <div class="lg:col-span-9 space-y-7">
           
-          <!-- Section A: Periode Pelaporan (Form 2 Kolom Bersih Sesuai Screenshot) -->
+          <!-- Section A: Periode Pelaporan -->
           <div>
-            <h3 class="text-sm font-semibold text-zinc-200 mb-3.5">
+            <h3 class="text-sm font-bold text-zinc-900 mb-3.5">
               Periode Pelaporan
             </h3>
 
@@ -653,30 +649,30 @@ function handlePrint() {
               <!-- Left Form Col -->
               <div class="space-y-3">
                 <div>
-                  <label class="block text-zinc-400 mb-1">Nama Laporan / Transaksi *</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Nama Laporan / Transaksi *</label>
                   <input
                     v-model="reportName"
                     type="text"
-                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 transition"
+                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white transition"
                   />
                 </div>
 
                 <div>
-                  <label class="block text-zinc-400 mb-1">Company *</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Company *</label>
                   <input
                     v-model="companyName"
                     type="text"
                     readonly
-                    class="w-full px-3 py-2 bg-[#1b1c20] border border-[#272930] rounded-lg text-zinc-400 font-semibold cursor-not-allowed"
+                    class="w-full px-3 py-2 bg-zinc-100/80 border border-zinc-200 rounded-xl text-zinc-600 font-semibold cursor-not-allowed"
                   />
-                  <p class="text-[10px] text-zinc-500 mt-1 font-mono">NPWP: {{ currentEntity.npwp }} • {{ currentEntity.subtitle }}</p>
+                  <p class="text-[10px] text-zinc-400 mt-1 font-mono">NPWP: {{ currentEntity.npwp }} • {{ currentEntity.subtitle }}</p>
                 </div>
 
                 <div>
-                  <label class="block text-zinc-400 mb-1">Project</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Project</label>
                   <select
                     v-model="unit"
-                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 cursor-pointer transition"
+                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
                   >
                     <option value="ALL">Semua Unit (Konsolidasi)</option>
                     <option value="KIDINEST">Unit Kidinest (Klinik Anak)</option>
@@ -685,10 +681,10 @@ function handlePrint() {
                 </div>
 
                 <div>
-                  <label class="block text-zinc-400 mb-1">Sumber Transaksi *</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Sumber Transaksi *</label>
                   <select
                     v-model="sourceTransactionFilter"
-                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 cursor-pointer transition"
+                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
                   >
                     <option value="Semua Transaksi">Semua Transaksi</option>
                     <option value="Buku Besar">Buku Besar (General Ledger)</option>
@@ -698,10 +694,10 @@ function handlePrint() {
                 </div>
 
                 <div>
-                  <label class="block text-zinc-400 mb-1">Jenis Pajak</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Jenis Pajak</label>
                   <select
                     v-model="selectedTaxAccountCode"
-                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none focus:border-zinc-500 cursor-pointer transition"
+                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
                   >
                     <option
                       v-for="c in taxAccountCatalog"
@@ -715,10 +711,10 @@ function handlePrint() {
 
                 <div class="grid grid-cols-2 gap-3">
                   <div>
-                    <label class="block text-zinc-400 mb-1">Bulan *</label>
+                    <label class="block text-zinc-600 mb-1 font-medium">Bulan *</label>
                     <select
                       v-model.number="masaMonth"
-                      class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none cursor-pointer"
+                      class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer"
                     >
                       <option :value="1">01 - Januari</option>
                       <option :value="2">02 - Februari</option>
@@ -736,11 +732,11 @@ function handlePrint() {
                   </div>
 
                   <div>
-                    <label class="block text-zinc-400 mb-1">Tahun *</label>
+                    <label class="block text-zinc-600 mb-1 font-medium">Tahun *</label>
                     <input
                       v-model.number="masaYear"
                       type="number"
-                      class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg font-mono text-zinc-100 font-semibold focus:outline-none"
+                      class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white"
                     />
                   </div>
                 </div>
@@ -749,29 +745,29 @@ function handlePrint() {
               <!-- Right Form Col -->
               <div class="space-y-3">
                 <div>
-                  <label class="block text-zinc-400 mb-1">Status</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Status</label>
                   <input
                     type="text"
                     readonly
                     :value="status === 'DATA_DIAMBIL' ? 'Data Diambil' : (status === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft')"
-                    class="w-full px-3 py-2 bg-[#1b1c20] border border-[#272930] rounded-lg text-teal-400 font-semibold cursor-not-allowed"
+                    class="w-full px-3 py-2 bg-teal-50 border border-teal-200 rounded-xl text-teal-700 font-bold cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label class="block text-zinc-400 mb-1">Tanggal Dibuat</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Tanggal Dibuat</label>
                   <input
                     v-model="createdDate"
                     type="date"
-                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg font-mono text-zinc-100 focus:outline-none"
+                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 focus:outline-none focus:border-zinc-400 focus:bg-white"
                   />
                 </div>
 
                 <div>
-                  <label class="block text-zinc-400 mb-1">Rekening Bank Penyetor</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Rekening Bank Penyetor</label>
                   <select
                     v-model="bankAccountCode"
-                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg text-zinc-100 font-semibold focus:outline-none cursor-pointer"
+                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer"
                   >
                     <option
                       v-for="b in taxStore.availableBankAccounts"
@@ -784,62 +780,62 @@ function handlePrint() {
                 </div>
 
                 <div>
-                  <label class="block text-zinc-400 mb-1">Nomor NTPN / Kode Billing DJP</label>
+                  <label class="block text-zinc-600 mb-1 font-medium">Nomor NTPN / Kode Billing DJP</label>
                   <input
                     v-model="ntpnNumber"
                     type="text"
                     placeholder="Contoh: NTPN-BCA-20261120-9901"
-                    class="w-full px-3 py-2 bg-[#202227] border border-[#2f323a] rounded-lg font-mono text-zinc-100 placeholder-zinc-600 focus:outline-none"
+                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 focus:bg-white"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Section B: Detail Transaksi Pajak (Brayo Clean Dark Table) -->
+          <!-- Section B: Detail Transaksi Pajak -->
           <div>
             <div class="flex items-center justify-between mb-2">
               <div>
-                <h3 class="text-sm font-semibold text-zinc-200">
+                <h3 class="text-sm font-bold text-zinc-900">
                   Detail Transaksi Pajak
                 </h3>
-                <span class="text-xs text-zinc-500">Detail</span>
+                <span class="text-xs text-zinc-400">Detail Transaksi Jurnal Umum & Pajak</span>
               </div>
 
               <div class="flex items-center gap-2">
                 <button
                   type="button"
                   @click="toggleSelectAll"
-                  class="text-[11px] font-medium text-cyan-400 hover:text-cyan-300 transition px-2 py-1 rounded cursor-pointer"
+                  class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition px-2 py-1 rounded cursor-pointer"
                 >
                   {{ isAllSelected ? 'Batal Pilih Semua' : 'Pilih Semua' }}
                 </button>
                 <button
                   type="button"
                   @click="addRow"
-                  class="inline-flex items-center gap-1 px-2.5 py-1 bg-[#24262c] hover:bg-[#2e3138] text-zinc-200 rounded-lg text-xs font-semibold border border-[#373a43] transition cursor-pointer"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-zinc-50 text-zinc-700 rounded-lg text-xs font-semibold border border-zinc-200 shadow-2xs transition cursor-pointer"
                 >
-                  <Plus class="w-3 h-3" />
+                  <Plus class="w-3 h-3 text-zinc-500" />
                   <span>Tambah Baris</span>
                 </button>
               </div>
             </div>
 
-            <!-- Brayo Clean Dark Table -->
-            <div class="border border-[#282a31] rounded-xl overflow-hidden bg-[#18191d]">
+            <!-- Clean Light Table -->
+            <div class="border border-zinc-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
               <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left">
-                  <thead class="bg-[#1e2025] text-zinc-400 font-semibold border-b border-[#282a31] text-[11px]">
+                  <thead class="bg-zinc-50/90 text-zinc-500 font-bold border-b border-zinc-200 text-[11px] uppercase">
                     <tr>
                       <th class="px-3 py-2.5 w-10 text-center">
                         <input
                           type="checkbox"
                           :checked="isAllSelected"
                           @change="toggleSelectAll"
-                          class="w-3.5 h-3.5 rounded bg-[#25272e] border-zinc-600 text-cyan-500 focus:ring-0 cursor-pointer"
+                          class="w-3.5 h-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-0 cursor-pointer"
                         />
                       </th>
-                      <th class="px-2 py-2.5 w-8 text-center text-zinc-500">No.</th>
+                      <th class="px-2 py-2.5 w-8 text-center text-zinc-400">No.</th>
                       <th class="px-3 py-2.5 w-24">Tanggal</th>
                       <th class="px-3 py-2.5 w-28">Voucher Type</th>
                       <th class="px-3 py-2.5 w-36">No Bukti</th>
@@ -852,12 +848,12 @@ function handlePrint() {
                       <th class="px-2 py-2.5 w-8 text-center"></th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-[#23252c] text-zinc-300">
+                  <tbody class="divide-y divide-zinc-100 text-zinc-800">
                     <tr
                       v-for="(row, idx) in rows"
                       :key="row.id"
                       :class="[
-                        'hover:bg-[#1f2127] transition',
+                        'hover:bg-zinc-50/80 transition',
                         row.selected ? 'bg-transparent' : 'opacity-40'
                       ]"
                     >
@@ -866,26 +862,26 @@ function handlePrint() {
                         <input
                           v-model="row.selected"
                           type="checkbox"
-                          class="w-3.5 h-3.5 rounded bg-[#25272e] border-zinc-600 text-cyan-500 focus:ring-0 cursor-pointer"
+                          class="w-3.5 h-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-0 cursor-pointer"
                         />
                       </td>
 
                       <!-- No -->
-                      <td class="px-2 py-2 text-center text-zinc-500 font-mono">
+                      <td class="px-2 py-2 text-center text-zinc-400 font-mono">
                         {{ idx + 1 }}
                       </td>
 
                       <!-- Tanggal -->
-                      <td class="px-3 py-2 font-mono text-zinc-300">
+                      <td class="px-3 py-2 font-mono text-zinc-700">
                         <input
                           v-model="row.date"
                           type="date"
-                          class="bg-transparent border-b border-transparent hover:border-zinc-600 text-xs text-zinc-200 focus:outline-none"
+                          class="bg-transparent border-b border-transparent hover:border-zinc-300 text-xs text-zinc-800 focus:outline-none"
                         />
                       </td>
 
                       <!-- Voucher Type -->
-                      <td class="px-3 py-2 text-zinc-400">
+                      <td class="px-3 py-2 text-zinc-500 font-medium">
                         {{ row.voucherType }}
                       </td>
 
@@ -895,36 +891,36 @@ function handlePrint() {
                           v-if="row.journalNumber"
                           type="button"
                           @click="openJournalPreview(row)"
-                          class="text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                          class="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer font-bold"
                           title="Klik pratinjau voucher jurnal"
                         >
                           <span>{{ row.journalNumber }}</span>
-                          <ExternalLink class="w-2.5 h-2.5 text-zinc-500" />
+                          <ExternalLink class="w-2.5 h-2.5 text-zinc-400" />
                         </button>
-                        <span v-else class="text-zinc-500 italic">[Manual]</span>
+                        <span v-else class="text-zinc-400 italic">[Manual]</span>
                       </td>
 
                       <!-- Project -->
                       <td class="px-3 py-2">
-                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-300 font-medium">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-700 font-semibold border border-zinc-200/80">
                           {{ row.project }}
                         </span>
                       </td>
 
                       <!-- Sumber Transaksi -->
-                      <td class="px-3 py-2 text-zinc-400">
+                      <td class="px-3 py-2 text-zinc-600">
                         {{ row.sourceTransaction }}
                       </td>
 
                       <!-- Akun Pajak -->
                       <td class="px-3 py-2 font-mono">
-                        <span class="text-zinc-200 font-semibold">{{ row.taxAccountCode }}</span>
-                        <span class="text-zinc-400 text-[11px] block truncate max-w-[180px]">{{ row.taxAccountName }}</span>
+                        <span class="text-zinc-900 font-semibold">{{ row.taxAccountCode }}</span>
+                        <span class="text-zinc-500 text-[11px] block truncate max-w-[180px] font-sans">{{ row.taxAccountName }}</span>
                       </td>
 
                       <!-- Source Status -->
                       <td class="px-3 py-2 text-center">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#163628] text-[#4ade80]">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           {{ row.sourceStatus }}
                         </span>
                       </td>
@@ -935,7 +931,7 @@ function handlePrint() {
                           v-model.number="row.dppFinal"
                           @input="() => onDppFinalChange(row)"
                           type="number"
-                          class="w-28 px-2 py-1 bg-[#202227] border border-[#2f323a] rounded text-right font-mono text-zinc-100 focus:outline-none focus:border-zinc-500"
+                          class="w-28 px-2 py-1 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono text-zinc-900 focus:outline-none focus:border-zinc-400 focus:bg-white"
                         />
                       </td>
 
@@ -946,9 +942,9 @@ function handlePrint() {
                             v-model.number="row.pajakFinal"
                             @input="() => onPajakFinalChange(row)"
                             type="number"
-                            class="w-28 px-2 py-1 bg-[#202227] border border-[#2f323a] rounded text-right font-mono font-bold text-teal-400 focus:outline-none focus:border-zinc-500"
+                            class="w-28 px-2 py-1 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-teal-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
                           />
-                          <Pencil class="w-3 h-3 text-zinc-500 shrink-0" />
+                          <Pencil class="w-3 h-3 text-zinc-400 shrink-0" />
                         </div>
                       </td>
 
@@ -957,7 +953,7 @@ function handlePrint() {
                         <button
                           type="button"
                           @click="removeRow(idx)"
-                          class="text-zinc-600 hover:text-rose-400 transition cursor-pointer"
+                          class="text-zinc-400 hover:text-rose-600 transition cursor-pointer"
                         >
                           <Trash2 class="w-3 h-3" />
                         </button>
@@ -969,24 +965,24 @@ function handlePrint() {
             </div>
           </div>
 
-          <!-- Section C: Ringkasan Nilai Pajak (3 Kolom Bersih Sesuai Screenshot) -->
+          <!-- Section C: Ringkasan Nilai Pajak -->
           <div>
-            <h3 class="text-sm font-semibold text-zinc-200 mb-3">
+            <h3 class="text-sm font-bold text-zinc-900 mb-3">
               Ringkasan Nilai Pajak
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs bg-[#1a1b1f] border border-[#282a31] rounded-xl p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs bg-zinc-50/70 border border-zinc-200/90 rounded-2xl p-4">
               <!-- Col 1: Original -->
               <div class="space-y-3">
                 <div>
-                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total DPP Original</span>
-                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Original</span>
+                  <span class="font-mono text-sm text-zinc-900 font-bold">
                     Rp {{ formatIDR(totalDppOriginal) }}
                   </span>
                 </div>
-                <div class="pt-2 border-t border-[#26282e]">
-                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total Pajak Original</span>
-                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                <div class="pt-2 border-t border-zinc-200">
+                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Original</span>
+                  <span class="font-mono text-sm text-zinc-900 font-bold">
                     Rp {{ formatIDR(totalPajakOriginal) }}
                   </span>
                 </div>
@@ -995,14 +991,14 @@ function handlePrint() {
               <!-- Col 2: Adjustment -->
               <div class="space-y-3">
                 <div>
-                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total DPP Adjustment</span>
-                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Adjustment</span>
+                  <span class="font-mono text-sm text-zinc-900 font-bold">
                     Rp {{ formatIDR(totalDppAdjustment) }}
                   </span>
                 </div>
-                <div class="pt-2 border-t border-[#26282e]">
-                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total Pajak Adjustment</span>
-                  <span class="font-mono text-sm text-zinc-100 font-bold">
+                <div class="pt-2 border-t border-zinc-200">
+                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Adjustment</span>
+                  <span class="font-mono text-sm text-zinc-900 font-bold">
                     Rp {{ formatIDR(totalPajakAdjustment) }}
                   </span>
                 </div>
@@ -1011,14 +1007,14 @@ function handlePrint() {
               <!-- Col 3: Final -->
               <div class="space-y-3">
                 <div>
-                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total DPP Final</span>
-                  <span class="font-mono text-sm text-teal-400 font-bold">
+                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Final</span>
+                  <span class="font-mono text-sm text-teal-700 font-bold">
                     Rp {{ formatIDR(totalDppFinal) }}
                   </span>
                 </div>
-                <div class="pt-2 border-t border-[#26282e]">
-                  <span class="text-zinc-400 block text-[11px] mb-0.5">Total Pajak Final</span>
-                  <span class="font-mono text-sm text-teal-400 font-extrabold">
+                <div class="pt-2 border-t border-zinc-200">
+                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Final</span>
+                  <span class="font-mono text-sm text-teal-700 font-extrabold">
                     Rp {{ formatIDR(totalPajakFinal) }}
                   </span>
                 </div>
@@ -1027,54 +1023,54 @@ function handlePrint() {
           </div>
         </div>
 
-        <!-- RIGHT SIDEBAR (3 Cols - Matching Brayo Screenshot) -->
-        <div class="lg:col-span-3 space-y-5 lg:border-l lg:border-[#282a31] lg:pl-6">
+        <!-- RIGHT SIDEBAR (3 Cols) -->
+        <div class="lg:col-span-3 space-y-5 lg:border-l lg:border-zinc-200 lg:pl-6">
           <!-- Document Header -->
           <div class="space-y-1">
-            <h4 class="text-sm font-bold text-zinc-100 uppercase">
+            <h4 class="text-sm font-bold text-zinc-900 uppercase">
               {{ reportName }}
             </h4>
             <div class="flex items-center gap-2">
-              <span class="font-mono text-xs text-zinc-400">{{ reportNumber }}</span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#143c44] text-[#2dd4bf]">
+              <span class="font-mono text-xs text-zinc-500">{{ reportNumber }}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
                 {{ status === 'DATA_DIAMBIL' ? 'Data Diambil' : status }}
               </span>
             </div>
           </div>
 
-          <!-- Brayo Action Items with '+' icon -->
-          <div class="space-y-3.5 text-xs text-zinc-300">
+          <!-- Action Items with '+' icon -->
+          <div class="space-y-3.5 text-xs text-zinc-700">
             <!-- Assign -->
-            <div class="flex items-center justify-between py-1 border-b border-[#24262c]">
-              <span class="flex items-center gap-2 text-zinc-400">
-                <UserPlus class="w-3.5 h-3.5 text-zinc-500" />
+            <div class="flex items-center justify-between py-1 border-b border-zinc-100">
+              <span class="flex items-center gap-2 text-zinc-500">
+                <UserPlus class="w-3.5 h-3.5 text-zinc-400" />
                 <span>Assign</span>
               </span>
-              <button type="button" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
+              <button type="button" class="text-zinc-400 hover:text-zinc-700 font-bold cursor-pointer">+</button>
             </div>
 
             <!-- Attachments -->
-            <div class="space-y-2 py-1 border-b border-[#24262c]">
+            <div class="space-y-2 py-1 border-b border-zinc-100">
               <div class="flex items-center justify-between">
-                <span class="flex items-center gap-2 text-zinc-400">
-                  <Paperclip class="w-3.5 h-3.5 text-zinc-500" />
+                <span class="flex items-center gap-2 text-zinc-500">
+                  <Paperclip class="w-3.5 h-3.5 text-zinc-400" />
                   <span>Attachments</span>
                 </span>
-                <button type="button" @click="handleExportExcel" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
+                <button type="button" @click="handleExportExcel" class="text-zinc-400 hover:text-zinc-700 font-bold cursor-pointer">+</button>
               </div>
 
-              <!-- Attached file chip (matching screenshot) -->
+              <!-- Attached file chip -->
               <div
                 @click="handleExportExcel"
-                class="flex items-center gap-2.5 p-2 bg-[#202227] hover:bg-[#252830] border border-[#2c2f38] rounded-lg cursor-pointer transition"
+                class="flex items-center gap-2.5 p-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl cursor-pointer transition"
                 title="Klik untuk mengunduh Excel"
               >
-                <FileSpreadsheet class="w-4 h-4 text-emerald-400 shrink-0" />
+                <FileSpreadsheet class="w-4 h-4 text-emerald-600 shrink-0" />
                 <div class="min-w-0 flex-1">
-                  <div class="text-[11px] font-semibold text-zinc-200 truncate">
+                  <div class="text-[11px] font-semibold text-zinc-800 truncate">
                     Laporan_Pajak_{{ reportNumber }}.xlsx
                   </div>
-                  <div class="text-[10px] text-zinc-500 font-mono">
+                  <div class="text-[10px] text-zinc-400 font-mono">
                     XLSX • 6.4 KB
                   </div>
                 </div>
@@ -1082,39 +1078,39 @@ function handlePrint() {
             </div>
 
             <!-- Tags -->
-            <div class="space-y-2 py-1 border-b border-[#24262c]">
+            <div class="space-y-2 py-1 border-b border-zinc-100">
               <div class="flex items-center justify-between">
-                <span class="flex items-center gap-2 text-zinc-400">
-                  <Tag class="w-3.5 h-3.5 text-zinc-500" />
+                <span class="flex items-center gap-2 text-zinc-500">
+                  <Tag class="w-3.5 h-3.5 text-zinc-400" />
                   <span>Tags</span>
                 </span>
-                <button type="button" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
+                <button type="button" class="text-zinc-400 hover:text-zinc-700 font-bold cursor-pointer">+</button>
               </div>
               <div class="flex flex-wrap gap-1.5">
-                <span class="px-2 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-400 border border-[#2e3038]">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-600 border border-zinc-200">
                   SPT Masa
                 </span>
-                <span class="px-2 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-400 border border-[#2e3038]">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-600 border border-zinc-200">
                   {{ unit }}
                 </span>
-                <span class="px-2 py-0.5 rounded text-[10px] bg-[#24262c] text-zinc-400 border border-[#2e3038]">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-600 border border-zinc-200">
                   PMK DJP
                 </span>
               </div>
             </div>
 
             <!-- Share -->
-            <div class="flex items-center justify-between py-1 border-b border-[#24262c]">
-              <span class="flex items-center gap-2 text-zinc-400">
-                <Share2 class="w-3.5 h-3.5 text-zinc-500" />
+            <div class="flex items-center justify-between py-1 border-b border-zinc-100">
+              <span class="flex items-center gap-2 text-zinc-500">
+                <Share2 class="w-3.5 h-3.5 text-zinc-400" />
                 <span>Share</span>
               </span>
-              <button type="button" class="text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer">+</button>
+              <button type="button" class="text-zinc-400 hover:text-zinc-700 font-bold cursor-pointer">+</button>
             </div>
           </div>
 
-          <!-- Metadata timestamps (matching Brayo screenshot) -->
-          <div class="space-y-1 text-[11px] text-zinc-500 pt-2">
+          <!-- Metadata timestamps -->
+          <div class="space-y-1 text-[11px] text-zinc-400 pt-2">
             <div>You last edited this · Just now</div>
             <div>You created this · Today</div>
           </div>
@@ -1123,33 +1119,33 @@ function handlePrint() {
 
       <!-- TAB 2: RECONCILIATION & STATUS -->
       <div v-else-if="activeTab === 'RECONCILIATION'" class="space-y-6">
-        <div class="bg-[#1e2025] border border-[#282a31] rounded-xl p-5 space-y-4">
-          <div class="border-b border-[#282a31] pb-3 flex items-center justify-between">
+        <div class="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
+          <div class="border-b border-zinc-100 pb-3 flex items-center justify-between">
             <div>
-              <h3 class="text-sm font-bold text-zinc-100">
+              <h3 class="text-sm font-bold text-zinc-900">
                 Rekonsiliasi Saldo Akun Pajak di Buku Besar vs SPT Masa
               </h3>
-              <p class="text-xs text-zinc-400">
+              <p class="text-xs text-zinc-500">
                 Memverifikasi bahwa seluruh pemotongan pada Jurnal Umum telah tercakup 100% pada pelaporan SPT Masa tanpa selisih.
               </p>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-[#143c44] text-[#2dd4bf] border border-[#195663]">
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">
               Status: Tereconciled
             </span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-            <div class="p-4 rounded-xl bg-[#18191d] border border-[#282a31]">
-              <span class="text-zinc-400 font-sans block font-semibold text-[11px]">SALDO AKUN BUKU BESAR ({{ selectedTaxAccountCode }})</span>
-              <span class="text-lg font-bold text-zinc-100 block mt-1">Rp {{ formatIDR(totalPajakOriginal) }}</span>
+            <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <span class="text-zinc-500 font-sans block font-semibold text-[11px]">SALDO AKUN BUKU BESAR ({{ selectedTaxAccountCode }})</span>
+              <span class="text-lg font-bold text-zinc-900 block mt-1">Rp {{ formatIDR(totalPajakOriginal) }}</span>
             </div>
-            <div class="p-4 rounded-xl bg-[#18191d] border border-[#282a31]">
-              <span class="text-zinc-400 font-sans block font-semibold text-[11px]">TOTAL PELAPORAN SPT MASA FINAL</span>
-              <span class="text-lg font-bold text-teal-400 block mt-1">Rp {{ formatIDR(totalPajakFinal) }}</span>
+            <div class="p-4 rounded-xl bg-zinc-50 border border-zinc-200">
+              <span class="text-zinc-500 font-sans block font-semibold text-[11px]">TOTAL PELAPORAN SPT MASA FINAL</span>
+              <span class="text-lg font-bold text-teal-700 block mt-1">Rp {{ formatIDR(totalPajakFinal) }}</span>
             </div>
-            <div class="p-4 rounded-xl bg-[#163628] border border-[#1e5239]">
-              <span class="text-emerald-300 font-sans block font-semibold text-[11px]">VARIANCE / SELISIH REKONSILIASI</span>
-              <span class="text-lg font-black text-emerald-400 block mt-1">Rp 0,00 (SEIMBANG)</span>
+            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+              <span class="text-emerald-800 font-sans block font-semibold text-[11px]">VARIANCE / SELISIH REKONSILIASI</span>
+              <span class="text-lg font-black text-emerald-700 block mt-1">Rp 0,00 (SEIMBANG)</span>
             </div>
           </div>
         </div>
@@ -1157,25 +1153,25 @@ function handlePrint() {
 
       <!-- TAB 3: AUDIT TRAIL & SYNC -->
       <div v-else class="space-y-6">
-        <div class="bg-[#1e2025] border border-[#282a31] rounded-xl p-5 space-y-4">
-          <div class="border-b border-[#282a31] pb-3">
-            <h3 class="text-sm font-bold text-zinc-100">
+        <div class="bg-white border border-zinc-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
+          <div class="border-b border-zinc-100 pb-3">
+            <h3 class="text-sm font-bold text-zinc-900">
               Audit Trail & Log Sinkronisasi Jurnal
             </h3>
-            <p class="text-xs text-zinc-400">
+            <p class="text-xs text-zinc-500">
               Catatan riwayat penarikan data dari Jurnal Umum & Buku Besar klinik.
             </p>
           </div>
 
           <div class="space-y-3 text-xs">
-            <div class="flex items-start gap-3 p-3 bg-[#18191d] rounded-xl border border-[#282a31]">
-              <CheckCircle2 class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div class="flex items-start gap-3 p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
-                <p class="font-bold text-zinc-100">Data Diambil dari Jurnal Umum</p>
-                <p class="text-zinc-400 text-[11px]">
+                <p class="font-bold text-zinc-900">Data Diambil dari Jurnal Umum</p>
+                <p class="text-zinc-600 text-[11px]">
                   Menarik {{ rows.length }} voucher transaksi jurnal untuk akun {{ selectedTaxAccountCode }} Masa {{ masaMonth }}/{{ masaYear }}.
                 </p>
-                <span class="text-[10px] text-zinc-500 font-mono">{{ createdDate }} • Operator: {{ accountingStore.currentUserName }}</span>
+                <span class="text-[10px] text-zinc-400 font-mono">{{ createdDate }} • Operator: {{ accountingStore.currentUserName }}</span>
               </div>
             </div>
           </div>
@@ -1185,40 +1181,40 @@ function handlePrint() {
       <!-- Modal Preview Voucher Jurnal Sumber -->
       <div
         v-if="showJournalPreviewModal"
-        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+        class="fixed inset-0 z-50 bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4"
         @click.self="showJournalPreviewModal = false"
       >
-        <div class="bg-[#1e2025] border border-[#2f323a] rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl text-zinc-200">
-          <div class="flex items-center justify-between border-b border-[#2f323a] pb-3">
+        <div class="bg-white border border-zinc-200 rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl text-zinc-800">
+          <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
             <div class="flex items-center gap-2">
-              <Layers class="w-4 h-4 text-cyan-400" />
-              <h3 class="font-bold text-sm text-zinc-100">
+              <Layers class="w-4 h-4 text-zinc-700" />
+              <h3 class="font-bold text-sm text-zinc-900">
                 Voucher Jurnal Umum Sumber: {{ activeJournal?.journalNumber }}
               </h3>
             </div>
-            <button @click="showJournalPreviewModal = false" class="text-zinc-400 hover:text-white transition cursor-pointer">
+            <button @click="showJournalPreviewModal = false" class="text-zinc-400 hover:text-zinc-700 transition cursor-pointer">
               <X class="w-4 h-4" />
             </button>
           </div>
 
-          <div class="text-xs space-y-1 text-zinc-400">
-            <p><strong class="text-zinc-200">Tanggal Posting:</strong> {{ formatDate(activeJournal?.journalDate || activeJournal?.transaction_date) }}</p>
-            <p><strong class="text-zinc-200">Keterangan:</strong> {{ activeJournal?.description }}</p>
+          <div class="text-xs space-y-1 text-zinc-600">
+            <p><strong class="text-zinc-900">Tanggal Posting:</strong> {{ formatDate(activeJournal?.journalDate || activeJournal?.transaction_date) }}</p>
+            <p><strong class="text-zinc-900">Keterangan:</strong> {{ activeJournal?.description }}</p>
           </div>
 
-          <div class="border border-[#2f323a] rounded-xl overflow-hidden text-xs">
+          <div class="border border-zinc-200 rounded-xl overflow-hidden text-xs">
             <table class="w-full text-left">
-              <thead class="bg-[#18191d] border-b border-[#2f323a] text-[10px] font-bold text-zinc-400 uppercase">
+              <thead class="bg-zinc-50/90 border-b border-zinc-200 text-[10px] font-bold text-zinc-500 uppercase">
                 <tr>
                   <th class="px-3 py-2">Akun Buku Besar (COA)</th>
                   <th class="px-3 py-2 text-right w-28">Debet (Rp)</th>
                   <th class="px-3 py-2 text-right w-28">Kredit (Rp)</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-[#282a31] text-zinc-300 font-mono">
+              <tbody class="divide-y divide-zinc-100 text-zinc-800 font-mono">
                 <tr v-for="(line, lIdx) in activeJournal?.lines || []" :key="lIdx">
                   <td class="px-3 py-2 font-sans">
-                    <span class="font-bold text-zinc-100">[{{ line.accountCode }}]</span> {{ line.accountName }}
+                    <span class="font-bold text-zinc-900">[{{ line.accountCode }}]</span> {{ line.accountName }}
                   </td>
                   <td class="px-3 py-2 text-right">{{ line.debit > 0 ? formatIDR(line.debit) : '-' }}</td>
                   <td class="px-3 py-2 text-right">{{ line.credit > 0 ? formatIDR(line.credit) : '-' }}</td>
@@ -1230,7 +1226,7 @@ function handlePrint() {
           <div class="flex justify-end pt-2">
             <button
               @click="showJournalPreviewModal = false"
-              class="px-4 py-2 bg-zinc-800 text-white rounded-xl text-xs font-bold hover:bg-zinc-700 transition cursor-pointer"
+              class="px-4 py-2 bg-zinc-950 text-white rounded-xl text-xs font-bold hover:bg-zinc-800 transition cursor-pointer"
             >
               Tutup
             </button>
@@ -1239,11 +1235,6 @@ function handlePrint() {
       </div>
     </div>
     <!-- END OF SCREEN UI CONTAINER (print:hidden) -->
-
-    <!-- ========================================================================= -->
-    <!-- CETAK RESMI FORMULIR PELAPORAN SPT MASA (DJP / BRAYO AUDIT GRADE)         -->
-    <!-- HANYA MUNCUL PADA SAAT PRINT (PRINT MEDIA ONLY)                           -->
-    <!-- ========================================================================= -->
     <div class="hidden print:block print-document font-['Times_New_Roman',serif] text-black bg-white">
       <!-- Kop Surat Resmi -->
       <div class="border-b-2 border-black pb-3 mb-4">

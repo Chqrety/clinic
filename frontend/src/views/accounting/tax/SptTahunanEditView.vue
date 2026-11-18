@@ -474,22 +474,22 @@ function handlePrint() {
     </header>
 
     <!-- Live Floating Summary Bar -->
-    <div class="bg-zinc-950 text-white rounded-2xl p-5 shadow-xl border border-zinc-800 space-y-3">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+    <div class="bg-white text-zinc-900 rounded-2xl p-5 shadow-2xs border border-zinc-200/90 space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
         <div class="flex items-center gap-2">
-          <Calculator class="w-4 h-4 text-amber-400" />
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-300">
+          <Calculator class="w-4 h-4 text-amber-600" />
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-700">
             Perhitungan Fiskal Real-Time SPT Tahunan (Tahun Pajak {{ annual1771.fiscalYear }})
           </span>
         </div>
 
         <div class="flex items-center gap-2">
-          <span class="text-xs text-zinc-400">
+          <span class="text-xs text-zinc-500 font-medium">
             {{ computedPph28A > 0 ? 'Status: PPh 28A Lebih Bayar' : 'Status: PPh 29 Kurang Bayar' }}
           </span>
           <span
             class="text-xl font-black tabular-nums"
-            :class="computedPph28A > 0 ? 'text-emerald-400' : 'text-amber-400'"
+            :class="computedPph28A > 0 ? 'text-emerald-700' : 'text-amber-700'"
           >
             Rp {{ formatIDR(computedPph28A > 0 ? computedPph28A : computedPph29) }}
           </span>
@@ -497,21 +497,21 @@ function handlePrint() {
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-        <div class="bg-zinc-900/80 p-3 rounded-xl border border-zinc-800/60">
-          <span class="text-[10px] text-zinc-400 uppercase font-bold block">1. Laba Komersial</span>
-          <span class="text-sm font-bold text-white tabular-nums">Rp {{ formatIDR(computedNetProfit) }}</span>
+        <div class="bg-zinc-50 p-3 rounded-xl border border-zinc-200/80">
+          <span class="text-[10px] text-zinc-500 uppercase font-bold block">1. Laba Komersial</span>
+          <span class="text-sm font-bold text-zinc-900 tabular-nums">Rp {{ formatIDR(computedNetProfit) }}</span>
         </div>
-        <div class="bg-zinc-900/80 p-3 rounded-xl border border-zinc-800/60">
-          <span class="text-[10px] text-zinc-400 uppercase font-bold block">2. Penghasilan Kena Pajak</span>
-          <span class="text-sm font-bold text-amber-300 tabular-nums">Rp {{ formatIDR(computedPKP) }}</span>
+        <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200/70">
+          <span class="text-[10px] text-amber-700 uppercase font-bold block">2. Penghasilan Kena Pajak</span>
+          <span class="text-sm font-bold text-amber-800 tabular-nums">Rp {{ formatIDR(computedPKP) }}</span>
         </div>
-        <div class="bg-zinc-900/80 p-3 rounded-xl border border-zinc-800/60">
-          <span class="text-[10px] text-zinc-400 uppercase font-bold block">3. PPh Terutang</span>
-          <span class="text-sm font-bold text-white tabular-nums">Rp {{ formatIDR(computedTaxPayable) }}</span>
+        <div class="bg-zinc-50 p-3 rounded-xl border border-zinc-200/80">
+          <span class="text-[10px] text-zinc-500 uppercase font-bold block">3. PPh Terutang</span>
+          <span class="text-sm font-bold text-zinc-900 tabular-nums">Rp {{ formatIDR(computedTaxPayable) }}</span>
         </div>
-        <div class="bg-emerald-950/80 p-3 rounded-xl border border-emerald-700/60 text-emerald-100">
-          <span class="text-[10px] text-emerald-400 uppercase font-bold block">4. Total Kredit Pajak</span>
-          <span class="text-sm font-bold text-emerald-300 tabular-nums">Rp {{ formatIDR(computedTotalCredits) }}</span>
+        <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200/80 text-emerald-950">
+          <span class="text-[10px] text-emerald-700 uppercase font-bold block">4. Total Kredit Pajak</span>
+          <span class="text-sm font-bold text-emerald-800 tabular-nums">Rp {{ formatIDR(computedTotalCredits) }}</span>
         </div>
       </div>
     </div>
@@ -647,9 +647,9 @@ function handlePrint() {
             <span class="font-black text-amber-950 tabular-nums">Rp {{ formatIDR(computedPKP) }}</span>
           </div>
 
-          <div class="p-2.5 bg-zinc-900 text-white rounded-xl font-mono text-xs flex items-center justify-between">
-            <span class="text-zinc-300 font-bold">PPh Badan Terutang:</span>
-            <span class="font-extrabold text-amber-300 tabular-nums">Rp {{ formatIDR(computedTaxPayable) }}</span>
+          <div class="p-2.5 bg-zinc-100 rounded-xl font-mono text-xs border border-zinc-200 flex items-center justify-between">
+            <span class="text-zinc-700 font-bold">PPh Badan Terutang:</span>
+            <span class="font-extrabold text-amber-800 tabular-nums">Rp {{ formatIDR(computedTaxPayable) }}</span>
           </div>
         </div>
       </div>
@@ -874,7 +874,7 @@ function handlePrint() {
           class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
         >
           <Send class="w-3.5 h-3.5" />
-          <span>📌 Posting Jurnal Penutup PPh 29 ke Jurnal Umum</span>
+          <span>Posting Jurnal Penutup PPh 29 ke Jurnal Umum</span>
         </button>
       </div>
 

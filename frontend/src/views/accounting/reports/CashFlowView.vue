@@ -84,16 +84,16 @@ function handleExportExcel() {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- Top Header Tabs matching Image 3: Penyusutan dan Amortisasi / Arus Kas -->
-    <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+  <div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">
+    <!-- Top Header Tabs matching Clinical Light Design -->
+    <div class="flex items-center gap-2 border-b border-zinc-200 pb-2">
       <button
         @click="activeTab = 'depreciation'"
         :class="[
-          'px-4 py-2 text-xs font-bold rounded-lg transition-all',
+          'px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer',
           activeTab === 'depreciation'
-            ? 'bg-slate-800 text-white shadow-xs'
-            : 'text-slate-400 hover:text-slate-200'
+            ? 'bg-zinc-950 text-white shadow-2xs'
+            : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
         ]"
       >
         Penyusutan dan Amortisasi
@@ -101,56 +101,57 @@ function handleExportExcel() {
       <button
         @click="activeTab = 'cashflow'"
         :class="[
-          'px-4 py-2 text-xs font-bold rounded-lg transition-all',
+          'px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer',
           activeTab === 'cashflow'
-            ? 'bg-blue-600 text-white shadow-xs'
-            : 'text-slate-400 hover:text-slate-200'
+            ? 'bg-zinc-950 text-white shadow-2xs'
+            : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
         ]"
       >
         Arus Kas
       </button>
     </div>
 
-    <!-- Header matching Image 3 -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+    <!-- Header matching Clinical Light Design -->
+    <div class="bg-white border border-zinc-200/90 rounded-2xl p-4 sm:p-5 text-zinc-900 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
       <div class="space-y-0.5">
-        <div class="flex items-center gap-2 text-xs text-slate-400">
-          <span class="hover:text-white cursor-pointer font-medium">Accounting</span>
+        <div class="flex items-center gap-2 text-xs text-zinc-400 font-medium">
+          <span class="hover:text-zinc-700 cursor-pointer">Accounting</span>
           <span>/</span>
-          <span class="text-blue-400 font-semibold">Arus Kas</span>
+          <span class="text-zinc-900 font-bold">Laporan Arus Kas</span>
         </div>
-        <h1 class="text-base font-bold text-white tracking-wide">
+        <h1 class="text-base sm:text-lg font-bold text-zinc-950 tracking-tight">
           {{ accountingStore.businessUnit === 'ALL' ? 'KLINIK TERPADU (KIDINEST & SSC)' : accountingStore.businessUnit === 'KIDINEST' ? 'KLINIK SPESIALIS ANAK KIDINEST' : 'SEMARANG SKIN CENTER (SSC)' }}
         </h1>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 text-xs">
+      <div class="flex flex-wrap items-center gap-2.5 text-xs">
         <!-- Date Range -->
-        <div class="flex items-center gap-1.5 bg-[#1E293B] px-3 py-1.5 rounded-lg border border-slate-700">
+        <div class="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-medium">
+          <span class="text-zinc-500">Periode:</span>
           <input
             v-model="startDate"
             type="text"
-            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+            class="bg-transparent font-mono font-bold text-zinc-900 w-24 text-center focus:outline-none"
           />
-          <span class="text-slate-400">s/d</span>
+          <span class="text-zinc-400">s/d</span>
           <input
             v-model="endDate"
             type="text"
-            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+            class="bg-transparent font-mono font-bold text-zinc-900 w-24 text-center focus:outline-none"
           />
         </div>
 
         <button
           @click="handleExportExcel"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs transition-colors"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
         >
-          <Download class="w-3.5 h-3.5" />
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
           <span>Ekspor</span>
         </button>
 
         <button
           @click="printReport"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium transition-colors"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl font-bold shadow-2xs transition active:scale-95 cursor-pointer"
         >
           <Printer class="w-3.5 h-3.5" />
           <span>Cetak</span>
@@ -158,53 +159,53 @@ function handleExportExcel() {
       </div>
     </div>
 
-    <!-- Tree Table Container (High-Contrast Dark SaaS Look matching Image 3) -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl overflow-hidden shadow-2xl text-slate-200">
+    <!-- Tree Table Container (Clean Light Theme) -->
+    <div class="bg-white border border-zinc-200/90 rounded-2xl overflow-hidden shadow-2xs text-zinc-800">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs select-none">
           <thead>
-            <tr class="border-b border-slate-800 bg-[#0F172A] text-[11px] font-bold text-slate-400">
-              <th class="py-2.5 px-4 w-16 text-slate-500">#</th>
+            <tr class="border-b border-zinc-200 bg-zinc-50/90 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              <th class="py-2.5 px-4 w-16 text-zinc-400">#</th>
               <th class="py-2.5 px-4">Uraian</th>
               <th class="py-2.5 px-6 text-right w-56">November 2026</th>
-              <th class="py-2.5 px-6 text-right w-56 text-slate-400">November 2025</th>
+              <th class="py-2.5 px-6 text-right w-56 text-zinc-400">November 2025</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/60 font-mono">
+          <tbody class="divide-y divide-zinc-100 font-mono">
             <tr
               v-for="row in cashFlowRows"
               :key="row.lineNo"
               :class="[
                 'transition-colors group',
                 row.isSectionHeader
-                  ? 'bg-[#182234] font-extrabold text-white text-xs uppercase tracking-wide'
+                  ? 'bg-zinc-100/90 font-extrabold text-zinc-950 text-xs uppercase tracking-wide border-b border-zinc-200'
                   : row.isBold
-                  ? 'bg-[#141D2E] font-bold text-slate-100'
-                  : 'hover:bg-slate-800/40 text-slate-300'
+                  ? 'bg-zinc-50/80 font-bold text-zinc-900 border-b border-zinc-100'
+                  : 'hover:bg-zinc-50/80 text-zinc-700'
               ]"
             >
               <!-- Line Number -->
-              <td class="py-2 px-4 text-slate-500 text-[11px] select-none font-mono">
+              <td class="py-2 px-4 text-zinc-400 text-[11px] select-none font-mono">
                 {{ row.lineNo }}
               </td>
 
               <!-- Uraian -->
               <td class="py-2 px-4 font-sans">
                 <div class="flex items-center gap-1.5" :class="{ 'pl-4': !row.isSectionHeader && !row.isBold }">
-                  <!-- Clickable Blue Link Style matching Image 3 -->
+                  <!-- Clickable Blue Link Style -->
                   <span
                     v-if="row.isLink"
                     @click="row.accountCode && openLedgerForAccount(row.accountCode)"
-                    class="text-blue-400 hover:underline cursor-pointer font-medium flex items-center gap-1"
+                    class="text-blue-600 hover:underline cursor-pointer font-medium flex items-center gap-1"
                   >
                     <span>{{ row.name }}</span>
-                    <BookOpen v-if="row.accountCode" class="w-3 h-3 text-slate-500 group-hover:text-blue-400 inline" />
+                    <BookOpen v-if="row.accountCode" class="w-3 h-3 text-zinc-400 group-hover:text-blue-600 inline" />
                   </span>
                   <span
                     v-else
                     :class="[
-                      row.isSectionHeader ? 'font-bold uppercase tracking-wider text-slate-100' : '',
-                      row.isBold && !row.isSectionHeader ? 'font-bold text-white' : ''
+                      row.isSectionHeader ? 'font-black uppercase tracking-wider text-zinc-950' : '',
+                      row.isBold && !row.isSectionHeader ? 'font-bold text-zinc-900' : ''
                     ]"
                   >
                     {{ row.name }}
@@ -217,7 +218,7 @@ function handleExportExcel() {
                 :class="[
                   'py-2 px-6 text-right font-mono tracking-tight',
                   row.isSectionHeader ? 'text-transparent' : '',
-                  row.isBold ? 'font-bold text-white' : 'font-medium text-slate-300'
+                  row.isBold ? 'font-bold text-zinc-950' : 'font-medium text-zinc-800'
                 ]"
               >
                 {{ row.isSectionHeader ? '' : formatIDR(row.amountCurrent) }}
@@ -226,7 +227,7 @@ function handleExportExcel() {
               <!-- November 2025 -->
               <td
                 :class="[
-                  'py-2 px-6 text-right font-mono tracking-tight text-slate-400',
+                  'py-2 px-6 text-right font-mono tracking-tight text-zinc-400',
                   row.isSectionHeader ? 'text-transparent' : ''
                 ]"
               >
@@ -237,17 +238,15 @@ function handleExportExcel() {
         </table>
       </div>
 
-      <!-- Bottom Status Note matching Image 3 -->
-      <div class="px-4 py-3 bg-[#0F172A] border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+      <!-- Bottom Status Note (Clean Light Theme) -->
+      <div class="px-4 py-3 bg-zinc-50/80 border-t border-zinc-200 flex items-center justify-between text-[11px] text-zinc-500">
         <span class="font-mono">
-          For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).
+          Perbandingan arus kas tahun berjalan vs periode sebelumnya.
         </span>
-        <span class="text-emerald-400 font-bold font-mono">
+        <span class="text-emerald-700 font-bold font-mono bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
           Kenaikan Kas Bersih: {{ formatIDR(106261500) }}
         </span>
       </div>
     </div>
-
-
   </div>
 </template>

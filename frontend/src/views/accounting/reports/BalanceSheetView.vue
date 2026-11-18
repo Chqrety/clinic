@@ -502,50 +502,50 @@ function handleExportExcel() {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- Header Controls matching ERP Reference -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl p-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+  <div class="space-y-4 font-['Plus_Jakarta_Sans',sans-serif]">
+    <!-- Header Controls matching Clinical Light Design -->
+    <div class="bg-white border border-zinc-200/90 rounded-2xl p-4 sm:p-5 text-zinc-900 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
       <div class="flex items-center gap-3">
         <div class="space-y-0.5">
-          <div class="flex items-center gap-2 text-xs text-slate-400">
-            <span class="hover:text-white cursor-pointer font-medium">Accounting</span>
+          <div class="flex items-center gap-2 text-xs text-zinc-400 font-medium">
+            <span class="hover:text-zinc-700 cursor-pointer">Accounting</span>
             <span>/</span>
-            <span class="text-blue-400 font-semibold">Laporan Neraca</span>
+            <span class="text-zinc-900 font-bold">Laporan Neraca</span>
           </div>
-          <h1 class="text-base font-bold text-white tracking-wide">
+          <h1 class="text-base sm:text-lg font-bold text-zinc-950 tracking-tight">
             {{ accountingStore.businessUnit === 'ALL' ? 'KLINIK TERPADU (KIDINEST & SEMARANG SKIN CENTER)' : accountingStore.businessUnit === 'KIDINEST' ? 'KLINIK SPESIALIS ANAK KIDINEST' : 'SEMARANG SKIN CENTER (SSC)' }}
           </h1>
         </div>
       </div>
 
       <!-- Date Range Selectors -->
-      <div class="flex flex-wrap items-center gap-3 text-xs">
-        <div class="flex items-center gap-1.5 bg-[#1E293B] px-3 py-1.5 rounded-lg border border-slate-700">
-          <span class="text-slate-400">Periode:</span>
+      <div class="flex flex-wrap items-center gap-2.5 text-xs">
+        <div class="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-medium">
+          <span class="text-zinc-500">Periode:</span>
           <input
             v-model="startDate"
             type="text"
-            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+            class="bg-transparent font-mono font-bold text-zinc-900 w-24 text-center focus:outline-none"
           />
-          <span class="text-slate-400">s/d</span>
+          <span class="text-zinc-400">s/d</span>
           <input
             v-model="endDate"
             type="text"
-            class="bg-transparent font-mono font-bold text-white w-24 text-center focus:outline-none"
+            class="bg-transparent font-mono font-bold text-zinc-900 w-24 text-center focus:outline-none"
           />
         </div>
 
         <button
           @click="handleExportExcel"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs transition-colors"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
         >
-          <Download class="w-3.5 h-3.5" />
+          <Download class="w-3.5 h-3.5 text-zinc-600" />
           <span>Ekspor</span>
         </button>
 
         <button
           @click="printReport"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium transition-colors"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl font-bold shadow-2xs transition active:scale-95 cursor-pointer"
         >
           <Printer class="w-3.5 h-3.5" />
           <span>Cetak</span>
@@ -553,31 +553,31 @@ function handleExportExcel() {
       </div>
     </div>
 
-    <!-- Tree Table Container (High-Contrast Dark SaaS Look matching Image 2) -->
-    <div class="bg-[#121826] border border-slate-800 rounded-xl overflow-hidden shadow-2xl text-slate-200">
+    <!-- Tree Table Container (Clean Light Theme) -->
+    <div class="bg-white border border-zinc-200/90 rounded-2xl overflow-hidden shadow-2xs text-zinc-800">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs select-none">
           <thead>
-            <tr class="border-b border-slate-800 bg-[#0F172A] text-[11px] font-bold text-slate-400">
-              <th class="py-2.5 px-4 w-16 text-slate-500">#</th>
+            <tr class="border-b border-zinc-200 bg-zinc-50/90 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              <th class="py-2.5 px-4 w-16 text-zinc-400">#</th>
               <th class="py-2.5 px-4">Uraian</th>
               <th class="py-2.5 px-6 text-right w-64">Jumlah</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/60 font-mono">
-            <!-- Header Titles matching Image 2 Lines 3, 4, 5 -->
-            <tr class="bg-[#0F172A] border-b border-slate-800/80">
-              <td class="py-2 px-4 text-slate-500 font-mono text-[11px]">3</td>
-              <td class="py-2 px-4 font-black text-white uppercase tracking-wider text-xs">NERACA</td>
+          <tbody class="divide-y divide-zinc-100 font-mono">
+            <!-- Header Titles matching Financial Report Lines 3, 4, 5 -->
+            <tr class="bg-zinc-100/70 border-b border-zinc-200">
+              <td class="py-2 px-4 text-zinc-400 font-mono text-[11px]">3</td>
+              <td class="py-2 px-4 font-black text-zinc-950 uppercase tracking-wider text-xs">NERACA</td>
               <td class="py-2 px-6"></td>
             </tr>
-            <tr class="bg-[#0F172A] border-b border-slate-800/80">
-              <td class="py-1.5 px-4 text-slate-500 font-mono text-[11px]">4</td>
-              <td class="py-1.5 px-4 font-bold text-slate-400 uppercase tracking-wide text-[11px]">PER 30 NOVEMBER 2026</td>
+            <tr class="bg-zinc-50 border-b border-zinc-200/70">
+              <td class="py-1.5 px-4 text-zinc-400 font-mono text-[11px]">4</td>
+              <td class="py-1.5 px-4 font-bold text-zinc-600 uppercase tracking-wide text-[11px]">PER 30 NOVEMBER 2026</td>
               <td class="py-1.5 px-6"></td>
             </tr>
-            <tr class="bg-[#0F172A]/50 border-b border-slate-800/40">
-              <td class="py-1 px-4 text-slate-500 font-mono text-[11px]">5</td>
+            <tr class="bg-zinc-50/30 border-b border-zinc-100">
+              <td class="py-1 px-4 text-zinc-400 font-mono text-[11px]">5</td>
               <td class="py-1 px-4"></td>
               <td class="py-1 px-6"></td>
             </tr>
@@ -589,14 +589,14 @@ function handleExportExcel() {
               :class="[
                 'transition-colors group',
                 row.node.level === 1
-                  ? 'bg-[#182234] font-extrabold text-white text-sm'
+                  ? 'bg-zinc-100/90 font-extrabold text-zinc-950 text-sm border-b border-zinc-200'
                   : row.node.level === 2
-                  ? 'bg-[#141D2E] font-bold text-slate-100 text-xs'
-                  : 'hover:bg-slate-800/40 text-slate-300'
+                  ? 'bg-zinc-50/70 font-bold text-zinc-900 text-xs border-b border-zinc-100'
+                  : 'hover:bg-zinc-50/80 text-zinc-700'
               ]"
             >
               <!-- Line Number Column -->
-              <td class="py-2 px-4 text-slate-500 text-[11px] select-none font-mono">
+              <td class="py-2 px-4 text-zinc-400 text-[11px] select-none font-mono">
                 {{ row.node.lineNo }}
               </td>
 
@@ -610,10 +610,10 @@ function handleExportExcel() {
                   <button
                     v-if="row.hasChildren"
                     @click="toggleExpand(row.node.id)"
-                    class="p-0.5 rounded text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors"
+                    class="p-0.5 rounded text-zinc-400 hover:text-zinc-800 hover:bg-zinc-200/60 transition-colors cursor-pointer"
                   >
-                    <ChevronDown v-if="row.isExpanded" class="w-3.5 h-3.5 text-slate-300" />
-                    <ChevronRight v-else class="w-3.5 h-3.5 text-slate-400" />
+                    <ChevronDown v-if="row.isExpanded" class="w-3.5 h-3.5 text-zinc-600" />
+                    <ChevronRight v-else class="w-3.5 h-3.5 text-zinc-400" />
                   </button>
                   <span v-else class="w-4 inline-block"></span>
 
@@ -621,10 +621,10 @@ function handleExportExcel() {
                   <span
                     :class="[
                       'tracking-wide',
-                      row.node.level === 1 ? 'font-black tracking-wider text-white uppercase' : '',
-                      row.node.level === 2 ? 'font-bold text-slate-100 uppercase' : '',
-                      row.node.level === 3 ? 'font-semibold text-slate-200' : '',
-                      row.node.level === 4 ? 'font-normal text-slate-400 text-xs hover:text-blue-300 cursor-pointer' : ''
+                      row.node.level === 1 ? 'font-black tracking-wider text-zinc-950 uppercase' : '',
+                      row.node.level === 2 ? 'font-bold text-zinc-900 uppercase' : '',
+                      row.node.level === 3 ? 'font-semibold text-zinc-800' : '',
+                      row.node.level === 4 ? 'font-normal text-zinc-600 text-xs hover:text-blue-600 cursor-pointer' : ''
                     ]"
                     @click="row.node.accountCode && openLedgerForAccount(row.node.accountCode)"
                   >
@@ -635,10 +635,10 @@ function handleExportExcel() {
                   <button
                     v-if="row.node.accountCode"
                     @click.stop="openLedgerForAccount(row.node.accountCode)"
-                    class="ml-1 text-slate-500 hover:text-blue-400 transition-colors p-0.5 rounded"
+                    class="ml-1 text-zinc-400 hover:text-blue-600 transition-colors p-0.5 rounded cursor-pointer"
                     title="Buka Buku Besar (General Ledger) untuk akun ini"
                   >
-                    <BookOpen class="w-3 h-3 text-slate-400 group-hover:text-blue-400" />
+                    <BookOpen class="w-3 h-3 text-zinc-400 group-hover:text-blue-600" />
                   </button>
                 </div>
               </td>
@@ -648,10 +648,10 @@ function handleExportExcel() {
                 :class="[
                   'py-2 px-6 text-right font-mono tracking-tight',
                   row.node.level === 1
-                    ? 'font-black text-sm text-white'
+                    ? 'font-black text-sm text-zinc-950'
                     : row.node.level === 2
-                    ? 'font-bold text-slate-100 text-xs'
-                    : 'font-medium text-slate-300'
+                    ? 'font-bold text-zinc-900 text-xs'
+                    : 'font-medium text-zinc-800'
                 ]"
               >
                 {{ formatIDR(row.node.amount) }}
@@ -661,26 +661,26 @@ function handleExportExcel() {
         </table>
       </div>
 
-      <!-- Bottom Level Bar matching Image 2 -->
-      <div class="px-4 py-3 bg-[#0F172A] border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <!-- Bottom Level Bar (Clean Light Theme) -->
+      <div class="px-4 py-3 bg-zinc-50/80 border-t border-zinc-200 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-2">
-          <!-- Jump to Line / Set Level Input matching Image 2 -->
+          <!-- Jump to Line / Set Level Input -->
           <input
             v-model.number="jumpLineNumber"
             type="number"
             min="1"
             max="4"
-            class="w-12 px-2 py-1 bg-[#1E293B] border border-slate-700 rounded text-center text-xs text-white font-mono"
+            class="w-12 px-2 py-1 bg-white border border-zinc-200 rounded-lg text-center text-xs text-zinc-900 font-mono font-bold shadow-2xs"
             @keyup.enter="applySetLevel"
           />
 
           <!-- Level Buttons: Lvl 1, Lvl 2, Lvl 3, Lvl 4 (Detail) -->
-          <div class="flex items-center bg-[#1E293B] p-0.5 rounded-lg border border-slate-700">
+          <div class="flex items-center bg-zinc-200/70 p-0.5 rounded-xl border border-zinc-300/80">
             <button
               @click="setLevel(1)"
               :class="[
-                'px-2.5 py-1 rounded text-xs font-bold transition-all',
-                currentLevel === 1 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                currentLevel === 1 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-900'
               ]"
             >
               Lvl 1
@@ -688,8 +688,8 @@ function handleExportExcel() {
             <button
               @click="setLevel(2)"
               :class="[
-                'px-2.5 py-1 rounded text-xs font-bold transition-all',
-                currentLevel === 2 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                currentLevel === 2 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-900'
               ]"
             >
               Lvl 2
@@ -697,8 +697,8 @@ function handleExportExcel() {
             <button
               @click="setLevel(3)"
               :class="[
-                'px-2.5 py-1 rounded text-xs font-bold transition-all',
-                currentLevel === 3 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                currentLevel === 3 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-900'
               ]"
             >
               Lvl 3
@@ -706,8 +706,8 @@ function handleExportExcel() {
             <button
               @click="setLevel(4)"
               :class="[
-                'px-2.5 py-1 rounded text-xs font-bold transition-all',
-                currentLevel === 4 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                currentLevel === 4 ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-900'
               ]"
             >
               Lvl 4 (Detail)
@@ -716,34 +716,32 @@ function handleExportExcel() {
 
           <button
             @click="applySetLevel"
-            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
+            class="px-3 py-1 bg-white hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 rounded-xl font-semibold border border-zinc-200 shadow-2xs transition-colors cursor-pointer"
           >
             Set Level
           </button>
 
           <button
             @click="expandAll"
-            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
+            class="px-3 py-1 bg-white hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 rounded-xl font-semibold border border-zinc-200 shadow-2xs transition-colors cursor-pointer"
           >
             Expand All
           </button>
 
           <button
             @click="collapseAll"
-            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg font-medium border border-slate-700 transition-colors"
+            class="px-3 py-1 bg-white hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 rounded-xl font-semibold border border-zinc-200 shadow-2xs transition-colors cursor-pointer"
           >
             Collapse All
           </button>
         </div>
 
-        <div class="flex items-center gap-3 text-slate-400 text-xs">
+        <div class="flex items-center gap-3 text-zinc-500 text-xs">
           <span>Menampilkan <strong>{{ flattenedRows.length }}</strong> baris neraca</span>
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          <span class="text-emerald-400 font-bold">Neraca Seimbang (Balanced)</span>
+          <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Neraca Seimbang (Balanced)</span>
         </div>
       </div>
     </div>
-
-
   </div>
 </template>
