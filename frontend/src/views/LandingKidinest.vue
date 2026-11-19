@@ -127,7 +127,7 @@ const faqs = [
                 @click="emit('navigate', 'kiosk-kidinest')"
                 class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0C3B36] hover:bg-[#134E48] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all active:scale-95"
               >
-                <span>Ambil Nomor Antrian Online</span>
+                <span>Pendaftaran Online</span>
                 <ArrowRight class="w-4 h-4 text-[#E5A93C]" />
               </button>
 
@@ -146,34 +146,35 @@ const faqs = [
             
             <div class="space-y-1">
               <span class="text-[11px] font-bold uppercase tracking-wider text-[#E5A93C]">
-                Standar Pelayanan Pediatri IDAI
+                Jadwal Dokter
               </span>
               <h3 class="text-base sm:text-lg font-bold text-[#0C3B36] leading-snug">
-                Kesehatan dan kenyamanan si kecil adalah prioritas utama setiap konsultasi.
+                Jadwal praktik dokter spesialis anak Kidinest Semarang Medical Group.
               </h3>
             </div>
 
-            <!-- 4 Hairline Focus Rows -->
+            <!-- Tabel Jadwal Dokter Praktik (Read-Only) -->
             <div class="border-t border-b border-[#0C3B36]/10 divide-y divide-[#0C3B36]/10 text-xs text-[#0C3B36]">
-              <div class="py-2.5 flex items-baseline justify-between gap-4">
-                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">01</span>
-                <span class="font-bold flex-1">Vaksinasi Terjaga Cold-Chain</span>
-                <span class="text-[11px] opacity-70">Standar IDAI</span>
+              <div class="py-3 flex flex-col gap-0.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold text-[#0C3B36]">dr. Patricia Vanessa A., Sp.A</span>
+                  <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#0C3B36]/10 text-[#0C3B36]">Poli Anak 1</span>
+                </div>
+                <div class="text-[11px] text-[#0C3B36]/80 flex items-center justify-between">
+                  <span>Senin – Sabtu</span>
+                  <span class="font-mono font-bold text-emerald-800">08:30 – 13:00 WIB (Pagi)</span>
+                </div>
               </div>
-              <div class="py-2.5 flex items-baseline justify-between gap-4">
-                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">02</span>
-                <span class="font-bold flex-1">Skrining Milestone & Nutrisi</span>
-                <span class="text-[11px] opacity-70">Tumbuh Kembang</span>
-              </div>
-              <div class="py-2.5 flex items-baseline justify-between gap-4">
-                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">03</span>
-                <span class="font-bold flex-1">Pemeriksaan Ramah & Lembut</span>
-                <span class="text-[11px] opacity-70">Bebas Trauma</span>
-              </div>
-              <div class="py-2.5 flex items-baseline justify-between gap-4">
-                <span class="font-mono text-[11px] font-bold text-[#E5A93C]">04</span>
-                <span class="font-bold flex-1">Antrian Real-Time di Ponsel</span>
-                <span class="text-[11px] opacity-70">Bebas Antre Lama</span>
+
+              <div class="py-3 flex flex-col gap-0.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold text-[#0C3B36]">dr. Hendra Pratama, Sp.A</span>
+                  <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#0C3B36]/10 text-[#0C3B36]">Poli Anak 2</span>
+                </div>
+                <div class="text-[11px] text-[#0C3B36]/80 flex items-center justify-between">
+                  <span>Senin – Jumat</span>
+                  <span class="font-mono font-bold text-emerald-800">14:00 – 18:00 WIB (Sore)</span>
+                </div>
               </div>
             </div>
 
@@ -449,7 +450,7 @@ const faqs = [
           <div class="lg:col-span-5 space-y-4">
             <div>
               <span class="text-xs font-bold uppercase tracking-wider text-[#0C3B36]/70">
-                Akses & Janji Temu
+                Semarang Medical Group
               </span>
               <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0C3B36] tracking-tight mt-1">
                 Kidinest Pediatric Care
@@ -469,21 +470,13 @@ const faqs = [
               </div>
 
               <div class="flex items-start gap-2.5 pt-2 border-t border-zinc-100">
-                <Clock class="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
-                <div>
-                  <div class="font-bold">Jam Layanan Poli:</div>
-                  <div class="opacity-80 mt-0.5">
-                    Pagi: 08:30 – 13:00 WIB • Sore: 14:00 – 18:00 WIB
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-2.5 pt-2 border-t border-zinc-100">
                 <Phone class="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
                 <div>
-                  <div class="font-bold">WhatsApp Reservasi:</div>
-                  <div class="opacity-80 mt-0.5 font-mono">
-                    +62 812-3456-7890
+                  <div class="font-bold">Kontak Resmi (Telepon & WhatsApp):</div>
+                  <div class="opacity-90 mt-0.5 font-mono flex flex-wrap items-center gap-3">
+                    <span>Telp: <strong>(024) 841-2345</strong></span>
+                    <span>•</span>
+                    <span>WhatsApp: <strong>+62 812-3456-7890</strong></span>
                   </div>
                 </div>
               </div>

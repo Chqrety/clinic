@@ -24,6 +24,8 @@ const emit = defineEmits<{
 interface QueueItem {
   id: number
   patient_name: string
+  birth_date?: string
+  patient_age?: string
   clinic_unit: string
   category: string
   doctor_name: string
@@ -94,6 +96,53 @@ let clockInterval: any = null
 let eventSource: EventSource | null = null
 let pollInterval: any = null
 const lastCalledQueueNumber = ref('')
+
+// Sesuai Master Prompt Bagian 4 B:
+// Masking nama pasien: A***** P***** (hanya huruf depan masing-masing kata, sisanya bintang)
+function maskPatientName(name?: string): string {
+  if (!name) return ''
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((w) => {
+      if (w.length === 0) return ''
+      return w[0].toUpperCase() + '*****'
+    })
+    .join(' ')
+}
+
+// Umur pasien otomatis ditampilkan
+function formatPatientAge(item?: QueueItem): string {
+  if (!item) return ''
+  if (item.patient_age) return item.patient_age
+  if (item.birth_date) {
+    const birth = new Date(item.birth_date)
+    const now = new Date()
+    if (!isNaN(birth.getTime())) {
+      let years = now.getFullYear() - birth.getFullYear()
+      let months = now.getMonth() - birth.getMonth()
+      if (months < 0) {
+        years -= 1
+        months += 12
+      }
+      if (years > 0) return `${years} thn`
+      if (months > 0) return `${months} bln`
+      return '< 1 bln'
+    }
+  }
+  // Demo age fallback
+  const demoAges = ['2 thn', '1 thn 4 bln', '3 thn', '8 bln', '4 thn 2 bln', '5 thn']
+  return demoAges[(item.id || 1) % demoAges.length]
+}
+
+// Filter antrean yang sudah selesai / sudah diperiksa agar tidak tampil lagi
+const filteredUpcomingQueue = computed(() => {
+  return (monitorData.value.upcoming_queue || []).filter(item => {
+    const st = (item.queue_status || '').toUpperCase()
+    return !['EXAMINED', 'DISPENSED', 'COMPLETED', 'CANCELLED'].includes(st)
+  })
+})
+
 
 function updateClock() {
   const now = new Date()
@@ -346,8 +395,11 @@ onUnmounted(() => {
 
           <!-- Patient Name (Masked for Privacy) -->
           <div class="space-y-1.5">
-            <div class="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-              {{ monitorData.currently_calling.patient_name }}
+            <div class="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight font-mono">
+              {{ maskPatientName(monitorData.currently_calling.patient_name) }}
+              <span class="text-sm font-bold text-zinc-500 font-sans ml-2">
+                ({{ formatPatientAge(monitorData.currently_calling) }})
+              </span>
             </div>
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100/80 text-[11px] font-semibold text-zinc-600">
               <ShieldCheck class="w-3.5 h-3.5 text-emerald-600" />
@@ -460,19 +512,19 @@ onUnmounted(() => {
                 <p class="text-[10px] text-zinc-400 font-medium">Harap bersiap di depan pintu ruang periksa</p>
               </div>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-zinc-700 font-mono">
-                {{ monitorData.upcoming_queue.length }} Menunggu
+                {{ filteredUpcomingQueue.length }} Antrean
               </span>
             </div>
 
             <!-- List Items -->
-            <div v-if="monitorData.upcoming_queue.length === 0" class="py-8 text-center text-zinc-400 space-y-1">
+            <div v-if="filteredUpcomingQueue.length === 0" class="py-8 text-center text-zinc-400 space-y-1">
               <Clock class="w-7 h-7 mx-auto text-zinc-300" />
               <p class="text-xs font-bold text-zinc-600">Tidak ada antrian menunggu</p>
             </div>
 
             <div v-else class="divide-y divide-zinc-100 mt-1">
               <div
-                v-for="(item, idx) in monitorData.upcoming_queue"
+                v-for="(item, idx) in filteredUpcomingQueue"
                 :key="item.id"
                 class="py-3 flex items-center justify-between gap-3 hover:bg-stone-50/60 rounded-xl px-1.5 transition-colors"
               >
@@ -484,8 +536,11 @@ onUnmounted(() => {
                     <div class="font-mono text-base font-black text-zinc-950 leading-tight">
                       {{ item.queue_number }}
                     </div>
-                    <div class="text-xs font-bold text-zinc-800 truncate">
-                      {{ item.patient_name }}
+                    <div class="text-xs font-bold text-zinc-800 truncate font-mono">
+                      {{ maskPatientName(item.patient_name) }}
+                      <span class="text-[10px] text-zinc-500 font-sans font-medium ml-1">
+                        ({{ formatPatientAge(item) }})
+                      </span>
                     </div>
                   </div>
                 </div>

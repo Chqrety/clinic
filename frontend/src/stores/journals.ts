@@ -16,7 +16,7 @@ export const useJournalsStore = defineStore('journals', () => {
       if (accountingStore.businessUnit !== 'ALL' && j.businessUnit !== 'ALL' && j.businessUnit !== accountingStore.businessUnit) {
         return false
       }
-      if (accountingStore.fiscalMonth && j.journalDate) {
+      if (accountingStore.fiscalMonth && accountingStore.fiscalMonth !== 0 && j.journalDate) {
         const str = String(j.journalDate).trim()
         const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/]/)
         const dmyMatch = str.match(/^\d{1,2}[-/](\d{1,2})[-/]\d{4}/)

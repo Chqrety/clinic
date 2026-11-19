@@ -116,6 +116,27 @@ const loadingInvoices = ref(false)
 const activeInvoiceForPrint = ref<CashierInvoice | null>(null)
 const showPrintModal = ref(false)
 
+// Sesuai Master Prompt Bagian 6 & 7:
+// 1. Toggle Buka / Tutup Pendaftaran oleh Admin / GRO
+const isRegistrationOpen = ref(true)
+function toggleRegistration() {
+  isRegistrationOpen.value = !isRegistrationOpen.value
+}
+
+// 2. Opsi Cetak Struk 2 Lembar (Lembar Pasien & Lembar Arsip GRO)
+const receiptCopyType = ref<'BOTH' | 'PATIENT' | 'INTERNAL'>('BOTH')
+
+// 3. Quick Ganti Akun Staf
+function handleSwitchStaffAccount() {
+  const empList = ['GRO-01', 'KASIR-01', 'SSC-KASIR-01', 'ADMIN-01']
+  const cur = authStore.user?.employee_number || 'GRO-01'
+  const nextEmp = empList[(empList.indexOf(cur) + 1) % empList.length]
+  authStore.login(nextEmp, 'klinik123').then(() => {
+    handleDataRefresh()
+  })
+}
+
+
 // State: Refund Modal
 const showRefundModal = ref(false)
 const invoiceToRefund = ref<CashierInvoice | null>(null)
@@ -1951,35 +1972,101 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div id="thermal-receipt" class="font-mono text-xs bg-zinc-50 p-4 rounded-xl border border-zinc-200 space-y-2">
-          <div class="text-center pb-2 border-b border-dashed border-zinc-300">
-            <div class="font-black text-sm">KLINIK UTAMA SEMARANG MEDICAL GROUP</div>
-            <div class="text-[10px] text-zinc-500">{{ activeInvoiceForPrint.clinic_unit === 'KIDINEST' ? 'Kidinest Pediatric Care' : 'Semarang Skin Center' }}</div>
-            <div class="text-[9px] text-zinc-400">Jl. Melati Utara No. 3, Semarang</div>
+        <!-- Selector 2 Lembar Cetak (Master Prompt 6) -->
+        <div class="grid grid-cols-3 gap-1 p-1 bg-zinc-100 rounded-xl text-[10px] font-bold">
+          <button
+            type="button"
+            @click="receiptCopyType = 'BOTH'"
+            class="py-1 rounded-lg text-center transition-all"
+            :class="receiptCopyType === 'BOTH' ? 'bg-white shadow-2xs text-zinc-950 font-black' : 'text-zinc-600'"
+          >
+            2 Lembar (Semua)
+          </button>
+          <button
+            type="button"
+            @click="receiptCopyType = 'PATIENT'"
+            class="py-1 rounded-lg text-center transition-all"
+            :class="receiptCopyType === 'PATIENT' ? 'bg-white shadow-2xs text-zinc-950 font-black' : 'text-zinc-600'"
+          >
+            Lembar Pasien
+          </button>
+          <button
+            type="button"
+            @click="receiptCopyType = 'INTERNAL'"
+            class="py-1 rounded-lg text-center transition-all"
+            :class="receiptCopyType === 'INTERNAL' ? 'bg-white shadow-2xs text-zinc-950 font-black' : 'text-zinc-600'"
+          >
+            Lembar Arsip GRO
+          </button>
+        </div>
+
+        <div id="thermal-receipt" class="font-mono text-xs bg-zinc-50 p-4 rounded-xl border border-zinc-200 space-y-4 max-h-[60vh] overflow-y-auto">
+          
+          <!-- LEMBAR 1: UNTUK PASIEN -->
+          <div v-if="receiptCopyType === 'BOTH' || receiptCopyType === 'PATIENT'" class="space-y-2">
+            <div class="text-center pb-2 border-b border-dashed border-zinc-300">
+              <div class="font-black text-sm">KLINIK UTAMA SEMARANG MEDICAL GROUP</div>
+              <div class="text-[10px] font-bold text-zinc-600">{{ activeInvoiceForPrint.clinic_unit === 'KIDINEST' ? 'Kidinest Pediatric Care' : 'Semarang Skin Center' }}</div>
+              <div class="text-[9px] text-zinc-400">Jl. Melati Utara No. 3, Semarang • Telp: (024) 841-2345</div>
+              <div class="mt-1 inline-block px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-800 text-[9px] font-bold uppercase tracking-wider">
+                [ LEMBAR 1 : UNTUK PASIEN ]
+              </div>
+            </div>
+
+            <div class="space-y-1 text-[11px] py-1 border-b border-dashed border-zinc-300">
+              <div class="flex justify-between"><span>No. Bukti:</span><span class="font-bold">{{ activeInvoiceForPrint.invoice_number }}</span></div>
+              <div class="flex justify-between"><span>No. Antrean:</span><span class="font-black text-xs">{{ activeInvoiceForPrint.queue_number }}</span></div>
+              <div class="flex justify-between"><span>Nama Pasien:</span><span>{{ activeInvoiceForPrint.patient_name }}</span></div>
+              <div class="flex justify-between"><span>Waktu Transaksi:</span><span>{{ formatDate(activeInvoiceForPrint.created_at) }}</span></div>
+            </div>
+
+            <div class="space-y-1 text-[11px] py-1 border-b border-dashed border-zinc-300">
+              <div v-if="activeInvoiceForPrint.subtotal_registration > 0" class="flex justify-between"><span>Registrasi:</span><span>{{ formatRupiah(activeInvoiceForPrint.subtotal_registration) }}</span></div>
+              <div v-if="activeInvoiceForPrint.subtotal_action > 0" class="flex justify-between"><span>Tindakan Dokter:</span><span>{{ formatRupiah(activeInvoiceForPrint.subtotal_action) }}</span></div>
+              <div v-if="activeInvoiceForPrint.subtotal_medication > 0" class="flex justify-between"><span>Farmasi / Obat:</span><span>{{ formatRupiah(activeInvoiceForPrint.subtotal_medication) }}</span></div>
+              <div v-if="activeInvoiceForPrint.voucher_discount > 0" class="flex justify-between text-purple-700 font-bold"><span>Voucher Diskon:</span><span>-{{ formatRupiah(activeInvoiceForPrint.voucher_discount) }}</span></div>
+            </div>
+
+            <div class="space-y-1 pt-1 font-bold">
+              <div class="flex justify-between text-xs"><span>TOTAL PEMBAYARAN:</span><span>{{ formatRupiah(activeInvoiceForPrint.total_amount) }}</span></div>
+              <div class="flex justify-between text-[11px] font-normal"><span>Metode Bayar:</span><span>{{ activeInvoiceForPrint.payment_method }}</span></div>
+              <div v-if="activeInvoiceForPrint.payment_reference" class="flex justify-between text-[10px] text-zinc-500 font-mono"><span>Ref:</span><span>{{ activeInvoiceForPrint.payment_reference }}</span></div>
+              <div v-if="activeInvoiceForPrint.payment_method === 'CASH'" class="flex justify-between text-[11px] text-emerald-700"><span>Kembalian:</span><span>{{ formatRupiah(activeInvoiceForPrint.cash_change) }}</span></div>
+            </div>
+
+            <div class="text-center pt-2 text-[10px] text-zinc-400">LUNAS • Terima kasih atas kunjungan Anda</div>
           </div>
 
-          <div class="space-y-1 text-[11px] py-1 border-b border-dashed border-zinc-300">
-            <div class="flex justify-between"><span>No:</span><span class="font-bold">{{ activeInvoiceForPrint.invoice_number }}</span></div>
-            <div class="flex justify-between"><span>Antrian:</span><span class="font-black">{{ activeInvoiceForPrint.queue_number }}</span></div>
-            <div class="flex justify-between"><span>Pasien:</span><span>{{ activeInvoiceForPrint.patient_name }}</span></div>
-            <div class="flex justify-between"><span>Waktu:</span><span>{{ formatDate(activeInvoiceForPrint.created_at) }}</span></div>
+          <!-- GARIS POTONG JIKA CETAK 2 LEMBAR -->
+          <div v-if="receiptCopyType === 'BOTH'" class="border-t-2 border-dashed border-zinc-400 pt-3 text-center text-[9px] text-zinc-400 uppercase tracking-widest font-sans">
+            - - - - - - - - - POTONG DI SINI - - - - - - - - -
           </div>
 
-          <div class="space-y-1 text-[11px] py-1 border-b border-dashed border-zinc-300">
-            <div v-if="activeInvoiceForPrint.subtotal_registration > 0" class="flex justify-between"><span>Registrasi:</span><span>{{ formatRupiah(activeInvoiceForPrint.subtotal_registration) }}</span></div>
-            <div v-if="activeInvoiceForPrint.subtotal_action > 0" class="flex justify-between"><span>Tindakan:</span><span>{{ formatRupiah(activeInvoiceForPrint.subtotal_action) }}</span></div>
-            <div v-if="activeInvoiceForPrint.subtotal_medication > 0" class="flex justify-between"><span>Obat:</span><span>{{ formatRupiah(activeInvoiceForPrint.subtotal_medication) }}</span></div>
-            <div v-if="activeInvoiceForPrint.voucher_discount > 0" class="flex justify-between text-purple-700 font-bold"><span>Voucher:</span><span>-{{ formatRupiah(activeInvoiceForPrint.voucher_discount) }}</span></div>
+          <!-- LEMBAR 2: UNTUK ARSIP / INTERNAL GRO -->
+          <div v-if="receiptCopyType === 'BOTH' || receiptCopyType === 'INTERNAL'" class="space-y-2 opacity-90">
+            <div class="text-center pb-2 border-b border-dashed border-zinc-300">
+              <div class="font-black text-sm">KLINIK UTAMA SEMARANG MEDICAL GROUP</div>
+              <div class="text-[10px] font-bold text-zinc-600">{{ activeInvoiceForPrint.clinic_unit === 'KIDINEST' ? 'Kidinest Pediatric Care' : 'Semarang Skin Center' }}</div>
+              <div class="mt-1 inline-block px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[9px] font-bold uppercase tracking-wider">
+                [ LEMBAR 2 : ARSIP / INTERNAL GRO ]
+              </div>
+            </div>
+
+            <div class="space-y-1 text-[11px] py-1 border-b border-dashed border-zinc-300">
+              <div class="flex justify-between"><span>No. Bukti:</span><span class="font-bold">{{ activeInvoiceForPrint.invoice_number }}</span></div>
+              <div class="flex justify-between"><span>No. Antrean:</span><span class="font-black text-xs">{{ activeInvoiceForPrint.queue_number }}</span></div>
+              <div class="flex justify-between"><span>Pasien:</span><span>{{ activeInvoiceForPrint.patient_name }}</span></div>
+              <div class="flex justify-between"><span>Kasir Bertugas:</span><span>{{ authStore.user?.name || 'Kasir GRO' }}</span></div>
+            </div>
+
+            <div class="space-y-1 pt-1 font-bold">
+              <div class="flex justify-between text-xs"><span>TOTAL TRANSAKSI:</span><span>{{ formatRupiah(activeInvoiceForPrint.total_amount) }}</span></div>
+              <div class="flex justify-between text-[11px] font-normal"><span>Metode:</span><span>{{ activeInvoiceForPrint.payment_method }}</span></div>
+            </div>
+
+            <div class="pt-2 text-center text-[9px] text-zinc-400 italic">Salinan sah internal kasir & rekon akuntansi</div>
           </div>
 
-          <div class="space-y-1 pt-1 font-bold">
-            <div class="flex justify-between text-xs"><span>TOTAL:</span><span>{{ formatRupiah(activeInvoiceForPrint.total_amount) }}</span></div>
-            <div class="flex justify-between text-[11px] font-normal"><span>Metode:</span><span>{{ activeInvoiceForPrint.payment_method }}</span></div>
-            <div v-if="activeInvoiceForPrint.payment_reference" class="flex justify-between text-[10px] text-zinc-500 font-mono"><span>Ref/Trace:</span><span>{{ activeInvoiceForPrint.payment_reference }}</span></div>
-            <div v-if="activeInvoiceForPrint.payment_method === 'CASH'" class="flex justify-between text-[11px] text-emerald-700"><span>Kembalian:</span><span>{{ formatRupiah(activeInvoiceForPrint.cash_change) }}</span></div>
-          </div>
-
-          <div class="text-center pt-2 text-[10px] text-zinc-400">LUNAS • Terima Kasih</div>
         </div>
 
         <div class="flex items-center gap-2">

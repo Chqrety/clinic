@@ -8,6 +8,7 @@ import type {
 } from '@/types/accounting'
 import { useAccountingStore } from './accounting'
 import { useJournalsStore } from './journals'
+import groTransactionsData from '@/data/groTransactions.json'
 
 export const useTransactionsStore = defineStore('transactions', () => {
   const accountingStore = useAccountingStore()
@@ -113,8 +114,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     }
   ])
 
-  // Mock Operational Transactions from External Systems
+  // Real Operational Transactions loaded directly from Daily Report GRO.xlsx (142 Daily Closings)
   const transactions = ref<OperationalTransaction[]>([
+    ...(groTransactionsData as unknown as OperationalTransaction[]),
     {
       id: 'tx-001',
       transactionNumber: 'TX-CSH-20260304-001',

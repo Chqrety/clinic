@@ -18,7 +18,7 @@ func NewMockWhatsAppAdapter() *MockWhatsAppAdapter {
 
 func (a *MockWhatsAppAdapter) SendQueueTicket(phone, patientName, queueNumber, clinicUnit, trackingURL string) error {
 	msg := fmt.Sprintf(
-		"[WHATSAPP GATEWAY -> %s] Halo %s, Tiket antrian Anda di %s adalah: *%s*. Pantau panggilan antrian live secara paperless di tautan berikut: %s",
+		"[WHATSAPP GATEWAY -> %s] Halo %s, Tiket pendaftaran antrian Anda di %s berhasil diterbitkan dengan nomor: *%s*.\n\nKonfirmasi nomor antrean dapat dilakukan melalui Customer Service pada hari kunjungan. Nomor antrean juga dapat dipantau secara langsung melalui sistem ini pada halaman utama: %s",
 		phone, patientName, clinicUnit, queueNumber, trackingURL,
 	)
 	log.Printf("%s", msg)

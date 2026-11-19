@@ -73,7 +73,7 @@ func (s *Service) CreateQueue(req CreateQueueRequest) (*domain.QueueItem, error)
 	if err != nil {
 		maxID = 0
 	}
-	queueNumber := fmt.Sprintf("A-%03d", maxID+1)
+	queueNumber := fmt.Sprintf("%02d-A", maxID+1)
 
 	// Payment status & initial queue status
 	paymentStatus := "PENDING"

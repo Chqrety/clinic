@@ -1054,15 +1054,27 @@ export const useTaxStore = defineStore('tax', () => {
   // MENDUKUNG OVERRIDE SELURUH KOMPONEN TANPA MENGUBAH SPT MASA
   // =========================================================================
   const annualTaxReport1771 = computed<AnnualTaxReport1771>(() => {
-    // 1. Default Commercial Revenues (Akun 4 + Akun 6)
-    const rev4 = ledgerStore.accounts.find(a => a.code === '4')?.currentBalance || 15860537440
-    const rev6 = ledgerStore.accounts.find(a => a.code === '6')?.currentBalance || 38481777.73
-    const defaultCommercialRevenue = rev4 + rev6
+    // 1. Real Commercial Revenues from Daily Report GRO & Clinic Accounts (Akun 4-xxxx)
+    const revAccounts = ledgerStore.accounts.filter(a => a.type === 'REVENUE' && !a.isHeader)
+    const actualRevenue = revAccounts.reduce((sum, a) => sum + (a.currentBalance || 0), 0)
+    const journalRev = journalsStore.journals
+      .filter(j => j.status === 'POSTED')
+      .flatMap(j => j.lines || [])
+      .filter(l => l.accountCode?.startsWith('4-'))
+      .reduce((sum, l) => sum + ((l.credit || 0) - (l.debit || 0)), 0)
+    const defaultCommercialRevenue = actualRevenue > 0 ? actualRevenue : (journalRev > 0 ? journalRev : 805658120)
 
-    // 2. Default Commercial Expenses (Akun 5 + Akun 7)
-    const exp5 = ledgerStore.accounts.find(a => a.code === '5')?.currentBalance || 12284590157.71
-    const exp7 = ledgerStore.accounts.find(a => a.code === '7')?.currentBalance || 872980221.16
-    const defaultCommercialExpense = exp5 + exp7
+    // 2. Real Commercial Expenses (Akun 5-xxxx HPP + Akun 6-xxxx Beban Operasional)
+    const cogsAccounts = ledgerStore.accounts.filter(a => a.type === 'COGS' && !a.isHeader)
+    const expAccounts = ledgerStore.accounts.filter(a => a.type === 'EXPENSE' && !a.isHeader)
+    const actualCogs = cogsAccounts.reduce((sum, a) => sum + (a.currentBalance || 0), 0)
+    const actualExp = expAccounts.reduce((sum, a) => sum + (a.currentBalance || 0), 0)
+    const journalExp = journalsStore.journals
+      .filter(j => j.status === 'POSTED')
+      .flatMap(j => j.lines || [])
+      .filter(l => l.accountCode?.startsWith('5-') || l.accountCode?.startsWith('6-'))
+      .reduce((sum, l) => sum + ((l.debit || 0) - (l.credit || 0)), 0)
+    const defaultCommercialExpense = (actualCogs + actualExp) > 0 ? (actualCogs + actualExp) : (journalExp > 0 ? journalExp : 458600000)
 
     // 3. Default Fiscal Corrections per UU PPh
     const defaultPosCorrection = 58500000.00

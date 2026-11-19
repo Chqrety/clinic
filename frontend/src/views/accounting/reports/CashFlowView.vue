@@ -33,36 +33,27 @@ interface CashFlowRow {
 
 // Cash Flow Statement matching Image 3 and Clinic ERP Context
 const cashFlowRows = ref<CashFlowRow[]>([
-  { lineNo: 9, name: 'Penyesuaian untuk:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 10, name: 'Penyusutan dan Amortisasi', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '1606' },
-  { lineNo: 11, name: 'Laba Operasi Sebelum Perubahan Modal Kerja', amountCurrent: 0.00, amountPrevious: 0.00, isBold: true },
-  { lineNo: 13, name: 'Perubahan Modal Kerja:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 14, name: 'Penurunan (Kenaikan) Persediaan', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '13' },
-  { lineNo: 15, name: 'Penurunan (Kenaikan) Piutang Usaha', amountCurrent: -411190000.00, amountPrevious: 0.00, isLink: true, accountCode: '12' },
-  { lineNo: 16, name: 'Penurunan (Kenaikan) Biaya Dibayar di Muka', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '15' },
-  { lineNo: 17, name: 'Penurunan (Kenaikan) Investasi', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '14' },
-  { lineNo: 18, name: 'Kenaikan (Penurunan) Hutang Uang Muka', amountCurrent: 517451500.00, amountPrevious: 0.00, isLink: true, accountCode: '2102' },
-  { lineNo: 19, name: 'Kenaikan (Penurunan) Hutang Dagang', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '22' },
-  { lineNo: 20, name: 'Kenaikan (Penurunan) Hutang Bank', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '23' },
-  { lineNo: 21, name: 'Kenaikan (Penurunan) Hutang Pembebanan HPP', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '26' },
-  { lineNo: 22, name: 'Kenaikan (Penurunan) Hutang Pajak', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '25' },
-  { lineNo: 23, name: 'Kas Bersih dari Aktivitas Operasi', amountCurrent: 106261500.00, amountPrevious: 0.00, isBold: true },
+  { lineNo: 1, name: 'ARUS KAS DARI AKTIVITAS OPERASIONAL:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
+  { lineNo: 2, name: 'Penerimaan Kasir Harian dari Pasien (Tunai, QRIS & EDC Bank)', amountCurrent: 660108120.00, amountPrevious: 175000000.00, isLink: true, accountCode: '1-1111' },
+  { lineNo: 3, name: 'Pembayaran Pengadaan Obat, Vaksin & Skincare Distributor', amountCurrent: -81420000.00, amountPrevious: -45000000.00, isLink: true, accountCode: '2-1110' },
+  { lineNo: 4, name: 'Pembayaran Honor Jasa Medis Dokter Spesialis & Terapis', amountCurrent: -163000000.00, amountPrevious: -65000000.00, isLink: true, accountCode: '6-1100' },
+  { lineNo: 5, name: 'Pembayaran Gaji Karyawan, Perawat & Apoteker', amountCurrent: -89000000.00, amountPrevious: -44000000.00, isLink: true, accountCode: '6-1200' },
+  { lineNo: 6, name: 'Pembayaran Operasional (Listrik, Sewa Ruko & Limbah Medis B3)', amountCurrent: -156500000.00, amountPrevious: -42000000.00, isLink: true, accountCode: '6-1300' },
+  { lineNo: 7, name: 'Pembayaran Setoran Pajak Masa (PPh 21 Dokter, PPh 23, PPh 4(2))', amountCurrent: -9147500.00, amountPrevious: -2420000.00, isLink: true, accountCode: '2-1500' },
+  { lineNo: 8, name: 'Beban Administrasi Bank & Sewa Mesin EDC (BCA/BRI)', amountCurrent: -1600000.00, amountPrevious: -750000.00, isLink: true, accountCode: '6-1400' },
+  { lineNo: 9, name: 'Arus Kas Bersih yang Diperoleh dari Aktivitas Operasional', amountCurrent: 159440620.00, amountPrevious: -24170000.00, isBold: true },
 
-  { lineNo: 25, name: 'ARUS KAS DARI AKTIVITAS INVESTASI:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 26, name: 'Pembelian Aset Tetap', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '16' },
-  { lineNo: 27, name: 'Kas Bersih dari Aktivitas Investasi', amountCurrent: 0.00, amountPrevious: 0.00, isBold: true },
+  { lineNo: 11, name: 'ARUS KAS DARI AKTIVITAS INVESTASI:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
+  { lineNo: 12, name: 'Pengadaan Alat Medis USG Pediatri & Mesin Facial Estetika', amountCurrent: -35000000.00, amountPrevious: 0.00, isLink: true, accountCode: '1-2100' },
+  { lineNo: 13, name: 'Kas Bersih Digunakan untuk Aktivitas Investasi', amountCurrent: -35000000.00, amountPrevious: 0.00, isBold: true },
 
-  { lineNo: 29, name: 'ARUS KAS DARI AKTIVITAS PENDANAAN:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 30, name: 'Kenaikan (Penurunan) Modal', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '31' },
-  { lineNo: 31, name: 'Kenaikan (Penurunan) Hutang Pihak Ketiga', amountCurrent: 0.00, amountPrevious: 0.00, isLink: true, accountCode: '24' },
-  { lineNo: 32, name: 'Kas Bersih dari Aktivitas Pendanaan', amountCurrent: 0.00, amountPrevious: 0.00, isBold: true },
+  { lineNo: 15, name: 'ARUS KAS DARI AKTIVITAS PENDANAAN:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
+  { lineNo: 16, name: 'Penyetoran Tambahan Modal Kerja Pemilik Klinik', amountCurrent: 50000000.00, amountPrevious: 100000000.00, isLink: true, accountCode: '3-1100' },
+  { lineNo: 17, name: 'Kas Bersih Diperoleh dari Aktivitas Pendanaan', amountCurrent: 50000000.00, amountPrevious: 100000000.00, isBold: true },
 
-  { lineNo: 34, name: 'KENAIKAN (PENURUNAN) KAS DAN SETARA KAS', amountCurrent: 106261500.00, amountPrevious: 0.00, isBold: true },
-
-  { lineNo: 36, name: 'PERUBAHAN DALAM KOMPONEN KAS DAN SETARA KAS:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 37, name: 'Kas dan Setara Kas pada awal periode', amountCurrent: 1138664487.55, amountPrevious: 0.00, isLink: true, accountCode: '11' },
-  { lineNo: 38, name: 'Kas dan Setara Kas pada akhir periode', amountCurrent: 1244925987.55, amountPrevious: 0.00, isLink: true, accountCode: '11' },
-  { lineNo: 39, name: 'Kenaikan (Penurunan) Kas', amountCurrent: 106261500.00, amountPrevious: 0.00, isBold: true }
+  { lineNo: 19, name: 'KENAIKAN (PENURUNAN) BERSIH KAS DAN SETARA KAS', amountCurrent: 174440620.00, amountPrevious: 75830000.00, isBold: true },
+  { lineNo: 20, name: 'KAS DAN SETARA KAS PADA AWAL PERIODE', amountCurrent: 105000000.00, amountPrevious: 29170000.00, isBold: true },
+  { lineNo: 21, name: 'KAS DAN SETARA KAS PADA AKHIR PERIODE (KAS, BCA, BRI, KLIRING)', amountCurrent: 279440620.00, amountPrevious: 105000000.00, isBold: true }
 ])
 
 function openLedgerForAccount(accountCode?: string) {

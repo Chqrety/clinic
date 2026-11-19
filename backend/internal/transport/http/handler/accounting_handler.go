@@ -47,7 +47,7 @@ func (h *AccountingHandler) HandleListAccounts(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 	pg, err := pagination.Parse(r, pagination.Config{
 		DefaultLimit:     20,
-		MaxLimit:         100,
+		MaxLimit:         1000,
 		DefaultSortBy:    "code",
 		DefaultSortOrder: "ASC",
 		AllowedSortColumns: map[string]string{
@@ -242,7 +242,7 @@ func (h *AccountingHandler) HandleListJournals(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 	pg, err := pagination.Parse(r, pagination.Config{
 		DefaultLimit:     20,
-		MaxLimit:         100,
+		MaxLimit:         1000,
 		DefaultSortBy:    "transaction_date",
 		DefaultSortOrder: "DESC",
 		AllowedSortColumns: map[string]string{

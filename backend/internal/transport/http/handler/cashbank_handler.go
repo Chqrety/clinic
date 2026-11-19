@@ -50,7 +50,7 @@ func (h *CashBankHandler) HandleListAccounts(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 	pg, err := pagination.Parse(r, pagination.Config{
 		DefaultLimit:     20,
-		MaxLimit:         100,
+		MaxLimit:         1000,
 		DefaultSortBy:    "code",
 		DefaultSortOrder: "ASC",
 		AllowedSortColumns: map[string]string{
@@ -306,7 +306,7 @@ func (h *CashBankHandler) HandleListTransactions(w http.ResponseWriter, r *http.
 	ctx := r.Context()
 	pg, err := pagination.Parse(r, pagination.Config{
 		DefaultLimit:     20,
-		MaxLimit:         100,
+		MaxLimit:         1000,
 		DefaultSortBy:    "transaction_date",
 		DefaultSortOrder: "DESC",
 		AllowedSortColumns: map[string]string{

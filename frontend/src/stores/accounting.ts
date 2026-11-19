@@ -74,9 +74,10 @@ export const useAccountingStore = defineStore('accounting', () => {
   ]
 
   const unitOptions = [
-    { code: 'ALL', name: 'Semua Unit (Konsolidasi)', badge: 'ALL' },
-    { code: 'KIDINEST', name: 'Kidinest (Klinik Anak)', badge: 'KIDINEST' },
-    { code: 'SSC', name: 'Semarang Skin Center (SSC)', badge: 'SSC' }
+    { code: 'ALL', name: 'Semua Unit (Konsolidasi SMG)', badge: 'ALL' },
+    { code: 'KIDINEST', name: 'Kidinest (Poli Spesialis Anak)', badge: 'KIDINEST' },
+    { code: 'SSC', name: 'Semarang Skin Center (SSC)', badge: 'SSC' },
+    { code: 'MINIMO', name: 'Minimo (Baby & Toddler Spa)', badge: 'MINIMO' }
   ]
 
   const roleOptions: { role: UserRole; label: string }[] = [

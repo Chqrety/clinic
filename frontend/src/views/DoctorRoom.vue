@@ -221,6 +221,98 @@ const icd10Code = ref('J06.9')
 const actionNotes = ref('')
 const actionFee = ref<number>(75000)
 
+// Sesuai Master Prompt Bagian 8:
+// 1. Antropometri (TB, BB, Lingkar Lengan, Lingkar Kepala)
+const anthropometry = ref({
+  height_cm: 85,
+  weight_kg: 12.5,
+  arm_circumference_cm: 14.5,
+  head_circumference_cm: 48,
+})
+
+const bmiNutritionalStatus = computed(() => {
+  const hM = anthropometry.value.height_cm / 100
+  if (hM <= 0 || anthropometry.value.weight_kg <= 0) return { val: '0', status: 'Normal' }
+  const bmi = (anthropometry.value.weight_kg / (hM * hM)).toFixed(1)
+  let status = 'Gizi Baik (Normal)'
+  const num = parseFloat(bmi)
+  if (num < 14) status = 'Gizi Kurang'
+  else if (num > 18) status = 'Gizi Lebih'
+  return { val: bmi, status }
+})
+
+// 2. Diagnosis Banding (Differential Diagnosis)
+const differentialDiagnosis = ref('')
+
+// 3. ICD-10 Auto-Search Database
+interface ICD10Ref {
+  code: string
+  name: string
+  desc: string
+}
+
+const icd10Database: ICD10Ref[] = [
+  { code: 'J06.9', name: 'ISPA (Infeksi Saluran Pernapasan Akut)', desc: 'Acute upper respiratory infection, unspecified' },
+  { code: 'R50.9', name: 'Febris / Demam Tanpa Sebab Spesifik', desc: 'Fever, unspecified' },
+  { code: 'A09', name: 'Gastroenteritis Akut / Diare Anak', desc: 'Infectious gastroenteritis and colitis' },
+  { code: 'J20.9', name: 'Bronkitis Akut', desc: 'Acute bronchitis, unspecified' },
+  { code: 'L20.9', name: 'Dermatitis Atopik / Alergi Kulit', desc: 'Atopic dermatitis, unspecified' },
+  { code: 'Z27.9', name: 'Imunisasi & Vaksinasi Pediatri', desc: 'Need for immunization against combination' },
+  { code: 'R62.5', name: 'Pemantauan Tumbuh Kembang / Gizi', desc: 'Lack of expected normal physiological development' },
+  { code: 'B01.9', name: 'Varicella / Cacar Air', desc: 'Varicella without complication' },
+  { code: 'J02.9', name: 'Faringitis Akut / Radang Tenggorokan', desc: 'Acute pharyngitis, unspecified' },
+  { code: 'L70.0', name: 'Acne Vulgaris / Jerawat Aktif', desc: 'Acne vulgaris' },
+  { code: 'L81.1', name: 'Melasma / Hiperpigmentasi Kulit', desc: 'Chloasma' },
+  { code: 'K29.7', name: 'Gastritis / Dispepsia', desc: 'Gastritis, unspecified' },
+  { code: 'H66.9', name: 'Otitis Media Akut', desc: 'Otitis media, unspecified' },
+  { code: 'B34.9', name: 'Infeksi Virus Akut', desc: 'Viral infection, unspecified' },
+]
+
+const showIcdDropdown = ref(false)
+
+const matchingIcd10 = computed(() => {
+  const q = diagnosis.value.trim().toLowerCase()
+  if (!q || q.length < 2) return []
+  return icd10Database.filter(item =>
+    item.code.toLowerCase().includes(q) ||
+    item.name.toLowerCase().includes(q) ||
+    item.desc.toLowerCase().includes(q)
+  )
+})
+
+function selectIcdSuggestion(item: ICD10Ref) {
+  diagnosis.value = item.name
+  icd10Code.value = item.code
+  showIcdDropdown.value = false
+}
+
+// 4. Modal Surat Dokter (Surat Sakit, Izin, Kontrol, Diagnosis)
+type LetterType = 'SAKIT' | 'IZIN' | 'KONTROL' | 'DIAGNOSIS'
+const showLetterModal = ref(false)
+const activeLetterType = ref<LetterType>('SAKIT')
+const letterDurationDays = ref(3)
+const letterStartDate = ref(new Date().toISOString().split('T')[0])
+const letterControlDate = ref(new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
+const letterNotes = ref('')
+
+function openLetter(type: LetterType) {
+  activeLetterType.value = type
+  showLetterModal.value = true
+}
+
+function printLetter() {
+  window.print()
+}
+
+// 5. Ganti Akun Dokter (Master Prompt 8 E)
+function handleSwitchDoctorAccount() {
+  const currentIdx = availableDoctors.findIndex(d => d.id === currentDoctor.value.id)
+  const nextIdx = (currentIdx + 1) % availableDoctors.length
+  currentDoctor.value = availableDoctors[nextIdx]
+  loadDoctorQueues()
+}
+
+
 interface RxRow {
   is_manual: boolean
   drug_id?: number
@@ -550,10 +642,21 @@ watch(activeDoctorTab, (tab) => {
           </button>
         </div>
 
-        <!-- Static Doctor Profile Badge (When logged in as Doctor) -->
-        <div v-else class="text-right">
-          <div class="text-[10px] uppercase font-bold text-zinc-400">Dokter Spesialis</div>
-          <div class="text-xs font-bold text-zinc-900">{{ currentDoctor.name }}</div>
+        <!-- Doctor Profile Badge with Ganti Akun (Master Prompt 8 E) -->
+        <div class="flex items-center gap-2">
+          <div class="text-right hidden sm:block">
+            <div class="text-[10px] uppercase font-bold text-zinc-400">Dokter Bertugas</div>
+            <div class="text-xs font-bold text-zinc-900">{{ currentDoctor.name }}</div>
+          </div>
+          <button
+            type="button"
+            @click="handleSwitchDoctorAccount"
+            class="px-2.5 py-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-[11px] font-bold text-zinc-800 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+            title="Ganti akun dokter spesialis"
+          >
+            <User class="w-3.5 h-3.5 text-zinc-600" />
+            <span>Ganti Akun</span>
+          </button>
         </div>
 
         <button
@@ -889,8 +992,135 @@ watch(activeDoctorTab, (tab) => {
             </div>
           </div>
 
+
+          <!-- DOKTER QUICK TOOLBAR (Master Prompt 8 B) -->
+          <div class="flex items-center gap-1.5 flex-wrap p-2 rounded-2xl bg-zinc-100/80 border border-zinc-200/80 text-xs">
+            <span class="text-[10px] font-black uppercase text-zinc-500 px-2 tracking-wider">Toolbar:</span>
+            
+            <a
+              href="#soap-section"
+              class="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+            >
+              <FileText class="w-3.5 h-3.5 text-zinc-600" />
+              <span>SOAP</span>
+            </a>
+
+            <a
+              href="#resep-section"
+              class="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+            >
+              <Pill class="w-3.5 h-3.5 text-emerald-600" />
+              <span>E-Resep</span>
+            </a>
+
+            <button
+              type="button"
+              @click="openLetter('SAKIT')"
+              class="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            >
+              <FileCheck2 class="w-3.5 h-3.5 text-amber-600" />
+              <span>Surat Sakit</span>
+            </button>
+
+            <button
+              type="button"
+              @click="openLetter('IZIN')"
+              class="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            >
+              <FileCheck2 class="w-3.5 h-3.5 text-sky-600" />
+              <span>Surat Izin</span>
+            </button>
+
+            <button
+              type="button"
+              @click="openLetter('KONTROL')"
+              class="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            >
+              <Calendar class="w-3.5 h-3.5 text-purple-600" />
+              <span>Surat Kontrol</span>
+            </button>
+
+            <button
+              type="button"
+              @click="openLetter('DIAGNOSIS')"
+              class="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            >
+              <Stethoscope class="w-3.5 h-3.5 text-rose-600" />
+              <span>Surat Diagnosis</span>
+            </button>
+          </div>
+
+          <!-- INPUT DATA ANTROPOMETRI (Master Prompt 8 C) -->
+          <div class="p-4 rounded-2xl border border-zinc-200 bg-[#FAF8F5] space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <Activity class="w-4 h-4 text-emerald-700" />
+                <h3 class="text-xs font-black uppercase tracking-wider text-zinc-900">
+                  Data Antropometri & Pertumbuhan Anak
+                </h3>
+              </div>
+              <span class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                BMI: {{ bmiNutritionalStatus.val }} ({{ bmiNutritionalStatus.status }})
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-zinc-500">Tinggi Badan (TB):</label>
+                <div class="flex items-center gap-1">
+                  <input
+                    v-model.number="anthropometry.height_cm"
+                    type="number"
+                    step="0.5"
+                    class="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 font-mono font-bold text-zinc-900"
+                  />
+                  <span class="text-[11px] font-bold text-zinc-400">cm</span>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-zinc-500">Berat Badan (BB):</label>
+                <div class="flex items-center gap-1">
+                  <input
+                    v-model.number="anthropometry.weight_kg"
+                    type="number"
+                    step="0.1"
+                    class="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 font-mono font-bold text-zinc-900"
+                  />
+                  <span class="text-[11px] font-bold text-zinc-400">kg</span>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-zinc-500">Lingkar Lengan (LiLa):</label>
+                <div class="flex items-center gap-1">
+                  <input
+                    v-model.number="anthropometry.arm_circumference_cm"
+                    type="number"
+                    step="0.5"
+                    class="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 font-mono font-bold text-zinc-900"
+                  />
+                  <span class="text-[11px] font-bold text-zinc-400">cm</span>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase text-zinc-500">Lingkar Kepala (LK):</label>
+                <div class="flex items-center gap-1">
+                  <input
+                    v-model.number="anthropometry.head_circumference_cm"
+                    type="number"
+                    step="0.5"
+                    class="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 font-mono font-bold text-zinc-900"
+                  />
+                  <span class="text-[11px] font-bold text-zinc-400">cm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Section 1: Anamnesis / Keluhan -->
-          <div class="space-y-1.5">
+          <div id="soap-section" class="space-y-1.5">
             <label class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
               Anamnesis & Riwayat Keluhan Klinis
             </label>
@@ -902,27 +1132,66 @@ watch(activeDoctorTab, (tab) => {
             ></textarea>
           </div>
 
-          <!-- Section 2: Diagnosa & ICD-10 -->
-          <div class="space-y-2">
+          <!-- Section 2: Diagnosa Utama & Auto-Search ICD-10 (Master Prompt 8 A) -->
+          <div class="space-y-2 relative">
             <div class="flex items-center justify-between">
               <label class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                Diagnosa Klinis & ICD-10 Kemenkes
+                Diagnosa Utama & Auto-Search ICD-10
               </label>
-              <span class="text-[10px] text-zinc-400">Standar SATUSEHAT</span>
+              <span class="text-[10px] text-zinc-400">Ketik nama penyakit untuk rekomendasi otomatis</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <input
-                v-model="diagnosis"
-                type="text"
-                placeholder="Diagnosa utama dokter"
-                class="sm:col-span-2 px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-bold text-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
-              />
+              <div class="sm:col-span-2 relative">
+                <input
+                  v-model="diagnosis"
+                  type="text"
+                  @focus="showIcdDropdown = true"
+                  placeholder="Ketik nama diagnosa (misal: ISPA, Demam, Diare, dsb)..."
+                  class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-bold text-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+                />
+                
+                <!-- Autocomplete Dropdown Hasil Pencarian ICD-10 -->
+                <div
+                  v-if="showIcdDropdown && matchingIcd10.length > 0"
+                  class="absolute left-0 right-0 top-full mt-1 z-30 bg-white rounded-xl border border-zinc-200 shadow-lg divide-y divide-zinc-100 max-h-48 overflow-y-auto"
+                >
+                  <button
+                    v-for="item in matchingIcd10"
+                    :key="item.code"
+                    type="button"
+                    @click="selectIcdSuggestion(item)"
+                    class="w-full p-2.5 text-left text-xs hover:bg-zinc-50 flex items-center justify-between gap-2"
+                  >
+                    <div>
+                      <div class="font-bold text-zinc-900">{{ item.name }}</div>
+                      <div class="text-[10px] text-zinc-500">{{ item.desc }}</div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded font-mono font-bold bg-zinc-100 text-zinc-800 text-[10px]">
+                      {{ item.code }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
               <input
                 v-model="icd10Code"
                 type="text"
                 placeholder="Kode ICD-10"
                 class="px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-mono font-bold text-center text-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              />
+            </div>
+
+            <!-- Kolom Khusus: Diagnosis Banding (Master Prompt 8 A) -->
+            <div class="space-y-1 pt-1">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                Diagnosis Banding (Differential Diagnosis):
+              </label>
+              <input
+                v-model="differentialDiagnosis"
+                type="text"
+                placeholder="Ketik diagnosis banding jika ada (misal: Bronkopneumonia / Faringitis Akut)..."
+                class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
               />
             </div>
 
@@ -974,7 +1243,7 @@ watch(activeDoctorTab, (tab) => {
           </div>
 
           <!-- Section 4: Fast E-Prescription Table -->
-          <div class="space-y-3">
+          <div id="resep-section" class="space-y-3">
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-950 flex items-center gap-1.5">
@@ -1435,4 +1704,113 @@ watch(activeDoctorTab, (tab) => {
       </div>
     </div>
   </div>
+
+    <!-- MODAL SURAT DOKTER (SURAT SAKIT, IZIN, KONTROL, DIAGNOSIS - Master Prompt 8 B) -->
+    <div v-if="showLetterModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full space-y-5 shadow-2xl animate-in fade-in max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              Dokumen Medis Resmi
+            </span>
+            <h3 class="text-base font-extrabold text-zinc-900 mt-1">
+              {{ activeLetterType === 'SAKIT' ? 'Surat Keterangan Sakit' : (activeLetterType === 'IZIN' ? 'Surat Izin Istirahat' : (activeLetterType === 'KONTROL' ? 'Surat Rujukan & Kontrol Kembali' : 'Surat Keterangan Diagnosis')) }}
+            </h3>
+          </div>
+          <button @click="showLetterModal = false" class="text-zinc-400 hover:text-zinc-700 text-sm font-bold">✕</button>
+        </div>
+
+        <!-- Printable Letter Preview Paper -->
+        <div id="printable-letter-paper" class="p-6 rounded-2xl border border-zinc-200 bg-white font-serif text-xs text-zinc-900 space-y-4 shadow-sm">
+          <!-- Kop Surat -->
+          <div class="text-center pb-3 border-b-2 border-zinc-900">
+            <div class="text-sm font-black tracking-wider uppercase font-sans">Semarang Medical Group</div>
+            <div class="text-[11px] font-bold">Klinik Spesialis Anak Kidinest</div>
+            <div class="text-[9px] text-zinc-600 font-sans">Jl. Melati Utara No. 3, Kota Semarang • Telp: (024) 841-2345</div>
+          </div>
+
+          <!-- Judul Surat -->
+          <div class="text-center font-sans space-y-0.5">
+            <div class="font-extrabold text-xs tracking-wider uppercase underline">
+              {{ activeLetterType === 'SAKIT' ? 'SURAT KETERANGAN SAKIT' : (activeLetterType === 'IZIN' ? 'SURAT IZIN ISTIRAHAT' : (activeLetterType === 'KONTROL' ? 'SURAT KONTROL KEMBALI' : 'SURAT RESUME DIAGNOSIS')) }}
+            </div>
+            <div class="text-[10px] text-zinc-500 font-mono">No: MED/{{ activeLetterType }}/2026/{{ activeQueue ? activeQueue.queue_number : '01-A' }}</div>
+          </div>
+
+          <!-- Isi Surat -->
+          <div class="space-y-2 text-xs leading-relaxed font-sans">
+            <p>Menerangkan dengan sebenarnya bahwa pasien:</p>
+            <div class="pl-4 space-y-1">
+              <div>Nama: <strong>{{ activeQueue ? activeQueue.patient_name : '-' }}</strong></div>
+              <div>Diagnosis: <strong>{{ diagnosis || '-' }}</strong> (ICD-10: {{ icd10Code }})</div>
+              <div v-if="differentialDiagnosis">Diagnosis Banding: <strong>{{ differentialDiagnosis }}</strong></div>
+            </div>
+
+            <div v-if="activeLetterType === 'SAKIT' || activeLetterType === 'IZIN'" class="pt-2">
+              <p>
+                Diberikan izin untuk beristirahat selama <strong>{{ letterDurationDays }} hari</strong> terhitung sejak tanggal <strong>{{ letterStartDate }}</strong>.
+              </p>
+            </div>
+
+            <div v-else-if="activeLetterType === 'KONTROL'" class="pt-2">
+              <p>
+                Dianjurkan untuk datang kontrol evaluasi klinis kembali pada tanggal <strong>{{ letterControlDate }}</strong>.
+              </p>
+            </div>
+
+            <div v-if="letterNotes" class="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200 text-[11px]">
+              Catatan Dokter: {{ letterNotes }}
+            </div>
+          </div>
+
+          <!-- Tanda Tangan Dokter -->
+          <div class="pt-6 flex justify-end font-sans">
+            <div class="text-center text-xs space-y-1">
+              <div>Semarang, {{ new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }}</div>
+              <div class="text-[11px] text-zinc-500">Dokter Pemeriksa,</div>
+              <div class="h-12 flex items-center justify-center text-zinc-300 font-serif italic text-xs">[ Tanda Tangan ]</div>
+              <div class="font-extrabold underline">{{ currentDoctor.name }}</div>
+              <div class="text-[9px] text-zinc-500">SIP: 503/449/SIP-DS/XI/2026</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div v-if="activeLetterType === 'SAKIT' || activeLetterType === 'IZIN'">
+              <label class="block font-bold text-zinc-600 mb-1">Durasi Istirahat (Hari):</label>
+              <input v-model.number="letterDurationDays" type="number" min="1" max="14" class="w-full px-3 py-1.5 rounded-xl border border-zinc-200 font-bold" />
+            </div>
+            <div v-if="activeLetterType === 'KONTROL'">
+              <label class="block font-bold text-zinc-600 mb-1">Tanggal Kontrol Kembali:</label>
+              <input v-model="letterControlDate" type="date" class="w-full px-3 py-1.5 rounded-xl border border-zinc-200 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-zinc-600 mb-1">Catatan Tambahan:</label>
+              <input v-model="letterNotes" type="text" placeholder="Istirahat cukup, hindari es..." class="w-full px-3 py-1.5 rounded-xl border border-zinc-200" />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2">
+            <button
+              type="button"
+              @click="showLetterModal = false"
+              class="flex-1 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-xs font-bold text-zinc-700"
+            >
+              Tutup
+            </button>
+            <button
+              type="button"
+              @click="printLetter"
+              class="flex-1 py-2.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <Printer class="w-3.5 h-3.5 text-emerald-400" />
+              <span>Cetak Surat</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </template>

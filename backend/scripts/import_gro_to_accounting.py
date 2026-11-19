@@ -24,6 +24,7 @@ ACCOUNTS = {
     '2-1125': '7e5342bf-d77a-4c7e-bf46-6cd4a31aaf76', # Hutang Jasa Dokter Kulit
     '2-1130': '31e9948a-aa37-4e7c-b6f3-69b2de9b1061', # Hutang Gaji
     '2-1140': 'fb5c3156-3a4b-4a86-a896-ec354caef246', # Uang Muka Pasien / Deposit
+    '4-1900': 'a0004190-0000-0000-0000-000000000000', # Potongan & Voucher Promosi
     '2-1500': 'b39b2593-66d0-41de-81ff-7b6c54faf290', # Hutang Pajak
     '2-1510': '3ea36fdf-ddb0-4590-8a91-43aa7bacd46c', # Kredit PPh 23
     '2-1520': '5b57fe55-38a3-4dd7-8030-eb83a63a4c17', # Uang Muka PPh 25
@@ -56,6 +57,7 @@ ACCOUNT_NAMES = {
     '1-1120': 'Kliring Payment Gateway (QRIS/EDC/Tripay)',
     '1-1200': 'Piutang Pasien & Klaim Asuransi',
     '2-1140': 'Uang Muka Pasien / Deposit Tindakan',
+    '4-1900': 'Potongan Penjualan & Voucher Promosi Pasien',
     '4-1100': 'Pendapatan Pendaftaran & Skrining Anak',
     '4-1200': 'Pendapatan Jasa Dokter Spesialis Anak (Sp.A)',
     '4-1300': 'Pendapatan Vaksinasi & Imunisasi Anak',
@@ -116,7 +118,7 @@ def get_debit_account(unit, p_name):
     elif any(bca in p for bca in ['BCA', 'TRANSFER']):
         return '1-1113', CBA_BCA, 'Bank BCA Operasional'
     elif 'CREDIT VOUCHER' in p or 'VOUCHER' in p:
-        return '2-1140', None, 'Uang Muka Pasien / Deposit'
+        return '4-1900', None, 'Potongan Penjualan & Voucher Promosi Pasien'
     else:
         return '1-1120', CBA_GATEWAY, 'Kliring Payment Gateway & EDC'
 

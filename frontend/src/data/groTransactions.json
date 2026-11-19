@@ -1,0 +1,3527 @@
+[
+  {
+    "id": "tx-gro-0001",
+    "transactionNumber": "TX-GRO-KID-20261118",
+    "transactionDate": "2026-11-18 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261118",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-18 Oryza Sativa Florencia Zaen, Kaizel Sagara Halvar, Navano Bhavanda Akbar dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 2440531.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris BCA": 1590531.0,
+        "Tf BCA": 850000.0
+      },
+      "jurnalTerkait": "CR-KID-20261118",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0057",
+    "transactionNumber": "TX-GRO-SSC-20261118",
+    "transactionDate": "2026-11-18 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261118",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-18 Dessy Setyaningrum (1 pasien) - Ref: Daily Report GRO",
+    "amount": 665000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris": 665000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261118",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0002",
+    "transactionNumber": "TX-GRO-KID-20261117",
+    "transactionDate": "2026-11-17 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261117",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-17 Shirley Atheera Ahmed, Prabu Jati Wisesa, Rendy Shankara Ardyansyah dkk. (total 28 pasien) - Ref: Daily Report GRO",
+    "amount": 12163675.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 28,
+      "rincianPembayaran": {
+        "BCA DEBIT": 1235000.0,
+        "BRI DEBIT": 2113957.0,
+        "Tf BCA": 2650000.0,
+        "Qris BRI": 2382207.0,
+        "Qris BCA": 1793728.0,
+        "BCA CC": 1212500.0,
+        "Tunai": 776283.0
+      },
+      "jurnalTerkait": "CR-KID-20261117",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0058",
+    "transactionNumber": "TX-GRO-SSC-20261117",
+    "transactionDate": "2026-11-17 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261117",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-17 Diasa Ayu Raharni (1 pasien) - Ref: Daily Report GRO",
+    "amount": 175000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris": 175000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261117",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0109",
+    "transactionNumber": "TX-GRO-MNM-20261117",
+    "transactionDate": "2026-11-17 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261117",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-11-17 Samantha Abigail Saputra (1 pasien) - Ref: Daily Report GRO",
+    "amount": 175000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris BCA": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261117",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0003",
+    "transactionNumber": "TX-GRO-KID-20261116",
+    "transactionDate": "2026-11-16 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261116",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-16 Devina Violita Setiawan, Atharya Bima Navendra, Sierra Nadlyne dkk. (total 24 pasien) - Ref: Daily Report GRO",
+    "amount": 13607071.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 24,
+      "rincianPembayaran": {
+        "Qris BCA": 3898196.0,
+        "Qris BRI": 4018155.0,
+        "BCA DEBIT": 2390720.0,
+        "Tf BCA": 3300000.0
+      },
+      "jurnalTerkait": "CR-KID-20261116",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0059",
+    "transactionNumber": "TX-GRO-SSC-20261116",
+    "transactionDate": "2026-11-16 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261116",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-16 Upik Nur Aprilia, Noviandi Hutagaol, Susi Herawati dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 4295000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris": 3785000.0,
+        "BRI DEBIT": 510000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261116",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0004",
+    "transactionNumber": "TX-GRO-KID-20261115",
+    "transactionDate": "2026-11-15 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261115",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-15 Mareea Maryam Rilora, Sultan Nael Ahmed, Shirley Atheera Ahmed dkk. (total 12 pasien) - Ref: Daily Report GRO",
+    "amount": 3664940.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 12,
+      "rincianPembayaran": {
+        "Qris BRI": 1297136.0,
+        "Qris BCA": 817804.0,
+        "Tf BCA": 1550000.0
+      },
+      "jurnalTerkait": "CR-KID-20261115",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0060",
+    "transactionNumber": "TX-GRO-SSC-20261115",
+    "transactionDate": "2026-11-15 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261115",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-15 Jo Ananta Yoshua Surya (1 pasien) - Ref: Daily Report GRO",
+    "amount": 275000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Transfer": 275000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261115",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0005",
+    "transactionNumber": "TX-GRO-KID-20261114",
+    "transactionDate": "2026-11-14 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261114",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-14 Benjamin Nathanael Sarwono, Khaira Najwa Azzahra, Migunani Saka Janitra dkk. (total 21 pasien) - Ref: Daily Report GRO",
+    "amount": 9619793.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 21,
+      "rincianPembayaran": {
+        "Qris BRI": 4786284.0,
+        "Tf BCA": 2400000.0,
+        "BRI CC": 740000.0,
+        "Qris BCA": 1693509.0
+      },
+      "jurnalTerkait": "CR-KID-20261114",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0061",
+    "transactionNumber": "TX-GRO-SSC-20261114",
+    "transactionDate": "2026-11-14 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261114",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-14 Erdina Adiwati (1 pasien) - Ref: Daily Report GRO",
+    "amount": 6900000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris": 2800000.0,
+        "BRI DEBIT": 4100000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261114",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0006",
+    "transactionNumber": "TX-GRO-KID-20261113",
+    "transactionDate": "2026-11-13 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261113",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-13 Fransiscus Aryo N, Gwen Nathania Ariawan, Mareea Maryam Rilora dkk. (total 15 pasien) - Ref: Daily Report GRO",
+    "amount": 5798319.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 15,
+      "rincianPembayaran": {
+        "Qris BCA": 1810732.0,
+        "BRI CC": 222503.0,
+        "Qris BRI": 1624000.0,
+        "Tunai": 141084.0,
+        "Tf BCA": 2000000.0
+      },
+      "jurnalTerkait": "CR-KID-20261113",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0062",
+    "transactionNumber": "TX-GRO-SSC-20261113",
+    "transactionDate": "2026-11-13 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261113",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-13 Devina Chandra (1 pasien) - Ref: Daily Report GRO",
+    "amount": 455000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BCA CC": 455000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261113",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0110",
+    "transactionNumber": "TX-GRO-MNM-20261113",
+    "transactionDate": "2026-11-13 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261113",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-11-13 Mikayla Rosalind Onggabean (1 pasien) - Ref: Daily Report GRO",
+    "amount": 1600000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BCA DEBIT": 1600000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261113",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0007",
+    "transactionNumber": "TX-GRO-KID-20261112",
+    "transactionDate": "2026-11-12 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261112",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-12 Ryo Deandra Bagaskara, Ellie Audrey Zhang, Ellesheba Faith El Victoria dkk. (total 28 pasien) - Ref: Daily Report GRO",
+    "amount": 12950196.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 28,
+      "rincianPembayaran": {
+        "Qris BCA": 5780130.0,
+        "Tunai": 9300.0,
+        "Qris BRI": 3382837.0,
+        "BCA CC": 127929.0,
+        "Tf BCA": 3650000.0
+      },
+      "jurnalTerkait": "CR-KID-20261112",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0063",
+    "transactionNumber": "TX-GRO-SSC-20261112",
+    "transactionDate": "2026-11-12 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261112",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-12 Roni Setyaji, Cynthia Carolina Santoso, Agus Sutrisno dkk. (total 5 pasien) - Ref: Daily Report GRO",
+    "amount": 1050000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 5,
+      "rincianPembayaran": {
+        "Qris": 775000.0,
+        "BRI DEBIT": 275000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261112",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0008",
+    "transactionNumber": "TX-GRO-KID-20261111",
+    "transactionDate": "2026-11-11 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261111",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-11 Kaivan Omara Taka, Kanzia Eiliyah Rachmawan, Kiara Aleia Dharmawan dkk. (total 15 pasien) - Ref: Daily Report GRO",
+    "amount": 5606432.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 15,
+      "rincianPembayaran": {
+        "Qris BRI": 1016224.0,
+        "Qris BCA": 2090208.0,
+        "Tf BCA": 2500000.0
+      },
+      "jurnalTerkait": "CR-KID-20261111",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0064",
+    "transactionNumber": "TX-GRO-SSC-20261111",
+    "transactionDate": "2026-11-11 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261111",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-11 Adelia Bayu Isfandiari, Devina Wirawan (2 pasien) - Ref: Daily Report GRO",
+    "amount": 2717000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris": 2717000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261111",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0009",
+    "transactionNumber": "TX-GRO-KID-20261110",
+    "transactionDate": "2026-11-10 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261110",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-10 Ryo Deandra Bagaskara, Mikael Takahiro Djinawi, Atharya Bima Navendra dkk. (total 20 pasien) - Ref: Daily Report GRO",
+    "amount": 11300652.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 20,
+      "rincianPembayaran": {
+        "Qris BRI": 2510000.0,
+        "Qris BCA": 4630038.0,
+        "BCA DEBIT": 960000.0,
+        "Tunai": 800614.0,
+        "Tf BCA": 2400000.0
+      },
+      "jurnalTerkait": "CR-KID-20261110",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0065",
+    "transactionNumber": "TX-GRO-SSC-20261110",
+    "transactionDate": "2026-11-10 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261110",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-10 Sally Dwi Purnamasari (1 pasien) - Ref: Daily Report GRO",
+    "amount": 622500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BRI DEBIT": 622500.0
+      },
+      "jurnalTerkait": "CR-SSC-20261110",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0010",
+    "transactionNumber": "TX-GRO-KID-20261109",
+    "transactionDate": "2026-11-09 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261109",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-09 Kaivan Omara Taka, Hanna Yasmine, Ghani Dirandra Ashfi dkk. (total 25 pasien) - Ref: Daily Report GRO",
+    "amount": 11109391.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 25,
+      "rincianPembayaran": {
+        "Tf BCA": 3800000.0,
+        "Qris BCA": 2033300.0,
+        "Qris BRI": 2968084.0,
+        "BRI DEBIT": 1719504.0,
+        "Tunai": 588503.0
+      },
+      "jurnalTerkait": "CR-KID-20261109",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0066",
+    "transactionNumber": "TX-GRO-SSC-20261109",
+    "transactionDate": "2026-11-09 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261109",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-09 Tony Prajogo, Carmenita Budihartono, Kuning Kinasih dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 1630000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BCA DEBIT": 665000.0,
+        "BCA CC": 965000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261109",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0011",
+    "transactionNumber": "TX-GRO-KID-20261108",
+    "transactionDate": "2026-11-08 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261108",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-08 Muhammad Zayn Kama, Ashley Tiffany Ritanto, Joshua Sulistyo dkk. (total 17 pasien) - Ref: Daily Report GRO",
+    "amount": 10011954.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 17,
+      "rincianPembayaran": {
+        "BCA DEBIT": 2882692.0,
+        "Qris BCA": 3731678.0,
+        "Qris BRI": 1537584.0,
+        "BRI DEBIT": 360000.0,
+        "Tf BCA": 1500000.0
+      },
+      "jurnalTerkait": "CR-KID-20261108",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0067",
+    "transactionNumber": "TX-GRO-SSC-20261108",
+    "transactionDate": "2026-11-08 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261108",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-08 Defandryan Elzan Alfarizky (1 pasien) - Ref: Daily Report GRO",
+    "amount": 346000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Credit Voucher": 346000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261108",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0012",
+    "transactionNumber": "TX-GRO-KID-20261107",
+    "transactionDate": "2026-11-07 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261107",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-07 Syaikhah Nafisah Gayatri, Azzea Zahiya Vindi, Daneen Maudi Eiliyah dkk. (total 28 pasien) - Ref: Daily Report GRO",
+    "amount": 15779329.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 28,
+      "rincianPembayaran": {
+        "Qris BCA": 5193291.0,
+        "Qris BRI": 5794138.0,
+        "Tunai": 451536.0,
+        "BCA DEBIT": 822864.0,
+        "BCA CC": 517500.0,
+        "Tf BCA": 3000000.0
+      },
+      "jurnalTerkait": "CR-KID-20261107",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0068",
+    "transactionNumber": "TX-GRO-SSC-20261107",
+    "transactionDate": "2026-11-07 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261107",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-07 Sudibyo Singgih, Aldiba Dodiek Tasan Wartono, Daniel dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 31002000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris": 200000.0,
+        "BRI DEBIT": 29402000.0,
+        "Transfer": 1400000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261107",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0013",
+    "transactionNumber": "TX-GRO-KID-20261106",
+    "transactionDate": "2026-11-06 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261106",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-06 Kaivan Omara Taka, Alayya Rafa Azura, Elshafira Kazumi Riandinata dkk. (total 12 pasien) - Ref: Daily Report GRO",
+    "amount": 7131467.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 12,
+      "rincianPembayaran": {
+        "Qris BRI": 2923404.0,
+        "Qris BCA": 955059.0,
+        "Tf BCA": 1100000.0,
+        "BCA CC": 1768000.0,
+        "BCA DEBIT": 385004.0
+      },
+      "jurnalTerkait": "CR-KID-20261106",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0069",
+    "transactionNumber": "TX-GRO-SSC-20261106",
+    "transactionDate": "2026-11-06 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261106",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-06 Lenawati Djojo Santoso, Kezia Dwi Sutjipto, Tjioe Liana Tiawarman dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 2550000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BRI DEBIT": 765000.0,
+        "Qris": 1785000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261106",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0014",
+    "transactionNumber": "TX-GRO-KID-20261105",
+    "transactionDate": "2026-11-05 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261105",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-05 Mikael Takahiro Djinawi, Erryl Kaisan Arzachel, Celestial Shaula Amaryllis dkk. (total 27 pasien) - Ref: Daily Report GRO",
+    "amount": 15356385.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 27,
+      "rincianPembayaran": {
+        "Qris BCA": 1114803.0,
+        "Qris BRI": 7074078.0,
+        "BCA DEBIT": 3090000.0,
+        "BCA CC": 395504.0,
+        "Tunai": 105500.0,
+        "BRI DEBIT": 66500.0,
+        "Tf BCA": 3510000.0
+      },
+      "jurnalTerkait": "CR-KID-20261105",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0070",
+    "transactionNumber": "TX-GRO-SSC-20261105",
+    "transactionDate": "2026-11-05 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261105",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-05 Iin Viriany, Sia Vania Margareta, Tresniawati dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 1105000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BCA CC": 730000.0,
+        "Qris": 275000.0,
+        "Transfer": 100000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261105",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0111",
+    "transactionNumber": "TX-GRO-MNM-20261105",
+    "transactionDate": "2026-11-05 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261105",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-11-05 Louisa Adrianna Desmon, Andrea Renatta Desmon (2 pasien) - Ref: Daily Report GRO",
+    "amount": 350000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BCA": 350000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261105",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0015",
+    "transactionNumber": "TX-GRO-KID-20261104",
+    "transactionDate": "2026-11-04 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261104",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-04 Evelyn Mikhayla Nayara, Jennifer Eliora Saputro, Ellora Joyceline Handoyo dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 5510504.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Qris BRI": 1950000.0,
+        "BRI DEBIT": 1602500.0,
+        "Qris BCA": 1958004.0
+      },
+      "jurnalTerkait": "CR-KID-20261104",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0071",
+    "transactionNumber": "TX-GRO-SSC-20261104",
+    "transactionDate": "2026-11-04 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261104",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-04 Soekarno Bastian, Yunita Arumningsih, Lie lee hong dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 1280000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BRI DEBIT": 275000.0,
+        "Qris": 550000.0,
+        "Credit Voucher": 455000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261104",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0016",
+    "transactionNumber": "TX-GRO-KID-20261103",
+    "transactionDate": "2026-11-03 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261103",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-03 Ahmad Fariz Al Zahrawy, Muhammad Azka P, Almahyra Adinda Neira dkk. (total 18 pasien) - Ref: Daily Report GRO",
+    "amount": 11862752.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 18,
+      "rincianPembayaran": {
+        "Qris BRI": 4396165.0,
+        "Qris BCA": 3366804.0,
+        "BRI DEBIT": 250000.0,
+        "Tf BCA": 250000.0,
+        "BRI CC": 1722279.0,
+        "Tunai": 1205588.0,
+        "BCA DEBIT": 671916.0
+      },
+      "jurnalTerkait": "CR-KID-20261103",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0072",
+    "transactionNumber": "TX-GRO-SSC-20261103",
+    "transactionDate": "2026-11-03 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261103",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-03 Yuanita, Cemara Disa, Angela Valensia Siejaya dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 6023750.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris": 3550000.0,
+        "Tunai": 2473750.0
+      },
+      "jurnalTerkait": "CR-SSC-20261103",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0112",
+    "transactionNumber": "TX-GRO-MNM-20261103",
+    "transactionDate": "2026-11-03 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261103",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-11-03 Vivianne Eleanor, Alayya Rafa Azura, Mahakertamada Bhre Dace dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 2450000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Qris BRI": 1750000.0,
+        "Tunai": 175000.0,
+        "BCA CC": 525000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261103",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0017",
+    "transactionNumber": "TX-GRO-KID-20261102",
+    "transactionDate": "2026-11-02 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261102",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-02 Arkananta Zaydan Manaf Rahmani, Deru Imanuel Mawadipta, Leifano Caska Daneswara dkk. (total 13 pasien) - Ref: Daily Report GRO",
+    "amount": 9020034.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 13,
+      "rincianPembayaran": {
+        "BCA DEBIT": 2210000.0,
+        "Qris BRI": 2022880.0,
+        "Qris BCA": 2437651.0,
+        "BRI CC": 1570000.0,
+        "BCA CC": 779503.0
+      },
+      "jurnalTerkait": "CR-KID-20261102",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0073",
+    "transactionNumber": "TX-GRO-SSC-20261102",
+    "transactionDate": "2026-11-02 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261102",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-02 Jessica Pratiknyo, Diasa Ayu Raharni, Sharon dkk. (total 10 pasien) - Ref: Daily Report GRO",
+    "amount": 4530000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 10,
+      "rincianPembayaran": {
+        "Qris": 3065000.0,
+        "BCA CC": 800000.0,
+        "BRI DEBIT": 665000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261102",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0113",
+    "transactionNumber": "TX-GRO-MNM-20261102",
+    "transactionDate": "2026-11-02 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261102",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-11-02 Elsie Claire Tjahjadi, Louis milton santoso, Arshila Shadira Andarfa dkk. (total 5 pasien) - Ref: Daily Report GRO",
+    "amount": 612500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 5,
+      "rincianPembayaran": {
+        "BRI CC": 87500.0,
+        "Qris BRI": 525000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261102",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0018",
+    "transactionNumber": "TX-GRO-KID-20261101",
+    "transactionDate": "2026-11-01 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261101",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-11-01 Joshua Sulistyo, Syaikhah Nafisah Gayatri, Amran Ramadhan Arfianto dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 4108216.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Tunai": 535000.0,
+        "Qris BCA": 3573216.0
+      },
+      "jurnalTerkait": "CR-KID-20261101",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0074",
+    "transactionNumber": "TX-GRO-SSC-20261101",
+    "transactionDate": "2026-11-01 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261101",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-11-01 Titis Dyah Hapsari, Natalia Giofanny, Aurelia Adistya Muljono (3 pasien) - Ref: Daily Report GRO",
+    "amount": 1140000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 3,
+      "rincianPembayaran": {
+        "Qris": 1140000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261101",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0114",
+    "transactionNumber": "TX-GRO-MNM-20261101",
+    "transactionDate": "2026-11-01 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261101",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-11-01 Kinara Anindhita Nafisa, Habib Satria, Zayyan Argadinanta dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 1225000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris BCA": 525000.0,
+        "Qris BRI": 700000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261101",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0019",
+    "transactionNumber": "TX-GRO-KID-20261031",
+    "transactionDate": "2026-10-31 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261031",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-31 Yasin Kayyis Hitou Al Hazmi, Kimberly Olivia Candra, Hayyina Yafa Nasyitha dkk. (total 15 pasien) - Ref: Daily Report GRO",
+    "amount": 13345724.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 15,
+      "rincianPembayaran": {
+        "BCA CC": 414804.0,
+        "Tunai": 5378168.0,
+        "Qris BRI": 4420751.0,
+        "Qris BCA": 1974901.0,
+        "BCA DEBIT": 769600.0,
+        "BRI DEBIT": 387500.0
+      },
+      "jurnalTerkait": "CR-KID-20261031",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0075",
+    "transactionNumber": "TX-GRO-SSC-20261031",
+    "transactionDate": "2026-10-31 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261031",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-31 Gladys Johan, Safa Maharashtr, Marcia Ayu (3 pasien) - Ref: Daily Report GRO",
+    "amount": 13960000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 3,
+      "rincianPembayaran": {
+        "Qris": 8820000.0,
+        "BCA DEBIT": 5140000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261031",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0115",
+    "transactionNumber": "TX-GRO-MNM-20261031",
+    "transactionDate": "2026-10-31 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261031",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-31 Eloisa Stella Valencia Santoso, Gavriel Oliver Wijaya, Gerald Orville dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 1312500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Tunai": 525000.0,
+        "BCA DEBIT": 437500.0,
+        "Qris BRI": 350000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261031",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0020",
+    "transactionNumber": "TX-GRO-KID-20261030",
+    "transactionDate": "2026-10-30 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261030",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-30 Alayya Rafa Azura, Kanawa Sih Rahadian, Roderick Xavier Handoko dkk. (total 9 pasien) - Ref: Daily Report GRO",
+    "amount": 5706452.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 9,
+      "rincianPembayaran": {
+        "Qris BCA": 4141068.0,
+        "Qris BRI": 1065384.0,
+        "BRI CC": 500000.0
+      },
+      "jurnalTerkait": "CR-KID-20261030",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0076",
+    "transactionNumber": "TX-GRO-SSC-20261030",
+    "transactionDate": "2026-10-30 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261030",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-30 Nur Azizah, Fadia Qistina Sidqi, Levin Arlo Lesmana dkk. (total 10 pasien) - Ref: Daily Report GRO",
+    "amount": 6491500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 10,
+      "rincianPembayaran": {
+        "Qris": 3776500.0,
+        "BRI DEBIT": 1965000.0,
+        "Tunai": 750000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261030",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0021",
+    "transactionNumber": "TX-GRO-KID-20261029",
+    "transactionDate": "2026-10-29 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261029",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-29 Haziqul Riffat Nafian, Mirabel Hubaya, Jhennayu Maeva Mahendra dkk. (total 13 pasien) - Ref: Daily Report GRO",
+    "amount": 10801210.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 13,
+      "rincianPembayaran": {
+        "Qris BRI": 5208100.0,
+        "Qris BCA": 3891858.0,
+        "BRI CC": 1285668.0,
+        "BRI DEBIT": 415584.0
+      },
+      "jurnalTerkait": "CR-KID-20261029",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0077",
+    "transactionNumber": "TX-GRO-SSC-20261029",
+    "transactionDate": "2026-10-29 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261029",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-29 Thea Permata, Cynthia Carolina Santoso, Irawan dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 5925000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "BRI DEBIT": 675000.0,
+        "BCA CC": 250000.0,
+        "Qris": 5000000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261029",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0116",
+    "transactionNumber": "TX-GRO-MNM-20261029",
+    "transactionDate": "2026-10-29 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261029",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-29 Reagan Miles Santoso, Seraphina Meera Zafira, Kahiyang Almahira Guzel Nugraha dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 2100000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Qris BCA": 875000.0,
+        "Qris BRI": 1050000.0,
+        "Tunai": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261029",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0022",
+    "transactionNumber": "TX-GRO-KID-20261028",
+    "transactionDate": "2026-10-28 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261028",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-28 Aryasatya Avicenna, Arzen Baraka, Cielo Kale Afariz dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 4421211.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Qris BRI": 2066083.0,
+        "Qris BCA": 2155128.0,
+        "Tunai": 200000.0
+      },
+      "jurnalTerkait": "CR-KID-20261028",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0078",
+    "transactionNumber": "TX-GRO-SSC-20261028",
+    "transactionDate": "2026-10-28 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261028",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-28 Djunita, Eva Maria, Veronika Angtama dkk. (total 9 pasien) - Ref: Daily Report GRO",
+    "amount": 4620000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 9,
+      "rincianPembayaran": {
+        "BRI DEBIT": 1050000.0,
+        "BCA DEBIT": 275000.0,
+        "Qris": 2895000.0,
+        "Tunai": 400000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261028",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0117",
+    "transactionNumber": "TX-GRO-MNM-20261028",
+    "transactionDate": "2026-10-28 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261028",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-28 Loui Asher Gunawan, Dave Maverick Gunawan, Alysha Wibowo (3 pasien) - Ref: Daily Report GRO",
+    "amount": 1312500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 3,
+      "rincianPembayaran": {
+        "Qris BRI": 525000.0,
+        "Qris BCA": 787500.0
+      },
+      "jurnalTerkait": "CR-MIN-20261028",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0023",
+    "transactionNumber": "TX-GRO-KID-20261027",
+    "transactionDate": "2026-10-27 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261027",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-27 Rasyid Ibrahim Setyawan, Adhyastha Sakti Nararya, Ayra Yasmine Humaira dkk. (total 14 pasien) - Ref: Daily Report GRO",
+    "amount": 9497255.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 14,
+      "rincianPembayaran": {
+        "Qris BCA": 3128755.0,
+        "Qris BRI": 1555000.0,
+        "BCA DEBIT": 1565000.0,
+        "Tunai": 368000.0,
+        "BCA CC": 443000.0,
+        "BRI CC": 2437500.0
+      },
+      "jurnalTerkait": "CR-KID-20261027",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0079",
+    "transactionNumber": "TX-GRO-SSC-20261027",
+    "transactionDate": "2026-10-27 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261027",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-27 Isnia Pratiwi, Anis Anindita, Felita Alverina Sugandha dkk. (total 5 pasien) - Ref: Daily Report GRO",
+    "amount": 7045000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 5,
+      "rincianPembayaran": {
+        "Qris": 1404000.0,
+        "BRI DEBIT": 1610000.0,
+        "Transfer": 4031000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261027",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0118",
+    "transactionNumber": "TX-GRO-MNM-20261027",
+    "transactionDate": "2026-10-27 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261027",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-27 Royce Wibowo, Gabe Elianno Altsaga, Narendra Sagara Aryaputra dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 1400000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris BRI": 350000.0,
+        "Tunai": 875000.0,
+        "Qris BCA": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261027",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0024",
+    "transactionNumber": "TX-GRO-KID-20261026",
+    "transactionDate": "2026-10-26 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261026",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-26 Muhammad Rayyan Ar Rana, Agnethe Thea Tjandra, Fabiola Celina Susanto dkk. (total 9 pasien) - Ref: Daily Report GRO",
+    "amount": 5601503.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 9,
+      "rincianPembayaran": {
+        "Qris BRI": 1735000.0,
+        "BCA CC": 2167503.0,
+        "BRI DEBIT": 759000.0,
+        "Tunai": 250000.0,
+        "Qris BCA": 690000.0
+      },
+      "jurnalTerkait": "CR-KID-20261026",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0080",
+    "transactionNumber": "TX-GRO-SSC-20261026",
+    "transactionDate": "2026-10-26 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261026",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-26 Axel, Niniek Lucianawati (2 pasien) - Ref: Daily Report GRO",
+    "amount": 2990000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris": 475000.0,
+        "BCA CC": 1850000.0,
+        "BRI DEBIT": 665000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261026",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0119",
+    "transactionNumber": "TX-GRO-MNM-20261026",
+    "transactionDate": "2026-10-26 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261026",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-26 Ghazzal Rivo (1 pasien) - Ref: Daily Report GRO",
+    "amount": 1060000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BCA DEBIT": 1060000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261026",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0025",
+    "transactionNumber": "TX-GRO-KID-20261025",
+    "transactionDate": "2026-10-25 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261025",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-25 Joshua Sulistyo, Arkananta Zaydan Manaf Rahmani, Matthew Philbert Setiawan dkk. (total 13 pasien) - Ref: Daily Report GRO",
+    "amount": 7612916.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 13,
+      "rincianPembayaran": {
+        "Qris BCA": 3224028.0,
+        "Qris BRI": 1776888.0,
+        "BCA CC": 1450000.0,
+        "Tunai": 342000.0,
+        "BCA DEBIT": 820000.0
+      },
+      "jurnalTerkait": "CR-KID-20261025",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0081",
+    "transactionNumber": "TX-GRO-SSC-20261025",
+    "transactionDate": "2026-10-25 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261025",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-25 Muthia Alya Windika, Juventa Kolina Lim, Rizki Intan Wahyu Utami dkk. (total 8 pasien) - Ref: Daily Report GRO",
+    "amount": 3224000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 8,
+      "rincianPembayaran": {
+        "Qris": 2309000.0,
+        "BCA DEBIT": 250000.0,
+        "BRI DEBIT": 665000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261025",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0120",
+    "transactionNumber": "TX-GRO-MNM-20261025",
+    "transactionDate": "2026-10-25 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261025",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-25 Nael Zevran Arkhairym (1 pasien) - Ref: Daily Report GRO",
+    "amount": 350000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BRI CC": 350000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261025",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0026",
+    "transactionNumber": "TX-GRO-KID-20261024",
+    "transactionDate": "2026-10-24 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261024",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-24 Henna Maheswari Nur Khafidoh, Maximilian Axelson Santoso, Kiora Elena Maristella dkk. (total 17 pasien) - Ref: Daily Report GRO",
+    "amount": 13685914.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 17,
+      "rincianPembayaran": {
+        "Qris BRI": 6843500.0,
+        "Qris BCA": 5390610.0,
+        "Tunai": 500000.0,
+        "BCA CC": 951804.0
+      },
+      "jurnalTerkait": "CR-KID-20261024",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0082",
+    "transactionNumber": "TX-GRO-SSC-20261024",
+    "transactionDate": "2026-10-24 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261024",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-24 Melisa Christinawai, Dimas Bayu Suharno, Lydia Kusuma dkk. (total 5 pasien) - Ref: Daily Report GRO",
+    "amount": 2055000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 5,
+      "rincianPembayaran": {
+        "BRI DEBIT": 225000.0,
+        "Qris": 1830000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261024",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0121",
+    "transactionNumber": "TX-GRO-MNM-20261024",
+    "transactionDate": "2026-10-24 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261024",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-24 Jeremiah Russel, Saqueena DamarBagisha, Ghania Sea Anasera dkk. (total 5 pasien) - Ref: Daily Report GRO",
+    "amount": 700000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 5,
+      "rincianPembayaran": {
+        "Qris BRI": 350000.0,
+        "Qris": 350000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261024",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0027",
+    "transactionNumber": "TX-GRO-KID-20261023",
+    "transactionDate": "2026-10-23 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261023",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-23 Arsyakayla Kikanaya R, Hisham Gani Manggala, Abhimanyu Djayantaka Bayukusuma dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 4644500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Tunai": 1345000.0,
+        "Qris BCA": 2210500.0,
+        "Qris BRI": 1089000.0
+      },
+      "jurnalTerkait": "CR-KID-20261023",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0083",
+    "transactionNumber": "TX-GRO-SSC-20261023",
+    "transactionDate": "2026-10-23 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261023",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-23 Amanda Pramesty (1 pasien) - Ref: Daily Report GRO",
+    "amount": 665000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BRI DEBIT": 665000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261023",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0122",
+    "transactionNumber": "TX-GRO-MNM-20261023",
+    "transactionDate": "2026-10-23 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261023",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-23 Syahdanputro Nugroho, Salmaputri Novitasari, Maureen Kana Wijaya (3 pasien) - Ref: Daily Report GRO",
+    "amount": 262500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 3,
+      "rincianPembayaran": {
+        "BCA DEBIT": 87500.0,
+        "Qris BRI": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261023",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0028",
+    "transactionNumber": "TX-GRO-KID-20261022",
+    "transactionDate": "2026-10-22 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261022",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-22 Abhyaz Malik Ashaffa, Javier Alexander, Rachelle Adelia dkk. (total 19 pasien) - Ref: Daily Report GRO",
+    "amount": 13227689.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 19,
+      "rincianPembayaran": {
+        "Qris BCA": 5226250.0,
+        "BRI CC": 551828.0,
+        "BRI DEBIT": 4740711.0,
+        "Qris BRI": 1233900.0,
+        "BCA DEBIT": 1225000.0,
+        "Tunai": 250000.0
+      },
+      "jurnalTerkait": "CR-KID-20261022",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0084",
+    "transactionNumber": "TX-GRO-SSC-20261022",
+    "transactionDate": "2026-10-22 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261022",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-22 Nani Kristyawati, Endah Sasmitohening, Dzakkiyatul Ulya Alfiannas Tito dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 6775000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris": 550000.0,
+        "Credit Voucher": 275000.0,
+        "Tunai": 1950000.0,
+        "BRI DEBIT": 4000000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261022",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0123",
+    "transactionNumber": "TX-GRO-MNM-20261022",
+    "transactionDate": "2026-10-22 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261022",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-22 Ellora Lavanya Shaqeela, Maheera Naradynandri Ansara (2 pasien) - Ref: Daily Report GRO",
+    "amount": 1400000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BRI": 525000.0,
+        "Qris": 875000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261022",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0029",
+    "transactionNumber": "TX-GRO-KID-20261021",
+    "transactionDate": "2026-10-21 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261021",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-21 Rayyan Manggala Jezan, Javier Harris Susanto (2 pasien) - Ref: Daily Report GRO",
+    "amount": 1426824.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BCA": 1426824.0
+      },
+      "jurnalTerkait": "CR-KID-20261021",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0085",
+    "transactionNumber": "TX-GRO-SSC-20261021",
+    "transactionDate": "2026-10-21 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261021",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-21 Fiona Sudarmana, Marcella Davina Sulistyani, Lie Lee Hong dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 5060000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BRI DEBIT": 1140000.0,
+        "BCA DEBIT": 665000.0,
+        "Credit Voucher": 455000.0,
+        "BCA CC": 2800000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261021",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0124",
+    "transactionNumber": "TX-GRO-MNM-20261021",
+    "transactionDate": "2026-10-21 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261021",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-21 Samantha Abigail Saputra, Bernadette Clousia (2 pasien) - Ref: Daily Report GRO",
+    "amount": 612500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "BCA DEBIT": 525000.0,
+        "BCA CC": 87500.0
+      },
+      "jurnalTerkait": "CR-MIN-20261021",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0030",
+    "transactionNumber": "TX-GRO-KID-20261020",
+    "transactionDate": "2026-10-20 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261020",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-20 M. Romy, Hazima Rumaisha Azzahra, Syncletica Chasya Rhea A dkk. (total 14 pasien) - Ref: Daily Report GRO",
+    "amount": 13244853.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 14,
+      "rincianPembayaran": {
+        "Qris BRI": 9227773.0,
+        "Tunai": 1587950.0,
+        "Qris BCA": 1856723.0,
+        "BRI DEBIT": 572407.0
+      },
+      "jurnalTerkait": "CR-KID-20261020",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0086",
+    "transactionNumber": "TX-GRO-SSC-20261020",
+    "transactionDate": "2026-10-20 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261020",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-20 Riska Dian Nadilla (1 pasien) - Ref: Daily Report GRO",
+    "amount": 376090.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Tunai": 376090.0
+      },
+      "jurnalTerkait": "CR-SSC-20261020",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0031",
+    "transactionNumber": "TX-GRO-KID-20261019",
+    "transactionDate": "2026-10-19 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261019",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-19 Agnethe Thea Tjandra, Najib Muhammad Husain, Erzhan Shaquille Hendrawan dkk. (total 10 pasien) - Ref: Daily Report GRO",
+    "amount": 9378227.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 10,
+      "rincianPembayaran": {
+        "Qris BRI": 5564787.0,
+        "Qris BCA": 2958000.0,
+        "BRI DEBIT": 855440.0
+      },
+      "jurnalTerkait": "CR-KID-20261019",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0087",
+    "transactionNumber": "TX-GRO-SSC-20261019",
+    "transactionDate": "2026-10-19 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261019",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-19 Yuhi Syaula, Fakhrana Nabila (2 pasien) - Ref: Daily Report GRO",
+    "amount": 522000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "BRI DEBIT": 225000.0,
+        "Qris": 297000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261019",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0125",
+    "transactionNumber": "TX-GRO-MNM-20261019",
+    "transactionDate": "2026-10-19 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261019",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-19 Kenny Arsa Maleek (1 pasien) - Ref: Daily Report GRO",
+    "amount": 875000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BRI DEBIT": 875000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261019",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0032",
+    "transactionNumber": "TX-GRO-KID-20261018",
+    "transactionDate": "2026-10-18 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261018",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-18 Aurelius Alexander Sean Andikael, Reyga Adzikra Rozak, Keenan Athaya Bian dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 5723569.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Tunai": 538266.0,
+        "Qris BRI": 4149119.0,
+        "BCA DEBIT": 592184.0,
+        "Qris BCA": 444000.0
+      },
+      "jurnalTerkait": "CR-KID-20261018",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0088",
+    "transactionNumber": "TX-GRO-SSC-20261018",
+    "transactionDate": "2026-10-18 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261018",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-18 Ina Ratnawati, Vina Santoso, Heni Idayani dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 1390000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BRI CC": 665000.0,
+        "BCA CC": 725000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261018",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0033",
+    "transactionNumber": "TX-GRO-KID-20261017",
+    "transactionDate": "2026-10-17 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261017",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-17 Kimberly Olivia Candra, Zalif Ashif Mustafa, Ryukana Jouisa Wong dkk. (total 18 pasien) - Ref: Daily Report GRO",
+    "amount": 11664684.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 18,
+      "rincianPembayaran": {
+        "BCA DEBIT": 1765537.0,
+        "Qris BRI": 7619475.0,
+        "Qris BCA": 1809693.0,
+        "BRI DEBIT": 469979.0
+      },
+      "jurnalTerkait": "CR-KID-20261017",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0089",
+    "transactionNumber": "TX-GRO-SSC-20261017",
+    "transactionDate": "2026-10-17 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261017",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-17 Kanaya Hikari Azzahra, Grace Kimendora Gautama, Felicia Setiawan dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 3169500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Qris": 1077500.0,
+        "Tunai": 220000.0,
+        "BRI DEBIT": 527000.0,
+        "BCA CC": 275000.0,
+        "QR BCA": 1070000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261017",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0034",
+    "transactionNumber": "TX-GRO-KID-20261016",
+    "transactionDate": "2026-10-16 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261016",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-16 Ganendra Atharrizqi Y, Ilana Arfa Ilaruka, Kaylene Gracielle Setiawan dkk. (total 8 pasien) - Ref: Daily Report GRO",
+    "amount": 4792520.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 8,
+      "rincianPembayaran": {
+        "Qris BRI": 2945111.0,
+        "Tunai": 1847409.0
+      },
+      "jurnalTerkait": "CR-KID-20261016",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0090",
+    "transactionNumber": "TX-GRO-SSC-20261016",
+    "transactionDate": "2026-10-16 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261016",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-16 Kanya Mary, Caesar Ayudhea, Yoanita dkk. (total 5 pasien) - Ref: Daily Report GRO",
+    "amount": 2068500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 5,
+      "rincianPembayaran": {
+        "BCA DEBIT": 665000.0,
+        "BRI DEBIT": 263500.0,
+        "Qris": 1140000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261016",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0126",
+    "transactionNumber": "TX-GRO-MNM-20261016",
+    "transactionDate": "2026-10-16 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261016",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-16 Reyner Nathanuel Wirawan, Joshua Ethanuel Wirawan (2 pasien) - Ref: Daily Report GRO",
+    "amount": 175000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BRI": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261016",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0035",
+    "transactionNumber": "TX-GRO-KID-20261015",
+    "transactionDate": "2026-10-15 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261015",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-15 Elmira Arunika Yasmine, Layden Wayne Wibisono, Ghani Dirandra Ashfi dkk. (total 19 pasien) - Ref: Daily Report GRO",
+    "amount": 10856884.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 19,
+      "rincianPembayaran": {
+        "Qris BRI": 7064599.0,
+        "BRI CC": 500000.0,
+        "Tunai": 1554713.0,
+        "BRI DEBIT": 1460000.0,
+        "BCA CC": 277572.0
+      },
+      "jurnalTerkait": "CR-KID-20261015",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0091",
+    "transactionNumber": "TX-GRO-SSC-20261015",
+    "transactionDate": "2026-10-15 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261015",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-15 Rani Natalia, Feronika Ardella Meirizka, Jesslyn Felicia Chendra dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 3798000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris": 2270000.0,
+        "QR BCA": 1528000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261015",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0127",
+    "transactionNumber": "TX-GRO-MNM-20261015",
+    "transactionDate": "2026-10-15 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261015",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-15 Bennett Karuna Hartaji, Jennifer Eliora Saputro (2 pasien) - Ref: Daily Report GRO",
+    "amount": 350000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BRI": 175000.0,
+        "BRI DEBIT": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261015",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0036",
+    "transactionNumber": "TX-GRO-KID-20261014",
+    "transactionDate": "2026-10-14 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261014",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-14 Henna Maheswari Nur Khafidoh, Elfathan Kenzie Andaru, Eloisa Stella Valencia Santoso dkk. (total 11 pasien) - Ref: Daily Report GRO",
+    "amount": 3954916.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 11,
+      "rincianPembayaran": {
+        "Tunai": 554336.0,
+        "BRI DEBIT": 462190.0,
+        "Qris BRI": 2340256.0,
+        "Qris BCA": 598134.0
+      },
+      "jurnalTerkait": "CR-KID-20261014",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0092",
+    "transactionNumber": "TX-GRO-SSC-20261014",
+    "transactionDate": "2026-10-14 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261014",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-14 Eugene Febrilia Alvina, Mahakertamada Bhre Dace, Upik Nur Aprilia dkk. (total 5 pasien) - Ref: Daily Report GRO",
+    "amount": 1313000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 5,
+      "rincianPembayaran": {
+        "Qris": 1113000.0,
+        "Tunai": 200000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261014",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0128",
+    "transactionNumber": "TX-GRO-MNM-20261014",
+    "transactionDate": "2026-10-14 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261014",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-14 Xian Fei Danli (1 pasien) - Ref: Daily Report GRO",
+    "amount": 175000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Tunai": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261014",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0037",
+    "transactionNumber": "TX-GRO-KID-20261013",
+    "transactionDate": "2026-10-13 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261013",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-13 Henna Maheswari Nur Khafidoh, Nazwa Syareeva Wilda, Martha Evelyn Wibowo dkk. (total 18 pasien) - Ref: Daily Report GRO",
+    "amount": 11128082.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 18,
+      "rincianPembayaran": {
+        "BCA DEBIT": 2141861.0,
+        "Tunai": 3881015.0,
+        "BRI DEBIT": 1009329.0,
+        "Qris BRI": 4095877.0
+      },
+      "jurnalTerkait": "CR-KID-20261013",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0093",
+    "transactionNumber": "TX-GRO-SSC-20261013",
+    "transactionDate": "2026-10-13 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261013",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-13 Ade Ayu Surya (1 pasien) - Ref: Daily Report GRO",
+    "amount": 2140000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BRI DEBIT": 2140000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261013",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0129",
+    "transactionNumber": "TX-GRO-MNM-20261013",
+    "transactionDate": "2026-10-13 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261013",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-13 Qiao Jinchuan, Benjamin Nathanael Sarwono, Shaziva Zerryn Khumaira dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 875000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris BRI": 350000.0,
+        "Tunai": 525000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261013",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0038",
+    "transactionNumber": "TX-GRO-KID-20261012",
+    "transactionDate": "2026-10-12 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261012",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-12 Arkananta Zaydan Manaf Rahmani, Jeanelle Lawrence Santoso, Nahl Arsy Ferrizia Wiratama dkk. (total 14 pasien) - Ref: Daily Report GRO",
+    "amount": 7834420.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 14,
+      "rincianPembayaran": {
+        "Qris BRI": 5241951.0,
+        "BCA CC": 1545000.0,
+        "BRI DEBIT": 422517.0,
+        "Tunai": 374952.0,
+        "BRI CC": 250000.0
+      },
+      "jurnalTerkait": "CR-KID-20261012",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0094",
+    "transactionNumber": "TX-GRO-SSC-20261012",
+    "transactionDate": "2026-10-12 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261012",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-12 Muhammad Bariq Putra Negara, Agnes Budiarti, Tang Eko Gendhani Dewi dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 3196765.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Tunai": 198350.0,
+        "BCA CC": 2017000.0,
+        "Qris": 156415.0,
+        "BCA DEBIT": 825000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261012",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0039",
+    "transactionNumber": "TX-GRO-KID-20261011",
+    "transactionDate": "2026-10-11 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261011",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-11 Farasha Arshyakayla Ilmira, Hartley Ardianto, Leander Othniel Parerung dkk. (total 11 pasien) - Ref: Daily Report GRO",
+    "amount": 5877449.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 11,
+      "rincianPembayaran": {
+        "BRI DEBIT": 2102693.0,
+        "Qris BRI": 3239756.0,
+        "BCA CC": 285000.0,
+        "BCA DEBIT": 250000.0
+      },
+      "jurnalTerkait": "CR-KID-20261011",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0095",
+    "transactionNumber": "TX-GRO-SSC-20261011",
+    "transactionDate": "2026-10-11 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261011",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-11 Rima, Yenny Permatasari Santoso, Abby dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 6275000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris": 325000.0,
+        "Tunai": 5950000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261011",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0040",
+    "transactionNumber": "TX-GRO-KID-20261010",
+    "transactionDate": "2026-10-10 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261010",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-10 Natayana Haqqi Malik (1 pasien) - Ref: Daily Report GRO",
+    "amount": 89574.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris BRI": 89574.0
+      },
+      "jurnalTerkait": "CR-KID-20261010",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0096",
+    "transactionNumber": "TX-GRO-SSC-20261010",
+    "transactionDate": "2026-10-10 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261010",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-10 Kirana Ramadani Putri Susilawatu, Yanti Sri Susilawati, Nabila Hazna dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 787500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "Qris": 425000.0,
+        "BCA DEBIT": 362500.0
+      },
+      "jurnalTerkait": "CR-SSC-20261010",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0130",
+    "transactionNumber": "TX-GRO-MNM-20261010",
+    "transactionDate": "2026-10-10 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261010",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-10 Elyandra Vellantia (1 pasien) - Ref: Daily Report GRO",
+    "amount": 525000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BCA CC": 525000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261010",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0041",
+    "transactionNumber": "TX-GRO-KID-20261009",
+    "transactionDate": "2026-10-09 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261009",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-09 Launa Hazeera Berlian, Mason Agung Pramono, Alleena Fredella Zahirra dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 3125803.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Qris BRI": 1074420.0,
+        "Tunai": 1301383.0,
+        "BCA DEBIT": 750000.0
+      },
+      "jurnalTerkait": "CR-KID-20261009",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0097",
+    "transactionNumber": "TX-GRO-SSC-20261009",
+    "transactionDate": "2026-10-09 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261009",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-09 Rony Hendarto, Dian Nurul (2 pasien) - Ref: Daily Report GRO",
+    "amount": 550000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris": 550000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261009",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0131",
+    "transactionNumber": "TX-GRO-MNM-20261009",
+    "transactionDate": "2026-10-09 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261009",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-09 Aldrich Ramos Sinaga, Elmarshad Rais Rafazka (2 pasien) - Ref: Daily Report GRO",
+    "amount": 350000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BRI": 350000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261009",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0042",
+    "transactionNumber": "TX-GRO-KID-20261008",
+    "transactionDate": "2026-10-08 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261008",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-08 Fransiscus Aryo N, Jessy Selaphiel, Agnethe Thea Tjandra dkk. (total 15 pasien) - Ref: Daily Report GRO",
+    "amount": 13428810.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 15,
+      "rincianPembayaran": {
+        "BRI DEBIT": 3398903.0,
+        "Qris BRI": 7253050.0,
+        "Tunai": 1488102.0,
+        "BCA CC": 1288755.0
+      },
+      "jurnalTerkait": "CR-KID-20261008",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0098",
+    "transactionNumber": "TX-GRO-SSC-20261008",
+    "transactionDate": "2026-10-08 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261008",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-08 Lie Lee Hong (1 pasien) - Ref: Daily Report GRO",
+    "amount": 5380000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "BCA DEBIT": 5045000.0,
+        "Tunai": 335000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261008",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0132",
+    "transactionNumber": "TX-GRO-MNM-20261008",
+    "transactionDate": "2026-10-08 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261008",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-08 Muhammad Beryl Rasendria (1 pasien) - Ref: Daily Report GRO",
+    "amount": 175000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris BRI": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261008",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0043",
+    "transactionNumber": "TX-GRO-KID-20261007",
+    "transactionDate": "2026-10-07 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261007",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-07 Mavisha Elara Ayuni, Aurora Jenna Islamadina, Ahmad Zein Munawar dkk. (total 10 pasien) - Ref: Daily Report GRO",
+    "amount": 4362583.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 10,
+      "rincianPembayaran": {
+        "Tunai": 1000000.0,
+        "Qris BRI": 3112583.0,
+        "BCA DEBIT": 250000.0
+      },
+      "jurnalTerkait": "CR-KID-20261007",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0133",
+    "transactionNumber": "TX-GRO-MNM-20261007",
+    "transactionDate": "2026-10-07 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261007",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-07 Samantha Abigail Saputra, Kyra Thalassa Shanum (2 pasien) - Ref: Daily Report GRO",
+    "amount": 350000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BRI": 350000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261007",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0044",
+    "transactionNumber": "TX-GRO-KID-20261006",
+    "transactionDate": "2026-10-06 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261006",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-06 Danissa Narashya Nadza, Garphly Walter Ginlead Purba, Renjana Ranzagani Wongso dkk. (total 15 pasien) - Ref: Daily Report GRO",
+    "amount": 9250147.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 15,
+      "rincianPembayaran": {
+        "Tunai": 701539.0,
+        "Qris BRI": 5951168.0,
+        "BRI DEBIT": 1598342.0,
+        "BCA CC": 999098.0
+      },
+      "jurnalTerkait": "CR-KID-20261006",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0099",
+    "transactionNumber": "TX-GRO-SSC-20261006",
+    "transactionDate": "2026-10-06 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261006",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-06 Tennesha Nelafrinanda, Kurnia Purwandini, Ranu Hamukti Kusuma dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 4741398.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BCA CC": 1975000.0,
+        "Qris": 2766398.0
+      },
+      "jurnalTerkait": "CR-SSC-20261006",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0134",
+    "transactionNumber": "TX-GRO-MNM-20261006",
+    "transactionDate": "2026-10-06 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261006",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-06 Najib Muhammad Husain (1 pasien) - Ref: Daily Report GRO",
+    "amount": 175000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris BRI": 175000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261006",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0045",
+    "transactionNumber": "TX-GRO-KID-20261005",
+    "transactionDate": "2026-10-05 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261005",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-05 Raphael Kendrick Kidd, Kiara Aleia Dharmawan, Jorge Shelton dkk. (total 17 pasien) - Ref: Daily Report GRO",
+    "amount": 13522194.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 17,
+      "rincianPembayaran": {
+        "Tunai": 1102641.0,
+        "Qris BRI": 8243756.0,
+        "BRI DEBIT": 1539260.0,
+        "BCA DEBIT": 2636537.0
+      },
+      "jurnalTerkait": "CR-KID-20261005",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0100",
+    "transactionNumber": "TX-GRO-SSC-20261005",
+    "transactionDate": "2026-10-05 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261005",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-05 Hendra, Diasa Ayu Raharni, Ambar Prihartini (3 pasien) - Ref: Daily Report GRO",
+    "amount": 922883.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 3,
+      "rincianPembayaran": {
+        "Qris": 550000.0,
+        "Transfer": 372883.0
+      },
+      "jurnalTerkait": "CR-SSC-20261005",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0135",
+    "transactionNumber": "TX-GRO-MNM-20261005",
+    "transactionDate": "2026-10-05 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261005",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-05 Rayyanza Salman Rahmandra, Immanuel David Wijaya, Isaac Elio Simeon dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 2425000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BCA DEBIT": 500000.0,
+        "Qris BRI": 175000.0,
+        "BCA CC": 1750000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261005",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0046",
+    "transactionNumber": "TX-GRO-KID-20261004",
+    "transactionDate": "2026-10-04 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261004",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-04 Dairo Fiden Natawidjaja, Muhammad Zayn Kama, Barra Lazuardi Shazi dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 3104311.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "BCA CC": 673075.0,
+        "Qris BRI": 2431236.0
+      },
+      "jurnalTerkait": "CR-KID-20261004",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0047",
+    "transactionNumber": "TX-GRO-KID-20261003",
+    "transactionDate": "2026-10-03 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261003",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-03 Haziqul Riffat Nafian, Nameera Kayyisah Ilona Assegaf, Aurynza Meccayla Ghalya Darmawan dkk. (total 17 pasien) - Ref: Daily Report GRO",
+    "amount": 9586730.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 17,
+      "rincianPembayaran": {
+        "Qris BRI": 4984726.0,
+        "BCA CC": 1613959.0,
+        "Tunai": 750000.0,
+        "BCA DEBIT": 957490.0,
+        "Qris BCA": 1280555.0
+      },
+      "jurnalTerkait": "CR-KID-20261003",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0101",
+    "transactionNumber": "TX-GRO-SSC-20261003",
+    "transactionDate": "2026-10-03 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261003",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-03 Dzakkiyatul Ulya Alfiannas Tito (1 pasien) - Ref: Daily Report GRO",
+    "amount": 275000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Credit Voucher": 275000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261003",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0136",
+    "transactionNumber": "TX-GRO-MNM-20261003",
+    "transactionDate": "2026-10-03 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261003",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-03 Syra Aurelia, Chester Power Hartono, Aera Caroline dkk. (total 10 pasien) - Ref: Daily Report GRO",
+    "amount": 5162500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 10,
+      "rincianPembayaran": {
+        "BRI DEBIT": 500000.0,
+        "Qris BRI": 2512500.0,
+        "BCA CC": 1400000.0,
+        "BCA DEBIT": 750000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261003",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0048",
+    "transactionNumber": "TX-GRO-KID-20261002",
+    "transactionDate": "2026-10-02 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261002",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-02 Seraphina Magnolia Nirbita, Rayyan Barizq Alghifari, Kaysan Muhammad Andiansyah dkk. (total 8 pasien) - Ref: Daily Report GRO",
+    "amount": 8142313.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 8,
+      "rincianPembayaran": {
+        "Qris BRI": 2614583.0,
+        "Tunai": 250000.0,
+        "BCA DEBIT": 4065770.0,
+        "BRI DEBIT": 1211960.0
+      },
+      "jurnalTerkait": "CR-KID-20261002",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0102",
+    "transactionNumber": "TX-GRO-SSC-20261002",
+    "transactionDate": "2026-10-02 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261002",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-02 Diva Herliananda Putri, Fanny Listiani, Chriselda Sugianto dkk. (total 9 pasien) - Ref: Daily Report GRO",
+    "amount": 2150000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 9,
+      "rincianPembayaran": {
+        "Qris": 1700000.0,
+        "Tunai": 250000.0,
+        "QR BCA": 200000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261002",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0137",
+    "transactionNumber": "TX-GRO-MNM-20261002",
+    "transactionDate": "2026-10-02 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261002",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-02 Marshall Calyson Sadara, Leander Othniel Parerung, Kaysan Muhammad Andiansyah dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 3010000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Qris BRI": 860000.0,
+        "BRI DEBIT": 750000.0,
+        "BCA DEBIT": 1400000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261002",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0049",
+    "transactionNumber": "TX-GRO-KID-20261001",
+    "transactionDate": "2026-10-01 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20261001",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-10-01 Daffi Raffasa Alfatih, Jhennayu Maeva Mahendra, Kalisha Jennaira Tansahayu dkk. (total 11 pasien) - Ref: Daily Report GRO",
+    "amount": 6598111.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 11,
+      "rincianPembayaran": {
+        "Qris BRI": 6167111.0,
+        "Tunai": 431000.0
+      },
+      "jurnalTerkait": "CR-KID-20261001",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0103",
+    "transactionNumber": "TX-GRO-SSC-20261001",
+    "transactionDate": "2026-10-01 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20261001",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-10-01 Andi Nurhasanah, Zhang Jigang, Siti Aryani dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 10155000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Qris": 1080000.0,
+        "Tunai": 500000.0,
+        "BCA CC": 8575000.0
+      },
+      "jurnalTerkait": "CR-SSC-20261001",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0138",
+    "transactionNumber": "TX-GRO-MNM-20261001",
+    "transactionDate": "2026-10-01 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20261001",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-10-01 Levin Arlo Lesmana, Audrey Darielle (2 pasien) - Ref: Daily Report GRO",
+    "amount": 925000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Tunai": 925000.0
+      },
+      "jurnalTerkait": "CR-MIN-20261001",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0050",
+    "transactionNumber": "TX-GRO-KID-20260930",
+    "transactionDate": "2026-09-30 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20260930",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-09-30 Jeanice Salim, Ellenara Freykha Elshanum, Adhiraja Radhitya Kalandra dkk. (total 10 pasien) - Ref: Daily Report GRO",
+    "amount": 3441353.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 10,
+      "rincianPembayaran": {
+        "Tunai": 250000.0,
+        "Qris BRI": 2941353.0,
+        "Qris BCA": 250000.0
+      },
+      "jurnalTerkait": "CR-KID-20260930",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0104",
+    "transactionNumber": "TX-GRO-SSC-20260930",
+    "transactionDate": "2026-09-30 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20260930",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-09-30 Juwita Kusumadewi, Cecilia Lely Prima, Carissa Nikita Wijaya dkk. (total 8 pasien) - Ref: Daily Report GRO",
+    "amount": 5137000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 8,
+      "rincianPembayaran": {
+        "Tunai": 612000.0,
+        "Qris": 4275000.0,
+        "BCA DEBIT": 250000.0
+      },
+      "jurnalTerkait": "CR-SSC-20260930",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0139",
+    "transactionNumber": "TX-GRO-MNM-20260930",
+    "transactionDate": "2026-09-30 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20260930",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-09-30 Fabiola Celina Susanto, Bianca Gracella Handojo (2 pasien) - Ref: Daily Report GRO",
+    "amount": 185000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BRI": 185000.0
+      },
+      "jurnalTerkait": "CR-MIN-20260930",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0051",
+    "transactionNumber": "TX-GRO-KID-20260929",
+    "transactionDate": "2026-09-29 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20260929",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-09-29 Chrysander Erlano Arsyanendra, Rakha Zain Ardana, Gwen Nona Kagumi dkk. (total 9 pasien) - Ref: Daily Report GRO",
+    "amount": 4539683.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 9,
+      "rincianPembayaran": {
+        "BCA DEBIT": 2130674.0,
+        "Qris BRI": 1659009.0,
+        "Qris BCA": 500000.0,
+        "BCA CC": 250000.0
+      },
+      "jurnalTerkait": "CR-KID-20260929",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0105",
+    "transactionNumber": "TX-GRO-SSC-20260929",
+    "transactionDate": "2026-09-29 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20260929",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-09-29 Novylia Susanti Hadi, Benedict Matthew Wibowo, Rachel Wansa dkk. (total 4 pasien) - Ref: Daily Report GRO",
+    "amount": 950000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 4,
+      "rincianPembayaran": {
+        "BCA CC": 500000.0,
+        "BCA DEBIT": 200000.0,
+        "Tunai": 250000.0
+      },
+      "jurnalTerkait": "CR-SSC-20260929",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0140",
+    "transactionNumber": "TX-GRO-MNM-20260929",
+    "transactionDate": "2026-09-29 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20260929",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-09-29 Ellora Joyceline Handoyo (1 pasien) - Ref: Daily Report GRO",
+    "amount": 175000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris BRI": 87500.0,
+        "Tunai": 87500
+      },
+      "jurnalTerkait": "CR-MIN-20260929",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0052",
+    "transactionNumber": "TX-GRO-KID-20260928",
+    "transactionDate": "2026-09-28 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20260928",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-09-28 Gevariel Archier Nugraha, Ryukana Jouisa Wong, Rafasya Elzayran Tivano dkk. (total 16 pasien) - Ref: Daily Report GRO",
+    "amount": 6417671.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 16,
+      "rincianPembayaran": {
+        "Qris": 5315012.0,
+        "BCA DEBIT": 250000.0,
+        "BCA CC": 433250.0,
+        "Tunai": 141837.0,
+        "BRI DEBIT": 277572.0
+      },
+      "jurnalTerkait": "CR-KID-20260928",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0106",
+    "transactionNumber": "TX-GRO-SSC-20260928",
+    "transactionDate": "2026-09-28 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20260928",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-09-28 Fitri Dwi Aprilia, Olivia Elena H, Anik Rewanti dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 1500000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Qris": 750000.0,
+        "BCA CC": 500000.0,
+        "Tunai": 250000.0
+      },
+      "jurnalTerkait": "CR-SSC-20260928",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0141",
+    "transactionNumber": "TX-GRO-MNM-20260928",
+    "transactionDate": "2026-09-28 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20260928",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-09-28 Elon Savio Budiono, Nael Zevran Arkhairym, Ethan Filbert Budiono (3 pasien) - Ref: Daily Report GRO",
+    "amount": 375000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 3,
+      "rincianPembayaran": {
+        "BRI DEBIT": 175000.0,
+        "Qris": 200000.0
+      },
+      "jurnalTerkait": "CR-MIN-20260928",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0053",
+    "transactionNumber": "TX-GRO-KID-20260927",
+    "transactionDate": "2026-09-27 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20260927",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-09-27 Audrey Eliana Winoto, Andrew Elnathan Winoto (2 pasien) - Ref: Daily Report GRO",
+    "amount": 500000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 2,
+      "rincianPembayaran": {
+        "Qris BRI": 500000.0
+      },
+      "jurnalTerkait": "CR-KID-20260927",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0054",
+    "transactionNumber": "TX-GRO-KID-20260926",
+    "transactionDate": "2026-09-26 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20260926",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-09-26 Hayyina Yafa Nasyitha, Melvino Kurniawan, Muhammad Ghava Faezya dkk. (total 17 pasien) - Ref: Daily Report GRO",
+    "amount": 10044112.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 17,
+      "rincianPembayaran": {
+        "Qris": 8866112.0,
+        "Tunai": 428000.0,
+        "BCA CC": 750000.0
+      },
+      "jurnalTerkait": "CR-KID-20260926",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0107",
+    "transactionNumber": "TX-GRO-SSC-20260926",
+    "transactionDate": "2026-09-26 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20260926",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-09-26 Fanny Listiani, Titis Dyah Hapsari, Vivi Handayani dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 2000000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Qris": 750000.0,
+        "BRI DEBIT": 250000.0,
+        "Tunai": 750000.0,
+        "BCA DEBIT": 250000.0
+      },
+      "jurnalTerkait": "CR-SSC-20260926",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0142",
+    "transactionNumber": "TX-GRO-MNM-20260926",
+    "transactionDate": "2026-09-26 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-MINIMO-20260926",
+    "businessUnit": "MINIMO",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [MINIMO] - Tanggal 2026-09-26 Clarissa Olivia (1 pasien) - Ref: Daily Report GRO",
+    "amount": 87500.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Minimo)",
+    "suggestedCreditAccount": "4-1400 (Pendapatan Baby Spa Minimo)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Tunai": 87500.0
+      },
+      "jurnalTerkait": "CR-MIN-20260926",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0055",
+    "transactionNumber": "TX-GRO-KID-20260925",
+    "transactionDate": "2026-09-25 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20260925",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-09-25 Fabiola Celina Susanto, Alayya Rafa Azura, Bianca Gracella Handojo dkk. (total 7 pasien) - Ref: Daily Report GRO",
+    "amount": 1750000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 7,
+      "rincianPembayaran": {
+        "Qris": 250000.0,
+        "BRI DEBIT": 250000.0,
+        "BCA DEBIT": 750000.0,
+        "BCA CC": 500000.0
+      },
+      "jurnalTerkait": "CR-KID-20260925",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0108",
+    "transactionNumber": "TX-GRO-SSC-20260925",
+    "transactionDate": "2026-09-25 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-SSC-20260925",
+    "businessUnit": "SSC",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [SSC] - Tanggal 2026-09-25 Oky Silvia (1 pasien) - Ref: Daily Report GRO",
+    "amount": 250000.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1112 (Kas Kasir SSC)",
+    "suggestedCreditAccount": "4-2200 (Pendapatan Facial & Estetika)",
+    "details": {
+      "totalPasien": 1,
+      "rincianPembayaran": {
+        "Qris": 250000.0
+      },
+      "jurnalTerkait": "CR-SSC-20260925",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  },
+  {
+    "id": "tx-gro-0056",
+    "transactionNumber": "TX-GRO-KID-20260924",
+    "transactionDate": "2026-09-24 21:00:00",
+    "sourceModule": "GRO_CASHIER",
+    "referenceNumber": "SHIFT-KIDINEST-20260924",
+    "businessUnit": "KIDINEST",
+    "branchName": "Kantor Pusat Semarang",
+    "description": "Closing Penerimaan Kasir Harian [KIDINEST] - Tanggal 2026-09-24 Afkar Muhammad Alby, Ilana Arfa Ilaruka, Maverick Bradley Handoko dkk. (total 6 pasien) - Ref: Daily Report GRO",
+    "amount": 2824396.0,
+    "mappingStatus": "MAPPED",
+    "journalStatus": "POSTED",
+    "suggestedDebitAccount": "1-1111 (Kas Kasir Kidinest)",
+    "suggestedCreditAccount": "4-1200 (Pendapatan Jasa Dokter Sp.A)",
+    "details": {
+      "totalPasien": 6,
+      "rincianPembayaran": {
+        "Qris": 2324396.0,
+        "BRI DEBIT": 250000.0,
+        "Tunai": 250000.0
+      },
+      "jurnalTerkait": "CR-KID-20260924",
+      "sumber": "Daily Report GRO.xlsx"
+    }
+  }
+]

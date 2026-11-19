@@ -212,13 +212,13 @@ func (r *PostgresQueueRepository) GenerateNextQueueNumber(ctx context.Context, d
 		prefix = "S"
 	} else {
 		switch category {
-		case domain.CategoryVaksin:
+		case domain.CategorySakit, "A_SAKIT", "A":
 			prefix = "A"
-		case domain.CategorySakit:
+		case domain.CategoryVaksin, "B_VAKSIN", "B":
 			prefix = "B"
-		case domain.CategoryTumbang:
+		case domain.CategoryTumbang, "C":
 			prefix = "C"
-		case domain.CategoryPaket:
+		case domain.CategoryPaket, "D":
 			prefix = "D"
 		case domain.CategoryWalkin:
 			prefix = "E"
@@ -243,7 +243,8 @@ func (r *PostgresQueueRepository) GenerateNextQueueNumber(ctx context.Context, d
 		return "", fmt.Errorf("gagal alokasi nomor urut harian: %w", err)
 	}
 
-	return fmt.Sprintf("%s-%03d", prefix, lastSeq), nil
+	// Sesuai Master Prompt: 2 angka + kode huruf (contoh: 08-A, 09-C, 10-C)
+	return fmt.Sprintf("%02d-%s", lastSeq, prefix), nil
 }
 
 func (r *PostgresQueueRepository) Create(ctx context.Context, q *domain.QueueItem) error {

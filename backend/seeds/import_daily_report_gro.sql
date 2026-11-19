@@ -32,7 +32,7 @@ BEGIN;
 
     -- Journal CR-KID-20260924 (KIDINEST - 20260924): Rp 2,824,396.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('b2651754-7717-571e-ad2e-14ae8d1a90eb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260924', 'CASH_RECEIPT', '2026-09-24', '2026-09-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260924', 2824396.00, 2824396.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 24-09-2026 Hasseva Rayyan Pratyaksa, Maverick Bradley Handoko, Joshe Gautie Harijanto, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('b2651754-7717-571e-ad2e-14ae8d1a90eb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260924', 'CASH_RECEIPT', '2026-09-24', '2026-09-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260924', 2824396.00, 2824396.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 24-09-2026 Keysha Aurore Delika, Afkar Muhammad Alby, Hasseva Rayyan Pratyaksa, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -67,7 +67,7 @@ BEGIN;
 
     -- Journal CR-KID-20260925 (KIDINEST - 20260925): Rp 1,750,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('55b3fad0-1919-568e-901b-da27d7933bd2', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260925', 'CASH_RECEIPT', '2026-09-25', '2026-09-25 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260925', 1750000.00, 1750000.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 25-09-2026 Cathrina Meysha Arcylia, Fabiola Celina Susanto, Ananta Faaz Auda, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('55b3fad0-1919-568e-901b-da27d7933bd2', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260925', 'CASH_RECEIPT', '2026-09-25', '2026-09-25 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260925', 1750000.00, 1750000.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 25-09-2026 Alayya Rafa Azura, Ananta Faaz Auda, Bianca Gracella Handojo, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -94,7 +94,7 @@ BEGIN;
 
     -- Journal CR-KID-20260926 (KIDINEST - 20260926): Rp 10,044,112.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('aab6d936-63f4-5ace-aedd-3f08a9f8544e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260926', 'CASH_RECEIPT', '2026-09-26', '2026-09-26 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260926', 10044112.00, 10044112.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 26-09-2026 Daphne Fumiko Wijaya, Roula Maryam Nugroho, Nadlyne Kayshila Prasetya, dkk. (total 17 pasien) - Ref: Daily Report GRO');
+    VALUES ('aab6d936-63f4-5ace-aedd-3f08a9f8544e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260926', 'CASH_RECEIPT', '2026-09-26', '2026-09-26 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260926', 10044112.00, 10044112.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 26-09-2026 Michaela Kalashnikova, Daphne Fumiko Wijaya, Hayyina Yafa Nasyitha, dkk. (total 17 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -156,7 +156,7 @@ BEGIN;
 
     -- Journal CR-KID-20260928 (KIDINEST - 20260928): Rp 6,417,671.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('c89d6fc3-709a-5229-9871-44484d88a487', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260928', 'CASH_RECEIPT', '2026-09-28', '2026-09-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260928', 6417671.00, 6417671.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 28-09-2026 Rizky Kenzie Athaillah Sasmito, Sean Byantara Nursholeh, Raynar Adi Atharrazka, dkk. (total 16 pasien) - Ref: Daily Report GRO');
+    VALUES ('c89d6fc3-709a-5229-9871-44484d88a487', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260928', 'CASH_RECEIPT', '2026-09-28', '2026-09-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260928', 6417671.00, 6417671.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 28-09-2026 Muhammad Syaghghaf Arham Elzayya, Sean Byantara Nursholeh, Raphael Gregorio Hadi Projo, dkk. (total 16 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -196,7 +196,7 @@ BEGIN;
 
     -- Journal CR-KID-20260929 (KIDINEST - 20260929): Rp 4,539,683.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('8ae94fd1-9d90-55ed-8db9-916f407e3826', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260929', 'CASH_RECEIPT', '2026-09-29', '2026-09-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260929', 4539683.00, 4539683.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 29-09-2026 Arsyla Illiana Shanum, Freesia Avril Harmoko, Gwen Nona Kagumi, dkk. (total 9 pasien) - Ref: Daily Report GRO');
+    VALUES ('8ae94fd1-9d90-55ed-8db9-916f407e3826', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260929', 'CASH_RECEIPT', '2026-09-29', '2026-09-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260929', 4539683.00, 4539683.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 29-09-2026 Medin Kala Senja, Gwen Nona Kagumi, Chrysander Erlano Arsyanendra, dkk. (total 9 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -231,7 +231,7 @@ BEGIN;
 
     -- Journal CR-KID-20260930 (KIDINEST - 20260930): Rp 3,441,353.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ce47ec6a-5647-55e0-9151-696cc175d6cb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260930', 'CASH_RECEIPT', '2026-09-30', '2026-09-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260930', 3441353.00, 3441353.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 30-09-2026 Bilal Ibrahim Pradipta, Gabriella Evangeline Salim, Mousa Arkan Dewantara, dkk. (total 10 pasien) - Ref: Daily Report GRO');
+    VALUES ('ce47ec6a-5647-55e0-9151-696cc175d6cb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20260930', 'CASH_RECEIPT', '2026-09-30', '2026-09-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20260930', 3441353.00, 3441353.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 30-09-2026 Mousa Arkan Dewantara, Adhiraja Radhitya Kalandra, Gabriella Evangeline Salim, dkk. (total 10 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -271,7 +271,7 @@ BEGIN;
 
     -- Journal CR-KID-20261001 (KIDINEST - 20261001): Rp 6,598,111.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('94426d5b-a839-5223-b6f3-321cdc5a3622', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261001', 'CASH_RECEIPT', '2026-10-01', '2026-10-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261001', 6598111.00, 6598111.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 01-10-2026 Abigail Cheryl Santoso, Jhennayu Maeva Mahendra, Marilyn Jill Parampara, dkk. (total 11 pasien) - Ref: Daily Report GRO');
+    VALUES ('94426d5b-a839-5223-b6f3-321cdc5a3622', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261001', 'CASH_RECEIPT', '2026-10-01', '2026-10-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261001', 6598111.00, 6598111.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 01-10-2026 Daffi Raffasa Alfatih, Alesha Nareswari Pambudi, Medina Jannah Arafah, dkk. (total 11 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -310,7 +310,7 @@ BEGIN;
 
     -- Journal CR-KID-20261002 (KIDINEST - 20261002): Rp 8,142,313.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('f9864c95-4a9b-57bb-aaf7-c3d20154331c', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261002', 'CASH_RECEIPT', '2026-10-02', '2026-10-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261002', 8142313.00, 8142313.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 02-10-2026 Kaysan Muhammad Andiansyah, Azzea Zenith Sadiya, Syahril Muadz Zayn, dkk. (total 8 pasien) - Ref: Daily Report GRO');
+    VALUES ('f9864c95-4a9b-57bb-aaf7-c3d20154331c', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261002', 'CASH_RECEIPT', '2026-10-02', '2026-10-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261002', 8142313.00, 8142313.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 02-10-2026 Kaysan Muhammad Andiansyah, Syahril Muadz Zayn, Azzea Zenith Sadiya, dkk. (total 8 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -358,7 +358,7 @@ BEGIN;
 
     -- Journal CR-KID-20261003 (KIDINEST - 20261003): Rp 9,586,730.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0272abbe-9c8a-526d-837e-4ddebcb24c57', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261003', 'CASH_RECEIPT', '2026-10-03', '2026-10-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261003', 9586730.00, 9586730.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 03-10-2026 Askala Natasaka Gumalangit, Freesia Avril Harmoko, Rusdan Azmi Alfathan, dkk. (total 17 pasien) - Ref: Daily Report GRO');
+    VALUES ('0272abbe-9c8a-526d-837e-4ddebcb24c57', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261003', 'CASH_RECEIPT', '2026-10-03', '2026-10-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261003', 9586730.00, 9586730.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 03-10-2026 Rusdan Azmi Alfathan, Muhammad Aiden Pranadipa, Haziqul Riffat Nafian, dkk. (total 17 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -406,7 +406,7 @@ BEGIN;
 
     -- Journal CR-KID-20261004 (KIDINEST - 20261004): Rp 3,104,311.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('7327ff7b-6a7d-54ac-b432-993e4fa6145c', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261004', 'CASH_RECEIPT', '2026-10-04', '2026-10-04 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261004', 3104311.00, 3104311.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 04-10-2026 Givelle Emanuella Victory, Joshua Ethanuel Wirawan, Dairo Fiden Natawidjaja, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('7327ff7b-6a7d-54ac-b432-993e4fa6145c', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261004', 'CASH_RECEIPT', '2026-10-04', '2026-10-04 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261004', 3104311.00, 3104311.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 04-10-2026 Dairo Fiden Natawidjaja, Joshua Ethanuel Wirawan, Reyner Nathanuel Wirawan, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -441,7 +441,7 @@ BEGIN;
 
     -- Journal CR-KID-20261005 (KIDINEST - 20261005): Rp 13,522,194.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('c23cbf35-19fc-5cbd-8667-58c30696e279', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261005', 'CASH_RECEIPT', '2026-10-05', '2026-10-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261005', 13522194.00, 13522194.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 05-10-2026 Jorge Shiloh, Arshaka Putra Arthura, Daphne Fumiko Wijaya, dkk. (total 17 pasien) - Ref: Daily Report GRO');
+    VALUES ('c23cbf35-19fc-5cbd-8667-58c30696e279', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261005', 'CASH_RECEIPT', '2026-10-05', '2026-10-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261005', 13522194.00, 13522194.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 05-10-2026 Mahakertamada Bhre Dace, Arshaka Putra Arthura, Revalina Savrinadeya Almahyra, dkk. (total 17 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -489,7 +489,7 @@ BEGIN;
 
     -- Journal CR-KID-20261006 (KIDINEST - 20261006): Rp 9,250,147.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('4804f747-ada8-51b6-8aab-07d693936df7', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261006', 'CASH_RECEIPT', '2026-10-06', '2026-10-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261006', 9250147.00, 9250147.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 06-10-2026 Mahira Aisha Malaikha J, Garphly Walter Ginlead Purba, Glenn Alexander Santoso, dkk. (total 15 pasien) - Ref: Daily Report GRO');
+    VALUES ('4804f747-ada8-51b6-8aab-07d693936df7', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261006', 'CASH_RECEIPT', '2026-10-06', '2026-10-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261006', 9250147.00, 9250147.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 06-10-2026 Wilson Noel Suswanto, Abigael Tiffany, Garphly Walter Ginlead Purba, dkk. (total 15 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -537,7 +537,7 @@ BEGIN;
 
     -- Journal CR-KID-20261007 (KIDINEST - 20261007): Rp 4,362,583.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('65c891b2-b42e-5abf-a762-80efe38d6764', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261007', 'CASH_RECEIPT', '2026-10-07', '2026-10-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261007', 4362583.00, 4362583.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 07-10-2026 Charlotte Eloise Guritno, Mavisha Elara Ayuni, Arthur Louis Guritno, dkk. (total 10 pasien) - Ref: Daily Report GRO');
+    VALUES ('65c891b2-b42e-5abf-a762-80efe38d6764', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261007', 'CASH_RECEIPT', '2026-10-07', '2026-10-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261007', 4362583.00, 4362583.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 07-10-2026 Charlotte Eloise Guritno, Arthur Louis Guritno, Tanayya Nadlyne Staraska Viansyah, dkk. (total 10 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -577,7 +577,7 @@ BEGIN;
 
     -- Journal CR-KID-20261008 (KIDINEST - 20261008): Rp 13,428,810.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('6b4368d4-1abd-5da7-9f79-ea804bf27e5d', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261008', 'CASH_RECEIPT', '2026-10-08', '2026-10-08 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261008', 13428810.00, 13428810.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 08-10-2026 Agnethe Thea Tjandra, Ali Albarra Nugraha, Seraphina Merra Zafira, dkk. (total 15 pasien) - Ref: Daily Report GRO');
+    VALUES ('6b4368d4-1abd-5da7-9f79-ea804bf27e5d', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261008', 'CASH_RECEIPT', '2026-10-08', '2026-10-08 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261008', 13428810.00, 13428810.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 08-10-2026 Jihan Afifah S, Yarra Gjin Rosette Chandra, Odilia Claryne Auberta, dkk. (total 15 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -629,7 +629,7 @@ BEGIN;
 
     -- Journal CR-KID-20261009 (KIDINEST - 20261009): Rp 3,125,803.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('28b7a077-b0ab-55bb-bd36-ebd884a9c502', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261009', 'CASH_RECEIPT', '2026-10-09', '2026-10-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261009', 3125803.00, 3125803.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 09-10-2026 Muhammad Sahl Sakh, Arsy Medina Bhatarajiwa, Launa Hazeera Berlian, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('28b7a077-b0ab-55bb-bd36-ebd884a9c502', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261009', 'CASH_RECEIPT', '2026-10-09', '2026-10-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261009', 3125803.00, 3125803.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 09-10-2026 Arsy Medina Bhatarajiwa, Seranala Aizalea Savana, Mason Agung Pramono, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -695,7 +695,7 @@ BEGIN;
 
     -- Journal CR-KID-20261011 (KIDINEST - 20261011): Rp 5,877,449.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('bb4748d0-efa1-5028-814d-265fc24b6705', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261011', 'CASH_RECEIPT', '2026-10-11', '2026-10-11 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261011', 5877449.00, 5877449.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 11-10-2026 Leander Othniel Parerung, Azara Nisma Cahyasari, Issaura Maryam Elora, dkk. (total 11 pasien) - Ref: Daily Report GRO');
+    VALUES ('bb4748d0-efa1-5028-814d-265fc24b6705', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261011', 'CASH_RECEIPT', '2026-10-11', '2026-10-11 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261011', 5877449.00, 5877449.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 11-10-2026 Issaura Maryam Elora, Arshila Shadira Andarfa, Hartley Ardianto, dkk. (total 11 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -734,7 +734,7 @@ BEGIN;
 
     -- Journal CR-KID-20261012 (KIDINEST - 20261012): Rp 7,834,420.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('bfebc698-fc9b-56b6-a654-67141a38d21e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261012', 'CASH_RECEIPT', '2026-10-12', '2026-10-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261012', 7834420.00, 7834420.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 12-10-2026 Mahalio Yahya Jiwandanu, Maverick Bradley Handoko, Noah Aaron Ferrizia Wiratama, dkk. (total 14 pasien) - Ref: Daily Report GRO');
+    VALUES ('bfebc698-fc9b-56b6-a654-67141a38d21e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261012', 'CASH_RECEIPT', '2026-10-12', '2026-10-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261012', 7834420.00, 7834420.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 12-10-2026 Arkananta Zaydan Manaf Rahmani, Arcelio Lanang Rayyanka, Elio Matthew Hamdani, dkk. (total 14 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -778,7 +778,7 @@ BEGIN;
 
     -- Journal CR-KID-20261013 (KIDINEST - 20261013): Rp 11,128,082.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('95f2365a-0c99-5ba8-b6e8-1641da1b6a7d', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261013', 'CASH_RECEIPT', '2026-10-13', '2026-10-13 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261013', 11128082.00, 11128082.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 13-10-2026 Nazwa Syareeva Wilda, Aliyya Khairina Rahadi, Shaziva Zerryn Khumaira, dkk. (total 18 pasien) - Ref: Daily Report GRO');
+    VALUES ('95f2365a-0c99-5ba8-b6e8-1641da1b6a7d', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261013', 'CASH_RECEIPT', '2026-10-13', '2026-10-13 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261013', 11128082.00, 11128082.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 13-10-2026 Odilia Claryne Auberta, Martha Evelyn Wibowo, Henna Maheswari Nur Khafidoh, dkk. (total 18 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -826,7 +826,7 @@ BEGIN;
 
     -- Journal CR-KID-20261014 (KIDINEST - 20261014): Rp 3,954,916.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('412e6d55-5a7c-54c4-8ada-4a6cd13a04b3', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261014', 'CASH_RECEIPT', '2026-10-14', '2026-10-14 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261014', 3954916.00, 3954916.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 14-10-2026 Eloisa Stella Valencia Santoso, Charlotte Eloise Guritno, Elnathan Radeva Adzika, dkk. (total 11 pasien) - Ref: Daily Report GRO');
+    VALUES ('412e6d55-5a7c-54c4-8ada-4a6cd13a04b3', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261014', 'CASH_RECEIPT', '2026-10-14', '2026-10-14 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261014', 3954916.00, 3954916.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 14-10-2026 Henna Maheswari Nur Khafidoh, Elnathan Radeva Adzika, Alfarghani Averroes, dkk. (total 11 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -866,7 +866,7 @@ BEGIN;
 
     -- Journal CR-KID-20261015 (KIDINEST - 20261015): Rp 10,856,884.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ac5e2185-4919-5a55-a6d7-e8acc9b2b94c', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261015', 'CASH_RECEIPT', '2026-10-15', '2026-10-15 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261015', 10856884.00, 10856884.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 15-10-2026 Hazel Khairan Rafandra, Navano Bhavanda Akbar, Gwyneth Stevelyn, dkk. (total 19 pasien) - Ref: Daily Report GRO');
+    VALUES ('ac5e2185-4919-5a55-a6d7-e8acc9b2b94c', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261015', 'CASH_RECEIPT', '2026-10-15', '2026-10-15 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261015', 10856884.00, 10856884.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 15-10-2026 Gwyneth Stevelyn, Maverick Bradley Handoko, Elmira Arunika Yasmine, dkk. (total 19 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -914,7 +914,7 @@ BEGIN;
 
     -- Journal CR-KID-20261016 (KIDINEST - 20261016): Rp 4,792,520.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('bb8c2a2b-5020-503f-8ece-c2c70ca19f56', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261016', 'CASH_RECEIPT', '2026-10-16', '2026-10-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261016', 4792520.00, 4792520.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 16-10-2026 Gavin Razelle Prakoso, Kimimela Gwyneth Saraza, Ganendra Atharrizqi Y, dkk. (total 8 pasien) - Ref: Daily Report GRO');
+    VALUES ('bb8c2a2b-5020-503f-8ece-c2c70ca19f56', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261016', 'CASH_RECEIPT', '2026-10-16', '2026-10-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261016', 4792520.00, 4792520.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 16-10-2026 M. Arshaka Zayyan Alvarendra, Rafasya Kalandra Irghi, Ganendra Atharrizqi Y, dkk. (total 8 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -949,7 +949,7 @@ BEGIN;
 
     -- Journal CR-KID-20261017 (KIDINEST - 20261017): Rp 11,664,684.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('680cd4fe-0bc7-5ce6-a984-86d571c83ddb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261017', 'CASH_RECEIPT', '2026-10-17', '2026-10-17 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261017', 11664684.00, 11664684.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 17-10-2026 Aufar Daniyal Halim, Kimberly Olivia Candra, Sagara Ouda Bhumi Nugraha, dkk. (total 18 pasien) - Ref: Daily Report GRO');
+    VALUES ('680cd4fe-0bc7-5ce6-a984-86d571c83ddb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261017', 'CASH_RECEIPT', '2026-10-17', '2026-10-17 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261017', 11664684.00, 11664684.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 17-10-2026 Sierra Nadlyne, Zalif Ashif Mustafa, Kendrick Oliver Candra, dkk. (total 18 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -984,7 +984,7 @@ BEGIN;
 
     -- Journal CR-KID-20261018 (KIDINEST - 20261018): Rp 5,723,569.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('20904538-71ae-586a-be5a-df85780e4eeb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261018', 'CASH_RECEIPT', '2026-10-18', '2026-10-18 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261018', 5723569.00, 5723569.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 18-10-2026 Keenan Athaya Bian, Humaira Almahyra Azzahra, Gareth Leander Wijaya, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('20904538-71ae-586a-be5a-df85780e4eeb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261018', 'CASH_RECEIPT', '2026-10-18', '2026-10-18 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261018', 5723569.00, 5723569.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 18-10-2026 Michaela Kalashnikova, Keenan Athaya Bian, Ibrahim Alfa Romeo, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1032,7 +1032,7 @@ BEGIN;
 
     -- Journal CR-KID-20261019 (KIDINEST - 20261019): Rp 9,378,227.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('3d5280d2-cfed-5d40-90c5-cba37c7e15f1', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261019', 'CASH_RECEIPT', '2026-10-19', '2026-10-19 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261019', 9378227.00, 9378227.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 19-10-2026 Agnethe Thea Tjandra, Gwen Nona Kagumi, Adira Kaia Malika, dkk. (total 10 pasien) - Ref: Daily Report GRO');
+    VALUES ('3d5280d2-cfed-5d40-90c5-cba37c7e15f1', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261019', 'CASH_RECEIPT', '2026-10-19', '2026-10-19 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261019', 9378227.00, 9378227.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 19-10-2026 Gwen Nona Kagumi, Mathilda Caressa Anvienka, Celestial Shaula Amaryllis, dkk. (total 10 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1071,7 +1071,7 @@ BEGIN;
 
     -- Journal CR-KID-20261020 (KIDINEST - 20261020): Rp 13,244,853.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('c8bdabb6-6910-587c-8a92-ab53c1162dbd', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261020', 'CASH_RECEIPT', '2026-10-20', '2026-10-20 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261020', 13244853.00, 13244853.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 20-10-2026 Saqueena Damar Bagisha, Hazima Rumaisha Azzahra, Kaelzio Gavin Dhanendra, dkk. (total 14 pasien) - Ref: Daily Report GRO');
+    VALUES ('c8bdabb6-6910-587c-8a92-ab53c1162dbd', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261020', 'CASH_RECEIPT', '2026-10-20', '2026-10-20 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261020', 13244853.00, 13244853.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 20-10-2026 Saqueena Damar Bagisha, Migunani Saka Janitra, Kaelzio Gavin Dhanendra, dkk. (total 14 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1153,7 +1153,7 @@ BEGIN;
 
     -- Journal CR-KID-20261022 (KIDINEST - 20261022): Rp 13,227,689.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('79f2498a-58df-5ff2-862b-a933a3430b28', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261022', 'CASH_RECEIPT', '2026-10-22', '2026-10-22 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261022', 13227689.00, 13227689.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 22-10-2026 Kamal Meliadi Rizqi Putta, Mahira Aisha Malaikha J, Ellora Lavanya Shaqeela, dkk. (total 19 pasien) - Ref: Daily Report GRO');
+    VALUES ('79f2498a-58df-5ff2-862b-a933a3430b28', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261022', 'CASH_RECEIPT', '2026-10-22', '2026-10-22 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261022', 13227689.00, 13227689.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 22-10-2026 Mahira Hameeda Shreya Eldyawan, Raffael Hidayat, Kamal Meliadi Rizqi Putta, dkk. (total 19 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1201,7 +1201,7 @@ BEGIN;
 
     -- Journal CR-KID-20261023 (KIDINEST - 20261023): Rp 4,644,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('2e35b911-ca23-54c9-886c-0cbae556198a', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261023', 'CASH_RECEIPT', '2026-10-23', '2026-10-23 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261023', 4644500.00, 4644500.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 23-10-2026 Shaquille Ethan Alaric, Surniala Eir Ruby Raharjo, Aldrich Ramos Sinaga, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('2e35b911-ca23-54c9-886c-0cbae556198a', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261023', 'CASH_RECEIPT', '2026-10-23', '2026-10-23 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261023', 4644500.00, 4644500.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 23-10-2026 Arsyakayla Kikanaya R, Esmeralda Shereen Rhaenyra, Hisham Gani Manggala, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1245,7 +1245,7 @@ BEGIN;
 
     -- Journal CR-KID-20261024 (KIDINEST - 20261024): Rp 13,685,914.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0c888d0c-3143-508b-90fb-cd8fd0be6370', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261024', 'CASH_RECEIPT', '2026-10-24', '2026-10-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261024', 13685914.00, 13685914.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 24-10-2026 Bilal Ibrahim Pradipta, Virendra Zakee A Bintang, Aluna Binar Renjana, dkk. (total 17 pasien) - Ref: Daily Report GRO');
+    VALUES ('0c888d0c-3143-508b-90fb-cd8fd0be6370', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261024', 'CASH_RECEIPT', '2026-10-24', '2026-10-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261024', 13685914.00, 13685914.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 24-10-2026 Kalana Jennaira Wicaksana, Henna Maheswari Nur Khafidoh, Maximilian Axelson Santoso, dkk. (total 17 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1293,7 +1293,7 @@ BEGIN;
 
     -- Journal CR-KID-20261025 (KIDINEST - 20261025): Rp 7,612,916.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('14c523ff-cd3a-57fe-ae9e-776ea12f0f20', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261025', 'CASH_RECEIPT', '2026-10-25', '2026-10-25 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261025', 7612916.00, 7612916.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 25-10-2026 Bazla Ahnaf Muhammad Fawwaz, Khairunnada Alfathoni Zahra, Maureen Kana Wijaya, dkk. (total 13 pasien) - Ref: Daily Report GRO');
+    VALUES ('14c523ff-cd3a-57fe-ae9e-776ea12f0f20', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261025', 'CASH_RECEIPT', '2026-10-25', '2026-10-25 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261025', 7612916.00, 7612916.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 25-10-2026 Arkananta Zaydan Manaf Rahmani, Issaura Maryam Elora, Maureen Kana Wijaya, dkk. (total 13 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1337,7 +1337,7 @@ BEGIN;
 
     -- Journal CR-KID-20261026 (KIDINEST - 20261026): Rp 5,601,503.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('3cc3e591-9454-5232-b8d1-3a38cdb81474', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261026', 'CASH_RECEIPT', '2026-10-26', '2026-10-26 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261026', 5601503.00, 5601503.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 26-10-2026 Fabiola Celina Susanto, Agnethe Thea Tjandra, Vincent Dharma Lukito, dkk. (total 9 pasien) - Ref: Daily Report GRO');
+    VALUES ('3cc3e591-9454-5232-b8d1-3a38cdb81474', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261026', 'CASH_RECEIPT', '2026-10-26', '2026-10-26 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261026', 5601503.00, 5601503.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 26-10-2026 Rainzo Anandra Al Ghaniy, Muhammad Rayyan Ar Rana, Maverick Seymour, dkk. (total 9 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1385,7 +1385,7 @@ BEGIN;
 
     -- Journal CR-KID-20261027 (KIDINEST - 20261027): Rp 9,497,255.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('2adc8172-8312-5707-aa85-7eca535e9d8d', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261027', 'CASH_RECEIPT', '2026-10-27', '2026-10-27 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261027', 9497255.00, 9497255.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 27-10-2026 Immanuel David Wijaya, Ayra Yasmine Humaira, Camilla Zora Divya Aglesio, dkk. (total 14 pasien) - Ref: Daily Report GRO');
+    VALUES ('2adc8172-8312-5707-aa85-7eca535e9d8d', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261027', 'CASH_RECEIPT', '2026-10-27', '2026-10-27 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261027', 9497255.00, 9497255.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 27-10-2026 Aryasatya Sagara Nararya, Rasyid Ibrahim Setyawan, Muhammad Elman Arrasyi, dkk. (total 14 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1425,7 +1425,7 @@ BEGIN;
 
     -- Journal CR-KID-20261028 (KIDINEST - 20261028): Rp 4,421,211.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ce4e156f-ad8a-5555-8420-b2c16824a258', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261028', 'CASH_RECEIPT', '2026-10-28', '2026-10-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261028', 4421211.00, 4421211.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 28-10-2026 Aryasatya Avicenna, Migunani Aleena Irghi, Rafka Narendra Fajri, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('ce4e156f-ad8a-5555-8420-b2c16824a258', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261028', 'CASH_RECEIPT', '2026-10-28', '2026-10-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261028', 4421211.00, 4421211.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 28-10-2026 Migunani Aleena Irghi, Abigael Tiffany, Arzen Baraka, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1469,7 +1469,7 @@ BEGIN;
 
     -- Journal CR-KID-20261029 (KIDINEST - 20261029): Rp 10,801,210.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ff4231af-5a6d-59ad-8b46-13007c663cef', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261029', 'CASH_RECEIPT', '2026-10-29', '2026-10-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261029', 10801210.00, 10801210.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 29-10-2026 Olivia Jasmine Ferigo, Jhennayu Maeva Mahendra, Elliot Griffin Walt, dkk. (total 13 pasien) - Ref: Daily Report GRO');
+    VALUES ('ff4231af-5a6d-59ad-8b46-13007c663cef', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261029', 'CASH_RECEIPT', '2026-10-29', '2026-10-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261029', 10801210.00, 10801210.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 29-10-2026 Alfonsus Felix Hartanto, Olivia Jasmine Ferigo, Haziqul Riffat Nafian, dkk. (total 13 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1508,7 +1508,7 @@ BEGIN;
 
     -- Journal CR-KID-20261030 (KIDINEST - 20261030): Rp 5,706,452.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('7f3e6fbc-30df-53ef-b575-9f8f5c81e43e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261030', 'CASH_RECEIPT', '2026-10-30', '2026-10-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261030', 5706452.00, 5706452.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 30-10-2026 Hogan Germinos, Eurico Max Yuarta, Rado Akarsana, dkk. (total 9 pasien) - Ref: Daily Report GRO');
+    VALUES ('7f3e6fbc-30df-53ef-b575-9f8f5c81e43e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261030', 'CASH_RECEIPT', '2026-10-30', '2026-10-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261030', 5706452.00, 5706452.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 30-10-2026 Eurico Max Yuarta, Kanawa Sih Rahadian, Rado Akarsana, dkk. (total 9 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1539,7 +1539,7 @@ BEGIN;
 
     -- Journal CR-KID-20261031 (KIDINEST - 20261031): Rp 13,345,724.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('5c62fea3-350b-59a8-af58-672d3517834f', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261031', 'CASH_RECEIPT', '2026-10-31', '2026-10-31 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261031', 13345724.00, 13345724.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 31-10-2026 Kimberly Olivia Candra, Naluri Teduh Kunala, Muhammad Yusuf Tsaqif Kalandra, dkk. (total 15 pasien) - Ref: Daily Report GRO');
+    VALUES ('5c62fea3-350b-59a8-af58-672d3517834f', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261031', 'CASH_RECEIPT', '2026-10-31', '2026-10-31 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261031', 13345724.00, 13345724.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 31-10-2026 Hayyina Yafa Nasyitha, Lakeisha AninditaBaskoro, Humaira Rainsari Putri Negara, dkk. (total 15 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1591,7 +1591,7 @@ BEGIN;
 
     -- Journal CR-KID-20261101 (KIDINEST - 20261101): Rp 4,108,216.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('67d6640b-b6f7-58a4-bc16-7dff74a12595', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261101', 'CASH_RECEIPT', '2026-11-01', '2026-11-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261101', 4108216.00, 4108216.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 01-11-2026 Amran Ramadhan Arfianto, Bhre Isa Baihaqi, Syaikhah Nafisah Gayatri, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('67d6640b-b6f7-58a4-bc16-7dff74a12595', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261101', 'CASH_RECEIPT', '2026-11-01', '2026-11-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261101', 4108216.00, 4108216.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 01-11-2026 Faruq Abdul Hafiz, Amran Ramadhan Arfianto, Bhre Isa Baihaqi, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1630,7 +1630,7 @@ BEGIN;
 
     -- Journal CR-KID-20261102 (KIDINEST - 20261102): Rp 9,020,034.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('66adf702-fe43-5464-9c5a-7232cc56f6cf', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261102', 'CASH_RECEIPT', '2026-11-02', '2026-11-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261102', 9020034.00, 9020034.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 02-11-2026 Cedric Gregorius Pandelaki, Joanna Alice Eleire, Joshua Ethanuel Wirawan, dkk. (total 13 pasien) - Ref: Daily Report GRO');
+    VALUES ('66adf702-fe43-5464-9c5a-7232cc56f6cf', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261102', 'CASH_RECEIPT', '2026-11-02', '2026-11-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261102', 9020034.00, 9020034.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 02-11-2026 Deru Imanuel Mawadipta, Arkananta Zaydan Manaf Rahmani, Mahakertamada Bhre Dace, dkk. (total 13 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1669,7 +1669,7 @@ BEGIN;
 
     -- Journal CR-KID-20261103 (KIDINEST - 20261103): Rp 11,862,752.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('4b9b8820-d460-5c0d-b80e-14909c5854ba', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261103', 'CASH_RECEIPT', '2026-11-03', '2026-11-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261103', 11862752.00, 11862752.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 03-11-2026 Bazla Ahnaf Muhammad Fawwaz, Almahyra Adinda Neira, Domenico Jose Adinata, dkk. (total 18 pasien) - Ref: Daily Report GRO');
+    VALUES ('4b9b8820-d460-5c0d-b80e-14909c5854ba', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261103', 'CASH_RECEIPT', '2026-11-03', '2026-11-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261103', 11862752.00, 11862752.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 03-11-2026 Alfonsus Felix Hartanto, Bazla Ahnaf Muhammad Fawwaz, Gheziya Aelgytha Naco, dkk. (total 18 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1721,7 +1721,7 @@ BEGIN;
 
     -- Journal CR-KID-20261104 (KIDINEST - 20261104): Rp 5,510,504.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('9b0c0976-fe67-5789-9209-0dccb8a65603', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261104', 'CASH_RECEIPT', '2026-11-04', '2026-11-04 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261104', 5510504.00, 5510504.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 04-11-2026 Kaluna Saraswati Mahasin, Mirielle Celia Adidjaya, Arasya Adna Khalif, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('9b0c0976-fe67-5789-9209-0dccb8a65603', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261104', 'CASH_RECEIPT', '2026-11-04', '2026-11-04 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261104', 5510504.00, 5510504.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 04-11-2026 Gabriella Nicole Anggara, Evelyn Mikhayla Nayara, Arasya Adna Khalif, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1764,7 +1764,7 @@ BEGIN;
 
     -- Journal CR-KID-20261105 (KIDINEST - 20261105): Rp 15,356,385.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('664c330f-fece-5951-b731-e2ca853c6cd8', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261105', 'CASH_RECEIPT', '2026-11-05', '2026-11-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261105', 15356385.00, 15356385.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 05-11-2026 Erryl Kaisan Arzachel, Aydin Abdurrahman, Agnethe Thea Tjandra, dkk. (total 27 pasien) - Ref: Daily Report GRO');
+    VALUES ('664c330f-fece-5951-b731-e2ca853c6cd8', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261105', 'CASH_RECEIPT', '2026-11-05', '2026-11-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261105', 15356385.00, 15356385.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 05-11-2026 Arasya Adna Khalif, Khalif Danendra Sadha Ferdyansah, Reyhan Sulaiman Rahmandra, dkk. (total 27 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1812,7 +1812,7 @@ BEGIN;
 
     -- Journal CR-KID-20261106 (KIDINEST - 20261106): Rp 7,131,467.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0c2462a8-651b-5450-9194-b6651ef36326', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261106', 'CASH_RECEIPT', '2026-11-06', '2026-11-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261106', 7131467.00, 7131467.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 06-11-2026 Javier Harris Susanto, Elshafira Kazumi Riandinata, Ariana Nasha Razeta, dkk. (total 12 pasien) - Ref: Daily Report GRO');
+    VALUES ('0c2462a8-651b-5450-9194-b6651ef36326', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261106', 'CASH_RECEIPT', '2026-11-06', '2026-11-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261106', 7131467.00, 7131467.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 06-11-2026 Javier Harris Susanto, Ryuga Ghafi Allendra, Celestial Shaula Amaryllis, dkk. (total 12 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1847,7 +1847,7 @@ BEGIN;
 
     -- Journal CR-KID-20261107 (KIDINEST - 20261107): Rp 15,779,329.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('c9f5a8e1-befb-5bc0-bae7-22f39f8753cb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261107', 'CASH_RECEIPT', '2026-11-07', '2026-11-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261107', 15779329.00, 15779329.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 07-11-2026 Ryuzen Danta Akashterra, Shareefa Batrisya Ahmad, Daneen Maudi Eiliyah, dkk. (total 28 pasien) - Ref: Daily Report GRO');
+    VALUES ('c9f5a8e1-befb-5bc0-bae7-22f39f8753cb', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261107', 'CASH_RECEIPT', '2026-11-07', '2026-11-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261107', 15779329.00, 15779329.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 07-11-2026 Syahril Muadz Zayn, Noah Aaron Ferrizia Wiratama, Bhre Isa Baihaqi, dkk. (total 28 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1895,7 +1895,7 @@ BEGIN;
 
     -- Journal CR-KID-20261108 (KIDINEST - 20261108): Rp 10,011,954.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ff0827b6-fdbe-594f-a9ac-14f53e60d5dd', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261108', 'CASH_RECEIPT', '2026-11-08', '2026-11-08 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261108', 10011954.00, 10011954.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 08-11-2026 Ashley Tiffany Ritanto, Alfarizqi Arka Mahardika, Aldavin Nichel Ahmad, dkk. (total 17 pasien) - Ref: Daily Report GRO');
+    VALUES ('ff0827b6-fdbe-594f-a9ac-14f53e60d5dd', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261108', 'CASH_RECEIPT', '2026-11-08', '2026-11-08 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261108', 10011954.00, 10011954.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 08-11-2026 Aldavin Nichel Ahmad, Seranala Aizalea Savana, Aleeya Jennaira Munaf, dkk. (total 17 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1938,7 +1938,7 @@ BEGIN;
 
     -- Journal CR-KID-20261109 (KIDINEST - 20261109): Rp 11,109,391.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('9f08019c-6fbd-5f12-b52f-d4d0e1039385', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261109', 'CASH_RECEIPT', '2026-11-09', '2026-11-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261109', 11109391.00, 11109391.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 09-11-2026 Hanna Yasmine, Megumi Liara Aramina Zenin, Zayden Atharrazka Wijaya, dkk. (total 25 pasien) - Ref: Daily Report GRO');
+    VALUES ('9f08019c-6fbd-5f12-b52f-d4d0e1039385', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261109', 'CASH_RECEIPT', '2026-11-09', '2026-11-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261109', 11109391.00, 11109391.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 09-11-2026 Grace Vincentia Supraptono, Devanka Ilaan Altair, Mikayla Rosalind Onggabean, dkk. (total 25 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -1990,7 +1990,7 @@ BEGIN;
 
     -- Journal CR-KID-20261110 (KIDINEST - 20261110): Rp 11,300,652.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('295abf7b-06fc-59ff-92a6-4e058ecd97af', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261110', 'CASH_RECEIPT', '2026-11-10', '2026-11-10 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261110', 11300652.00, 11300652.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 10-11-2026 Mikael Ardian Giovano, Denaya Malaika Sidqi, Ryo Deandra Bagaskara, dkk. (total 20 pasien) - Ref: Daily Report GRO');
+    VALUES ('295abf7b-06fc-59ff-92a6-4e058ecd97af', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261110', 'CASH_RECEIPT', '2026-11-10', '2026-11-10 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261110', 11300652.00, 11300652.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 10-11-2026 Sierra Nadlyne, Odilia Claryne Auberta, Kiora Elena Maristella, dkk. (total 20 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2038,7 +2038,7 @@ BEGIN;
 
     -- Journal CR-KID-20261111 (KIDINEST - 20261111): Rp 5,606,432.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0f82b621-1bc7-522c-9b0a-dc33556deb32', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261111', 'CASH_RECEIPT', '2026-11-11', '2026-11-11 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261111', 5606432.00, 5606432.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 11-11-2026 Janis Latricia Dianti, Danisya Erudita Alfatiha, Vincenzo Haris Sutanto, dkk. (total 15 pasien) - Ref: Daily Report GRO');
+    VALUES ('0f82b621-1bc7-522c-9b0a-dc33556deb32', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261111', 'CASH_RECEIPT', '2026-11-11', '2026-11-11 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261111', 5606432.00, 5606432.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 11-11-2026 Shafaluna Adzqiara Savrinadeya, Kavi Arashaquille Dharmawan, Danisya Erudita Alfatiha, dkk. (total 15 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2069,7 +2069,7 @@ BEGIN;
 
     -- Journal CR-KID-20261112 (KIDINEST - 20261112): Rp 12,950,196.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('8b5ad27f-5314-52c7-a4cb-6619ea04f797', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261112', 'CASH_RECEIPT', '2026-11-12', '2026-11-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261112', 12950196.00, 12950196.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 12-11-2026 Gabriel Gavin Putra Naveka, Gamila Lovena Purnomo, Shaquille Ethan Alaric, dkk. (total 28 pasien) - Ref: Daily Report GRO');
+    VALUES ('8b5ad27f-5314-52c7-a4cb-6619ea04f797', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261112', 'CASH_RECEIPT', '2026-11-12', '2026-11-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261112', 12950196.00, 12950196.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 12-11-2026 Hisyam Tsaqif Saputro, Yoona Valerie, Qiao Jinchuan, dkk. (total 28 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2117,7 +2117,7 @@ BEGIN;
 
     -- Journal CR-KID-20261113 (KIDINEST - 20261113): Rp 5,798,319.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('a5590473-9fad-5ee1-bebf-69d6144a7a08', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261113', 'CASH_RECEIPT', '2026-11-13', '2026-11-13 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261113', 5798319.00, 5798319.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 13-11-2026 Yovella Meilody Puimera, Falisha Kyomi Shanaya, Syarafana Hiza Khayyira, dkk. (total 15 pasien) - Ref: Daily Report GRO');
+    VALUES ('a5590473-9fad-5ee1-bebf-69d6144a7a08', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261113', 'CASH_RECEIPT', '2026-11-13', '2026-11-13 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261113', 5798319.00, 5798319.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 13-11-2026 Yovella Meilody Puimera, Gianna Abigail Nugroho, Seranala Aizalea Savana, dkk. (total 15 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2161,7 +2161,7 @@ BEGIN;
 
     -- Journal CR-KID-20261114 (KIDINEST - 20261114): Rp 9,619,793.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('3b6ed001-436d-582b-9558-90f2a5733eda', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261114', 'CASH_RECEIPT', '2026-11-14', '2026-11-14 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261114', 9619793.00, 9619793.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 14-11-2026 Agnethe Thea Tjandra, Migunani Saka Janitra, Samagrasuta Maheswara, dkk. (total 21 pasien) - Ref: Daily Report GRO');
+    VALUES ('3b6ed001-436d-582b-9558-90f2a5733eda', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261114', 'CASH_RECEIPT', '2026-11-14', '2026-11-14 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261114', 9619793.00, 9619793.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 14-11-2026 Khaira Najwa Azzahra, Benjamin Nathanael Sarwono, Migunani Saka Janitra, dkk. (total 21 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2200,7 +2200,7 @@ BEGIN;
 
     -- Journal CR-KID-20261115 (KIDINEST - 20261115): Rp 3,664,940.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0f50cb69-062f-51b6-9944-c1dd0b7d9c85', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261115', 'CASH_RECEIPT', '2026-11-15', '2026-11-15 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261115', 3664940.00, 3664940.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 15-11-2026 Shaquille Ethan Alaric, Sultan Nael Ahmed, Arsy Medina Bhatarajiwa, dkk. (total 12 pasien) - Ref: Daily Report GRO');
+    VALUES ('0f50cb69-062f-51b6-9944-c1dd0b7d9c85', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261115', 'CASH_RECEIPT', '2026-11-15', '2026-11-15 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261115', 3664940.00, 3664940.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 15-11-2026 Arsy Medina Bhatarajiwa, Mahakertamada Bhre Dace, Mareea Maryam Rilora, dkk. (total 12 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2243,7 +2243,7 @@ BEGIN;
 
     -- Journal CR-KID-20261116 (KIDINEST - 20261116): Rp 13,607,071.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('f457a707-fab3-5f25-b705-58b94440d503', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261116', 'CASH_RECEIPT', '2026-11-16', '2026-11-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261116', 13607071.00, 13607071.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 16-11-2026 Janis Latricia Dianti, Noah AndersBenedict, Arkananta Zaydan Manaf Rahmani, dkk. (total 24 pasien) - Ref: Daily Report GRO');
+    VALUES ('f457a707-fab3-5f25-b705-58b94440d503', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261116', 'CASH_RECEIPT', '2026-11-16', '2026-11-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261116', 13607071.00, 13607071.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 16-11-2026 Camellia Khaira Arunika, Gavin Razelle Prakoso, Alara Farzana Setiawan, dkk. (total 24 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2282,7 +2282,7 @@ BEGIN;
 
     -- Journal CR-KID-20261117 (KIDINEST - 20261117): Rp 12,163,675.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ba19b845-5171-5923-aaa9-86c77b2d9bec', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261117', 'CASH_RECEIPT', '2026-11-17', '2026-11-17 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261117', 12163675.00, 12163675.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 17-11-2026 Rendy Shankara Ardyansyah, Prabu Jati Wisesa, Shirley Atheera Ahmed, dkk. (total 28 pasien) - Ref: Daily Report GRO');
+    VALUES ('ba19b845-5171-5923-aaa9-86c77b2d9bec', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261117', 'CASH_RECEIPT', '2026-11-17', '2026-11-17 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261117', 12163675.00, 12163675.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 17-11-2026 Aliyya Khairina Rahadi, Svetalana Mayra Angel Feisya, Sultan Nael Ahmed, dkk. (total 28 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2330,7 +2330,7 @@ BEGIN;
 
     -- Journal CR-KID-20261118 (KIDINEST - 20261118): Rp 2,440,531.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('027cadc2-743b-5f7f-9d19-666e7e1b3d5e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261118', 'CASH_RECEIPT', '2026-11-18', '2026-11-18 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261118', 2440531.00, 2440531.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 18-11-2026 Navano Bhavanda Akbar, Oryza Sativa Florencia Zaen, Naadhira Qalesya Wijaya, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('027cadc2-743b-5f7f-9d19-666e7e1b3d5e', 'a0000000-0000-0000-0000-000000000001', 'CR-KID-20261118', 'CASH_RECEIPT', '2026-11-18', '2026-11-18 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-KIDINEST-20261118', 2440531.00, 2440531.00, 'Penerimaan Kasir Harian [KIDINEST] - Tanggal 18-11-2026 Naadhira Qalesya Wijaya, Oryza Sativa Florencia Zaen, Kaizel Sagara Halvar, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2370,7 +2370,7 @@ BEGIN;
 
     -- Journal CR-SSC-20260926 (SSC - 20260926): Rp 2,000,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('4dcd3d35-c2b8-56e6-8bdd-d3e89ff9ff35', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260926', 'CASH_RECEIPT', '2026-09-26', '2026-09-26 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260926', 2000000.00, 2000000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 26-09-2026 Retno Sulistyowati, Yanna Theo Dora, Fanny Listiani, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('4dcd3d35-c2b8-56e6-8bdd-d3e89ff9ff35', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260926', 'CASH_RECEIPT', '2026-09-26', '2026-09-26 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260926', 2000000.00, 2000000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 26-09-2026 Retno Sulistyowati, Fanny Listiani, Vivi Handayani, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2406,7 +2406,7 @@ BEGIN;
 
     -- Journal CR-SSC-20260928 (SSC - 20260928): Rp 1,500,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('52916fa2-fb57-5718-8f9e-319be2dcd199', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260928', 'CASH_RECEIPT', '2026-09-28', '2026-09-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260928', 1500000.00, 1500000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 28-09-2026 Olivia Elena H, Teresia Yuliana, Fillie Imelda, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('52916fa2-fb57-5718-8f9e-319be2dcd199', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260928', 'CASH_RECEIPT', '2026-09-28', '2026-09-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260928', 1500000.00, 1500000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 28-09-2026 Marcella Davina Sulistyani, Fitri Dwi Aprilia, Olivia Elena H, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2446,7 +2446,7 @@ BEGIN;
 
     -- Journal CR-SSC-20260929 (SSC - 20260929): Rp 950,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('f8ab3832-88b5-5274-8db8-6003fc0f8956', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260929', 'CASH_RECEIPT', '2026-09-29', '2026-09-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260929', 950000.00, 950000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 29-09-2026 Vivian Eunike, Rachel Wansa, Benedict Matthew Wibowo, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('f8ab3832-88b5-5274-8db8-6003fc0f8956', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260929', 'CASH_RECEIPT', '2026-09-29', '2026-09-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260929', 950000.00, 950000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 29-09-2026 Rachel Wansa, Vivian Eunike, Novylia Susanti Hadi, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2473,7 +2473,7 @@ BEGIN;
 
     -- Journal CR-SSC-20260930 (SSC - 20260930): Rp 5,137,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('3d801087-44e9-5667-bf8f-fec9bb74f908', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260930', 'CASH_RECEIPT', '2026-09-30', '2026-09-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260930', 5137000.00, 5137000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 30-09-2026 Jessica Amara Wijaya, Carissa Nikita Wijaya, Juwita Kusumadewi, dkk. (total 8 pasien) - Ref: Daily Report GRO');
+    VALUES ('3d801087-44e9-5667-bf8f-fec9bb74f908', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20260930', 'CASH_RECEIPT', '2026-09-30', '2026-09-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20260930', 5137000.00, 5137000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 30-09-2026 Jessica Amara Wijaya, Cecilia Lely Prima, Kwik Moey Tjen, dkk. (total 8 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2517,7 +2517,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261001 (SSC - 20261001): Rp 10,155,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('521e6bcf-4b2d-5700-aa1d-ef6be372d200', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261001', 'CASH_RECEIPT', '2026-10-01', '2026-10-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261001', 10155000.00, 10155000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 01-10-2026 Susan Elvina, Silvia Soegiar S, Siti Aryani, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('521e6bcf-4b2d-5700-aa1d-ef6be372d200', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261001', 'CASH_RECEIPT', '2026-10-01', '2026-10-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261001', 10155000.00, 10155000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 01-10-2026 Silvia Soegiar S, Tjan Puput Wulandari H, Siti Aryani, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2565,7 +2565,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261002 (SSC - 20261002): Rp 2,150,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('91f5fcea-f658-5e2f-951a-6499a83b1509', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261002', 'CASH_RECEIPT', '2026-10-02', '2026-10-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261002', 2150000.00, 2150000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 02-10-2026 Jihan Faradilla, Felita, Salsa Triya Rahma Itsnani, dkk. (total 9 pasien) - Ref: Daily Report GRO');
+    VALUES ('91f5fcea-f658-5e2f-951a-6499a83b1509', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261002', 'CASH_RECEIPT', '2026-10-02', '2026-10-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261002', 2150000.00, 2150000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 02-10-2026 Felita, Fatiha Asti Amalia, Fanny Listiani, dkk. (total 9 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2649,7 +2649,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261006 (SSC - 20261006): Rp 4,741,398.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('14b96c44-71cb-51e4-8a10-eeb849615409', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261006', 'CASH_RECEIPT', '2026-10-06', '2026-10-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261006', 4741398.00, 4741398.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 06-10-2026 Tennesha Nelafrinanda, Ranu Hamukti Kusuma, Novalia Kuntardjo, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('14b96c44-71cb-51e4-8a10-eeb849615409', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261006', 'CASH_RECEIPT', '2026-10-06', '2026-10-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261006', 4741398.00, 4741398.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 06-10-2026 Ranu Hamukti Kusuma, Tennesha Nelafrinanda, Novalia Kuntardjo, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2719,7 +2719,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261009 (SSC - 20261009): Rp 550,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('5a381c75-cb3d-59b5-8779-0074963f4278', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261009', 'CASH_RECEIPT', '2026-10-09', '2026-10-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261009', 550000.00, 550000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 09-10-2026 Dian Nurul, Rony Hendarto (2 pasien) - Ref: Daily Report GRO');
+    VALUES ('5a381c75-cb3d-59b5-8779-0074963f4278', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261009', 'CASH_RECEIPT', '2026-10-09', '2026-10-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261009', 550000.00, 550000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 09-10-2026 Rony Hendarto, Dian Nurul (2 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2737,7 +2737,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261010 (SSC - 20261010): Rp 787,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('9d89deb5-163d-5e9e-bda4-c9a7fc2c679b', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261010', 'CASH_RECEIPT', '2026-10-10', '2026-10-10 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261010', 787500.00, 787500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 10-10-2026 Kirana Ramadani Putri Susilawatu, Yanti Sri Susilawati, Nabila Hazna, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('9d89deb5-163d-5e9e-bda4-c9a7fc2c679b', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261010', 'CASH_RECEIPT', '2026-10-10', '2026-10-10 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261010', 787500.00, 787500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 10-10-2026 Kirana Ramadani Putri Susilawatu, Yanti Sri Susilawati, Sifa Adila, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2764,7 +2764,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261011 (SSC - 20261011): Rp 6,275,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('4711efee-340d-5db7-9945-8b05bce8c52f', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261011', 'CASH_RECEIPT', '2026-10-11', '2026-10-11 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261011', 6275000.00, 6275000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 11-10-2026 Yenny Permatasari Santoso, Abby, Rima, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('4711efee-340d-5db7-9945-8b05bce8c52f', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261011', 'CASH_RECEIPT', '2026-10-11', '2026-10-11 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261011', 6275000.00, 6275000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 11-10-2026 Rima, Arshila Shadira Andarfa, Yenny Permatasari Santoso, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2803,7 +2803,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261012 (SSC - 20261012): Rp 3,196,765.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('288d3199-7d11-5b37-b71b-991f8f285c96', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261012', 'CASH_RECEIPT', '2026-10-12', '2026-10-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261012', 3196765.00, 3196765.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 12-10-2026 Agnes Budiarti, Devina Yuliastanti Setianto, Muhammad Bariq Putra Negara, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('288d3199-7d11-5b37-b71b-991f8f285c96', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261012', 'CASH_RECEIPT', '2026-10-12', '2026-10-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261012', 3196765.00, 3196765.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 12-10-2026 Listriani Gunawan, Adriana Eka, Devina Yuliastanti Setianto, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2873,7 +2873,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261014 (SSC - 20261014): Rp 1,313,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('13edc370-8cbd-5c8c-a54d-8f5a13df1d18', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261014', 'CASH_RECEIPT', '2026-10-14', '2026-10-14 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261014', 1313000.00, 1313000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 14-10-2026 Stephanie Emmanuel P S, Aurelia Adistya Muljono, Eugene Febrilia Alvina, dkk. (total 5 pasien) - Ref: Daily Report GRO');
+    VALUES ('13edc370-8cbd-5c8c-a54d-8f5a13df1d18', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261014', 'CASH_RECEIPT', '2026-10-14', '2026-10-14 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261014', 1313000.00, 1313000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 14-10-2026 Upik Nur Aprilia, Mahakertamada Bhre Dace, Stephanie Emmanuel P S, dkk. (total 5 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2908,7 +2908,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261015 (SSC - 20261015): Rp 3,798,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('b1aeb1b2-484a-525f-8a8b-888c1a43e3e2', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261015', 'CASH_RECEIPT', '2026-10-15', '2026-10-15 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261015', 3798000.00, 3798000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 15-10-2026 Salsabila Nabita, Jesslyn Felicia Chendra, Rani Natalia, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('b1aeb1b2-484a-525f-8a8b-888c1a43e3e2', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261015', 'CASH_RECEIPT', '2026-10-15', '2026-10-15 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261015', 3798000.00, 3798000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 15-10-2026 Jesslyn Felicia Chendra, Feronika Ardella Meirizka, Salsabila Nabita, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2939,7 +2939,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261016 (SSC - 20261016): Rp 2,068,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('1f15d401-cb79-52d6-ba2f-dfaed4bcdd03', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261016', 'CASH_RECEIPT', '2026-10-16', '2026-10-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261016', 2068500.00, 2068500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 16-10-2026 Listrijani Gunawan, Ogie Hartantyo, Yoanita, dkk. (total 5 pasien) - Ref: Daily Report GRO');
+    VALUES ('1f15d401-cb79-52d6-ba2f-dfaed4bcdd03', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261016', 'CASH_RECEIPT', '2026-10-16', '2026-10-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261016', 2068500.00, 2068500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 16-10-2026 Yoanita, Caesar Ayudhea, Ogie Hartantyo, dkk. (total 5 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -2974,7 +2974,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261017 (SSC - 20261017): Rp 3,169,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0e79e255-2941-5622-b954-a0421859ce8d', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261017', 'CASH_RECEIPT', '2026-10-17', '2026-10-17 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261017', 3169500.00, 3169500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 17-10-2026 Grace Kimendora Gautama, Lie Lee Hong, Felicia Setiawan, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('0e79e255-2941-5622-b954-a0421859ce8d', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261017', 'CASH_RECEIPT', '2026-10-17', '2026-10-17 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261017', 3169500.00, 3169500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 17-10-2026 Susana, Grace Kimendora Gautama, Liem Yohanes Kevin Shanjaya, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3022,7 +3022,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261018 (SSC - 20261018): Rp 1,390,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('499c2c10-44dd-5750-baaa-23b38c186db1', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261018', 'CASH_RECEIPT', '2026-10-18', '2026-10-18 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261018', 1390000.00, 1390000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 18-10-2026 Vina Santoso, Heni Idayani, Ina Ratnawati, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('499c2c10-44dd-5750-baaa-23b38c186db1', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261018', 'CASH_RECEIPT', '2026-10-18', '2026-10-18 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261018', 1390000.00, 1390000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 18-10-2026 Ong San Lien, Ina Ratnawati, Vina Santoso, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3089,7 +3089,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261021 (SSC - 20261021): Rp 5,060,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('3a4b0606-df0a-5fad-b8a7-610066c63e58', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261021', 'CASH_RECEIPT', '2026-10-21', '2026-10-21 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261021', 5060000.00, 5060000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 21-10-2026 Marcella Davina Sulistyani, Fiona Sudarmana, Lie Lee Hong, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('3a4b0606-df0a-5fad-b8a7-610066c63e58', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261021', 'CASH_RECEIPT', '2026-10-21', '2026-10-21 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261021', 5060000.00, 5060000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 21-10-2026 Lia Kartikasari, Lie Lee Hong, Marcella Davina Sulistyani, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3124,7 +3124,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261022 (SSC - 20261022): Rp 6,775,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ad24cc3d-f23f-542f-98bb-3a95b54f8b02', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261022', 'CASH_RECEIPT', '2026-10-22', '2026-10-22 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261022', 6775000.00, 6775000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 22-10-2026 Nani Kristyawati, Dzakkiyatul Ulya Alfiannas Tito, Endah Sasmitohening, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('ad24cc3d-f23f-542f-98bb-3a95b54f8b02', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261022', 'CASH_RECEIPT', '2026-10-22', '2026-10-22 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261022', 6775000.00, 6775000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 22-10-2026 Hugo Hendarto, Nani Kristyawati, Dzakkiyatul Ulya Alfiannas Tito, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3185,7 +3185,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261024 (SSC - 20261024): Rp 2,055,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('5ec6d60d-4ee1-5457-a761-665efcaab1ab', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261024', 'CASH_RECEIPT', '2026-10-24', '2026-10-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261024', 2055000.00, 2055000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 24-10-2026 Norma Rani, Dimas Bayu Suharno, Roseh Hartati, dkk. (total 5 pasien) - Ref: Daily Report GRO');
+    VALUES ('5ec6d60d-4ee1-5457-a761-665efcaab1ab', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261024', 'CASH_RECEIPT', '2026-10-24', '2026-10-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261024', 2055000.00, 2055000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 24-10-2026 Dimas Bayu Suharno, Melisa Christinawai, Roseh Hartati, dkk. (total 5 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3203,7 +3203,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261025 (SSC - 20261025): Rp 3,224,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('c996785a-cf77-5190-ab3c-f495d90cd9e6', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261025', 'CASH_RECEIPT', '2026-10-25', '2026-10-25 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261025', 3224000.00, 3224000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 25-10-2026 Lina Maulida, D Nina Sartini, Peregrina Mutiara Bramantyo, dkk. (total 8 pasien) - Ref: Daily Report GRO');
+    VALUES ('c996785a-cf77-5190-ab3c-f495d90cd9e6', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261025', 'CASH_RECEIPT', '2026-10-25', '2026-10-25 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261025', 3224000.00, 3224000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 25-10-2026 Rizki Intan Wahyu Utami, D Nina Sartini, Lina Maulida, dkk. (total 8 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3261,7 +3261,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261027 (SSC - 20261027): Rp 7,045,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('d769e824-62fe-55c3-a3c2-f5054455b8d3', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261027', 'CASH_RECEIPT', '2026-10-27', '2026-10-27 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261027', 7045000.00, 7045000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 27-10-2026 Felita Alverina Sugandha, Jonathan Puguh Suhadi, Isnia Pratiwi, dkk. (total 5 pasien) - Ref: Daily Report GRO');
+    VALUES ('d769e824-62fe-55c3-a3c2-f5054455b8d3', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261027', 'CASH_RECEIPT', '2026-10-27', '2026-10-27 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261027', 7045000.00, 7045000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 27-10-2026 Ririn Puryanti, Jonathan Puguh Suhadi, Isnia Pratiwi, dkk. (total 5 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3296,7 +3296,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261028 (SSC - 20261028): Rp 4,620,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('d9643b1e-82ce-570f-bf0c-339d248744e1', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261028', 'CASH_RECEIPT', '2026-10-28', '2026-10-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261028', 4620000.00, 4620000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 28-10-2026 Elsa Pithaloka Putri, Veronika Angtama, Yoke Siswanto, dkk. (total 9 pasien) - Ref: Daily Report GRO');
+    VALUES ('d9643b1e-82ce-570f-bf0c-339d248744e1', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261028', 'CASH_RECEIPT', '2026-10-28', '2026-10-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261028', 4620000.00, 4620000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 28-10-2026 Elsa Pithaloka Putri, Mindalena, Nabila Ananda Putri, dkk. (total 9 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3340,7 +3340,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261029 (SSC - 20261029): Rp 5,925,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('d0d1d2b7-0e6a-521a-9467-ab15e5c62b2d', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261029', 'CASH_RECEIPT', '2026-10-29', '2026-10-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261029', 5925000.00, 5925000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 29-10-2026 Thea Permata, Rooswana, Cynthia Carolina Santoso, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('d0d1d2b7-0e6a-521a-9467-ab15e5c62b2d', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261029', 'CASH_RECEIPT', '2026-10-29', '2026-10-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261029', 5925000.00, 5925000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 29-10-2026 Cynthia Carolina Santoso, Thea Permata, Sisilia Astuti, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3375,7 +3375,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261030 (SSC - 20261030): Rp 6,491,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('3fd2073f-5512-5a6f-a4c8-0faebd0b1920', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261030', 'CASH_RECEIPT', '2026-10-30', '2026-10-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261030', 6491500.00, 6491500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 30-10-2026 Nur Azizah, Salsabila Nabita, Faralika Anfaqa, dkk. (total 10 pasien) - Ref: Daily Report GRO');
+    VALUES ('3fd2073f-5512-5a6f-a4c8-0faebd0b1920', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261030', 'CASH_RECEIPT', '2026-10-30', '2026-10-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261030', 6491500.00, 6491500.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 30-10-2026 Feronika Ardella Meirizka, Isowedha Widya Dewi, Fadia Qistina Sidqi, dkk. (total 10 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3410,7 +3410,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261031 (SSC - 20261031): Rp 13,960,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('a128619b-2948-5933-8140-b8d870eb4619', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261031', 'CASH_RECEIPT', '2026-10-31', '2026-10-31 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261031', 13960000.00, 13960000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 31-10-2026 Gladys Johan, Safa Maharashtr, Marcia Ayu (3 pasien) - Ref: Daily Report GRO');
+    VALUES ('a128619b-2948-5933-8140-b8d870eb4619', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261031', 'CASH_RECEIPT', '2026-10-31', '2026-10-31 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261031', 13960000.00, 13960000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 31-10-2026 Marcia Ayu, Gladys Johan, Safa Maharashtr (3 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3445,7 +3445,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261101 (SSC - 20261101): Rp 1,140,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('eb832e18-7414-5b31-a0e4-663c32126721', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261101', 'CASH_RECEIPT', '2026-11-01', '2026-11-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261101', 1140000.00, 1140000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 01-11-2026 Titis Dyah Hapsari, Natalia Giofanny, Aurelia Adistya Muljono (3 pasien) - Ref: Daily Report GRO');
+    VALUES ('eb832e18-7414-5b31-a0e4-663c32126721', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261101', 'CASH_RECEIPT', '2026-11-01', '2026-11-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261101', 1140000.00, 1140000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 01-11-2026 Natalia Giofanny, Titis Dyah Hapsari, Aurelia Adistya Muljono (3 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3463,7 +3463,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261102 (SSC - 20261102): Rp 4,530,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('d7ec900d-b444-538d-9b94-efd0f47cef29', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261102', 'CASH_RECEIPT', '2026-11-02', '2026-11-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261102', 4530000.00, 4530000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 02-11-2026 Fellen, Ambar Prihartini, Tiffany Prayogo Tjoe, dkk. (total 10 pasien) - Ref: Daily Report GRO');
+    VALUES ('d7ec900d-b444-538d-9b94-efd0f47cef29', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261102', 'CASH_RECEIPT', '2026-11-02', '2026-11-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261102', 4530000.00, 4530000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 02-11-2026 Fellen, Diasa Ayu Raharni, Jessica Pratiknyo, dkk. (total 10 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3494,7 +3494,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261103 (SSC - 20261103): Rp 6,023,750.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0355b9c5-e431-5891-a8e2-8c474601a41b', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261103', 'CASH_RECEIPT', '2026-11-03', '2026-11-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261103', 6023750.00, 6023750.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 03-11-2026 Yuanita, Dhimas Wicaksono, Angela Valensia Siejaya, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('0355b9c5-e431-5891-a8e2-8c474601a41b', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261103', 'CASH_RECEIPT', '2026-11-03', '2026-11-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261103', 6023750.00, 6023750.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 03-11-2026 Cemara Disa, Yuanita, Angela Valensia Siejaya, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3525,7 +3525,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261104 (SSC - 20261104): Rp 1,280,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('7a21a1cd-c209-5984-b7e2-e158cf0473fa', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261104', 'CASH_RECEIPT', '2026-11-04', '2026-11-04 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261104', 1280000.00, 1280000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 04-11-2026 Soekarno Bastian, Yunita Arumningsih, Christina Dewi Soesanto, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('7a21a1cd-c209-5984-b7e2-e158cf0473fa', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261104', 'CASH_RECEIPT', '2026-11-04', '2026-11-04 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261104', 1280000.00, 1280000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 04-11-2026 Yunita Arumningsih, Soekarno Bastian, Christina Dewi Soesanto, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3547,7 +3547,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261105 (SSC - 20261105): Rp 1,105,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('e5ab9013-06a3-56f4-8edf-3c13f476ec33', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261105', 'CASH_RECEIPT', '2026-11-05', '2026-11-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261105', 1105000.00, 1105000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 05-11-2026 Iin Viriany, Sia Vania Margareta, Lie Lee Hong, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('e5ab9013-06a3-56f4-8edf-3c13f476ec33', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261105', 'CASH_RECEIPT', '2026-11-05', '2026-11-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261105', 1105000.00, 1105000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 05-11-2026 Tresniawati, Lie Lee Hong, Iin Viriany, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3578,7 +3578,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261106 (SSC - 20261106): Rp 2,550,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('fed08b23-3a94-512f-8ed5-8c8dc35388a5', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261106', 'CASH_RECEIPT', '2026-11-06', '2026-11-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261106', 2550000.00, 2550000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 06-11-2026 Tjioe Liana Tiawarman, Lenawati Djojo Santoso, Melita Tetriani Darmawan, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('fed08b23-3a94-512f-8ed5-8c8dc35388a5', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261106', 'CASH_RECEIPT', '2026-11-06', '2026-11-06 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261106', 2550000.00, 2550000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 06-11-2026 Lenawati Djojo Santoso, Melita Tetriani Darmawan, Kezia Dwi Sutjipto, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3600,7 +3600,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261107 (SSC - 20261107): Rp 31,002,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('edb6c914-d56a-5230-a85b-01b19998c455', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261107', 'CASH_RECEIPT', '2026-11-07', '2026-11-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261107', 31002000.00, 31002000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 07-11-2026 Erdina Adiwati, Sudibyo Singgih, Aldiba Dodiek Tasan Wartono, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('edb6c914-d56a-5230-a85b-01b19998c455', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261107', 'CASH_RECEIPT', '2026-11-07', '2026-11-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261107', 31002000.00, 31002000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 07-11-2026 Sudibyo Singgih, Erdina Adiwati, Aldiba Dodiek Tasan Wartono, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3656,7 +3656,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261109 (SSC - 20261109): Rp 1,630,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ea8bc6b3-0b44-5a41-b9a7-64d956f1a0be', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261109', 'CASH_RECEIPT', '2026-11-09', '2026-11-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261109', 1630000.00, 1630000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 09-11-2026 Carmenita Budihartono, Tony Prajogo, Lidiawati Surjanto, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('ea8bc6b3-0b44-5a41-b9a7-64d956f1a0be', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261109', 'CASH_RECEIPT', '2026-11-09', '2026-11-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261109', 1630000.00, 1630000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 09-11-2026 Lidiawati Surjanto, Tony Prajogo, Carmenita Budihartono, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3730,7 +3730,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261112 (SSC - 20261112): Rp 1,050,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('7bed86db-a583-53b9-80d4-125b2b98443d', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261112', 'CASH_RECEIPT', '2026-11-12', '2026-11-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261112', 1050000.00, 1050000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 12-11-2026 Fogik Ervanda, Cynthia Carolina Santoso, Rima Adjani Nugroho, dkk. (total 5 pasien) - Ref: Daily Report GRO');
+    VALUES ('7bed86db-a583-53b9-80d4-125b2b98443d', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261112', 'CASH_RECEIPT', '2026-11-12', '2026-11-12 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261112', 1050000.00, 1050000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 12-11-2026 Cynthia Carolina Santoso, Agus Sutrisno, Roni Setyaji, dkk. (total 5 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3806,7 +3806,7 @@ BEGIN;
 
     -- Journal CR-SSC-20261116 (SSC - 20261116): Rp 4,295,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('1f704272-2ea5-5d93-887e-3aded17dcb94', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261116', 'CASH_RECEIPT', '2026-11-16', '2026-11-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261116', 4295000.00, 4295000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 16-11-2026 Upik Nur Aprilia, Noviandi Hutagaol, Susi Herawati, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('1f704272-2ea5-5d93-887e-3aded17dcb94', 'a0000000-0000-0000-0000-000000000002', 'CR-SSC-20261116', 'CASH_RECEIPT', '2026-11-16', '2026-11-16 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-SSC-20261116', 4295000.00, 4295000.00, 'Penerimaan Kasir Harian [SSC] - Tanggal 16-11-2026 Upik Nur Aprilia, Susi Herawati, Noviandi Hutagaol, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3878,7 +3878,7 @@ BEGIN;
 
     -- Journal CR-MNM-20260928 (MINIMO - 20260928): Rp 375,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('08450f37-ced7-5d58-919e-097521625747', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20260928', 'CASH_RECEIPT', '2026-09-28', '2026-09-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20260928', 375000.00, 375000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 28-09-2026 Elon Savio Budiono, Nael Zevran Arkhairym, Ethan Filbert Budiono (3 pasien) - Ref: Daily Report GRO');
+    VALUES ('08450f37-ced7-5d58-919e-097521625747', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20260928', 'CASH_RECEIPT', '2026-09-28', '2026-09-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20260928', 375000.00, 375000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 28-09-2026 Elon Savio Budiono, Ethan Filbert Budiono, Nael Zevran Arkhairym (3 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3923,7 +3923,7 @@ BEGIN;
 
     -- Journal CR-MNM-20260930 (MINIMO - 20260930): Rp 185,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('7f25a5c0-010b-55b1-ba0e-e36d7e88ad73', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20260930', 'CASH_RECEIPT', '2026-09-30', '2026-09-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20260930', 185000.00, 185000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 30-09-2026 Fabiola Celina Susanto, Bianca Gracella Handojo (2 pasien) - Ref: Daily Report GRO');
+    VALUES ('7f25a5c0-010b-55b1-ba0e-e36d7e88ad73', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20260930', 'CASH_RECEIPT', '2026-09-30', '2026-09-30 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20260930', 185000.00, 185000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 30-09-2026 Bianca Gracella Handojo, Fabiola Celina Susanto (2 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3959,7 +3959,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261002 (MINIMO - 20261002): Rp 3,010,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('f4d8528b-a70e-5095-bd1a-08a111f3bfcd', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261002', 'CASH_RECEIPT', '2026-10-02', '2026-10-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261002', 3010000.00, 3010000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 02-10-2026 Leander Othniel Parerung, Richard Helios, Odilia Claryne Auberta, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('f4d8528b-a70e-5095-bd1a-08a111f3bfcd', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261002', 'CASH_RECEIPT', '2026-10-02', '2026-10-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261002', 3010000.00, 3010000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 02-10-2026 Odilia Claryne Auberta, Kaysan Muhammad Andiansyah, Marshall Calyson Sadara, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -3986,7 +3986,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261003 (MINIMO - 20261003): Rp 5,162,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('54147fe5-c4aa-5bf6-a708-fab598343330', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261003', 'CASH_RECEIPT', '2026-10-03', '2026-10-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261003', 5162500.00, 5162500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 03-10-2026 Immanuel David Wijaya, Mahalio Yahya Jiwandanu, Daphne Fumiko Wijaya, dkk. (total 10 pasien) - Ref: Daily Report GRO');
+    VALUES ('54147fe5-c4aa-5bf6-a708-fab598343330', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261003', 'CASH_RECEIPT', '2026-10-03', '2026-10-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261003', 5162500.00, 5162500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 03-10-2026 Daphne Fumiko Wijaya, Syra Aurelia, Chester Power Hartono, dkk. (total 10 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4013,7 +4013,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261005 (MINIMO - 20261005): Rp 2,425,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('a85217c0-51a4-59d3-9bc0-fa39105f6e28', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261005', 'CASH_RECEIPT', '2026-10-05', '2026-10-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261005', 2425000.00, 2425000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 05-10-2026 Immanuel David Wijaya, Rumaisha Safa Rahmindra, Isaac Elio Simeon, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('a85217c0-51a4-59d3-9bc0-fa39105f6e28', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261005', 'CASH_RECEIPT', '2026-10-05', '2026-10-05 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261005', 2425000.00, 2425000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 05-10-2026 Rumaisha Safa Rahmindra, Rayyanza Salman Rahmandra, Immanuel David Wijaya, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4058,7 +4058,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261007 (MINIMO - 20261007): Rp 350,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('5358205c-db3a-5acc-ae27-03707a008dce', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261007', 'CASH_RECEIPT', '2026-10-07', '2026-10-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261007', 350000.00, 350000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 07-10-2026 Kyra Thalassa Shanum, Samantha Abigail Saputra (2 pasien) - Ref: Daily Report GRO');
+    VALUES ('5358205c-db3a-5acc-ae27-03707a008dce', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261007', 'CASH_RECEIPT', '2026-10-07', '2026-10-07 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261007', 350000.00, 350000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 07-10-2026 Samantha Abigail Saputra, Kyra Thalassa Shanum (2 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4094,7 +4094,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261009 (MINIMO - 20261009): Rp 350,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0784800f-6969-5736-8b53-c0d5006e0970', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261009', 'CASH_RECEIPT', '2026-10-09', '2026-10-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261009', 350000.00, 350000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 09-10-2026 Aldrich Ramos Sinaga, Elmarshad Rais Rafazka (2 pasien) - Ref: Daily Report GRO');
+    VALUES ('0784800f-6969-5736-8b53-c0d5006e0970', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261009', 'CASH_RECEIPT', '2026-10-09', '2026-10-09 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261009', 350000.00, 350000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 09-10-2026 Elmarshad Rais Rafazka, Aldrich Ramos Sinaga (2 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4130,7 +4130,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261013 (MINIMO - 20261013): Rp 875,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('aba18708-6035-5de2-9a5a-fb7371229951', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261013', 'CASH_RECEIPT', '2026-10-13', '2026-10-13 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261013', 875000.00, 875000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 13-10-2026 Shaziva Zerryn Khumaira, Benjamin Nathanael Sarwono, Zuyyina Shanum Aurellia Hanin, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('aba18708-6035-5de2-9a5a-fb7371229951', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261013', 'CASH_RECEIPT', '2026-10-13', '2026-10-13 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261013', 875000.00, 875000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 13-10-2026 Qiao Jinchuan, Shaziva Zerryn Khumaira, Benjamin Nathanael Sarwono, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4229,7 +4229,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261021 (MINIMO - 20261021): Rp 612,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('0a0c6b6d-d361-5ad0-953a-9b1900a5a10a', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261021', 'CASH_RECEIPT', '2026-10-21', '2026-10-21 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261021', 612500.00, 612500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 21-10-2026 Bernadette Clousia, Samantha Abigail Saputra (2 pasien) - Ref: Daily Report GRO');
+    VALUES ('0a0c6b6d-d361-5ad0-953a-9b1900a5a10a', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261021', 'CASH_RECEIPT', '2026-10-21', '2026-10-21 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261021', 612500.00, 612500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 21-10-2026 Samantha Abigail Saputra, Bernadette Clousia (2 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4247,7 +4247,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261022 (MINIMO - 20261022): Rp 1,400,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('ce5d07e9-6def-5a28-8654-7d70f0514354', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261022', 'CASH_RECEIPT', '2026-10-22', '2026-10-22 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261022', 1400000.00, 1400000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 22-10-2026 Ellora Lavanya Shaqeela, Maheera Naradynandri Ansara (2 pasien) - Ref: Daily Report GRO');
+    VALUES ('ce5d07e9-6def-5a28-8654-7d70f0514354', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261022', 'CASH_RECEIPT', '2026-10-22', '2026-10-22 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261022', 1400000.00, 1400000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 22-10-2026 Maheera Naradynandri Ansara, Ellora Lavanya Shaqeela (2 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4265,7 +4265,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261023 (MINIMO - 20261023): Rp 262,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('6f1313b5-0539-5a26-91f3-e28b280ade8f', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261023', 'CASH_RECEIPT', '2026-10-23', '2026-10-23 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261023', 262500.00, 262500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 23-10-2026 Maureen Kana Wijaya, Syahdanputro Nugroho, Salmaputri Novitasari (3 pasien) - Ref: Daily Report GRO');
+    VALUES ('6f1313b5-0539-5a26-91f3-e28b280ade8f', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261023', 'CASH_RECEIPT', '2026-10-23', '2026-10-23 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261023', 262500.00, 262500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 23-10-2026 Salmaputri Novitasari, Maureen Kana Wijaya, Syahdanputro Nugroho (3 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4292,7 +4292,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261024 (MINIMO - 20261024): Rp 700,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('8c418fce-9f93-5282-a9cf-0ad1ef02f8bf', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261024', 'CASH_RECEIPT', '2026-10-24', '2026-10-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261024', 700000.00, 700000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 24-10-2026 Yuna Eleora Russlyn, Saqueena DamarBagisha, Ghania Sea Anasera, dkk. (total 5 pasien) - Ref: Daily Report GRO');
+    VALUES ('8c418fce-9f93-5282-a9cf-0ad1ef02f8bf', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261024', 'CASH_RECEIPT', '2026-10-24', '2026-10-24 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261024', 700000.00, 700000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 24-10-2026 Jeremiah Russel, Kendrick Oliver Candra, Yuna Eleora Russlyn, dkk. (total 5 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4346,7 +4346,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261027 (MINIMO - 20261027): Rp 1,400,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('a32d6821-4a0e-5a9c-b574-078e47cba966', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261027', 'CASH_RECEIPT', '2026-10-27', '2026-10-27 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261027', 1400000.00, 1400000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 27-10-2026 Narendra Sagara Aryaputra, Gabe Elianno Altsaga, Royce Wibowo, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('a32d6821-4a0e-5a9c-b574-078e47cba966', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261027', 'CASH_RECEIPT', '2026-10-27', '2026-10-27 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261027', 1400000.00, 1400000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 27-10-2026 Narendra Sagara Aryaputra, Royce Wibowo, Bima Adhikara Pradana, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4382,7 +4382,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261028 (MINIMO - 20261028): Rp 1,312,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('88be1409-9674-5fbb-937b-8844f030e986', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261028', 'CASH_RECEIPT', '2026-10-28', '2026-10-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261028', 1312500.00, 1312500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 28-10-2026 Loui Asher Gunawan, Alysha Wibowo, Dave Maverick Gunawan (3 pasien) - Ref: Daily Report GRO');
+    VALUES ('88be1409-9674-5fbb-937b-8844f030e986', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261028', 'CASH_RECEIPT', '2026-10-28', '2026-10-28 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261028', 1312500.00, 1312500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 28-10-2026 Dave Maverick Gunawan, Loui Asher Gunawan, Alysha Wibowo (3 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4409,7 +4409,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261029 (MINIMO - 20261029): Rp 2,100,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('9c227cbe-b93d-5c2e-9c58-f6a1a464f999', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261029', 'CASH_RECEIPT', '2026-10-29', '2026-10-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261029', 2100000.00, 2100000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 29-10-2026 Kahiyang Almahira Guzel Nugraha, Kyra Thalassa Shanum, Jaler CendekiaBashara Siddiq, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('9c227cbe-b93d-5c2e-9c58-f6a1a464f999', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261029', 'CASH_RECEIPT', '2026-10-29', '2026-10-29 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261029', 2100000.00, 2100000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 29-10-2026 Kyra Thalassa Shanum, Jaler CendekiaBashara Siddiq, Seraphina Meera Zafira, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4445,7 +4445,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261031 (MINIMO - 20261031): Rp 1,312,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('1335da66-d0b8-54bd-93bd-fdea68656cf5', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261031', 'CASH_RECEIPT', '2026-10-31', '2026-10-31 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261031', 1312500.00, 1312500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 31-10-2026 Eloisa Stella Valencia Santoso, Gavriel Oliver Wijaya, Denaya Malaika Sidqi, dkk. (total 6 pasien) - Ref: Daily Report GRO');
+    VALUES ('1335da66-d0b8-54bd-93bd-fdea68656cf5', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261031', 'CASH_RECEIPT', '2026-10-31', '2026-10-31 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261031', 1312500.00, 1312500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 31-10-2026 Elion Satya Theophilus, Eloisa Stella Valencia Santoso, Denaya Malaika Sidqi, dkk. (total 6 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4481,7 +4481,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261101 (MINIMO - 20261101): Rp 1,225,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('c1f4d808-3341-556e-adbc-afbb2ed16d42', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261101', 'CASH_RECEIPT', '2026-11-01', '2026-11-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261101', 1225000.00, 1225000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 01-11-2026 Zayyan Argadinanta, Habib Satria, Kinara Anindhita Nafisa, dkk. (total 4 pasien) - Ref: Daily Report GRO');
+    VALUES ('c1f4d808-3341-556e-adbc-afbb2ed16d42', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261101', 'CASH_RECEIPT', '2026-11-01', '2026-11-01 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261101', 1225000.00, 1225000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 01-11-2026 Habib Satria, Kinara Anindhita Nafisa, Hamizan Sakha, dkk. (total 4 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4508,7 +4508,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261102 (MINIMO - 20261102): Rp 612,500.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('7dbb05a0-6eb7-5d3b-a89a-3ac4629d9bf0', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261102', 'CASH_RECEIPT', '2026-11-02', '2026-11-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261102', 612500.00, 612500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 02-11-2026 Olivjer Bjorn Hadirahardja, Phoenix Trygve Hadirahardja, Arshila Shadira Andarfa, dkk. (total 5 pasien) - Ref: Daily Report GRO');
+    VALUES ('7dbb05a0-6eb7-5d3b-a89a-3ac4629d9bf0', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261102', 'CASH_RECEIPT', '2026-11-02', '2026-11-02 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261102', 612500.00, 612500.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 02-11-2026 Arshila Shadira Andarfa, Elsie Claire Tjahjadi, Phoenix Trygve Hadirahardja, dkk. (total 5 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)
@@ -4526,7 +4526,7 @@ BEGIN;
 
     -- Journal CR-MNM-20261103 (MINIMO - 20261103): Rp 2,450,000.00
     INSERT INTO journal_entries (id, branch_id, journal_number, journal_type, transaction_date, posting_date, status, reference_type, reference_id, total_debit, total_credit, description)
-    VALUES ('95e15e9d-fe02-5c1a-8430-d5b03cdd2405', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261103', 'CASH_RECEIPT', '2026-11-03', '2026-11-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261103', 2450000.00, 2450000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 03-11-2026 Vivianne Eleanor, Ibrahim Ahmad Algifa, Alayya Rafa Azura, dkk. (total 7 pasien) - Ref: Daily Report GRO');
+    VALUES ('95e15e9d-fe02-5c1a-8430-d5b03cdd2405', 'a0000000-0000-0000-0000-000000000001', 'CR-MNM-20261103', 'CASH_RECEIPT', '2026-11-03', '2026-11-03 21:00:00+07', 'POSTED', 'CASHIER_CLOSING', 'GRO-MINIMO-20261103', 2450000.00, 2450000.00, 'Penerimaan Kasir Harian [MINIMO] - Tanggal 03-11-2026 Mahakertamada Bhre Dace, Alayya Rafa Azura, Ayrton Sidney Maverick, dkk. (total 7 pasien) - Ref: Daily Report GRO');
         
 
     INSERT INTO journal_lines (id, journal_entry_id, account_id, debit, credit, description)

@@ -46,9 +46,11 @@ async function handleLogout() {
             'px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150',
             store.businessUnit === unit.code
               ? unit.code === 'KIDINEST'
-                ? 'bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs'
+                ? 'bg-blue-100 text-blue-950 border border-blue-300 shadow-2xs'
                 : unit.code === 'SSC'
                 ? 'bg-rose-100 text-rose-950 border border-rose-300 shadow-2xs'
+                : unit.code === 'MINIMO'
+                ? 'bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs'
                 : 'bg-zinc-950 text-white shadow-2xs'
               : 'text-zinc-600 hover:text-zinc-950'
           ]"
@@ -67,9 +69,13 @@ async function handleLogout() {
           @change="(e: any) => store.setFiscalMonth(Number(e.target.value))"
           class="pl-8 pr-7 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-900 text-xs rounded-xl font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none appearance-none cursor-pointer"
         >
-          <option :value="3">Maret 2026 (Open)</option>
-          <option :value="2">Februari 2026 (Locked)</option>
-          <option :value="1">Januari 2026 (Locked)</option>
+          <option :value="11">November 2026 (Aktif / Berjalan)</option>
+          <option :value="10">Oktober 2026 (Lengkap)</option>
+          <option :value="9">September 2026 (Soft Launch)</option>
+          <option :value="0">Semua Periode (YTD 2026)</option>
+          <option :value="3">Maret 2026</option>
+          <option :value="2">Februari 2026</option>
+          <option :value="1">Januari 2026</option>
         </select>
         <ChevronDown class="w-3.5 h-3.5 text-zinc-400 absolute right-2 pointer-events-none" />
       </div>

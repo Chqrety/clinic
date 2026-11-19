@@ -180,7 +180,7 @@ function scrollToSection(id: string) {
                 : 'bg-[#9E606D] hover:bg-[#8B505D]'
             "
           >
-            <span>Ambil Antrian</span>
+            <span>Pendaftaran Online</span>
             <ArrowRight class="w-3.5 h-3.5" />
           </button>
         </div>
@@ -237,14 +237,12 @@ function scrollToSection(id: string) {
       <!-- Mobile Sister Clinic Link -->
       <div class="pt-2 border-t border-zinc-100 flex items-center justify-between text-xs px-3">
         <span class="text-zinc-500 font-medium">Fasilitas Lain:</span>
-        <button
+        <span
           v-if="currentBrand === 'kidinest'"
-          @click="emit('navigate', 'ssc'); mobileMenuOpen = false"
-          class="font-bold text-[#9E606D] flex items-center gap-1 hover:underline"
+          class="text-xs text-zinc-400 font-medium"
         >
-          <span>Layanan Kulit (SSC)</span>
-          <ArrowUpRight class="w-3.5 h-3.5" />
-        </button>
+          Semarang Medical Group
+        </span>
         <button
           v-else
           @click="emit('navigate', 'kidinest'); mobileMenuOpen = false"
@@ -274,7 +272,7 @@ function scrollToSection(id: string) {
           class="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-center text-white shadow-xs"
           :class="currentBrand === 'kidinest' ? 'bg-[#0C3B36]' : 'bg-[#9E606D]'"
         >
-          Ambil Antrian Online →
+          Pendaftaran Online →
         </button>
       </div>
     </div>

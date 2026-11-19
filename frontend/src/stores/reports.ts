@@ -32,68 +32,84 @@ export const useReportsStore = defineStore('reports', () => {
   // Profit & Loss Data Structure based on Blueprint Kidinest & SSC
   const revenueItems = ref<ProfitLossItem[]>([
     {
-      code: '4-1110',
+      code: '4-1100',
+      name: 'Pendapatan Registrasi & Skrining Anak',
+      kidinestAmount: 5955500,
+      sscAmount: 0,
+      totalAmount: 5955500,
+      percentage: 0.7
+    },
+    {
+      code: '4-1200',
       name: 'Pendapatan Jasa Konsultasi Spesialis Anak (Sp.A)',
-      kidinestAmount: 115000000,
+      kidinestAmount: 209015753,
       sscAmount: 0,
-      totalAmount: 115000000,
-      percentage: 21.3
+      totalAmount: 209015753,
+      percentage: 26.0
     },
     {
-      code: '4-1120',
+      code: '4-1300',
       name: 'Pendapatan Tindakan Vaksinasi & Imunisasi Anak',
-      kidinestAmount: 32000000,
+      kidinestAmount: 163311280,
       sscAmount: 0,
-      totalAmount: 32000000,
-      percentage: 5.9
+      totalAmount: 163311280,
+      percentage: 20.3
     },
     {
-      code: '4-1130',
-      name: 'Pendapatan Layanan Terapi & Tumbuh Kembang Anak',
-      kidinestAmount: 18000000,
+      code: '4-1400',
+      name: 'Pendapatan Layanan Terapi & Minimo Baby Spa',
+      kidinestAmount: 38461500,
       sscAmount: 0,
-      totalAmount: 18000000,
-      percentage: 3.3
+      totalAmount: 38461500,
+      percentage: 4.8
     },
     {
-      code: '4-1140',
-      name: 'Pendapatan Penjualan Obat Resep Farmasi Anak',
-      kidinestAmount: 62000000,
+      code: '4-1500',
+      name: 'Pendapatan Penjualan Obat Resep Farmasi Kidinest',
+      kidinestAmount: 166294701,
       sscAmount: 0,
-      totalAmount: 62000000,
-      percentage: 11.5
+      totalAmount: 166294701,
+      percentage: 20.7
     },
     {
-      code: '4-2110',
+      code: '4-2100',
       name: 'Pendapatan Konsultasi Dokter Estetika & Kulit (Sp.DVE)',
       kidinestAmount: 0,
-      sscAmount: 65000000,
-      totalAmount: 65000000,
-      percentage: 12.0
+      sscAmount: 4128245,
+      totalAmount: 4128245,
+      percentage: 0.5
     },
     {
-      code: '4-2120',
-      name: 'Pendapatan Tindakan Medis Laser & Cauter SSC',
+      code: '4-2200',
+      name: 'Pendapatan Tindakan Facial & Treatment Terapis SSC',
       kidinestAmount: 0,
-      sscAmount: 145000000,
-      totalAmount: 145000000,
-      percentage: 26.9
+      sscAmount: 118540000,
+      totalAmount: 118540000,
+      percentage: 14.8
     },
     {
-      code: '4-2130',
-      name: 'Pendapatan Tindakan Facial & Treatment Terapis',
+      code: '4-2300',
+      name: 'Pendapatan Tindakan Laser, Cauter & Peeling SSC',
       kidinestAmount: 0,
-      sscAmount: 35000000,
-      totalAmount: 35000000,
-      percentage: 6.5
+      sscAmount: 56377500,
+      totalAmount: 56377500,
+      percentage: 7.0
     },
     {
-      code: '4-2140',
-      name: 'Pendapatan Penjualan Produk Skincare & Kosmetika',
+      code: '4-2400',
+      name: 'Pendapatan Penjualan Produk Skincare & Sunscreen SSC',
       kidinestAmount: 0,
-      sscAmount: 68000000,
-      totalAmount: 68000000,
-      percentage: 12.6
+      sscAmount: 43573641,
+      totalAmount: 43573641,
+      percentage: 5.4
+    },
+    {
+      code: '4-1900',
+      name: 'Potongan Penjualan & Voucher Promosi Pasien',
+      kidinestAmount: 0,
+      sscAmount: -1806000,
+      totalAmount: -1806000,
+      percentage: -0.2
     }
   ])
 
@@ -261,31 +277,31 @@ export const useReportsStore = defineStore('reports', () => {
 
   // Balance Sheet Data per Blueprint
   const balanceSheet = computed(() => {
-    // Current Assets
-    const kasOperasional = 88600000 // 45.2jt (Kidinest) + 38.4jt (SSC) + 5jt (Petty Cash)
-    const bankOperasional = 442100000 // 242jt (BCA) + 185.6jt (Mandiri) + 14.5jt (Kliring)
-    const piutangPasien = 64200000 // 21.4jt (Pasien) + 42.8jt (Asuransi)
-    const persediaan = 98500000 // 38.2jt (Obat) + 24.5jt (Vaksin) + 12.4jt (BMHP) + 23.4jt (Skincare)
-    const ppnMasukan = 8400000
+    // Current Assets aligned with Daily Report GRO & Clinic Ledgers
+    const kasOperasional = 32794909 // Kas Kasir Kidinest (26.5jt) + Kas Kasir SSC (1.26jt) + Petty Cash (5jt)
+    const bankOperasional = 647588514 // Bank BCA Operasional & Kliring QRIS Gateway
+    const piutangPasien = 103000000 // Piutang Pasien, Asuransi (38jt) & Piutang BPJS (65jt)
+    const persediaan = 168500000 // Persediaan Obat (57jt) + Vaksin (70jt) + Skincare (19.5jt) + BMHP (22jt)
+    const ppnMasukan = 0
     const totalAsetLancar = kasOperasional + bankOperasional + piutangPasien + persediaan + ppnMasukan
 
     // Fixed Assets
-    const asetTetapGross = 750000000 // 250jt (Poli Anak) + 500jt (Laser SSC)
+    const asetTetapGross = 750000000 // USG 4D Pediatri (250jt) + Mesin Laser Nd:YAG SSC (500jt)
     const akumulasiPenyusutan = 125000000
     const totalAsetTetapNet = asetTetapGross - akumulasiPenyusutan
 
     const totalAset = totalAsetLancar + totalAsetTetapNet
 
     // Liabilities
-    const hutangDistributor = 58200000 // 38.2jt (PBF) + 20jt (Skincare)
-    const hutangDokter = 42100000 // 18.4jt (Dokter Anak) + 23.7jt (Dokter Kulit)
-    const hutangPajak = 22750000 // PPh 21 Dokter (7.85jt) + PPh 23 (2.4jt) + PPN Keluaran (12.5jt)
+    const hutangDistributor = 81420000 // Hutang Supplier Obat/Vaksin (57jt) + Skincare/BMHP (24.42jt)
+    const hutangDokter = 45000000 // Hutang Jasa Medis Dokter & Gaji Berjalan
+    const hutangPajak = 14867500 // Hutang Pajak PPh 21 Dokter, PPh 23 & Final 4(2)
     const totalKewajiban = hutangDistributor + hutangDokter + hutangPajak
 
     // Equity
-    const modalDisetor = 800000000
-    const labaDitahan = 215450000
+    const modalDisetor = 1000000000
     const labaTahunBerjalan = profitLossSummary.value.netProfit
+    const labaDitahan = Math.max(0, totalAset - totalKewajiban - modalDisetor - labaTahunBerjalan)
     const totalEkuitas = modalDisetor + labaDitahan + labaTahunBerjalan
 
     const totalKewajibanDanEkuitas = totalKewajiban + totalEkuitas

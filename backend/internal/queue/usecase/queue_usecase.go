@@ -89,11 +89,23 @@ func (u *QueueUsecase) RegisterQueue(ctx context.Context, input domain.RegisterI
 	}
 
 	// 2. Cabang Logika Unit Bisnis
+	defaultTime := "09:00"
+	if input.AppointmentTime == nil || *input.AppointmentTime == "" {
+		input.AppointmentTime = &defaultTime
+	}
+
 	if input.ClinicUnit == domain.UnitKidinest {
 		// KIDINEST: Bayar registrasi di muka (Rp 50.000). Nomor antrian baru terbit setelah pembayaran lunas (FIFO Invariant).
 		initStatus := domain.QueueWaiting
 		if isFuture {
 			initStatus = domain.QueueBooked
+		}
+
+		// Sesuai Master Prompt Bagian 3 C:
+		// A, B, C: Rp 200.000, D: Rp 250.000
+		regFee := 200000
+		if input.Category == domain.CategoryPaket || input.Category == "D_PAKET" || input.Category == "D" {
+			regFee = 250000
 		}
 
 		q := &domain.QueueItem{
@@ -108,7 +120,7 @@ func (u *QueueUsecase) RegisterQueue(ctx context.Context, input domain.RegisterI
 			AppointmentDate: input.AppointmentDate,
 			AppointmentTime: input.AppointmentTime,
 			QueueNumber:     "MENUNGGU-BAYAR",
-			RegistrationFee: 50000,
+			RegistrationFee: regFee,
 			PaymentMethod:   input.PaymentMethod,
 			PaymentStatus:   domain.PaymentPending,
 			QueueStatus:     initStatus,
@@ -207,15 +219,15 @@ func (u *QueueUsecase) RegisterQueue(ctx context.Context, input domain.RegisterI
 	}
 
 	// SEMARANG SKIN CENTER (SSC): Booking jadwal Rp0 di awal.
-	var queueNum string
-	if isFuture {
-		queueNum = fmt.Sprintf("BK-SSC-%04d", time.Now().UnixNano()%10000)
-	} else {
-		var err error
-		queueNum, err = u.queueRepo.GenerateNextQueueNumber(ctx, now, domain.UnitSSC, domain.CategoryTreatment)
-		if err != nil {
-			return nil, fmt.Errorf("gagal menerbitkan nomor antrian SSC: %w", err)
+	targetDateSSC := now
+	if input.AppointmentDate != nil && *input.AppointmentDate != "" {
+		if t, err := time.Parse("2006-01-02", *input.AppointmentDate); err == nil {
+			targetDateSSC = t
 		}
+	}
+	queueNum, err := u.queueRepo.GenerateNextQueueNumber(ctx, targetDateSSC, domain.UnitSSC, domain.CategoryTreatment)
+	if err != nil {
+		return nil, fmt.Errorf("gagal menerbitkan nomor antrian SSC: %w", err)
 	}
 
 	q := &domain.QueueItem{
@@ -272,18 +284,16 @@ func (u *QueueUsecase) VerifyPayment(ctx context.Context, queueID int64) (*domai
 		return nil, domain.ErrPaymentAlreadyProcessed
 	}
 
-	today := time.Now().Format("2006-01-02")
-	isFuture := q.AppointmentDate != nil && *q.AppointmentDate > today
-
-	var queueNumber string
-	if isFuture {
-		queueNumber = fmt.Sprintf("BK-KID-%04d", q.ID)
-	} else {
-		var err error
-		queueNumber, err = u.queueRepo.GenerateNextQueueNumber(ctx, time.Now(), q.ClinicUnit, q.Category)
-		if err != nil {
-			return nil, fmt.Errorf("gagal menerbitkan nomor antrian FIFO: %w", err)
+	targetDate := time.Now()
+	if q.AppointmentDate != nil && *q.AppointmentDate != "" {
+		if t, err := time.Parse("2006-01-02", *q.AppointmentDate); err == nil {
+			targetDate = t
 		}
+	}
+
+	queueNumber, err := u.queueRepo.GenerateNextQueueNumber(ctx, targetDate, q.ClinicUnit, q.Category)
+	if err != nil {
+		return nil, fmt.Errorf("gagal menerbitkan nomor antrian FIFO: %w", err)
 	}
 
 	updatedQueue, err := u.queueRepo.UpdatePaymentSuccess(ctx, queueID, queueNumber)
@@ -319,18 +329,16 @@ func (u *QueueUsecase) completePaymentSuccess(ctx context.Context, refs ...strin
 		return nil
 	}
 
-	today := time.Now().Format("2006-01-02")
-	isFuture := q.AppointmentDate != nil && *q.AppointmentDate > today
-
-	var queueNumber string
-	if isFuture {
-		queueNumber = fmt.Sprintf("BK-KID-%04d", q.ID)
-	} else {
-		var err error
-		queueNumber, err = u.queueRepo.GenerateNextQueueNumber(ctx, time.Now(), q.ClinicUnit, q.Category)
-		if err != nil {
-			return fmt.Errorf("gagal menerbitkan nomor antrian FIFO: %w", err)
+	targetDate := time.Now()
+	if q.AppointmentDate != nil && *q.AppointmentDate != "" {
+		if t, err := time.Parse("2006-01-02", *q.AppointmentDate); err == nil {
+			targetDate = t
 		}
+	}
+
+	queueNumber, err := u.queueRepo.GenerateNextQueueNumber(ctx, targetDate, q.ClinicUnit, q.Category)
+	if err != nil {
+		return fmt.Errorf("gagal menerbitkan nomor antrian FIFO: %w", err)
 	}
 
 	updatedQueue, err := u.queueRepo.UpdatePaymentSuccess(ctx, q.ID, queueNumber)

@@ -31,6 +31,25 @@ const auth = useAuthStore()
 
 const isRoleMenuOpen = ref(false)
 
+// Sesuai Master Prompt Bagian 2 (Struktur Entitas):
+// 1. CV Semarang Medical Group: Kidinest, SSC, GRO
+// 2. CV Semarang Medical Clinic: Farmasi, Apoteker, Gudang Logistik
+const activeEntityInfo = computed(() => {
+  if (['pharmacy', 'inventory'].includes(store.currentRole)) {
+    return {
+      entity: 'CV Semarang Medical Clinic',
+      unitDesc: 'Apotek & Logistik Medis',
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+    }
+  }
+  return {
+    entity: 'CV Semarang Medical Group',
+    unitDesc: 'Kidinest & SSC Care',
+    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+  }
+})
+
+
 interface MenuRole {
   key: RoleType
   label: string
@@ -101,11 +120,11 @@ async function handleLogout() {
           </div>
           <div>
             <div class="font-extrabold text-xs tracking-tight text-white leading-tight">
-              Semarang Medical Group
+              {{ activeEntityInfo.entity }}
             </div>
-            <div class="text-[10px] text-zinc-400 font-medium flex items-center gap-1.5 mt-0.5">
+            <div class="text-[10px] font-medium flex items-center gap-1.5 mt-0.5">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <span>Sistem Operasional V2.4</span>
+              <span class="text-zinc-400">{{ activeEntityInfo.unitDesc }}</span>
             </div>
           </div>
         </div>

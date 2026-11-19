@@ -224,6 +224,8 @@ watchEffect(() => {
     const code = node.accountCode || node.code || ''
     if (tbMap.has(code)) {
       node.amount = tbMap.get(code)!
+    } else {
+      node.amount = 0
     }
     return node.amount
   }

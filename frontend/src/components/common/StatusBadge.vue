@@ -93,6 +93,12 @@ const badgeConfig = computed(() => {
         bg: 'bg-rose-50 text-rose-700 border-rose-200',
         dot: 'bg-rose-500'
       }
+    case 'MINIMO':
+      return {
+        label: 'Minimo',
+        bg: 'bg-amber-50 text-amber-700 border-amber-200',
+        dot: 'bg-amber-500'
+      }
     case 'ALL':
       return {
         label: 'Konsolidasi',

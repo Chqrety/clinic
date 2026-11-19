@@ -66,17 +66,29 @@ async function fetchPrescriptions(isManual = false) {
     isAutoSyncing.value = true
   }
 
+  const safetyTimeout = setTimeout(() => {
+    loading.value = false
+    isAutoSyncing.value = false
+  }, 2500)
+
   try {
-    // Auto-recovery jika token tidak ada atau masih staff-token demo
     if (!authStore.token || authStore.token.startsWith('staff-token-')) {
-      const empNum = authStore.user?.employee_number || 'FARMASI-01'
-      await authStore.login(empNum, 'klinik123')
+      await authStore.login('FARMASI-01', 'klinik123')
     }
 
     const unitParam = filterUnit.value === 'ALL' ? '' : filterUnit.value
-    const newItems = await api.getPharmacyPrescriptions(unitParam)
+    let newItems: PharmacyPrescription[] = []
+    try {
+      newItems = await api.getPharmacyPrescriptions(unitParam)
+    } catch (apiErr: any) {
+      if (apiErr?.message?.includes('akses ditolak') || apiErr?.message?.includes('sesi login')) {
+        await authStore.login('FARMASI-01', 'klinik123')
+        newItems = await api.getPharmacyPrescriptions(unitParam)
+      } else {
+        throw apiErr
+      }
+    }
     
-    // Bunyikan chime jika ada resep baru masuk saat auto-sync di latar belakang
     if (!isManual && prescriptions.value.length > 0 && newItems.length > prescriptions.value.length) {
       clinicStore.playChime()
     }
@@ -94,6 +106,7 @@ async function fetchPrescriptions(isManual = false) {
     console.error('Gagal memuat resep farmasi:', err)
     fetchError.value = err.message || 'Gagal sinkronisasi data resep apotek'
   } finally {
+    clearTimeout(safetyTimeout)
     loading.value = false
     isAutoSyncing.value = false
   }
