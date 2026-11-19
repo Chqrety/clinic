@@ -32,7 +32,10 @@ backend/*.http
 # Logs & temp
 *.log
 *.xlsx
+*.xls
 *.csv
+image/
+referensi/
 .DS_Store
 .vscode/
 .idea/
