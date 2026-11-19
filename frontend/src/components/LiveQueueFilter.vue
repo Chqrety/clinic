@@ -341,19 +341,6 @@ const modalFilteredQueues = computed(() => {
             </div>
           </div>
         </div>
-
-        <!-- Action Button Ringkas -->
-        <div class="pt-2">
-          <button
-            @click="emit('register')"
-            class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-95"
-            :class="brand === 'kidinest' ? 'bg-[#0C3B36] hover:bg-[#134E48]' : 'bg-[#9E606D] hover:bg-[#8B505D]'"
-          >
-            <span>Ambil Antrian Online</span>
-            <ArrowRight class="w-3.5 h-3.5" />
-          </button>
-        </div>
-
       </div>
 
       <!-- Kanan: 3 Antrian Berikutnya (Hairline Rows) (Col 5) -->

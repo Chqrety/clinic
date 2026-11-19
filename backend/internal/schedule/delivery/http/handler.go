@@ -146,3 +146,14 @@ func (h *ScheduleHandler) UpdateDoctorSchedule(w http.ResponseWriter, r *http.Re
 	response.Success(w, http.StatusOK, map[string]string{"message": "jadwal shift dokter berhasil diperbarui"})
 }
 
+func (h *ScheduleHandler) GetPublicSchedulesSummary(w http.ResponseWriter, r *http.Request) {
+	unit := r.URL.Query().Get("unit")
+	summaries, err := h.usecase.GetPublicSchedulesSummary(r.Context(), unit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "gagal mengambil ringkasan jadwal dokter: "+err.Error())
+		return
+	}
+	response.Success(w, http.StatusOK, summaries)
+}
+
+

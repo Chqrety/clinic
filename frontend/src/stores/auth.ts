@@ -37,6 +37,8 @@ export const useAuthStore = defineStore('auth', () => {
   function clearAuth() {
     token.value = ''
     user.value = null
+    error.value = null
+    isLoading.value = false
     localStorage.removeItem('clinic_auth_token')
     localStorage.removeItem('clinic_token')
     localStorage.removeItem('clinic_auth_user')

@@ -101,9 +101,10 @@ function handleSelectRole(role: RoleType) {
 }
 
 async function handleLogout() {
+  window.location.hash = ''
   await auth.logout()
   emit('navigate', 'login')
-  router.push('/login')
+  router.push('/login-kidinest')
 }
 </script>
 

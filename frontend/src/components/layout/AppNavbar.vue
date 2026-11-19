@@ -24,9 +24,10 @@ const localeStore = useLocaleStore()
 const showNotifications = ref(false)
 
 async function handleLogout() {
+  window.location.hash = ''
   await authStore.logout()
   store.showToast('Berhasil logout dari sistem akuntansi', 'info')
-  router.push('/login')
+  router.push('/login-kidinest')
 }
 </script>
 

@@ -23,33 +23,12 @@ interface ApiResponse<T> {
   error?: string
 }
 
-async function getValidAuthToken(): Promise<string> {
-  let token = localStorage.getItem('clinic_auth_token') || localStorage.getItem('clinic_token') || ''
-  if (!token) {
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employee_number: 'FIN-01', password: 'klinik123' })
-      })
-      const data = await res.json()
-      if (data.success && data.data?.token) {
-        token = data.data.token
-        localStorage.setItem('clinic_auth_token', token)
-        localStorage.setItem('clinic_token', token)
-        if (data.data.user) {
-          localStorage.setItem('clinic_auth_user', JSON.stringify(data.data.user))
-        }
-      }
-    } catch {
-      // offline / mock mode fallback
-    }
-  }
-  return token
+function getValidAuthToken(): string {
+  return localStorage.getItem('clinic_auth_token') || localStorage.getItem('clinic_token') || ''
 }
 
-async function request<T>(endpoint: string, options?: RequestInit, isRetry = false): Promise<ApiResponse<T>> {
-  let token = await getValidAuthToken()
+async function request<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+  const token = getValidAuthToken()
   const res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
@@ -61,11 +40,17 @@ async function request<T>(endpoint: string, options?: RequestInit, isRetry = fal
     },
   })
 
-  if (res.status === 401 && !isRetry) {
-    // Refresh token and retry once
+  if (res.status === 401) {
     localStorage.removeItem('clinic_auth_token')
     localStorage.removeItem('clinic_token')
-    return request<T>(endpoint, options, true)
+    localStorage.removeItem('clinic_auth_user')
+    let errMsg = 'Sesi login telah berakhir (401), silakan login kembali.'
+    try {
+      const errJson = await res.json()
+      if (errJson.message) errMsg = errJson.message
+      else if (errJson.error) errMsg = errJson.error
+    } catch {}
+    throw new Error(errMsg)
   }
 
   if (!res.ok) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useClinicStore, type RoleType } from '../stores/clinic'
 import { useAuthStore } from '../stores/auth'
 import { Stethoscope, Pill, CreditCard, Package, Receipt, ShieldCheck, LogOut, Volume2, VolumeX, UserCheck } from 'lucide-vue-next'
@@ -9,6 +10,7 @@ const emit = defineEmits<{
 
 const store = useClinicStore()
 const auth = useAuthStore()
+const router = useRouter()
 
 const roles: Array<{ key: RoleType; label: string; icon: any }> = [
   { key: 'owner', label: 'Atasan/Owner', icon: ShieldCheck },
@@ -45,8 +47,10 @@ function getStaffTitle(role: RoleType) {
 }
 
 async function handleLogout() {
+  window.location.hash = ''
   await auth.logout()
-  emit('navigate', 'landing')
+  emit('navigate', 'login')
+  router.push('/login-kidinest')
 }
 </script>
 

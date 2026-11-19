@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"clinic-api/internal/schedule/domain"
@@ -208,3 +210,145 @@ func (u *ScheduleUsecase) UpdateDoctorSchedule(ctx context.Context, s *domain.Do
 func (u *ScheduleUsecase) RemoveDoctorLeave(ctx context.Context, doctorID int64, date string) error {
 	return u.repo.DeleteDoctorOverride(ctx, doctorID, date)
 }
+
+func getDoctorSpecialty(name, unit string) string {
+	lower := strings.ToLower(name)
+	if strings.Contains(lower, "patricia") {
+		return "Spesialis Anak & Vaksinasi Pediatri"
+	}
+	if strings.Contains(lower, "hendra") {
+		return "Konsultan Tumbuh Kembang & Nutrisi"
+	}
+	if strings.Contains(lower, "dian") {
+		return "Spesialis Dermatologi & Venereologi"
+	}
+	if strings.Contains(lower, "kevin") {
+		return "Spesialis Kulit & Estetika Medis"
+	}
+	if unit == "KIDINEST" {
+		return "Spesialis Anak (Pediatri)"
+	}
+	return "Dokter Spesialis"
+}
+
+func formatDaysRange(days []int) string {
+	if len(days) == 0 {
+		return "Belum Ada Jadwal"
+	}
+	sort.Ints(days)
+	dayNames := map[int]string{
+		0: "Minggu",
+		1: "Senin",
+		2: "Selasa",
+		3: "Rabu",
+		4: "Kamis",
+		5: "Jumat",
+		6: "Sabtu",
+	}
+	isConsecutive := true
+	for i := 1; i < len(days); i++ {
+		if days[i] != days[i-1]+1 {
+			isConsecutive = false
+			break
+		}
+	}
+	if isConsecutive && len(days) >= 3 {
+		return fmt.Sprintf("%s – %s", dayNames[days[0]], dayNames[days[len(days)-1]])
+	}
+	var names []string
+	for _, d := range days {
+		if name, ok := dayNames[d]; ok {
+			names = append(names, name)
+		}
+	}
+	return strings.Join(names, ", ")
+}
+
+func (u *ScheduleUsecase) GetPublicSchedulesSummary(ctx context.Context, unit string) ([]domain.DoctorScheduleSummary, error) {
+	doctors, err := u.repo.GetDoctorsByUnit(ctx, unit)
+	if err != nil {
+		return nil, fmt.Errorf("gagal mengambil daftar dokter: %w", err)
+	}
+
+	today := time.Now()
+	todayStr := today.Format("2006-01-02")
+	todayDayOfWeek := int(today.Weekday()) // 0=Sunday, 1=Monday...
+
+	var summaries []domain.DoctorScheduleSummary
+	for _, doc := range doctors {
+		schedules, err := u.repo.GetDoctorSchedules(ctx, doc.ID)
+		if err != nil {
+			continue
+		}
+
+		overrides, _ := u.repo.GetDoctorOverrides(ctx, doc.ID, todayStr, todayStr)
+		isOnLeave := false
+		for _, o := range overrides {
+			if o.OverrideDate == todayStr && o.IsCancelled {
+				isOnLeave = true
+				break
+			}
+		}
+
+		var activeDays []int
+		shiftName := "PAGI"
+		startTime := "08:30"
+		endTime := "12:00"
+		slotMin := 30
+		quota := 1
+		isPracticingToday := false
+
+		for _, s := range schedules {
+			if s.IsActive {
+				activeDays = append(activeDays, s.DayOfWeek)
+				shiftName = s.ShiftName
+				startTime = s.StartTime
+				endTime = s.EndTime
+				slotMin = s.SlotMinutes
+				quota = s.QuotaPerSlot
+				if s.DayOfWeek == todayDayOfWeek {
+					isPracticingToday = true
+				}
+			}
+		}
+
+		daysText := formatDaysRange(activeDays)
+		timeText := fmt.Sprintf("%s – %s WIB", startTime, endTime)
+
+		todayStatus := "Libur Hari Ini"
+		if isOnLeave {
+			todayStatus = "Cuti Hari Ini"
+			isPracticingToday = false
+		} else if isPracticingToday {
+			todayStatus = fmt.Sprintf("Praktik Hari Ini (%s – %s WIB)", startTime, endTime)
+		} else if len(activeDays) > 0 {
+			todayStatus = fmt.Sprintf("Jadwal: %s (%s)", daysText, timeText)
+		}
+
+		availDates, _ := u.GetDoctorAvailableSchedule(ctx, doc.ID, 7)
+
+		summaries = append(summaries, domain.DoctorScheduleSummary{
+			DoctorID:          doc.ID,
+			DoctorName:        doc.Name,
+			Role:              doc.Role,
+			ClinicUnit:        doc.ClinicUnit,
+			RoomName:          doc.RoomName,
+			Specialty:         getDoctorSpecialty(doc.Name, doc.ClinicUnit),
+			ShiftName:         shiftName,
+			DaysText:          daysText,
+			TimeText:          timeText,
+			StartTime:         startTime,
+			EndTime:           endTime,
+			SlotMinutes:       slotMin,
+			QuotaPerSlot:      quota,
+			IsPracticingToday: isPracticingToday,
+			IsOnLeaveToday:    isOnLeave,
+			TodayStatus:       todayStatus,
+			WeeklySchedules:   schedules,
+			AvailableDates:    availDates,
+		})
+	}
+
+	return summaries, nil
+}
+

@@ -249,15 +249,28 @@ router.beforeEach(async (to: any, _from: any, next: any) => {
     document.title = `${to.meta.title} - Sistem Klinik & Akuntansi`
   }
 
-  // Route Guard: Lindungi seluruh rute /accounting/* wajib login role keuangan atau owner
-  if (to.path.startsWith('/accounting')) {
-    const authStore = useAuthStore()
+  const authStore = useAuthStore()
 
+  // Route Guard: Lindungi seluruh workstation /admin wajib login
+  if (to.path === '/admin' || to.path.startsWith('/admin')) {
     if (!authStore.isAuthenticated) {
       const ok = await authStore.fetchMe()
       if (!ok) {
         return next({
-          path: '/login',
+          path: '/login-kidinest',
+          query: { redirect: to.fullPath }
+        })
+      }
+    }
+  }
+
+  // Route Guard: Lindungi seluruh rute /accounting/* wajib login role keuangan atau owner
+  if (to.path.startsWith('/accounting')) {
+    if (!authStore.isAuthenticated) {
+      const ok = await authStore.fetchMe()
+      if (!ok) {
+        return next({
+          path: '/login-kidinest',
           query: { redirect: to.fullPath }
         })
       }

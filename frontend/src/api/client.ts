@@ -141,6 +141,11 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
       },
     })
     clearTimeout(timeoutId)
+    if (res.status === 401) {
+      localStorage.removeItem('clinic_token')
+      localStorage.removeItem('clinic_auth_token')
+      localStorage.removeItem('clinic_auth_user')
+    }
     const json = await res.json()
     if (!json.success) {
       throw new Error(json.error || 'Terjadi kesalahan sistem')
@@ -538,6 +543,14 @@ export const api = {
   getSatusehatStats: () => request<SatusehatStats>('/satusehat/stats'),
   getSatusehatEncounter: (queueId: number) => request<any>(`/satusehat/encounter/${queueId}`),
   syncSatusehat: (queueId: number) => request<void>(`/satusehat/sync/${queueId}`, { method: 'POST' }),
+
+  // Public Doctor Schedules
+  getPublicDoctorSchedulesSummary: (unit = 'KIDINEST') =>
+    request<any[]>(`/public/doctors/schedules/summary?unit=${encodeURIComponent(unit)}`),
+  getPublicDoctors: (unit = 'KIDINEST') =>
+    request<any[]>(`/public/doctors?unit=${encodeURIComponent(unit)}`),
+  getPublicDoctorWeeklySchedules: (doctorId: number) =>
+    request<any[]>(`/public/doctors/${doctorId}/weekly`),
 
   // Doctor Schedule & Leave Management
   getDoctorWeeklySchedules: (doctorId: number) =>

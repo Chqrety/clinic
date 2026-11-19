@@ -60,6 +60,12 @@ function formatDate(val?: string) {
 }
 
 async function fetchPrescriptions(isManual = false) {
+  if (!authStore.isAuthenticated) {
+    loading.value = false
+    isAutoSyncing.value = false
+    return
+  }
+
   if (isManual) {
     loading.value = true
   } else {
@@ -72,22 +78,8 @@ async function fetchPrescriptions(isManual = false) {
   }, 2500)
 
   try {
-    if (!authStore.token || authStore.token.startsWith('staff-token-')) {
-      await authStore.login('FARMASI-01', 'klinik123')
-    }
-
     const unitParam = filterUnit.value === 'ALL' ? '' : filterUnit.value
-    let newItems: PharmacyPrescription[] = []
-    try {
-      newItems = await api.getPharmacyPrescriptions(unitParam)
-    } catch (apiErr: any) {
-      if (apiErr?.message?.includes('akses ditolak') || apiErr?.message?.includes('sesi login')) {
-        await authStore.login('FARMASI-01', 'klinik123')
-        newItems = await api.getPharmacyPrescriptions(unitParam)
-      } else {
-        throw apiErr
-      }
-    }
+    const newItems = await api.getPharmacyPrescriptions(unitParam)
     
     if (!isManual && prescriptions.value.length > 0 && newItems.length > prescriptions.value.length) {
       clinicStore.playChime()

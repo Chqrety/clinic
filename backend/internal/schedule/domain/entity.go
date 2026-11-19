@@ -57,6 +57,27 @@ type DoctorInfo struct {
 	RoomName   string `json:"room_name,omitempty"`
 }
 
+type DoctorScheduleSummary struct {
+	DoctorID          int64            `json:"doctor_id"`
+	DoctorName        string           `json:"doctor_name"`
+	Role              string           `json:"role"`
+	ClinicUnit        string           `json:"clinic_unit"`
+	RoomName          string           `json:"room_name"`
+	Specialty         string           `json:"specialty"`
+	ShiftName         string           `json:"shift_name"`
+	DaysText          string           `json:"days_text"`
+	TimeText          string           `json:"time_text"`
+	StartTime         string           `json:"start_time"`
+	EndTime           string           `json:"end_time"`
+	SlotMinutes       int              `json:"slot_minutes"`
+	QuotaPerSlot      int              `json:"quota_per_slot"`
+	IsPracticingToday bool             `json:"is_practicing_today"`
+	IsOnLeaveToday    bool             `json:"is_on_leave_today"`
+	TodayStatus       string           `json:"today_status"`
+	WeeklySchedules   []DoctorSchedule `json:"weekly_schedules"`
+	AvailableDates    []AvailableDate  `json:"available_dates,omitempty"`
+}
+
 type ScheduleRepository interface {
 	GetDoctorsByUnit(ctx context.Context, unit string) ([]DoctorInfo, error)
 	GetDoctorSchedules(ctx context.Context, doctorID int64) ([]DoctorSchedule, error)

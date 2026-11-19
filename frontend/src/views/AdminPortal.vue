@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useClinicStore } from '../stores/clinic'
 import { useAuthStore } from '../stores/auth'
 import AdminSidebar from '../components/AdminSidebar.vue'
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 
 const store = useClinicStore()
 const auth = useAuthStore()
+const router = useRouter()
 
 const validRoles = ['owner', 'doctor', 'pharmacy', 'cashier', 'inventory', 'billing', 'satusehat']
 
@@ -45,13 +47,17 @@ watch(() => store.currentRole, (newRole) => {
 })
 
 onMounted(async () => {
+  if (!auth.isAuthenticated) {
+    const ok = await auth.fetchMe()
+    if (!ok) {
+      router.push('/login-kidinest')
+      return
+    }
+  }
   if (!window.location.hash) {
     window.location.hash = store.currentRole || 'cashier'
   }
   window.addEventListener('hashchange', syncRoleFromHash)
-  if (auth.token && !auth.user) {
-    await auth.fetchMe()
-  }
 })
 
 onUnmounted(() => {

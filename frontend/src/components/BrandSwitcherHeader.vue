@@ -135,7 +135,7 @@ function scrollToSection(id: string) {
         <!-- Right: Link Santai Sister Clinic + Login Staf + Single Primary CTA -->
         <div class="hidden sm:flex items-center gap-3">
           <!-- Link Santai Sister Clinic (Bukan Switcher Tab) -->
-          <button
+          <!-- <button
             v-if="currentBrand === 'kidinest'"
             @click="emit('navigate', 'ssc')"
             class="text-xs font-semibold text-[#0C3B36]/70 hover:text-[#0C3B36] flex items-center gap-1 transition-colors hover:underline underline-offset-4 cursor-pointer"
@@ -153,10 +153,10 @@ function scrollToSection(id: string) {
           >
             <span>Poli Anak (Kidinest)</span>
             <ArrowUpRight class="w-3.5 h-3.5 opacity-60" />
-          </button>
+          </button> -->
 
           <!-- Login Staf Medis Button -->
-          <button
+          <!-- <button
             @click="emit('navigate', currentBrand === 'kidinest' ? 'login-kidinest' : 'login-ssc')"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs hover:bg-black/5 active:scale-95"
             :class="
@@ -168,7 +168,7 @@ function scrollToSection(id: string) {
           >
             <ShieldCheck class="w-3.5 h-3.5" />
             <span>Login Staf</span>
-          </button>
+          </button> -->
 
           <!-- Single Primary CTA Button -->
           <button
