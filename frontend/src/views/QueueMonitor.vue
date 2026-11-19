@@ -97,8 +97,8 @@ let eventSource: EventSource | null = null
 let pollInterval: any = null
 const lastCalledQueueNumber = ref('')
 
-// Sesuai Master Prompt Bagian 4 B:
-// Masking nama pasien: A***** P***** (hanya huruf depan masing-masing kata, sisanya bintang)
+// Sesuai Master Prompt & Permintaan Pengguna Poin 27:
+// Masking nama pasien: contoh Ananda Pratama -> A*** P***
 function maskPatientName(name?: string): string {
   if (!name) return ''
   return name
@@ -106,8 +106,9 @@ function maskPatientName(name?: string): string {
     .split(/\s+/)
     .map((w) => {
       if (w.length === 0) return ''
-      return w[0].toUpperCase() + '*****'
+      return w[0].toUpperCase() + '***'
     })
+    .filter(Boolean)
     .join(' ')
 }
 

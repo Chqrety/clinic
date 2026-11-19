@@ -5,11 +5,30 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"clinic-api/internal/shared/response"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+var revokedTokens sync.Map
+
+// RevokeToken mencatat token yang telah dicabut (logout) di level backend
+func RevokeToken(token string) {
+	if token != "" {
+		revokedTokens.Store(token, time.Now())
+	}
+}
+
+// IsTokenRevoked memeriksa apakah token sudah pernah dicabut
+func IsTokenRevoked(token string) bool {
+	if token == "" {
+		return true
+	}
+	_, revoked := revokedTokens.Load(token)
+	return revoked
+}
 
 type contextKey string
 
@@ -81,6 +100,11 @@ func Authenticate(secret string) func(http.Handler) http.Handler {
 
 			if tokenStr == "" {
 				response.Error(w, http.StatusUnauthorized, "akses ditolak: sesi login tidak ditemukan")
+				return
+			}
+
+			if IsTokenRevoked(tokenStr) {
+				response.Error(w, http.StatusUnauthorized, "sesi login telah diakhiri (pengguna sudah logout)")
 				return
 			}
 

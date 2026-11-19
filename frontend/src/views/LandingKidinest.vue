@@ -11,6 +11,9 @@ import {
   CalendarDays,
   UserCheck,
   CheckCircle2,
+  MessageCircle,
+  Mail,
+  CreditCard,
   Sparkles
 } from 'lucide-vue-next'
 import { api } from '../api/client'
@@ -40,48 +43,9 @@ interface DoctorScheduleSummary {
   available_dates?: any[]
 }
 
-const doctorSchedules = ref<DoctorScheduleSummary[]>([
-  {
-    doctor_id: 2,
-    doctor_name: 'dr. Patricia Vanessa A., Sp.A',
-    role: 'DOCTOR',
-    clinic_unit: 'KIDINEST',
-    room_name: 'Ruang Poli Anak 2 (Lantai 1)',
-    specialty: 'Spesialis Anak & Vaksinasi Pediatri',
-    shift_name: 'PAGI',
-    days_text: 'Senin – Jumat',
-    time_text: '08:30 – 12:00 WIB',
-    start_time: '08:30',
-    end_time: '12:00',
-    slot_minutes: 30,
-    quota_per_slot: 1,
-    is_practicing_today: true,
-    is_on_leave_today: false,
-    today_status: 'Praktik Hari Ini (08:30 – 12:00 WIB)',
-    weekly_schedules: []
-  },
-  {
-    doctor_id: 3,
-    doctor_name: 'dr. Hendra Pratama, Sp.A',
-    role: 'DOCTOR',
-    clinic_unit: 'KIDINEST',
-    room_name: 'Ruang Poli Anak 1 (Lantai 1)',
-    specialty: 'Konsultan Tumbuh Kembang & Nutrisi',
-    shift_name: 'SORE',
-    days_text: 'Senin – Sabtu',
-    time_text: '16:00 – 19:30 WIB',
-    start_time: '16:00',
-    end_time: '19:30',
-    slot_minutes: 30,
-    quota_per_slot: 1,
-    is_practicing_today: true,
-    is_on_leave_today: false,
-    today_status: 'Praktik Hari Ini (16:00 – 19:30 WIB)',
-    weekly_schedules: []
-  }
-])
-
-const isLoadingSchedules = ref(false)
+const doctorSchedules = ref<DoctorScheduleSummary[]>([])
+const doctors = ref<DoctorInfo[]>([])
+const isLoadingSchedules = ref(true)
 
 function getDoctorInitials(name: string): string {
   const clean = name.replace(/^dr\.\s+/i, '').replace(/,\s*.*$/, '')
@@ -96,14 +60,14 @@ async function fetchDoctorSchedules() {
   isLoadingSchedules.value = true
   try {
     const data = await api.getPublicDoctorSchedulesSummary('KIDINEST')
-    if (data && data.length > 0) {
+    if (data && Array.isArray(data) && data.length > 0) {
       doctorSchedules.value = data
       // Sync doctors list for live queue filter component
       doctors.value = data.map((d: any) => ({
         id: String(d.doctor_id),
         name: d.doctor_name,
         specialty: d.specialty,
-        room: d.room_name,
+        room: '',
         status: (d.is_practicing_today ? 'active' : 'off') as 'active' | 'off' | 'break'
       }))
     }
@@ -117,23 +81,6 @@ async function fetchDoctorSchedules() {
 onMounted(() => {
   fetchDoctorSchedules()
 })
-
-const doctors = ref<DoctorInfo[]>([
-  {
-    id: '2',
-    name: 'dr. Patricia Vanessa A., Sp.A',
-    specialty: 'Spesialis Anak & Vaksinasi Pediatri',
-    room: 'Ruang Poli Anak 2 (Lantai 1)',
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'dr. Hendra Pratama, Sp.A',
-    specialty: 'Konsultan Tumbuh Kembang & Nutrisi',
-    room: 'Ruang Poli Anak 1 (Lantai 1)',
-    status: 'active'
-  }
-])
 
 // Educational Benefits from Official Feed (Benefits of Baby Care)
 const massageBenefits = [
@@ -302,15 +249,6 @@ const faqs = [
 
               <!-- Information Grid -->
               <div class="grid grid-cols-2 gap-3 pt-3 border-t border-[#0C3B36]/10">
-                <!-- Room -->
-                <div class="space-y-0.5">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-[#0C3B36]/60">Ruang Poli</span>
-                  <div class="text-xs font-bold text-[#0C3B36] flex items-center gap-1.5">
-                    <MapPin class="w-3.5 h-3.5 text-[#E5A93C] shrink-0" />
-                    <span class="truncate">{{ doc.room_name }}</span>
-                  </div>
-                </div>
-
                 <!-- Days Range -->
                 <div class="space-y-0.5">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[#0C3B36]/60">Hari Praktik</span>
@@ -399,13 +337,6 @@ const faqs = [
               <span class="text-xs font-semibold text-[#0C3B36]/70">
                 {{ item.doctor }}
               </span>
-              <button
-                @click="emit('navigate', 'kiosk-kidinest')"
-                class="inline-flex items-center gap-1.5 text-xs font-bold text-[#0C3B36] hover:text-[#E5A93C] transition-colors"
-              >
-                <span>Daftar</span>
-                <ArrowRight class="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
         </div>
@@ -490,7 +421,7 @@ const faqs = [
                     {{ doc.doctor_name }}
                   </h3>
                   <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5A93C]/20 text-[#0C3B36]">
-                    {{ doc.room_name.split(' (')[0] || doc.room_name }} • {{ doc.shift_name }}
+                    {{ doc.shift_name ? 'Praktik ' + doc.shift_name : 'Praktik' }}
                   </span>
                 </div>
                 <p class="text-xs text-[#0C3B36]/75 mt-0.5 font-medium">
@@ -504,12 +435,6 @@ const faqs = [
                 <div class="font-bold text-[#0C3B36]">{{ doc.days_text }}</div>
                 <div class="text-[11px] text-[#0C3B36]/70">{{ doc.time_text }}</div>
               </div>
-              <button
-                @click="emit('navigate', 'kiosk-kidinest')"
-                class="px-4 py-2 rounded-lg bg-[#0C3B36] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#134E48] transition-colors cursor-pointer"
-              >
-                Daftar →
-              </button>
             </div>
           </div>
 
@@ -547,14 +472,39 @@ const faqs = [
                 </div>
               </div>
 
-              <div class="flex items-start gap-2.5 pt-2 border-t border-zinc-100">
-                <Phone class="w-4 h-4 text-[#E5A93C] shrink-0 mt-0.5" />
-                <div>
-                  <div class="font-bold">Kontak Resmi (Telepon & WhatsApp):</div>
-                  <div class="opacity-90 mt-0.5 font-mono flex flex-wrap items-center gap-3">
-                    <span>Telp: <strong>(024) 841-2345</strong></span>
-                    <span>•</span>
-                    <span>WhatsApp: <strong>+62 812-3456-7890</strong></span>
+              <div class="pt-3 border-t border-zinc-100 space-y-2">
+                <div class="font-bold text-[#0C3B36] flex items-center gap-2">
+                  <Phone class="w-4 h-4 text-[#E5A93C] shrink-0" />
+                  <span>Kontak Resmi Semarang Medical Group:</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div class="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#0C3B36]/10 flex items-center gap-2">
+                    <MessageCircle class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#0C3B36]/60">WhatsApp Resmi</div>
+                      <div class="font-mono font-bold text-[#0C3B36]">+62 812-3456-7890</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#0C3B36]/10 flex items-center gap-2">
+                    <Phone class="w-3.5 h-3.5 text-[#0C3B36]/70 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#0C3B36]/60">Nomor Kantor</div>
+                      <div class="font-mono text-[#0C3B36]/75 italic text-xs">(Menyusul)</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#0C3B36]/10 flex items-center gap-2">
+                    <Mail class="w-3.5 h-3.5 text-[#0C3B36]/70 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#0C3B36]/60">Email Resmi</div>
+                      <div class="font-mono text-[#0C3B36]/75 italic text-xs">(Menyusul)</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#0C3B36]/10 flex items-center gap-2">
+                    <CreditCard class="w-3.5 h-3.5 text-[#0C3B36]/70 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#0C3B36]/60">Nomor Rekening Klinik</div>
+                      <div class="font-mono text-[#0C3B36]/75 italic text-xs">(Menyusul)</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -588,22 +538,60 @@ const faqs = [
       </div>
     </section>
 
-    <!-- Footer Solid Pita Hijau Botol Khas Feed Kidinest -->
-    <footer class="w-full bg-[#0C3B36] text-white py-6 text-xs select-none">
-      <div class="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <img src="/assets/kidinest/logo-maskot.png" class="w-5 h-5 object-contain" />
-          <span class="font-bold">Kidinest Pediatric Care • Semarang Medical Group</span>
+    <!-- Footer Solid Hijau Botol Khas Kidinest & Semarang Medical Group -->
+    <footer class="w-full bg-[#0C3B36] text-white py-8 text-xs select-none border-t border-[#E5A93C]/20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-8 space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <!-- Brand & Address -->
+          <div class="space-y-1">
+            <div class="flex items-center gap-2.5">
+              <img src="/assets/kidinest/logo-maskot.png" class="w-5 h-5 object-contain" />
+              <span class="font-extrabold text-sm tracking-tight text-white">Semarang Medical Group</span>
+              <span class="text-white/40">•</span>
+              <span class="text-white/80 font-bold">Kidinest Pediatric Care</span>
+            </div>
+            <p class="text-white/70 text-xs">
+              Klinik Spesialis Anak & Tumbuh Kembang • Jl. Melati Utara No. 3, Kota Semarang
+            </p>
+          </div>
+
+          <!-- Nomor Telepon Kantor, WhatsApp, Email, & Rekening Berdampingan Rapi -->
+          <div class="flex flex-wrap items-center gap-3 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15 text-xs">
+            <div class="flex items-center gap-1.5">
+              <MessageCircle class="w-3.5 h-3.5 text-emerald-400" />
+              <span class="text-white/70 text-[11px]">WhatsApp:</span>
+              <strong class="font-mono text-white text-xs">+62 812-3456-7890</strong>
+            </div>
+            <span class="text-white/30 hidden sm:inline">•</span>
+            <div class="flex items-center gap-1.5">
+              <Phone class="w-3.5 h-3.5 text-[#E5A93C]" />
+              <span class="text-white/70 text-[11px]">Nomor Kantor:</span>
+              <span class="italic text-white/80 text-xs">(Menyusul)</span>
+            </div>
+            <span class="text-white/30 hidden sm:inline">•</span>
+            <div class="flex items-center gap-1.5">
+              <Mail class="w-3.5 h-3.5 text-white/70" />
+              <span class="text-white/70 text-[11px]">Email:</span>
+              <span class="italic text-white/80 text-xs">(Menyusul)</span>
+            </div>
+            <span class="text-white/30 hidden sm:inline">•</span>
+            <div class="flex items-center gap-1.5">
+              <CreditCard class="w-3.5 h-3.5 text-amber-300" />
+              <span class="text-white/70 text-[11px]">No. Rekening:</span>
+              <span class="italic text-white/80 text-xs">(Menyusul)</span>
+            </div>
+          </div>
         </div>
-        <div class="font-medium text-white/80">
-          Jl. Melati Utara No 3, Semarang
-        </div>
-        <div class="flex items-center gap-4 text-white/70 font-semibold">
-          <button @click="emit('navigate', 'kiosk-kidinest')" class="hover:text-white">Kiosk Antrian Mandiri</button>
-          <span>•</span>
-          <button @click="emit('navigate', 'ssc')" class="hover:text-white">Semarang Skin Center</button>
-          <span>•</span>
-          <button @click="emit('navigate', 'login-kidinest')" class="hover:text-white">Login Staf</button>
+
+        <div class="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/60 text-[11px]">
+          <div>© 2026 CV Semarang Medical Group. Seluruh hak cipta dilindungi.</div>
+          <div class="flex items-center gap-4 font-semibold text-white/80">
+            <button @click="emit('navigate', 'kiosk-kidinest')" class="hover:text-white transition-colors cursor-pointer">Pendaftaran Online</button>
+            <span>•</span>
+            <button @click="emit('navigate', 'ssc')" class="hover:text-white transition-colors cursor-pointer">Semarang Skin Center</button>
+            <span>•</span>
+            <button @click="emit('navigate', 'login-kidinest')" class="hover:text-white transition-colors cursor-pointer">Portal Staf</button>
+          </div>
         </div>
       </div>
     </footer>

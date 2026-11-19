@@ -86,6 +86,8 @@ func (u *QueueUsecase) RegisterQueue(ctx context.Context, input domain.RegisterI
 		if strings.TrimSpace(*input.AppointmentDate) > today {
 			isFuture = true
 		}
+	} else {
+		input.AppointmentDate = &today
 	}
 
 	// 2. Cabang Logika Unit Bisnis
@@ -101,12 +103,8 @@ func (u *QueueUsecase) RegisterQueue(ctx context.Context, input domain.RegisterI
 			initStatus = domain.QueueBooked
 		}
 
-		// Sesuai Master Prompt Bagian 3 C:
-		// A, B, C: Rp 200.000, D: Rp 250.000
-		regFee := 200000
-		if input.Category == domain.CategoryPaket || input.Category == "D_PAKET" || input.Category == "D" {
-			regFee = 250000
-		}
+		// KIDINEST: Bayar administrasi registrasi di muka (Rp 50.000). Nomor antrian baru terbit setelah pembayaran lunas (FIFO Invariant).
+		regFee := 50000
 
 		q := &domain.QueueItem{
 			PatientID:       patient.ID,

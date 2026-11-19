@@ -92,17 +92,33 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
+    isLoading.value = true
+    const currentToken = token.value || localStorage.getItem('clinic_auth_token') || localStorage.getItem('clinic_token')
     try {
-      if (token.value) {
+      if (currentToken) {
         await fetch('/api/auth/logout', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token.value}` },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          credentials: 'include'
         })
       }
-    } catch {
-      // Ignored
+    } catch (err) {
+      console.warn('Backend logout call error:', err)
     } finally {
       clearAuth()
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('clinic_auth_token')
+        localStorage.removeItem('clinic_token')
+        localStorage.removeItem('clinic_auth_user')
+        localStorage.removeItem('clinic_branch_id')
+        sessionStorage.clear()
+        document.cookie = 'clinic_token=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        window.location.hash = ''
+      }
+      isLoading.value = false
     }
   }
 

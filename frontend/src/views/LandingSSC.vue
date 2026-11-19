@@ -1,34 +1,55 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import BrandSwitcherHeader from '../components/BrandSwitcherHeader.vue'
 import LiveQueueFilter, { type DoctorInfo } from '../components/LiveQueueFilter.vue'
 import {
   Clock,
   MapPin,
   Phone,
+  MessageCircle,
+  Mail,
+  CreditCard,
   ArrowRight
 } from 'lucide-vue-next'
+import { api } from '../api/client'
 
 const emit = defineEmits<{
   (e: 'navigate', view: string): void
 }>()
 
-const doctors: DoctorInfo[] = [
+const doctors = ref<DoctorInfo[]>([
   {
-    id: 'dian',
+    id: '4',
     name: 'dr. Dian Paramita, Sp.D.V.E',
     specialty: 'Spesialis Dermatologi, Venereologi & Estetika Medis',
-    room: 'Ruang Laser & Konsultasi 1',
+    room: '',
     status: 'active'
   },
   {
-    id: 'kevin',
+    id: '5',
     name: 'dr. Kevin Wijaya, Sp.D.V.E',
     specialty: 'Spesialis Dermatologi • Bedah Minor & Scar Treatment',
-    room: 'Ruang Tindakan Bedah Kulit 2',
+    room: '',
     status: 'active'
   }
-]
+])
+
+onMounted(async () => {
+  try {
+    const data = await api.getPublicDoctorSchedulesSummary('SSC')
+    if (data && Array.isArray(data) && data.length > 0) {
+      doctors.value = data.map((d: any) => ({
+        id: String(d.doctor_id),
+        name: d.doctor_name,
+        specialty: d.specialty,
+        room: '',
+        status: (d.is_practicing_today ? 'active' : 'off') as 'active' | 'off' | 'break'
+      }))
+    }
+  } catch (err) {
+    // fallback
+  }
+})
 
 // Core Treatments in Editorial Index Table (Anti-Card Format)
 const treatmentsIndex = [
@@ -504,22 +525,39 @@ const faqs = [
                 </div>
               </div>
 
-              <div class="flex items-start gap-2.5 pt-2 border-t border-zinc-100">
-                <Clock class="w-4 h-4 text-[#9E606D] shrink-0 mt-0.5" />
-                <div>
-                  <div class="font-bold">Jam Layanan Poli Kulit:</div>
-                  <div class="opacity-80 mt-0.5">
-                    Pagi: 09:00 – 14:00 WIB • Sore: 14:00 – 19:00 WIB
-                  </div>
+              <div class="pt-3 border-t border-zinc-100 space-y-2">
+                <div class="font-bold text-[#2D1E24] flex items-center gap-2">
+                  <Phone class="w-4 h-4 text-[#9E606D] shrink-0" />
+                  <span>Kontak Resmi Semarang Skin Center:</span>
                 </div>
-              </div>
-
-              <div class="flex items-start gap-2.5 pt-2 border-t border-zinc-100">
-                <Phone class="w-4 h-4 text-[#9E606D] shrink-0 mt-0.5" />
-                <div>
-                  <div class="font-bold">WhatsApp Care & Reservasi:</div>
-                  <div class="opacity-80 mt-0.5 font-mono">
-                    +62 811-9876-5432
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div class="p-2.5 rounded-xl bg-[#FAF5F5] border border-[#9E606D]/15 flex items-center gap-2">
+                    <MessageCircle class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#2D1E24]/60">WhatsApp Care</div>
+                      <div class="font-mono font-bold text-[#2D1E24]">+62 811-9876-5432</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-[#FAF5F5] border border-[#9E606D]/15 flex items-center gap-2">
+                    <Phone class="w-3.5 h-3.5 text-[#2D1E24]/70 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#2D1E24]/60">Nomor Kantor</div>
+                      <div class="font-mono text-[#2D1E24]/75 italic text-xs">(Menyusul)</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-[#FAF5F5] border border-[#9E606D]/15 flex items-center gap-2">
+                    <Mail class="w-3.5 h-3.5 text-[#2D1E24]/70 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#2D1E24]/60">Email Resmi</div>
+                      <div class="font-mono text-[#2D1E24]/75 italic text-xs">(Menyusul)</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-[#FAF5F5] border border-[#9E606D]/15 flex items-center gap-2">
+                    <CreditCard class="w-3.5 h-3.5 text-[#2D1E24]/70 shrink-0" />
+                    <div>
+                      <div class="text-[10px] uppercase font-bold text-[#2D1E24]/60">Nomor Rekening Klinik</div>
+                      <div class="font-mono text-[#2D1E24]/75 italic text-xs">(Menyusul)</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -554,21 +592,59 @@ const faqs = [
     </section>
 
     <!-- Footer Solid Pita Dusty Rose Khas SSC -->
-    <footer class="w-full bg-[#9E606D] text-white py-6 text-xs select-none">
-      <div class="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <img src="/assets/ssc/logo-ssc.png" class="w-5 h-5 object-contain" />
-          <span class="font-bold">SSC - Semarang Skin Center • Advanced care for your skin</span>
+    <footer class="w-full bg-[#9E606D] text-white py-8 text-xs select-none border-t border-white/20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-8 space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <!-- Brand & Address -->
+          <div class="space-y-1">
+            <div class="flex items-center gap-2.5">
+              <img src="/assets/ssc/logo-ssc.png" class="w-5 h-5 object-contain" />
+              <span class="font-extrabold text-sm tracking-tight text-white">Semarang Medical Group</span>
+              <span class="text-white/40">•</span>
+              <span class="text-white/90 font-bold">Semarang Skin Center (SSC)</span>
+            </div>
+            <p class="text-white/75 text-xs">
+              Klinik Spesialis Kulit & Estetika Medis • Jl. Melati Utara No. 3, Kota Semarang
+            </p>
+          </div>
+
+          <!-- Nomor Telepon Kantor, WhatsApp, Email, & Rekening Berdampingan Rapi -->
+          <div class="flex flex-wrap items-center gap-3 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15 text-xs">
+            <div class="flex items-center gap-1.5">
+              <MessageCircle class="w-3.5 h-3.5 text-emerald-300" />
+              <span class="text-white/70 text-[11px]">WhatsApp:</span>
+              <strong class="font-mono text-white text-xs">+62 811-9876-5432</strong>
+            </div>
+            <span class="text-white/30 hidden sm:inline">•</span>
+            <div class="flex items-center gap-1.5">
+              <Phone class="w-3.5 h-3.5 text-amber-300" />
+              <span class="text-white/70 text-[11px]">Nomor Kantor:</span>
+              <span class="italic text-white/80 text-xs">(Menyusul)</span>
+            </div>
+            <span class="text-white/30 hidden sm:inline">•</span>
+            <div class="flex items-center gap-1.5">
+              <Mail class="w-3.5 h-3.5 text-white/70" />
+              <span class="text-white/70 text-[11px]">Email:</span>
+              <span class="italic text-white/80 text-xs">(Menyusul)</span>
+            </div>
+            <span class="text-white/30 hidden sm:inline">•</span>
+            <div class="flex items-center gap-1.5">
+              <CreditCard class="w-3.5 h-3.5 text-rose-200" />
+              <span class="text-white/70 text-[11px]">No. Rekening:</span>
+              <span class="italic text-white/80 text-xs">(Menyusul)</span>
+            </div>
+          </div>
         </div>
-        <div class="font-medium text-white/90">
-          Klinik Utama Semarang Medical Group • Jl. Melati Utara No. 3, Semarang
-        </div>
-        <div class="flex items-center gap-4 text-white/80 font-semibold">
-          <button @click="emit('navigate', 'kiosk-ssc')" class="hover:text-white">Kiosk Reservasi Mandiri</button>
-          <span>•</span>
-          <button @click="emit('navigate', 'kidinest')" class="hover:text-white">Kidinest Pediatric</button>
-          <span>•</span>
-          <button @click="emit('navigate', 'login-ssc')" class="hover:text-white">Login Staf</button>
+
+        <div class="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/60 text-[11px]">
+          <div>© 2026 CV Semarang Medical Group. Seluruh hak cipta dilindungi.</div>
+          <div class="flex items-center gap-4 font-semibold text-white/80">
+            <button @click="emit('navigate', 'kiosk-ssc')" class="hover:text-white transition-colors cursor-pointer">Pendaftaran Online</button>
+            <span>•</span>
+            <button @click="emit('navigate', 'kidinest')" class="hover:text-white transition-colors cursor-pointer">Kidinest Pediatric</button>
+            <span>•</span>
+            <button @click="emit('navigate', 'login-ssc')" class="hover:text-white transition-colors cursor-pointer">Portal Staf</button>
+          </div>
         </div>
       </div>
     </footer>

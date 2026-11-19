@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { useAuthStore } from '@/stores/auth'
+import { useClinicStore } from '@/stores/clinic'
 import { useLocaleStore } from '@/stores/locale'
 import type { BusinessUnit } from '@/types/accounting'
 import {
@@ -26,8 +27,10 @@ const showNotifications = ref(false)
 async function handleLogout() {
   window.location.hash = ''
   await authStore.logout()
+  const clinicStore = useClinicStore()
+  clinicStore.setRole('patient')
   store.showToast('Berhasil logout dari sistem akuntansi', 'info')
-  router.push('/login-kidinest')
+  router.replace('/login-kidinest')
 }
 </script>
 

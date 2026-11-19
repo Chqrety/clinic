@@ -49,8 +49,9 @@ function getStaffTitle(role: RoleType) {
 async function handleLogout() {
   window.location.hash = ''
   await auth.logout()
+  store.setRole('patient')
   emit('navigate', 'login')
-  router.push('/login-kidinest')
+  router.replace('/login-kidinest')
 }
 </script>
 

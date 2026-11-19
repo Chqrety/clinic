@@ -120,6 +120,17 @@ func (m *mockPharmacyRepo) CreateDrug(ctx context.Context, in *domain.CreateDrug
 	return d, nil
 }
 
+func (m *mockPharmacyRepo) BulkCreateDrugs(ctx context.Context, drugs []domain.CreateDrugInput) (int, error) {
+	count := 0
+	for _, in := range drugs {
+		input := in
+		if _, err := m.CreateDrug(ctx, &input); err == nil {
+			count++
+		}
+	}
+	return count, nil
+}
+
 func (m *mockPharmacyRepo) RestockBatch(ctx context.Context, in *domain.RestockInput) error {
 	d, ok := m.drugs[in.DrugID]
 	if !ok {

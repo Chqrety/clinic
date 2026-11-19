@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import {
-  Search,
-  X,
-  ArrowRight
+  X
 } from 'lucide-vue-next'
 
 export interface DoctorInfo {
@@ -36,34 +34,43 @@ const emit = defineEmits<{
 // State
 const selectedDoctorId = ref<string>('ALL')
 const isAllQueuesModalOpen = ref(false)
-const searchQuery = ref('')
 const statusFilter = ref<'ALL' | 'WAITING' | 'ACTIVE' | 'COMPLETED'>('ALL')
 
 // Mock Live Queues Data for Realistic Experience
 const mockQueues = ref<QueueEntry[]>([])
 
+function maskPatientName(name?: string): string {
+  if (!name) return ''
+  return name
+    .trim()
+    .split(/\s+/)
+    .map(w => w.length > 0 ? w[0].toUpperCase() + '***' : '')
+    .filter(Boolean)
+    .join(' ')
+}
+
 function initMockData() {
   if (props.brand === 'kidinest') {
     mockQueues.value = [
       {
-        queue_number: 'K-006',
-        patient_masked: 'Ananda R**** (2 th)',
+        queue_number: '06-A',
+        patient_masked: 'A*** P*** (2 thn)',
         doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'IN_EXAM',
         created_at: '09:15',
       },
       {
-        queue_number: 'K-007',
-        patient_masked: 'Ananda M**** (8 bln)',
+        queue_number: '07-B',
+        patient_masked: 'M*** S*** (8 bln)',
         doctor_name: 'dr. Hendra Pratama, Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'CALLING',
         created_at: '09:20',
       },
       {
-        queue_number: 'K-008',
-        patient_masked: 'Ananda F**** (4 th)',
+        queue_number: '08-A',
+        patient_masked: 'F*** H*** (4 thn)',
         doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
@@ -71,8 +78,8 @@ function initMockData() {
         created_at: '09:30',
       },
       {
-        queue_number: 'K-009',
-        patient_masked: 'Ananda S**** (1 th)',
+        queue_number: '09-C',
+        patient_masked: 'S*** W*** (1 thn)',
         doctor_name: 'dr. Hendra Pratama, Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
@@ -80,8 +87,8 @@ function initMockData() {
         created_at: '09:35',
       },
       {
-        queue_number: 'K-010',
-        patient_masked: 'Ananda D**** (5 th)',
+        queue_number: '10-C',
+        patient_masked: 'D*** P*** (5 thn)',
         doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
@@ -89,8 +96,8 @@ function initMockData() {
         created_at: '09:42',
       },
       {
-        queue_number: 'K-011',
-        patient_masked: 'Ananda Z**** (3 bln)',
+        queue_number: '11-D',
+        patient_masked: 'Z*** N*** (3 bln)',
         doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'WAITING',
@@ -98,16 +105,16 @@ function initMockData() {
         created_at: '09:50',
       },
       {
-        queue_number: 'K-004',
-        patient_masked: 'Ananda K****',
+        queue_number: '04-A',
+        patient_masked: 'K*** A*** (2 thn)',
         doctor_name: 'dr. Patricia Vanessa A., Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'PHARMACY',
         created_at: '08:45',
       },
       {
-        queue_number: 'K-005',
-        patient_masked: 'Ananda B****',
+        queue_number: '05-B',
+        patient_masked: 'B*** R*** (1 thn)',
         doctor_name: 'dr. Hendra Pratama, Sp.A',
         clinic_unit: 'KIDINEST',
         status: 'COMPLETED',
@@ -118,24 +125,24 @@ function initMockData() {
     // SSC
     mockQueues.value = [
       {
-        queue_number: 'S-004',
-        patient_masked: 'Ny. Clarissa D****',
+        queue_number: '04-S',
+        patient_masked: 'C*** D***',
         doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'IN_EXAM',
         created_at: '10:05',
       },
       {
-        queue_number: 'S-005',
-        patient_masked: 'Tn. Raymond W****',
+        queue_number: '05-S',
+        patient_masked: 'R*** W***',
         doctor_name: 'dr. Kevin Wijaya, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'CALLING',
         created_at: '10:15',
       },
       {
-        queue_number: 'S-006',
-        patient_masked: 'Nn. Vanessa L****',
+        queue_number: '06-S',
+        patient_masked: 'V*** L***',
         doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'WAITING',
@@ -143,8 +150,8 @@ function initMockData() {
         created_at: '10:22',
       },
       {
-        queue_number: 'S-007',
-        patient_masked: 'Ny. Helena T****',
+        queue_number: '07-S',
+        patient_masked: 'H*** T***',
         doctor_name: 'dr. Kevin Wijaya, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'WAITING',
@@ -152,8 +159,8 @@ function initMockData() {
         created_at: '10:30',
       },
       {
-        queue_number: 'S-008',
-        patient_masked: 'Nn. Gracia M****',
+        queue_number: '08-S',
+        patient_masked: 'G*** M***',
         doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'WAITING',
@@ -161,16 +168,16 @@ function initMockData() {
         created_at: '10:45',
       },
       {
-        queue_number: 'S-002',
-        patient_masked: 'Ny. Jessica S****',
+        queue_number: '02-S',
+        patient_masked: 'J*** S***',
         doctor_name: 'dr. Dian Paramita, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'PHARMACY',
         created_at: '09:20',
       },
       {
-        queue_number: 'S-003',
-        patient_masked: 'Tn. Arya B****',
+        queue_number: '03-S',
+        patient_masked: 'A*** B***',
         doctor_name: 'dr. Kevin Wijaya, Sp.D.V.E',
         clinic_unit: 'SSC',
         status: 'COMPLETED',
@@ -226,16 +233,6 @@ const modalFilteredQueues = computed(() => {
     list = list.filter(q => q.status === 'COMPLETED' || q.status === 'PHARMACY')
   }
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter(
-      item =>
-        item.queue_number.toLowerCase().includes(q) ||
-        item.patient_masked.toLowerCase().includes(q) ||
-        item.doctor_name.toLowerCase().includes(q)
-    )
-  }
-
   return list
 })
 </script>
@@ -284,7 +281,7 @@ const modalFilteredQueues = computed(() => {
               :key="doc.id"
               :value="doc.id"
             >
-              {{ doc.name }} ({{ doc.room }})
+              {{ doc.name }}
             </option>
           </select>
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 opacity-50">
@@ -381,8 +378,8 @@ const modalFilteredQueues = computed(() => {
               </div>
             </div>
 
-            <span class="text-[11px] font-semibold opacity-70">
-              ~{{ item.estimated_wait_minutes }} mnt
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900">
+              Menunggu
             </span>
           </div>
 
@@ -436,35 +433,26 @@ const modalFilteredQueues = computed(() => {
           </button>
         </div>
 
-        <!-- Filter & Search (Clean Bar) -->
+        <!-- Filter Tabs (Fitur Search Dihapus) -->
         <div class="p-3 bg-zinc-50/80 border-b border-zinc-100 flex items-center gap-2 text-xs">
-          <div class="relative flex-1">
-            <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Cari nomor atau nama pasien..."
-              class="w-full pl-8 pr-3 py-1.5 bg-white rounded-lg border border-zinc-200 text-xs font-semibold focus:outline-hidden focus:border-zinc-900"
-            />
-          </div>
           <button
             @click="statusFilter = 'ALL'"
-            class="px-2.5 py-1.5 rounded-md font-bold text-[11px]"
-            :class="statusFilter === 'ALL' ? 'bg-zinc-900 text-white' : 'bg-white border text-zinc-600'"
+            class="px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors cursor-pointer"
+            :class="statusFilter === 'ALL' ? 'bg-zinc-900 text-white shadow-2xs' : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'"
           >
             Semua
           </button>
           <button
             @click="statusFilter = 'ACTIVE'"
-            class="px-2.5 py-1.5 rounded-md font-bold text-[11px]"
-            :class="statusFilter === 'ACTIVE' ? 'bg-zinc-900 text-white' : 'bg-white border text-zinc-600'"
+            class="px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors cursor-pointer"
+            :class="statusFilter === 'ACTIVE' ? 'bg-zinc-900 text-white shadow-2xs' : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'"
           >
-            Dipanggil
+            Diperiksa
           </button>
           <button
             @click="statusFilter = 'WAITING'"
-            class="px-2.5 py-1.5 rounded-md font-bold text-[11px]"
-            :class="statusFilter === 'WAITING' ? 'bg-zinc-900 text-white' : 'bg-white border text-zinc-600'"
+            class="px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors cursor-pointer"
+            :class="statusFilter === 'WAITING' ? 'bg-zinc-900 text-white shadow-2xs' : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'"
           >
             Menunggu
           </button>
@@ -483,7 +471,7 @@ const modalFilteredQueues = computed(() => {
               </span>
               <div>
                 <div class="font-bold text-zinc-900">{{ item.patient_masked }}</div>
-                <div class="text-[11px] text-zinc-500">{{ item.doctor_name.split(',')[0] }} • {{ item.created_at }}</div>
+                <div class="text-[11px] text-zinc-500">{{ item.doctor_name.split(',')[0] }}</div>
               </div>
             </div>
 
@@ -498,7 +486,7 @@ const modalFilteredQueues = computed(() => {
                 v-else-if="item.status === 'WAITING'"
                 class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900"
               >
-                Menunggu (~{{ item.estimated_wait_minutes || 10 }}m)
+                Menunggu
               </span>
               <span
                 v-else

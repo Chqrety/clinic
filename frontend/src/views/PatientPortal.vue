@@ -15,8 +15,6 @@ import {
   ShieldCheck,
   RefreshCw,
   Search,
-  UserCheck,
-  UserPlus,
   Calendar as CalendarIcon,
   Stethoscope,
   RotateCcw,
@@ -101,12 +99,6 @@ const todayStr = computed(() => {
   return new Date().toISOString().split('T')[0]
 })
 
-// Lookup pasien lama
-const lookupQuery = ref('')
-const isSearchingPatient = ref(false)
-const lookupFeedback = ref<{ success: boolean; message: string } | null>(null)
-const foundActiveTicket = ref<TicketData | null>(null)
-
 // Modal Lacak Tiket Mandiri
 const showTrackModal = ref(false)
 const trackQuery = ref('')
@@ -147,75 +139,27 @@ async function handleTrackTicket() {
   }
 }
 
-async function handleLookupPatient() {
-  const query = lookupQuery.value.trim()
-  if (!query) return
-
-  isSearchingPatient.value = true
-  lookupFeedback.value = null
-  foundActiveTicket.value = null
-
-  try {
-    const res = await fetch(`/api/public/patients/lookup?query=${encodeURIComponent(query)}`)
-    const data = await res.json()
-    if (res.ok && data.success && data.data) {
-      const patient = data.data.patient || data.data
-      patientName.value = patient.name
-      patientPhone.value = patient.phone
-      if (patient.birth_date) {
-        birthDate.value = patient.birth_date
-      }
-      patientType.value = 'LAMA'
-
-      if (data.data.active_ticket) {
-        foundActiveTicket.value = data.data.active_ticket
-        lookupFeedback.value = {
-          success: true,
-          message: `Pasien ${patient.name} ditemukan! Memiliki tiket aktif.`
-        }
-      } else {
-        foundActiveTicket.value = null
-        lookupFeedback.value = {
-          success: true,
-          message: `Pasien terdaftar: ${patient.name} (${patient.phone})`
-        }
-      }
-    } else {
-      lookupFeedback.value = {
-        success: false,
-        message: 'Data pasien tidak ditemukan. Silakan isi data sebagai Pasien Baru.'
-      }
-    }
-  } catch {
-    lookupFeedback.value = {
-      success: false,
-      message: 'Gagal mencari data pasien. Periksa koneksi Anda.'
-    }
-  } finally {
-    isSearchingPatient.value = false
-  }
-}
-
 // ==================== STEP 2: PILIHAN LAYANAN (SESUAI MASTER PROMPT 3 C) ====================
-// Tampilkan pilihan layanan tanpa keterangan tambahan di bawah nama layanan:
-// - A. Konsultasi Anak Sakit (Rp200.000)
-// - B. Vaksinasi dan Imunisasi (Rp200.000)
-// - C. Tumbuh Kembang (Rp200.000)
-// - D. Vaksinasi dan Konsultasi Tumbuh Kembang (Rp250.000)
-// Menu Layanan Kulit dihapus untuk sementara.
+// - A. Konsultasi Anak Sakit
+// - B. Vaksinasi dan Imunisasi
+// - C. Tumbuh Kembang
+// - D. Vaksinasi dan Konsultasi Tumbuh Kembang
+// Tanpa menampilkan harga pada layanan karena saat pendaftaran online hanya registrasi (konfirmasi administrasi Rp 50.000)
 interface ServiceCategory {
   key: string
   code: string
   label: string
-  price: number
 }
 
 const kidinestCategories: ServiceCategory[] = [
-  { key: 'A_SAKIT', code: 'A', label: 'A. Konsultasi Anak Sakit', price: 200000 },
-  { key: 'B_VAKSIN', code: 'B', label: 'B. Vaksinasi dan Imunisasi', price: 200000 },
-  { key: 'C_TUMBANG', code: 'C', label: 'C. Tumbuh Kembang', price: 200000 },
-  { key: 'D_PAKET', code: 'D', label: 'D. Vaksinasi dan Konsultasi Tumbuh Kembang', price: 250000 },
+  { key: 'A_SAKIT', code: 'A', label: 'A. Konsultasi Anak Sakit' },
+  { key: 'B_VAKSIN', code: 'B', label: 'B. Vaksinasi dan Imunisasi' },
+  { key: 'C_TUMBANG', code: 'C', label: 'C. Tumbuh Kembang' },
+  { key: 'D_PAKET', code: 'D', label: 'D. Vaksinasi dan Konsultasi Tumbuh Kembang' },
 ]
+
+// Biaya Administrasi Registrasi Reservasi Online (Rp 50.000)
+const REGISTRATION_FEE = 50000
 
 const selectedCategory = ref<string>('A_SAKIT')
 
@@ -223,25 +167,153 @@ const selectedService = computed(() => {
   return kidinestCategories.find(c => c.key === selectedCategory.value) || kidinestCategories[0]
 })
 
-// ==================== STEP 3: PEMILIHAN TANGGAL KUNJUNGAN & JADWAL DOKTER (SESUAI 3 D, 3 E, 3 F) ====================
-// - Hapus pilihan dokter
-// - Hapus pilihan ruang poli
-// - Hapus pilihan pagi atau sore
-// - Hapus pilihan jam atau slot waktu
-// - Pasien cukup memilih tanggal kunjungan
-// - Tampilkan tabel jadwal dokter (read-only, tanpa kuota)
-// - Status ketersediaan: Tersedia, Hampir Penuh, Penuh, Tidak Melayani Layanan Tersebut
-// - Checkbox persetujuan wajib sebelum konfirmasi
-const selectedDateStr = ref<string>(getDefaultVisitDate())
+// ==================== STEP 3: PILIH DOKTER & TANGGAL KUNJUNGAN (SESUAI JADWAL DOKTER TERDAFTAR) ====================
+// Ambil langsung dari jadwal dan nama dokter yang terdaftar di sistem (tanpa ruang/room)
+export interface DoctorScheduleSummary {
+  doctor_id: number
+  doctor_name: string
+  role: string
+  clinic_unit: string
+  room_name?: string
+  specialty: string
+  shift_name: string
+  days_text: string
+  time_text: string
+  start_time: string
+  end_time: string
+  slot_minutes: number
+  quota_per_slot: number
+  is_practicing_today: boolean
+  is_on_leave_today: boolean
+  today_status: string
+  weekly_schedules: any[]
+  available_dates?: any[]
+}
 
-function getDefaultVisitDate(): string {
+const doctorSchedules = ref<DoctorScheduleSummary[]>([])
+const isLoadingDoctors = ref(true)
+
+async function fetchDoctorSchedules() {
+  isLoadingDoctors.value = true
+  try {
+    const res = await fetch(`/api/public/doctors/schedules/summary?unit=${selectedUnit.value}`)
+    const data = await res.json()
+    if (res.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
+      doctorSchedules.value = data.data
+      if (!selectedDoctorId.value || !data.data.some((d: any) => d.doctor_id === selectedDoctorId.value)) {
+        selectedDoctorId.value = data.data[0].doctor_id
+      }
+    }
+  } catch (err) {
+    console.error('Gagal mengambil data jadwal dokter dari backend:', err)
+  } finally {
+    isLoadingDoctors.value = false
+  }
+}
+
+watch(() => props.brand, () => {
+  fetchDoctorSchedules()
+})
+
+onMounted(() => {
+  fetchDoctorSchedules()
+})
+
+function getDoctorInitials(name: string): string {
+  const clean = name.replace(/^dr\.\s+/i, '').replace(/,\s*.*$/, '')
+  const parts = clean.split(' ').filter(Boolean)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }
+  return (parts[0] ? parts[0].substring(0, 2) : 'DR').toUpperCase()
+}
+
+function parseAvailableDaysOfWeek(daysText: string): number[] {
+  const lower = (daysText || '').toLowerCase()
+  if (lower.includes('sabtu')) {
+    return [1, 2, 3, 4, 5, 6]
+  }
+  return [1, 2, 3, 4, 5]
+}
+
+interface DoctorOption {
+  id: number
+  name: string
+  specialty: string
+  shift: string
+  hours: string
+  availableDays: string
+  availableDaysOfWeek: number[]
+  avatarBg: string
+  avatarText: string
+  initials: string
+}
+
+const availableDoctors = computed<DoctorOption[]>(() => {
+  return doctorSchedules.value.map((doc, idx) => {
+    let daysOfWeek = parseAvailableDaysOfWeek(doc.days_text || '')
+    if (Array.isArray(doc.weekly_schedules) && doc.weekly_schedules.length > 0) {
+      daysOfWeek = Array.from(new Set(doc.weekly_schedules.map((w: any) => w.day_of_week)))
+    }
+
+    return {
+      id: doc.doctor_id,
+      name: doc.doctor_name,
+      specialty: doc.specialty,
+      shift: doc.shift_name ? `Praktik ${doc.shift_name.charAt(0).toUpperCase() + doc.shift_name.slice(1).toLowerCase()}` : 'Praktik',
+      hours: doc.time_text || `${doc.start_time} – ${doc.end_time} WIB`,
+      availableDays: doc.days_text || 'Senin – Jumat',
+      availableDaysOfWeek: daysOfWeek,
+      avatarBg: idx % 2 === 0 ? 'bg-[#0C3B36]' : 'bg-[#E5A93C]',
+      avatarText: idx % 2 === 0 ? 'text-[#E5A93C]' : 'text-[#0C3B36]',
+      initials: getDoctorInitials(doc.doctor_name)
+    }
+  })
+})
+
+const selectedDoctorId = ref<number>(0)
+
+const selectedDoctor = computed<DoctorOption>(() => {
+  if (availableDoctors.value.length === 0) {
+    return {
+      id: 0,
+      name: isLoadingDoctors.value ? 'Memuat data dokter...' : 'Dokter tidak tersedia',
+      specialty: isLoadingDoctors.value ? 'Mohon tunggu...' : '-',
+      shift: '',
+      hours: '',
+      availableDays: '',
+      availableDaysOfWeek: [1, 2, 3, 4, 5, 6],
+      avatarBg: 'bg-[#0C3B36]',
+      avatarText: 'text-[#E5A93C]',
+      initials: 'DR'
+    }
+  }
+  return availableDoctors.value.find(d => d.id === selectedDoctorId.value) || availableDoctors.value[0]
+})
+
+function getDefaultVisitDate(daysOfWeek: number[] = [1, 2, 3, 4, 5]): string {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
-  if (tomorrow.getDay() === 0) {
-    tomorrow.setDate(tomorrow.getDate() + 1) // Lewati hari Minggu
+  for (let i = 0; i < 7; i++) {
+    const dow = tomorrow.getDay()
+    if (dow !== 0 && daysOfWeek.includes(dow)) {
+      return tomorrow.toISOString().split('T')[0]
+    }
+    tomorrow.setDate(tomorrow.getDate() + 1)
   }
   return tomorrow.toISOString().split('T')[0]
 }
+
+const selectedDateStr = ref<string>(getDefaultVisitDate())
+
+// Otomatis sesuaikan tanggal jika ganti dokter dan tanggal saat ini dokter tidak berpraktik
+watch(selectedDoctorId, () => {
+  const selD = new Date(selectedDateStr.value)
+  const dow = isNaN(selD.getTime()) ? 0 : selD.getDay()
+  if (!selectedDoctor.value.availableDaysOfWeek.includes(dow) || dow === 0) {
+    selectedDateStr.value = getDefaultVisitDate(selectedDoctor.value.availableDaysOfWeek)
+  }
+})
 
 // Generator tanggal 30 hari ke depan
 interface VisitDateOption {
@@ -274,12 +346,58 @@ const next30Days = computed<VisitDateOption[]>(() => {
   return days
 })
 
-// Tabel Jadwal Dokter pada tanggal terpilih (READ-ONLY, tidak menampilkan kuota)
+// Geser / Scroll Kontainer Tanggal (Dukungan Tombol, Drag Mouse, Touch, dan Wheel)
+const dateScrollRef = ref<HTMLElement | null>(null)
+
+function scrollDateChips(direction: 'left' | 'right') {
+  if (!dateScrollRef.value) return
+  const scrollAmount = 280
+  dateScrollRef.value.scrollBy({
+    left: direction === 'left' ? -scrollAmount : scrollAmount,
+    behavior: 'smooth'
+  })
+}
+
+function handleDateWheel(e: WheelEvent) {
+  if (!dateScrollRef.value) return
+  if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+    e.preventDefault()
+    dateScrollRef.value.scrollLeft += e.deltaY * 1.2
+  }
+}
+
+let isDraggingDate = false
+let startDragX = 0
+let scrollLeftStart = 0
+
+function onDateMouseDown(e: MouseEvent) {
+  if (!dateScrollRef.value) return
+  isDraggingDate = true
+  startDragX = e.pageX - dateScrollRef.value.offsetLeft
+  scrollLeftStart = dateScrollRef.value.scrollLeft
+}
+
+function onDateMouseMove(e: MouseEvent) {
+  if (!isDraggingDate || !dateScrollRef.value) return
+  e.preventDefault()
+  const x = e.pageX - dateScrollRef.value.offsetLeft
+  const walk = (x - startDragX) * 1.5
+  dateScrollRef.value.scrollLeft = scrollLeftStart - walk
+}
+
+function onDateMouseUp() {
+  isDraggingDate = false
+}
+
+function onDateMouseLeave() {
+  isDraggingDate = false
+}
+
+// Tabel Jadwal Dokter pada tanggal terpilih (READ-ONLY, tidak menampilkan kuota, bebas ruang)
 interface DoctorScheduleRow {
   doctorName: string
   specialty: string
   shift: string
-  room: string
 }
 
 const doctorScheduleTable = computed<DoctorScheduleRow[]>(() => {
@@ -290,57 +408,46 @@ const doctorScheduleTable = computed<DoctorScheduleRow[]>(() => {
     return []
   }
 
-  // Jadwal dokter tetap Kidinest
-  return [
-    {
-      doctorName: 'dr. Patricia Vanessa A., Sp.A',
-      specialty: 'Dokter Spesialis Anak',
-      shift: 'Praktik Pagi (08:30 - 13:00 WIB)',
-      room: 'Poli Spesialis Anak 1'
-    },
-    {
-      doctorName: 'dr. Hendra Pratama, Sp.A',
-      specialty: 'Konsultan Tumbuh Kembang & Nutrisi',
-      shift: 'Praktik Sore (14:00 - 18:00 WIB)',
-      room: 'Poli Spesialis Anak 2'
-    }
-  ]
+  return availableDoctors.value
+    .filter(doc => doc.availableDaysOfWeek.includes(dow))
+    .map(doc => ({
+      doctorName: doc.name,
+      specialty: doc.specialty,
+      shift: `${doc.shift} (${doc.hours})`
+    }))
 })
 
-// Status Ketersediaan Layanan: Tersedia | Hampir Penuh | Penuh | Tidak Melayani Layanan Tersebut
+// Pengecekan apakah dokter yang dipilih berpraktik pada tanggal terpilih
+const isDoctorAvailableOnDate = computed(() => {
+  const selectedD = new Date(selectedDateStr.value)
+  const dow = isNaN(selectedD.getTime()) ? 1 : selectedD.getDay()
+  return selectedDoctor.value.availableDaysOfWeek.includes(dow)
+})
+
+// Status Ketersediaan Layanan
 type CapacityStatus = 'TERSEDIA' | 'HAMPIR_PENUH' | 'PENUH' | 'TIDAK_MELAYANI'
 
 const capacityStatus = computed<{ status: CapacityStatus; label: string; color: string; desc: string }>(() => {
   const selectedD = new Date(selectedDateStr.value)
   const dow = isNaN(selectedD.getTime()) ? 1 : selectedD.getDay()
 
-  // Hari Minggu: Tidak Melayani Layanan Tersebut
+  // Hari Minggu: Klinik Libur
   if (dow === 0) {
     return {
       status: 'TIDAK_MELAYANI',
-      label: 'Tidak Melayani Layanan Tersebut',
+      label: 'Klinik Libur (Hari Minggu)',
       color: 'bg-zinc-100 text-zinc-600 border-zinc-300',
       desc: 'Klinik Kidinest tidak beroperasi pada hari Minggu. Silakan pilih hari Senin s.d. Sabtu.'
     }
   }
 
-  // Simulasi kapasitas kuota sistem cerdas
-  const dayNum = parseInt(selectedDateStr.value.slice(-2), 10) || 1
-  if (dayNum % 7 === 0) {
+  // Jika dokter yang dipilih tidak berpraktik pada hari tersebut
+  if (!isDoctorAvailableOnDate.value) {
     return {
-      status: 'PENUH',
-      label: 'Penuh',
-      color: 'bg-rose-100 text-rose-800 border-rose-300',
-      desc: 'Kapasitas layanan untuk tanggal ini telah terpenuhi. Silakan pilih tanggal kunjungan lain atau layanan lain di bawah.'
-    }
-  }
-
-  if (dayNum % 5 === 0) {
-    return {
-      status: 'HAMPIR_PENUH',
-      label: 'Hampir Penuh',
+      status: 'TIDAK_MELAYANI',
+      label: 'Dokter Tidak Praktik Pada Hari Ini',
       color: 'bg-amber-100 text-amber-900 border-amber-300',
-      desc: 'Kapasitas hampir penuh. Segera selesaikan pendaftaran untuk mengamankan nomor antrean.'
+      desc: `${selectedDoctor.value.name} hanya berpraktik pada hari ${selectedDoctor.value.availableDays}. Silakan pilih tanggal praktik lain atau ganti dokter di atas.`
     }
   }
 
@@ -348,7 +455,7 @@ const capacityStatus = computed<{ status: CapacityStatus; label: string; color: 
     status: 'TERSEDIA',
     label: 'Tersedia',
     color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    desc: 'Layanan dan dokter spesialis tersedia pada tanggal kunjungan ini.'
+    desc: `${selectedDoctor.value.name} siap melayani (${selectedDoctor.value.shift}: ${selectedDoctor.value.hours}). Jadwal antrean tersedia.`
   }
 })
 
@@ -394,7 +501,7 @@ const resolvedQRImage = computed(() => {
   if (activeTicket.value?.qris_payload) {
     return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(activeTicket.value.qris_payload)}`
   }
-  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021226680016ID.CO.QRIS.WWW01189360000201100000020215KIDINEST0303UMI51440014ID.CO.QRIS5204581253033605406${selectedService.value.price}5802ID5914KIDINEST_SMG6008SEMARANG6304`
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021226680016ID.CO.QRIS.WWW01189360000201100000020215KIDINEST0303UMI51440014ID.CO.QRIS5204581253033605406${REGISTRATION_FEE}5802ID5914KIDINEST_SMG6008SEMARANG6304`
 })
 
 async function handleRegister() {
@@ -412,8 +519,8 @@ async function handleRegister() {
         patient_type: patientType.value,
         birth_date: birthDate.value,
         category: selectedCategory.value,
-        doctor_id: 1,
-        doctor_name: 'dr. Patricia Vanessa A., Sp.A',
+        doctor_id: selectedDoctor.value.id,
+        doctor_name: selectedDoctor.value.name,
         appointment_date: selectedDateStr.value || undefined,
         payment_method: paymentMethod.value,
       }),
@@ -729,65 +836,31 @@ onUnmounted(() => {
 
         <div class="bg-white p-6 sm:p-8 rounded-3xl border border-[#E5A93C]/25 shadow-xs space-y-5">
           
-          <!-- Pilihan Langsung: Pasien Baru vs Pasien Lama -->
-          <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider opacity-75 mb-2">
-              Status Pasien:
-            </label>
-            <div class="grid grid-cols-2 gap-2 p-1.5 bg-zinc-100/80 rounded-2xl">
-              <button
-                type="button"
-                @click="patientType = 'BARU'"
-                class="py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
-                :class="patientType === 'BARU' ? 'bg-white shadow-2xs font-extrabold text-[#0C3B36]' : 'text-zinc-600 hover:text-zinc-900'"
-              >
-                <UserPlus class="w-4 h-4" />
-                <span>Pasien Baru</span>
-              </button>
-              <button
-                type="button"
-                @click="patientType = 'LAMA'"
-                class="py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
-                :class="patientType === 'LAMA' ? 'bg-white shadow-2xs font-extrabold text-[#0C3B36]' : 'text-zinc-600 hover:text-zinc-900'"
-              >
-                <UserCheck class="w-4 h-4" />
-                <span>Pasien Lama</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Bagian Pencarian Pasien Lama jika dipilih Pasien Lama -->
-          <div v-if="patientType === 'LAMA'" class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/60 space-y-2.5">
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-amber-900">
-              Pencarian Cepat Data Pasien Terdaftar:
-            </label>
-            <div class="flex gap-2">
+          <!-- Status Pasien: Checkbox Pasien Baru / Lama (Tanpa Pencarian / Lookup untuk Mencegah Kebocoran Data) -->
+          <div class="p-3.5 rounded-2xl border transition-all"
+            :class="patientType === 'LAMA' ? 'border-[#0C3B36] bg-[#FAF7F2] ring-1 ring-[#0C3B36]' : 'border-zinc-200 bg-white hover:border-zinc-300'"
+          >
+            <label class="flex items-start gap-3 cursor-pointer select-none">
               <input
-                v-model="lookupQuery"
-                type="text"
-                placeholder="Masukkan Nomor WhatsApp atau Nama Pasien"
-                @keyup.enter="handleLookupPatient"
-                class="flex-1 px-3.5 py-2 rounded-xl border border-amber-300/80 bg-white text-xs font-bold outline-none"
+                type="checkbox"
+                :checked="patientType === 'LAMA'"
+                @change="patientType = ($event.target as HTMLInputElement).checked ? 'LAMA' : 'BARU'"
+                class="mt-0.5 accent-[#0C3B36] w-4 h-4 rounded cursor-pointer shrink-0"
               />
-              <button
-                type="button"
-                @click="handleLookupPatient"
-                :disabled="isSearchingPatient"
-                class="px-4 py-2 rounded-xl bg-[#0C3B36] text-white text-xs font-bold flex items-center gap-1.5 hover:bg-[#134E48] transition-all disabled:opacity-50"
-              >
-                <Loader2 v-if="isSearchingPatient" class="w-3.5 h-3.5 animate-spin" />
-                <Search v-else class="w-3.5 h-3.5" />
-                <span>Cari</span>
-              </button>
-            </div>
-
-            <div v-if="lookupFeedback" class="text-xs font-semibold flex items-center gap-2"
-              :class="lookupFeedback.success ? 'text-emerald-700' : 'text-rose-700'"
-            >
-              <CheckCircle2 v-if="lookupFeedback.success" class="w-4 h-4 shrink-0 text-emerald-600" />
-              <AlertCircle v-else class="w-4 h-4 shrink-0 text-rose-600" />
-              <span>{{ lookupFeedback.message }}</span>
-            </div>
+              <div class="space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-[#0C3B36]">Pasien Lama</span>
+                  <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                    :class="patientType === 'LAMA' ? 'bg-[#0C3B36] text-[#E5A93C]' : 'bg-zinc-100 text-zinc-600'"
+                  >
+                    {{ patientType === 'LAMA' ? 'Status: Pasien Lama' : 'Status: Pasien Baru' }}
+                  </span>
+                </div>
+                <p class="text-[11px] text-zinc-500 leading-relaxed">
+                  Centang jika si kecil sudah pernah berkunjung atau memiliki riwayat pemeriksaan di klinik Kidinest. Biarkan kosong jika merupakan kunjungan pertama kali (Pasien Baru).
+                </p>
+              </div>
+            </label>
           </div>
 
           <!-- Kolom: Nama Pasien (Anak/Bayi) -->
@@ -886,9 +959,6 @@ onUnmounted(() => {
                 />
                 <span class="text-xs font-bold text-[#0C3B36]">{{ cat.label }}</span>
               </div>
-              <div class="text-xs font-mono font-extrabold text-emerald-800 shrink-0">
-                Rp {{ cat.price.toLocaleString('id-ID') }}
-              </div>
             </label>
           </div>
 
@@ -913,35 +983,126 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- ==================== STEP 3: PEMILIHAN TANGGAL & JADWAL DOKTER (MASTER PROMPT 3 D, 3 E, 3 F) ==================== -->
+      <!-- ==================== STEP 3: PILIH DOKTER & TANGGAL KUNJUNGAN ==================== -->
       <div v-else-if="currentStep === 3" class="space-y-5 animate-in fade-in duration-200">
         <div class="text-center space-y-1">
           <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-2xs bg-[#E5A93C] text-[#0C3B36]">
-            <span>Tahap 3 • Jadwal Kunjungan</span>
+            <span>Tahap 3 • Dokter & Jadwal Kunjungan</span>
           </div>
           <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Pilih Tanggal Kunjungan
+            Pilih Dokter & Tanggal Kunjungan
           </h1>
           <p class="text-xs opacity-75 max-w-md mx-auto">
-            Pilih tanggal rencana kedatangan. Jadwal dokter bertugas ditampilkan secara informatif di bawah.
+            Pilih dokter spesialis terlebih dahulu, kemudian tentukan tanggal rencana kedatangan tanpa perlu memilih jam (jadwal praktik dokter tertera di bawah).
           </p>
         </div>
 
         <div class="bg-white p-6 sm:p-8 rounded-3xl border border-[#E5A93C]/25 shadow-xs space-y-6">
           
-          <!-- 1. Pemilihan Tanggal Kunjungan (Hanya Tanggal) -->
-          <div class="space-y-2">
+          <!-- 1. Pemilihan Dokter Spesialis Terlebih Dahulu -->
+          <div class="space-y-2.5">
             <div class="flex items-center justify-between">
               <label class="block text-[11px] font-bold uppercase tracking-wider opacity-75">
-                Pilih Tanggal Kunjungan:
+                1. Pilih Dokter Spesialis:
               </label>
               <span class="text-[11px] font-bold text-zinc-600">
-                Terpilih: <strong class="text-[#0C3B36]">{{ formatDateDDMMYYYY(selectedDateStr) }}</strong>
+                Terpilih: <strong class="text-[#0C3B36]">{{ selectedDoctor.name }}</strong>
               </span>
             </div>
 
-            <!-- Horizontal Date Picker Chips -->
-            <div class="flex gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar scroll-smooth">
+            <div v-if="isLoadingDoctors" class="p-6 rounded-2xl bg-zinc-50 border border-zinc-200 text-center text-xs text-zinc-500 flex items-center justify-center gap-2">
+              <RefreshCw class="w-4 h-4 animate-spin text-[#0C3B36]" />
+              <span>Memuat jadwal dan dokter resmi dari backend...</span>
+            </div>
+
+            <div v-else-if="availableDoctors.length === 0" class="p-6 rounded-2xl bg-zinc-50 border border-zinc-200 text-center text-xs text-zinc-500">
+              Tidak ada jadwal dokter aktif yang tersedia saat ini.
+            </div>
+
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div
+                v-for="doc in availableDoctors"
+                :key="doc.id"
+                @click="selectedDoctorId = doc.id"
+                class="p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-3 select-none"
+                :class="selectedDoctorId === doc.id
+                  ? 'border-[#0C3B36] bg-[#FAF7F2] shadow-xs ring-2 ring-[#0C3B36]'
+                  : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/50'"
+              >
+                <div class="flex items-start gap-3">
+                  <div
+                    class="w-10 h-10 rounded-2xl font-black text-sm flex items-center justify-center shrink-0 shadow-2xs"
+                    :class="[doc.avatarBg, doc.avatarText]"
+                  >
+                    {{ doc.initials }}
+                  </div>
+                  <div class="space-y-0.5">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-black text-[#0C3B36] leading-tight">{{ doc.name }}</span>
+                      <CheckCircle2 v-if="selectedDoctorId === doc.id" class="w-4 h-4 text-emerald-600 shrink-0" />
+                    </div>
+                    <div class="text-[11px] font-medium text-zinc-500">
+                      {{ doc.specialty }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pt-2.5 border-t border-zinc-200/60 flex items-center justify-between text-[11px]">
+                  <span class="font-bold text-zinc-700 bg-zinc-100 px-2.5 py-0.5 rounded-lg">
+                    {{ doc.availableDays }}
+                  </span>
+                  <span class="font-bold text-[#0C3B36]">
+                    {{ doc.shift }} ({{ doc.hours }})
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Pemilihan Tanggal Kunjungan (Setelah Pilih Dokter, Tanpa Memilih Jam) -->
+          <div class="space-y-2 pt-2 border-t border-zinc-100">
+            <div class="flex items-center justify-between gap-2">
+              <label class="block text-[11px] font-bold uppercase tracking-wider opacity-75">
+                2. Pilih Tanggal Kunjungan (Tanpa Memilih Jam):
+              </label>
+
+              <!-- Kontrol Geser Tanggal (Tombol Panah & Indikator Tanggal) -->
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-bold text-zinc-600 hidden sm:inline">
+                  Terpilih: <strong class="text-[#0C3B36] font-mono">{{ formatDateDDMMYYYY(selectedDateStr) }}</strong>
+                </span>
+
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    @click="scrollDateChips('left')"
+                    class="p-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700 transition cursor-pointer active:scale-95 shadow-2xs"
+                    title="Geser Tanggal ke Kiri"
+                  >
+                    <ChevronLeft class="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    @click="scrollDateChips('right')"
+                    class="p-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700 transition cursor-pointer active:scale-95 shadow-2xs"
+                    title="Geser Tanggal ke Kanan"
+                  >
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Horizontal Date Picker Chips (Mendukung Geser Mouse/Drag, Touch, Wheel, & Tombol ‹ ›) -->
+            <div
+              ref="dateScrollRef"
+              @wheel.prevent="handleDateWheel"
+              @mousedown="onDateMouseDown"
+              @mousemove="onDateMouseMove"
+              @mouseup="onDateMouseUp"
+              @mouseleave="onDateMouseLeave"
+              class="flex gap-2 overflow-x-auto pb-3 pt-1 scroll-smooth select-none cursor-grab active:cursor-grabbing date-chips-container"
+            >
               <button
                 v-for="item in next30Days"
                 :key="item.date"
@@ -949,19 +1110,24 @@ onUnmounted(() => {
                 @click="selectedDateStr = item.date"
                 class="shrink-0 w-24 p-2.5 rounded-2xl border text-center transition-all cursor-pointer"
                 :class="selectedDateStr === item.date
-                  ? 'border-[#0C3B36] bg-[#0C3B36] text-white shadow-xs font-extrabold'
-                  : (item.isSunday ? 'border-zinc-200 bg-zinc-100 text-zinc-400' : 'border-zinc-200 bg-[#FAF7F2] hover:border-zinc-300 text-zinc-800')"
+                  ? 'border-[#0C3B36] bg-[#0C3B36] text-white shadow-xs font-extrabold ring-2 ring-[#0C3B36]/30'
+                  : (item.isSunday ? 'border-zinc-200 bg-zinc-100 text-zinc-400 opacity-60' : (!selectedDoctor.availableDaysOfWeek.includes(item.dayOfWeek) ? 'border-zinc-200 bg-zinc-50 text-zinc-400' : 'border-zinc-200 bg-[#FAF7F2] hover:border-zinc-300 text-zinc-800'))"
               >
                 <div class="text-[10px] font-bold uppercase tracking-wider">{{ item.dayName }}</div>
                 <div class="text-sm font-black my-0.5">{{ item.displayDate }}</div>
-                <div class="text-[9px] font-medium opacity-80">
-                  {{ item.isSunday ? 'Libur' : 'Buka' }}
+                <div class="text-[9px] font-medium" :class="selectedDateStr === item.date ? 'text-[#E5A93C]' : 'opacity-80'">
+                  {{ item.isSunday ? 'Libur' : (!selectedDoctor.availableDaysOfWeek.includes(item.dayOfWeek) ? 'Tdk Praktik' : 'Buka') }}
                 </div>
               </button>
             </div>
+
+            <div class="flex items-center justify-between text-[10px] text-zinc-500 pt-0.5">
+              <span class="sm:hidden font-mono font-bold text-[#0C3B36]">Terpilih: {{ formatDateDDMMYYYY(selectedDateStr) }}</span>
+              <span class="opacity-70">💡 Geser tombol ‹ › atau usap/drag kartu tanggal untuk memilih hari lain</span>
+            </div>
           </div>
 
-          <!-- 2. Status Ketersediaan Layanan (Master Prompt 3 E) -->
+          <!-- 3. Status Ketersediaan Layanan (Master Prompt 3 E) -->
           <div class="p-4 rounded-2xl border transition-all" :class="capacityStatus.color">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2">
@@ -978,27 +1144,28 @@ onUnmounted(() => {
               {{ capacityStatus.desc }}
             </p>
 
-            <!-- Rekomendasi jika penuh -->
-            <div v-if="capacityStatus.status === 'PENUH'" class="mt-3 pt-3 border-t border-rose-200/80 flex flex-wrap items-center gap-2">
-              <span class="text-[11px] font-bold text-rose-900">Rekomendasi alternatif:</span>
+            <!-- Alternatif jika dokter tidak melayani pada hari yang dipilih -->
+            <div v-if="!isDoctorAvailableOnDate" class="mt-3 pt-3 border-t border-amber-200/80 flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold text-amber-950">Rekomendasi alternatif:</span>
               <button
                 type="button"
-                @click="selectedDateStr = next30Days.find(d => !d.isSunday && d.date !== selectedDateStr)?.date || selectedDateStr"
-                class="px-2.5 py-1 rounded-lg bg-white border border-rose-300 text-xs font-bold text-rose-900 hover:bg-rose-50"
+                @click="selectedDateStr = next30Days.find(d => selectedDoctor.availableDaysOfWeek.includes(d.dayOfWeek) && d.date !== selectedDateStr)?.date || selectedDateStr"
+                class="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-xs font-bold text-amber-950 hover:bg-amber-50 cursor-pointer"
               >
-                Pilih Tanggal Lain
+                Pilih Tanggal Praktik Dokter
               </button>
               <button
+                v-if="availableDoctors.some(d => d.id !== selectedDoctorId && d.availableDaysOfWeek.includes(new Date(selectedDateStr).getDay()))"
                 type="button"
-                @click="currentStep = 2"
-                class="px-2.5 py-1 rounded-lg bg-white border border-rose-300 text-xs font-bold text-rose-900 hover:bg-rose-50"
+                @click="selectedDoctorId = availableDoctors.find(d => d.id !== selectedDoctorId && d.availableDaysOfWeek.includes(new Date(selectedDateStr).getDay()))?.id || selectedDoctorId"
+                class="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-xs font-bold text-amber-950 hover:bg-amber-50 cursor-pointer"
               >
-                Pilih Layanan Lain
+                Pilih Dokter yang Berpraktik Hari Ini
               </button>
             </div>
           </div>
 
-          <!-- 3. Tabel Jadwal Dokter pada Tanggal Tersebut (Read-Only, Informatif, Tanpa Kuota - Master Prompt 3 D) -->
+          <!-- 4. Tabel Jadwal Dokter pada Tanggal Tersebut (Read-Only, Informatif, Tanpa Kuota) -->
           <div class="space-y-2.5 pt-2 border-t border-zinc-100">
             <div class="flex items-center justify-between">
               <label class="block text-[11px] font-bold uppercase tracking-wider opacity-75">
@@ -1017,22 +1184,41 @@ onUnmounted(() => {
                   <tr>
                     <th class="py-2.5 px-3">Nama Dokter Spesialis</th>
                     <th class="py-2.5 px-3">Jadwal Praktik</th>
-                    <th class="py-2.5 px-3">Ruang Pelayanan</th>
+                    <th class="py-2.5 px-3 text-right">Status</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">
-                  <tr v-for="(doc, idx) in doctorScheduleTable" :key="idx" class="hover:bg-zinc-50/80">
+                  <tr
+                    v-for="(doc, idx) in doctorScheduleTable"
+                    :key="idx"
+                    class="transition-colors"
+                    :class="doc.doctorName === selectedDoctor.name ? 'bg-amber-50/50 font-bold' : 'hover:bg-zinc-50/80'"
+                  >
                     <td class="py-3 px-3">
-                      <div class="font-extrabold text-[#0C3B36]">{{ doc.doctorName }}</div>
-                      <div class="text-[10px] text-zinc-500">{{ doc.specialty }}</div>
+                      <div class="font-extrabold text-[#0C3B36] flex items-center gap-1.5">
+                        <span>{{ doc.doctorName }}</span>
+                        <CheckCircle2 v-if="doc.doctorName === selectedDoctor.name" class="w-3.5 h-3.5 text-emerald-600 inline shrink-0" />
+                      </div>
+                      <div class="text-[10px] text-zinc-500 font-normal">{{ doc.specialty }}</div>
                     </td>
                     <td class="py-3 px-3 font-semibold text-zinc-800">
                       {{ doc.shift }}
                     </td>
-                    <td class="py-3 px-3">
-                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-800">
-                        {{ doc.room }}
+                    <td class="py-3 px-3 text-right">
+                      <span
+                        v-if="doc.doctorName === selectedDoctor.name"
+                        class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#0C3B36] text-[#E5A93C]"
+                      >
+                        Dipilih
                       </span>
+                      <button
+                        v-else
+                        type="button"
+                        @click="selectedDoctorId = (availableDoctors.find(d => d.name === doc.doctorName)?.id || selectedDoctorId)"
+                        class="text-[11px] font-bold text-[#0C3B36] hover:underline cursor-pointer"
+                      >
+                        Pilih Dokter Ini
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -1040,7 +1226,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- 4. Persetujuan Sebelum Konfirmasi (Master Prompt 3 F) -->
+          <!-- 5. Persetujuan Sebelum Konfirmasi (Master Prompt 3 F) -->
           <div class="space-y-2.5 pt-3 border-t border-zinc-100">
             <label class="block text-[11px] font-bold uppercase tracking-wider opacity-75">
               Persetujuan Pendaftaran (Wajib Dicentang):
@@ -1070,7 +1256,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Tombol Lanjut ke Review & Konfirmasi (Hanya aktif jika 3 persetujuan dicentang) -->
+          <!-- Tombol Lanjut ke Review & Konfirmasi -->
           <div class="flex items-center gap-3 pt-2">
             <button
               type="button"
@@ -1083,7 +1269,7 @@ onUnmounted(() => {
             <button
               type="button"
               @click="currentStep = 4"
-              :disabled="!allAgreementsChecked || capacityStatus.status === 'PENUH' || capacityStatus.status === 'TIDAK_MELAYANI'"
+              :disabled="!allAgreementsChecked || !isDoctorAvailableOnDate || capacityStatus.status === 'TIDAK_MELAYANI'"
               class="flex-1 py-3.5 rounded-2xl font-bold text-white text-xs uppercase tracking-wider active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed bg-[#0C3B36] hover:bg-[#134E48] cursor-pointer"
             >
               <span>Review & Konfirmasi</span>
@@ -1121,6 +1307,14 @@ onUnmounted(() => {
               <span class="font-extrabold text-[#0C3B36]">Kidinest Pediatric Care</span>
             </div>
             <div class="flex items-center justify-between pb-2 border-b border-zinc-200/60">
+              <span class="opacity-70">Dokter Spesialis:</span>
+              <span class="font-extrabold text-[#0C3B36]">{{ selectedDoctor.name }}</span>
+            </div>
+            <div class="flex items-center justify-between pb-2 border-b border-zinc-200/60">
+              <span class="opacity-70">Sesi Praktik:</span>
+              <span class="font-bold text-zinc-800">{{ selectedDoctor.shift }} ({{ selectedDoctor.hours }})</span>
+            </div>
+            <div class="flex items-center justify-between pb-2 border-b border-zinc-200/60">
               <span class="opacity-70">Nama Pasien:</span>
               <span class="font-bold">{{ patientName }} ({{ patientType === 'BARU' ? 'Pasien Baru' : 'Pasien Lama' }})</span>
             </div>
@@ -1141,8 +1335,8 @@ onUnmounted(() => {
               <span class="font-bold text-emerald-800 font-mono">{{ formatDateDDMMYYYY(selectedDateStr) }}</span>
             </div>
             <div class="flex items-center justify-between pt-1 text-sm font-black">
-              <span>Biaya Administrasi:</span>
-              <span class="text-emerald-700">Rp {{ selectedService.price.toLocaleString('id-ID') }}</span>
+              <span>Biaya Administrasi Reservasi:</span>
+              <span class="text-emerald-700 font-mono">Rp {{ REGISTRATION_FEE.toLocaleString('id-ID') }}</span>
             </div>
           </div>
 
@@ -1193,7 +1387,7 @@ onUnmounted(() => {
               class="flex-1 py-3.5 rounded-2xl font-bold text-white text-xs uppercase tracking-wider active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 bg-[#0C3B36] hover:bg-[#134E48] cursor-pointer"
             >
               <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
-              <span v-else>Konfirmasi & Bayar Rp {{ selectedService.price.toLocaleString('id-ID') }}</span>
+              <span v-else>Konfirmasi & Bayar Rp {{ REGISTRATION_FEE.toLocaleString('id-ID') }}</span>
               <ChevronRight v-if="!isSubmitting" class="w-4 h-4" />
             </button>
           </div>
@@ -1225,6 +1419,10 @@ onUnmounted(() => {
               <span class="font-bold text-[#0C3B36]">{{ patientName }}</span>
             </div>
             <div class="flex items-center justify-between opacity-70">
+              <span>Dokter Spesialis:</span>
+              <span class="font-bold text-[#0C3B36]">{{ selectedDoctor.name }}</span>
+            </div>
+            <div class="flex items-center justify-between opacity-70">
               <span>Layanan:</span>
               <span class="font-bold text-[#0C3B36]">{{ selectedService.label }}</span>
             </div>
@@ -1233,8 +1431,8 @@ onUnmounted(() => {
               <span class="font-bold text-[#0C3B36] font-mono">{{ formatDateDDMMYYYY(activeTicket.appointment_date || selectedDateStr) }}</span>
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-[#E5A93C]/20 text-sm font-extrabold text-[#0C3B36]">
-              <span>Total Tagihan:</span>
-              <span class="text-emerald-700 font-mono">Rp {{ (activeTicket.registration_fee || selectedService.price).toLocaleString('id-ID') }}</span>
+              <span>Biaya Administrasi Reservasi:</span>
+              <span class="text-emerald-700 font-mono">Rp {{ (activeTicket.registration_fee || REGISTRATION_FEE).toLocaleString('id-ID') }}</span>
             </div>
           </div>
 
@@ -1270,7 +1468,7 @@ onUnmounted(() => {
             </div>
             <div class="text-[11px] text-zinc-500">
               Nama Rekening: <strong>SMG KIDINEST CARE</strong><br />
-              Nominal tepat: <strong>Rp {{ (activeTicket.registration_fee || selectedService.price).toLocaleString('id-ID') }}</strong>
+              Nominal tepat: <strong>Rp {{ (activeTicket.registration_fee || REGISTRATION_FEE).toLocaleString('id-ID') }}</strong>
             </div>
           </div>
 
@@ -1349,6 +1547,17 @@ onUnmounted(() => {
 
             <div class="grid grid-cols-2 gap-4 pb-4 border-b border-zinc-100">
               <div>
+                <span class="opacity-60 font-semibold block text-[10px] uppercase">Dokter Spesialis</span>
+                <span class="font-extrabold text-sm text-[#0C3B36]">{{ activeTicket.doctor_name || selectedDoctor.name }}</span>
+              </div>
+              <div>
+                <span class="opacity-60 font-semibold block text-[10px] uppercase">Sesi Praktik</span>
+                <span class="font-bold text-sm text-zinc-800">{{ selectedDoctor.shift }} ({{ selectedDoctor.hours }})</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pb-4 border-b border-zinc-100">
+              <div>
                 <span class="opacity-60 font-semibold block text-[10px] uppercase">Layanan</span>
                 <span class="font-bold">{{ selectedService.label }}</span>
               </div>
@@ -1356,6 +1565,22 @@ onUnmounted(() => {
                 <span class="opacity-60 font-semibold block text-[10px] uppercase">Tanggal Praktik</span>
                 <span class="font-bold text-emerald-800 font-mono text-sm">
                   {{ formatDateDDMMYYYY(activeTicket.appointment_date || selectedDateStr) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pb-4 border-b border-zinc-100">
+              <div>
+                <span class="opacity-60 font-semibold block text-[10px] uppercase">Biaya Administrasi</span>
+                <span class="font-bold text-emerald-800 font-mono text-sm">
+                  Rp {{ (activeTicket.registration_fee || REGISTRATION_FEE).toLocaleString('id-ID') }}
+                </span>
+              </div>
+              <div>
+                <span class="opacity-60 font-semibold block text-[10px] uppercase">Status Pembayaran</span>
+                <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5">
+                  <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Lunas</span>
                 </span>
               </div>
             </div>
@@ -1549,3 +1774,21 @@ onUnmounted(() => {
 
   </div>
 </template>
+
+<style scoped>
+.date-chips-container::-webkit-scrollbar {
+  height: 4px;
+}
+.date-chips-container::-webkit-scrollbar-track {
+  background: #f1ede6;
+  border-radius: 9999px;
+}
+.date-chips-container::-webkit-scrollbar-thumb {
+  background: #0C3B36;
+  opacity: 0.6;
+  border-radius: 9999px;
+}
+.date-chips-container::-webkit-scrollbar-thumb:hover {
+  background: #E5A93C;
+}
+</style>

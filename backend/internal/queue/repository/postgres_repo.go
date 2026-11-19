@@ -212,15 +212,15 @@ func (r *PostgresQueueRepository) GenerateNextQueueNumber(ctx context.Context, d
 		prefix = "S"
 	} else {
 		switch category {
-		case domain.CategorySakit, "A_SAKIT", "A":
+		case "A_SAKIT", "A", domain.CategorySakit:
 			prefix = "A"
-		case domain.CategoryVaksin, "B_VAKSIN", "B":
+		case "B_VAKSIN", "B", domain.CategoryVaksin:
 			prefix = "B"
-		case domain.CategoryTumbang, "C":
+		case "C", domain.CategoryTumbang:
 			prefix = "C"
-		case domain.CategoryPaket, "D":
+		case "D", domain.CategoryPaket:
 			prefix = "D"
-		case domain.CategoryWalkin:
+		case "E", domain.CategoryWalkin:
 			prefix = "E"
 		default:
 			prefix = "A"

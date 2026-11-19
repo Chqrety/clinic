@@ -50,7 +50,7 @@ onMounted(async () => {
   if (!auth.isAuthenticated) {
     const ok = await auth.fetchMe()
     if (!ok) {
-      router.push('/login-kidinest')
+      router.replace('/login-kidinest')
       return
     }
   }

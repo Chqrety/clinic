@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
+	"time"
 
 	"clinic-api/internal/auth/domain"
 	"clinic-api/internal/auth/usecase"
@@ -75,16 +77,32 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	// Clear cookie
+	// 1. Ambil token dari Authorization header atau cookie untuk di-blacklist
+	authHeader := r.Header.Get("Authorization")
+	var tokenStr string
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+	} else if cookie, err := r.Cookie("clinic_token"); err == nil {
+		tokenStr = cookie.Value
+	}
+
+	// 2. Blacklist / Cabut token di sistem backend
+	if tokenStr != "" {
+		middleware.RevokeToken(tokenStr)
+	}
+
+	// 3. Clear cookie clinic_token secara tuntas
 	http.SetCookie(w, &http.Cookie{
 		Name:     "clinic_token",
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	response.Success(w, http.StatusOK, map[string]string{
-		"message": "berhasil logout dari sistem klinik",
+		"message": "berhasil logout dari sistem klinik, token dan sesi backend telah dicabut",
 	})
 }
