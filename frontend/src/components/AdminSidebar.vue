@@ -81,12 +81,6 @@ const canAccessManagement = computed(() => {
   return isSuperAdmin.value || ['OWNER', 'GRO_CASHIER', 'FINANCE'].includes(role)
 })
 
-// Hak akses khusus ERP Akuntansi
-const canAccessAccounting = computed(() => {
-  const role = (auth.user?.role || '').toUpperCase()
-  return isSuperAdmin.value || ['OWNER', 'FINANCE'].includes(role)
-})
-
 // Superadmin sees all 7 modules; non-owners see only their designated modules
 const visibleRoles = computed(() => {
   if (isSuperAdmin.value) {
@@ -256,8 +250,8 @@ async function handleLogout() {
           </div>
         </button>
 
-        <!-- Section: Portal Eksekutif & Finansial (Akses Terpisah) -->
-        <div v-if="canAccessManagement || canAccessAccounting" class="pt-3 pb-1">
+        <!-- Section: Portal Eksekutif Manajemen & Omzet -->
+        <div v-if="canAccessManagement" class="pt-3 pb-1">
           <div class="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
             Portal Khusus
           </div>

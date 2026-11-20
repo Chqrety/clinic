@@ -222,7 +222,7 @@ function handleSave() {
         </p>
       </div>
 
-      <div class="border border-zinc-200 rounded-xl overflow-hidden shadow-2xs">
+      <div class="border border-zinc-200 rounded-xl overflow-x-auto shadow-2xs">
         <table class="w-full text-left text-xs">
           <thead class="bg-zinc-50 border-b border-zinc-200 text-[10px] font-bold text-zinc-600 uppercase tracking-wider">
             <tr>

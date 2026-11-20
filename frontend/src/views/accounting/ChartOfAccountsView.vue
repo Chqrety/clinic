@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
+import { useLocaleStore } from '@/stores/locale'
 import { formatIDR } from '@/utils/currency'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import type { AccountType, NormalBalance, BusinessUnit } from '@/types/accounting'
@@ -30,6 +31,7 @@ import {
 const router = useRouter()
 const ledgerStore = useLedgerStore()
 const accountingStore = useAccountingStore()
+const localeStore = useLocaleStore()
 
 onMounted(() => {
   ledgerStore.fetchAccounts()
@@ -37,32 +39,193 @@ onMounted(() => {
 
 const searchQuery = ref('')
 const selectedType = ref<string>('ALL')
+const selectedSubCategory = ref<string>('ALL')
 const selectedLevel = ref<number | 'ALL'>('ALL')
 const selectedStatus = ref<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL')
 
-// Add account modal
+// Kategori Utama (Level 1) diambil dinamis 100% dari struktur COA
+const categoryOptions = computed(() => {
+  const lvl1 = ledgerStore.accounts
+    .filter(a => a.level === 1)
+    .sort((a, b) => a.code.localeCompare(b.code))
+
+  const list = lvl1.map(a => {
+    const translatedName = localeStore.translateAccountName(a.name)
+    return {
+      value: a.type,
+      code: a.code,
+      name: translatedName,
+      label: `${a.code} - ${translatedName}`
+    }
+  })
+
+  return [{ value: 'ALL', code: 'ALL', name: localeStore.t('coa.allCategories'), label: localeStore.t('coa.allCategories') }, ...list]
+})
+
+// Sub-Kategori / Kelompok Akun (Level 2 Header) diambil dinamis dari COA sesuai Kategori yang dipilih
+const subCategoryOptions = computed(() => {
+  let lvl2 = ledgerStore.accounts
+    .filter(a => a.level === 2 && a.isHeader)
+    .sort((a, b) => a.code.localeCompare(b.code))
+
+  if (selectedType.value !== 'ALL') {
+    lvl2 = lvl2.filter(a => a.type === selectedType.value)
+  }
+
+  return [
+    { value: 'ALL', code: 'ALL', name: localeStore.t('coa.allSubCategories'), label: localeStore.t('coa.allSubCategories') },
+    ...lvl2.map(a => {
+      const translatedName = localeStore.translateAccountName(a.name)
+      return {
+        value: a.code,
+        code: a.code,
+        name: translatedName,
+        label: `${a.code} - ${translatedName}`
+      }
+    })
+  ]
+})
+
+// Add Account / Sub-Category Modal States
 const showAddModal = ref(false)
+const isHeaderMode = ref(false) // false = Akun Transaksi / Detail, true = Sub-Kategori / Header Kelompok Baru
+const selectedAddCategoryCode = ref('1-0000')
+const selectedAddParentCode = ref('')
 const newCode = ref('')
 const newName = ref('')
-const newType = ref<AccountType>('EXPENSE')
+const newType = ref<AccountType>('ASSET')
 const newNormalBalance = ref<NormalBalance>('DEBIT')
 const newLevel = ref(3)
 const newUnit = ref<BusinessUnit>('ALL')
+const newTaxCategory = ref<string>('NON_TAX')
 const newDescription = ref('')
 
-function handleSaveAccount() {
+// Daftar Kategori Level 1 untuk Modal
+const addCategoryList = computed(() => {
+  return ledgerStore.accounts
+    .filter(a => a.level === 1)
+    .sort((a, b) => a.code.localeCompare(b.code))
+})
+
+// Daftar Sub-Kategori (Level 2/3 Header) sesuai kategori yang dipilih untuk modal
+const addSubCategoryList = computed(() => {
+  return ledgerStore.accounts
+    .filter(a => (a.level === 2 || a.level === 3) && a.isHeader && (a.type === newType.value || a.parentCode === selectedAddCategoryCode.value))
+    .sort((a, b) => a.code.localeCompare(b.code))
+})
+
+function suggestNextCode(parentCode: string): string {
+  const children = ledgerStore.accounts.filter(a => a.parentCode === parentCode)
+  if (children.length > 0) {
+    const codes = children.map(c => c.code)
+    const lastCode = codes[codes.length - 1]
+    const match = lastCode.match(/^(.*?)(\d+)$/)
+    if (match) {
+      const prefix = match[1]
+      const num = parseInt(match[2], 10) + 1
+      const paddedNum = String(num).padStart(match[2].length, '0')
+      return `${prefix}${paddedNum}`
+    }
+  }
+  const match = parentCode.match(/^(.*?)(\d+)$/)
+  if (match) {
+    const prefix = match[1]
+    const num = parseInt(match[2], 10) + 10
+    return `${prefix}${num}`
+  }
+  return `${parentCode}.01`
+}
+
+function onCategoryChanged() {
+  const cat = ledgerStore.accounts.find(a => a.code === selectedAddCategoryCode.value)
+  if (cat) {
+    newType.value = cat.type
+    newNormalBalance.value = cat.normalBalance
+  }
+  const availableSub = addSubCategoryList.value
+  if (!isHeaderMode.value && availableSub.length > 0) {
+    selectedAddParentCode.value = availableSub[0].code
+    onParentChanged()
+  } else {
+    selectedAddParentCode.value = selectedAddCategoryCode.value
+    newLevel.value = 2
+    newCode.value = suggestNextCode(selectedAddCategoryCode.value)
+  }
+}
+
+function onParentChanged() {
+  const parent = ledgerStore.accounts.find(a => a.code === selectedAddParentCode.value)
+  if (parent) {
+    newLevel.value = isHeaderMode.value ? parent.level : Math.min(parent.level + 1, 4)
+    newCode.value = suggestNextCode(parent.code)
+  }
+}
+
+function onHeaderModeChanged() {
+  if (isHeaderMode.value) {
+    selectedAddParentCode.value = selectedAddCategoryCode.value
+    newLevel.value = 2
+    newCode.value = suggestNextCode(selectedAddCategoryCode.value)
+  } else {
+    const availableSub = addSubCategoryList.value
+    if (availableSub.length > 0) {
+      selectedAddParentCode.value = availableSub[0].code
+      onParentChanged()
+    }
+  }
+}
+
+function openAddModal(parentAcc?: any) {
+  if (parentAcc) {
+    // Quick Add di bawah kelompok ini
+    let topLvl: any = parentAcc
+    while (topLvl.level > 1 && topLvl.parentCode) {
+      const p = ledgerStore.accounts.find(a => a.code === topLvl.parentCode)
+      if (p) topLvl = p
+      else break
+    }
+    selectedAddCategoryCode.value = topLvl.code
+    newType.value = parentAcc.type
+    newNormalBalance.value = parentAcc.normalBalance
+    selectedAddParentCode.value = parentAcc.code
+    isHeaderMode.value = false
+    newLevel.value = Math.min(parentAcc.level + 1, 4)
+    newCode.value = suggestNextCode(parentAcc.code)
+  } else {
+    selectedAddCategoryCode.value = addCategoryList.value[0]?.code || '1-0000'
+    isHeaderMode.value = false
+    onCategoryChanged()
+  }
+  newName.value = ''
+  newDescription.value = ''
+  newTaxCategory.value = 'NON_TAX'
+  newUnit.value = accountingStore.businessUnit !== 'ALL' ? (accountingStore.businessUnit as BusinessUnit) : 'ALL'
+  showAddModal.value = true
+}
+
+async function handleSaveAccount() {
   if (!newCode.value.trim() || !newName.value.trim()) {
     accountingStore.showToast('Kode Akun dan Nama Akun wajib diisi!', 'error')
     return
   }
 
-  ledgerStore.addAccount({
-    code: newCode.value.trim(),
+  const codeTrimmed = newCode.value.trim()
+  const exists = ledgerStore.accounts.some(a => a.code.toLowerCase() === codeTrimmed.toLowerCase())
+  if (exists) {
+    accountingStore.showToast(`Kode Akun ${codeTrimmed} sudah digunakan! Silakan gunakan kode unik.`, 'error')
+    return
+  }
+
+  await ledgerStore.addAccount({
+    code: codeTrimmed,
     name: newName.value.trim(),
     type: newType.value,
     normalBalance: newNormalBalance.value,
     level: newLevel.value,
+    isHeader: isHeaderMode.value,
     businessUnit: newUnit.value,
+    parentCode: selectedAddParentCode.value || selectedAddCategoryCode.value,
+    taxCategory: newTaxCategory.value !== 'NON_TAX' ? (newTaxCategory.value as any) : undefined,
     description: newDescription.value.trim()
   })
 
@@ -113,16 +276,6 @@ async function handleToggleActive(acc: any) {
   }
 }
 
-const typeOptions = [
-  { value: 'ALL', label: 'Semua Kategori (1 - 7)' },
-  { value: 'ASSET', label: '1 - ASET' },
-  { value: 'LIABILITY', label: '2 - KEWAJIBAN' },
-  { value: 'EQUITY', label: '3 - EKUITAS' },
-  { value: 'REVENUE', label: '4 - PENDAPATAN & 6 - NON USAHA' },
-  { value: 'COGS', label: '5 - HPP' },
-  { value: 'EXPENSE', label: '52 - BEBAN OPERASIONAL & 7 - NON USAHA' }
-]
-
 // Expand & Collapse Tree Nodes
 const collapsedCodes = ref<Set<string>>(new Set())
 
@@ -163,13 +316,30 @@ const filteredAccounts = computed(() => {
     if (accountingStore.businessUnit !== 'ALL' && a.businessUnit && a.businessUnit !== 'ALL' && a.businessUnit !== accountingStore.businessUnit) {
       return false
     }
-    if (selectedType.value !== 'ALL') {
-      if (selectedType.value === 'REVENUE' && (a.type !== 'REVENUE')) return false
-      else if (selectedType.value === 'EXPENSE' && (a.type !== 'EXPENSE')) return false
-      else if (selectedType.value !== 'REVENUE' && selectedType.value !== 'EXPENSE' && a.type !== selectedType.value) return false
-    }
-    if (selectedLevel.value !== 'ALL' && a.level !== selectedLevel.value) {
+    if (selectedType.value !== 'ALL' && a.type !== selectedType.value) {
       return false
+    }
+    if (selectedSubCategory.value !== 'ALL') {
+      const target = selectedSubCategory.value
+      if (a.code !== target && a.parentCode !== target) {
+        let p = a.parentCode
+        let match = false
+        while (p) {
+          if (p === target) { match = true; break }
+          const pAcc = ledgerStore.accounts.find(x => x.code === p)
+          p = pAcc?.parentCode
+        }
+        if (!match) return false
+      }
+    }
+    if (selectedLevel.value !== 'ALL') {
+      if (selectedLevel.value === 4) {
+        // Level 4 (Detail): tampilkan semua akun detail / non-header
+        if (a.isHeader) return false
+        if (a.level !== 4 && a.level < 3) return false
+      } else if (a.level !== selectedLevel.value) {
+        return false
+      }
     }
     if (selectedStatus.value === 'ACTIVE' && a.isActive === false) {
       return false
@@ -207,13 +377,13 @@ function openTaxModule(taxCategory?: string) {
       <div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-            Bagan Akun Standar
+            {{ localeStore.t('coa.category') }}
           </span>
           <span class="text-zinc-300">•</span>
-          <span class="text-xs text-zinc-400 font-medium">PSAK & Hierarki Akuntansi Klinik</span>
+          <span class="text-xs text-zinc-400 font-medium">{{ localeStore.t('coa.subtitle') }}</span>
         </div>
         <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
-          Chart of Accounts (COA)
+          {{ localeStore.t('coa.title') }}
         </h1>
       </div>
 
@@ -223,15 +393,15 @@ function openTaxModule(taxCategory?: string) {
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
           <BookmarkCheck class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Atur Saldo Awal</span>
+          <span>{{ localeStore.t('coa.setOpeningBalance') }}</span>
         </button>
 
         <button
-          @click="showAddModal = true"
+          @click="openAddModal()"
           class="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
           <Plus class="w-3.5 h-3.5" />
-          <span>Tambah Akun Baru</span>
+          <span>{{ localeStore.t('coa.addNewAccount') }}</span>
         </button>
       </div>
     </header>
@@ -240,28 +410,47 @@ function openTaxModule(taxCategory?: string) {
     <div class="bg-white p-4 rounded-2xl border border-zinc-200/90 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
       <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
         <!-- Search -->
-        <div class="relative w-full md:w-72">
+        <div class="relative w-full md:w-64">
           <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Cari kode akun, nama, atau jenis pajak..."
+            :placeholder="localeStore.t('coa.searchPlaceholder')"
             class="w-full pl-9 pr-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
           />
         </div>
 
-        <!-- Type Selector -->
+        <!-- Dynamic Category Selector (Level 1 dari COA) -->
         <div class="relative">
           <select
             v-model="selectedType"
-            class="px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-800 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
+            @change="selectedSubCategory = 'ALL'"
+            class="px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-800 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
+            :title="localeStore.t('coa.fieldCategory')"
           >
             <option
-              v-for="opt in typeOptions"
-              :key="opt.value"
+              v-for="opt in categoryOptions"
+              :key="opt.code"
               :value="opt.value"
             >
               {{ opt.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Dynamic Sub-Category Selector (Level 2 dari COA) -->
+        <div class="relative">
+          <select
+            v-model="selectedSubCategory"
+            class="px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-800 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
+            :title="localeStore.t('coa.fieldParent')"
+          >
+            <option
+              v-for="sub in subCategoryOptions"
+              :key="sub.code"
+              :value="sub.value"
+            >
+              {{ sub.label }}
             </option>
           </select>
         </div>
@@ -275,7 +464,7 @@ function openTaxModule(taxCategory?: string) {
               selectedLevel === 'ALL' ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
           >
-            Semua
+            {{ localeStore.t('coa.levelAll') }}
           </button>
           <button
             @click="selectedLevel = 1"
@@ -285,7 +474,7 @@ function openTaxModule(taxCategory?: string) {
             ]"
             title="Index Utama (Aset, Kewajiban, Ekuitas, Pendapatan, Beban)"
           >
-            Lvl 1 (Index)
+            {{ localeStore.t('coa.level1') }}
           </button>
           <button
             @click="selectedLevel = 2"
@@ -295,7 +484,7 @@ function openTaxModule(taxCategory?: string) {
             ]"
             title="Sub-Index Kelompok (Kas & Bank, Piutang, Hutang Pajak, dll.)"
           >
-            Lvl 2 (Sub-Index)
+            {{ localeStore.t('coa.level2') }}
           </button>
           <button
             @click="selectedLevel = 3"
@@ -305,7 +494,7 @@ function openTaxModule(taxCategory?: string) {
             ]"
             title="Sub-Index ke-2 (Kasir, Bank BCA, PPh 21, PPh 23, dll.)"
           >
-            Lvl 3
+            {{ localeStore.t('coa.level3') }}
           </button>
           <button
             @click="selectedLevel = 4"
@@ -315,7 +504,7 @@ function openTaxModule(taxCategory?: string) {
             ]"
             title="Rincian Detail Rekening Buku Besar"
           >
-            Lvl 4 (Detail)
+            {{ localeStore.t('coa.level4') }}
           </button>
         </div>
 
@@ -328,7 +517,7 @@ function openTaxModule(taxCategory?: string) {
               selectedStatus === 'ALL' ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
           >
-            Semua
+            {{ localeStore.t('coa.statusAll') }}
           </button>
           <button
             @click="selectedStatus = 'ACTIVE'"
@@ -337,7 +526,7 @@ function openTaxModule(taxCategory?: string) {
               selectedStatus === 'ACTIVE' ? 'bg-zinc-950 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
           >
-            Aktif
+            {{ localeStore.t('coa.statusActive') }}
           </button>
           <button
             @click="selectedStatus = 'INACTIVE'"
@@ -346,7 +535,7 @@ function openTaxModule(taxCategory?: string) {
               selectedStatus === 'INACTIVE' ? 'bg-rose-600 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
             ]"
           >
-            Nonaktif
+            {{ localeStore.t('coa.statusInactive') }}
           </button>
         </div>
       </div>
@@ -357,21 +546,21 @@ function openTaxModule(taxCategory?: string) {
             type="button"
             @click="expandAll"
             class="px-2.5 py-1 text-xs font-semibold text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg border border-zinc-200 transition-colors cursor-pointer"
-            title="Buka seluruh sub-akun"
+            :title="localeStore.t('coa.expandAll')"
           >
-            Buka Semua
+            {{ localeStore.t('coa.expandAll') }}
           </button>
           <button
             type="button"
             @click="collapseAll"
             class="px-2.5 py-1 text-xs font-semibold text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg border border-zinc-200 transition-colors cursor-pointer"
-            title="Ciutkan seluruh sub-akun"
+            :title="localeStore.t('coa.collapseAll')"
           >
-            Ciutkan Semua
+            {{ localeStore.t('coa.collapseAll') }}
           </button>
         </div>
         <div class="text-xs text-zinc-500 font-medium">
-          Menampilkan <strong>{{ filteredAccounts.length }}</strong> akun
+          {{ localeStore.t('coa.showingAccounts', 'Menampilkan {count} akun').replace('{count}', String(filteredAccounts.length)) }}
         </div>
       </div>
     </div>
@@ -382,15 +571,15 @@ function openTaxModule(taxCategory?: string) {
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-zinc-50 border-b border-zinc-200/90 text-[11px] font-bold text-zinc-600 uppercase tracking-wider">
-              <th class="px-4 py-3 w-36">Kode Akun</th>
-              <th class="px-4 py-3">Nama Akun (Hierarki COA)</th>
-              <th class="px-4 py-3 text-center w-20">Level</th>
-              <th class="px-4 py-3">Klasifikasi Tipe</th>
-              <th class="px-4 py-3 text-center">Saldo Normal</th>
-              <th class="px-4 py-3 text-center">Unit Bisnis</th>
-              <th class="px-4 py-3 text-right">Saldo Saat Ini (Rp)</th>
-              <th class="px-4 py-3 text-center w-28">Integrasi Pajak</th>
-              <th class="px-4 py-3 text-center w-32">Aksi</th>
+              <th class="px-4 py-3 w-36">{{ localeStore.t('coa.colCode') }}</th>
+              <th class="px-4 py-3">{{ localeStore.t('coa.colName') }}</th>
+              <th class="px-4 py-3 text-center w-20">{{ localeStore.t('coa.colLevel') }}</th>
+              <th class="px-4 py-3">{{ localeStore.t('coa.colType') }}</th>
+              <th class="px-4 py-3 text-center">{{ localeStore.t('coa.colNormalBalance') }}</th>
+              <th class="px-4 py-3 text-center">{{ localeStore.t('coa.colUnit') }}</th>
+              <th class="px-4 py-3 text-right">{{ localeStore.t('coa.colBalance') }}</th>
+              <th class="px-4 py-3 text-center w-28">{{ localeStore.t('coa.colTax') }}</th>
+              <th class="px-4 py-3 text-center w-32">{{ localeStore.t('coa.colActions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-zinc-100">
@@ -432,7 +621,7 @@ function openTaxModule(taxCategory?: string) {
                     type="button"
                     @click.stop="toggleCollapse(acc.code)"
                     class="p-0.5 -ml-1 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/80 rounded transition-colors cursor-pointer"
-                    :title="collapsedCodes.has(acc.code) ? 'Buka Sub-Akun' : 'Ciutkan Sub-Akun'"
+                    :title="collapsedCodes.has(acc.code) ? localeStore.t('coa.expandAll') : localeStore.t('coa.collapseAll')"
                   >
                     <ChevronRight v-if="collapsedCodes.has(acc.code)" class="w-3.5 h-3.5" />
                     <ChevronDown v-else class="w-3.5 h-3.5" />
@@ -447,13 +636,13 @@ function openTaxModule(taxCategory?: string) {
                       acc.isActive === false ? 'line-through text-zinc-400' : ''
                     ]"
                   >
-                    {{ acc.name }}
+                    {{ localeStore.translateAccountName(acc.name) }}
                   </span>
                   <span
                     v-if="acc.isActive === false"
                     class="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider"
                   >
-                    Nonaktif
+                    {{ localeStore.t('coa.badgeInactive') }}
                   </span>
                 </div>
               </td>
@@ -466,10 +655,10 @@ function openTaxModule(taxCategory?: string) {
                     acc.level === 1 ? 'bg-zinc-200 text-zinc-900 border border-zinc-300' :
                     acc.level === 2 ? 'bg-zinc-100 text-zinc-800 border border-zinc-200' :
                     acc.level === 3 ? 'bg-zinc-50 text-zinc-700 border border-zinc-200/70' :
-                    'bg-transparent text-zinc-400 border border-zinc-200/50'
+                    'bg-emerald-50 text-emerald-800 border border-emerald-200/70'
                   ]"
                 >
-                  L{{ acc.level }}
+                  L{{ acc.level || 4 }}
                 </span>
               </td>
 
@@ -518,13 +707,23 @@ function openTaxModule(taxCategory?: string) {
                 <span v-else class="text-zinc-300 text-[11px]">-</span>
               </td>
 
-              <!-- Aksi (Buku Besar, Edit, Nonaktifkan) -->
+              <!-- Aksi (Buku Besar, Edit, Nonaktifkan, + Tambah Sub-Akun) -->
               <td class="px-4 py-2.5 text-center">
                 <div class="flex items-center justify-center gap-1.5">
+                  <!-- Tombol Cepat Tambah Sub-Akun pada Header / Kategori -->
+                  <button
+                    v-if="acc.isHeader"
+                    @click.stop="openAddModal(acc)"
+                    class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-900 rounded-lg transition-colors border border-emerald-200 shadow-2xs cursor-pointer"
+                    title="Tambah Sub-Akun langsung di bawah kelompok ini"
+                  >
+                    <Plus class="w-3.5 h-3.5" />
+                  </button>
+
                   <button
                     @click="openLedgerForAccount(acc.code)"
                     class="p-1.5 bg-white hover:bg-zinc-100 text-zinc-600 hover:text-zinc-950 rounded-lg transition-colors border border-zinc-200 shadow-2xs cursor-pointer"
-                    title="Buku Besar (General Ledger)"
+                    :title="localeStore.t('coa.actionLedger')"
                   >
                     <BookOpen class="w-3.5 h-3.5" />
                   </button>
@@ -533,7 +732,7 @@ function openTaxModule(taxCategory?: string) {
                     v-if="!acc.isHeader"
                     @click="openEditModal(acc)"
                     class="p-1.5 bg-white hover:bg-zinc-100 text-zinc-600 hover:text-zinc-950 rounded-lg transition-colors border border-zinc-200 shadow-2xs cursor-pointer"
-                    title="Edit Nama / Keterangan Akun"
+                    :title="localeStore.t('coa.actionEdit')"
                   >
                     <Edit3 class="w-3.5 h-3.5" />
                   </button>
@@ -547,7 +746,7 @@ function openTaxModule(taxCategory?: string) {
                         ? 'bg-white hover:bg-rose-50 text-zinc-500 hover:text-rose-600 border-zinc-200'
                         : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
                     ]"
-                    :title="acc.isActive !== false ? 'Nonaktifkan Akun' : 'Aktifkan Kembali Akun'"
+                    :title="acc.isActive !== false ? localeStore.t('coa.actionDeactivate') : localeStore.t('coa.actionActivate')"
                   >
                     <Power class="w-3.5 h-3.5" />
                   </button>
@@ -561,56 +760,142 @@ function openTaxModule(taxCategory?: string) {
 
 
 
-    <!-- Add Account Modal (Official Clinical Modal Specification) -->
+    <!-- Add Account Modal (Dynamic Category & Sub-Category Hierarchy) -->
     <div
       v-if="showAddModal"
       class="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
     >
       <div class="bg-white rounded-3xl shadow-2xl border border-zinc-200/80 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         <div class="p-5 border-b border-zinc-100 flex items-center justify-between">
-          <h3 class="text-sm font-bold text-zinc-950">Tambah Akun Bagan Baru (COA)</h3>
+          <div>
+            <h3 class="text-sm font-bold text-zinc-950">Tambah Akun Bagan Baru (COA)</h3>
+            <p class="text-[11px] text-zinc-500 mt-0.5">Penetapan terstruktur per Kategori & Sub-Kategori Induk</p>
+          </div>
           <button @click="showAddModal = false" class="p-1.5 text-zinc-400 hover:text-zinc-700 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer">
             <X class="w-4 h-4" />
           </button>
         </div>
 
         <form @submit.prevent="handleSaveAccount" class="p-6 space-y-4 text-xs">
-          <div>
-            <label class="block font-bold text-zinc-800 mb-1">Kode Akun</label>
-            <input
-              v-model="newCode"
-              type="text"
-              placeholder="Contoh: 2-1130 atau 2501.003"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-mono font-bold focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-              required
-            />
+          <!-- Toggle: Akun Transaksi vs Sub-Kategori Baru -->
+          <div class="bg-zinc-100 p-1 rounded-xl flex items-center text-xs font-bold">
+            <button
+              type="button"
+              @click="isHeaderMode = false; onHeaderModeChanged()"
+              :class="[
+                'flex-1 py-1.5 px-3 rounded-lg text-center transition cursor-pointer',
+                !isHeaderMode ? 'bg-white text-zinc-950 shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
+              ]"
+            >
+              📄 Akun Transaksi (Detail Buku Besar)
+            </button>
+            <button
+              type="button"
+              @click="isHeaderMode = true; onHeaderModeChanged()"
+              :class="[
+                'flex-1 py-1.5 px-3 rounded-lg text-center transition cursor-pointer',
+                isHeaderMode ? 'bg-white text-zinc-950 shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'
+              ]"
+            >
+              📁 Sub-Kategori / Header Baru
+            </button>
           </div>
 
+          <!-- 1. Kategori Utama (Level 1) -->
           <div>
-            <label class="block font-bold text-zinc-800 mb-1">Nama Akun</label>
-            <input
-              v-model="newName"
-              type="text"
-              placeholder="Contoh: Hutang PPh 21 Tenaga Medis Konsultan"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-              required
-            />
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-zinc-800 mb-1">Level Hierarki</label>
-              <select
-                v-model.number="newLevel"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+            <label class="block font-bold text-zinc-800 mb-1">
+              1. Kategori Utama (Induk Level 1) <span class="text-rose-500">*</span>
+            </label>
+            <select
+              v-model="selectedAddCategoryCode"
+              @change="onCategoryChanged"
+              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
+            >
+              <option
+                v-for="cat in addCategoryList"
+                :key="cat.code"
+                :value="cat.code"
               >
-                <option :value="1">Level 1 (Index Utama)</option>
-                <option :value="2">Level 2 (Sub-Index)</option>
-                <option :value="3">Level 3 (Sub-Index ke-2)</option>
-                <option :value="4">Level 4 (Detail Leaf)</option>
-              </select>
+                {{ cat.code }} - {{ cat.name }} ({{ cat.type }})
+              </option>
+            </select>
+          </div>
+
+          <!-- 2. Sub-Kategori Induk (Level 2/3) - Only for Detail Account Mode -->
+          <div v-if="!isHeaderMode">
+            <label class="block font-bold text-zinc-800 mb-1">
+              2. Sub-Kategori Induk (Parent Group) <span class="text-rose-500">*</span>
+            </label>
+            <select
+              v-model="selectedAddParentCode"
+              @change="onParentChanged"
+              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
+            >
+              <option
+                v-for="sub in addSubCategoryList"
+                :key="sub.code"
+                :value="sub.code"
+              >
+                {{ sub.code }} - {{ sub.name }} (Level {{ sub.level }})
+              </option>
+            </select>
+            <p class="text-[10px] text-zinc-500 mt-1">Akun baru akan otomatis berada di bawah sub-kategori ini pada buku besar.</p>
+          </div>
+
+          <!-- 3. Kode & Nama Akun -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block font-bold text-zinc-800 mb-1">
+                Kode Akun <span class="text-rose-500">*</span>
+              </label>
+              <input
+                v-model="newCode"
+                type="text"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-mono font-bold focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                required
+              />
+              <span class="text-[9px] text-emerald-700 font-semibold block mt-0.5">Saran otomatis sistem</span>
             </div>
 
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-zinc-800 mb-1">
+                Nama Akun <span class="text-rose-500">*</span>
+              </label>
+              <input
+                v-model="newName"
+                type="text"
+                placeholder="Contoh: Kas Kasir Kidinest Shift Pagi"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-bold focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- 4. Otomatis: Klasifikasi, Saldo Normal, Unit Bisnis -->
+          <div class="grid grid-cols-3 gap-3 bg-zinc-50 p-3 rounded-2xl border border-zinc-200">
+            <div>
+              <span class="block text-[10px] font-bold text-zinc-500 uppercase">Tipe Akun</span>
+              <span class="font-bold text-xs text-zinc-900">{{ newType }}</span>
+            </div>
+            <div>
+              <span class="block text-[10px] font-bold text-zinc-500 uppercase">Saldo Normal</span>
+              <span
+                :class="[
+                  'font-bold text-xs inline-block px-1.5 py-0.5 rounded text-[10px]',
+                  newNormalBalance === 'DEBIT' ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'
+                ]"
+              >
+                {{ newNormalBalance }}
+              </span>
+            </div>
+            <div>
+              <span class="block text-[10px] font-bold text-zinc-500 uppercase">Hierarki</span>
+              <span class="font-bold text-xs text-zinc-900">Level {{ newLevel }}</span>
+            </div>
+          </div>
+
+          <!-- 5. Unit Bisnis & Integrasi Pajak -->
+          <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block font-bold text-zinc-800 mb-1">Unit Bisnis</label>
               <select
@@ -618,46 +903,37 @@ function openTaxModule(taxCategory?: string) {
                 class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               >
                 <option value="ALL">Semua Unit (Konsolidasi)</option>
-                <option value="KIDINEST">Kidinest</option>
+                <option value="KIDINEST">Kidinest Pediatric</option>
                 <option value="SSC">Semarang Skin Center</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-zinc-800 mb-1">Tipe Klasifikasi</label>
-              <select
-                v-model="newType"
-                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-              >
-                <option value="ASSET">1 - ASET</option>
-                <option value="LIABILITY">2 - KEWAJIBAN</option>
-                <option value="EQUITY">3 - EKUITAS</option>
-                <option value="REVENUE">4 / 6 - PENDAPATAN</option>
-                <option value="COGS">5 - HPP</option>
-                <option value="EXPENSE">52 / 7 - BEBAN</option>
+                <option value="MINIMO">Minimo</option>
               </select>
             </div>
 
             <div>
-              <label class="block font-bold text-zinc-800 mb-1">Saldo Normal</label>
+              <label class="block font-bold text-zinc-800 mb-1">Integrasi Pajak (Opsional)</label>
               <select
-                v-model="newNormalBalance"
+                v-model="newTaxCategory"
                 class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-zinc-950 focus:outline-none"
               >
-                <option value="DEBIT">DEBIT (Dr)</option>
-                <option value="CREDIT">CREDIT (Cr)</option>
+                <option value="NON_TAX">Non-Pajak / Umum</option>
+                <option value="PPH_21">PPh Pasal 21 (Gaji & Fee Dokter)</option>
+                <option value="PPH_23">PPh Pasal 23 (Jasa Vendor / IT)</option>
+                <option value="PPH_4_2">PPh Final Pasal 4(2) (Sewa Gedung)</option>
+                <option value="PPN_OUT">PPN Keluaran</option>
+                <option value="PPN_IN">PPN Masukan</option>
+                <option value="PPH_25">PPh Pasal 25 (Angsuran Badan)</option>
+                <option value="PPH_29">PPh Pasal 29 (Kurang Bayar Tahunan)</option>
               </select>
             </div>
           </div>
 
+          <!-- 6. Keterangan -->
           <div>
             <label class="block font-bold text-zinc-800 mb-1">Keterangan / Catatan</label>
             <textarea
               v-model="newDescription"
               rows="2"
-              placeholder="Deskripsi peruntukan akun buku besar..."
+              placeholder="Deskripsi peruntukan akun buku besar ini..."
               class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:ring-1 focus:ring-zinc-950 focus:outline-none"
             ></textarea>
           </div>

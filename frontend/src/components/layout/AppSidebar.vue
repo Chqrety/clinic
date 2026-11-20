@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useJournalsStore } from '@/stores/journals'
 import { useTransactionsStore } from '@/stores/transactions'
 import { useAccountingStore } from '@/stores/accounting'
 import { useLocaleStore } from '@/stores/locale'
+import { useAuthStore } from '@/stores/auth'
+import { useClinicStore } from '@/stores/clinic'
 import {
   LayoutDashboard,
   Layers,
@@ -24,14 +26,43 @@ import {
   BookmarkCheck,
   TrendingUp,
   Languages,
-  Settings
+  Settings,
+  X,
+  Stethoscope,
+  LogOut,
+  ArrowUpRight
 } from 'lucide-vue-next'
 
+const props = withDefaults(
+  defineProps<{
+    isMobileOpen?: boolean
+  }>(),
+  {
+    isMobileOpen: false
+  }
+)
+
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
 const route = useRoute()
+const router = useRouter()
 const journalsStore = useJournalsStore()
 const transactionsStore = useTransactionsStore()
 const accountingStore = useAccountingStore()
 const localeStore = useLocaleStore()
+const authStore = useAuthStore()
+const clinicStore = useClinicStore()
+
+async function handleLogout() {
+  emit('close')
+  window.location.hash = ''
+  await authStore.logout()
+  clinicStore.setRole('patient')
+  accountingStore.showToast('Berhasil logout dari sistem akuntansi', 'info')
+  router.replace('/login-kidinest')
+}
 
 // Badge counts
 const unprocessedTxCount = computed(() => {
@@ -143,8 +174,21 @@ function isCurrentRoute(to: string): boolean {
 
 <template>
   <aside
-    class="w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between shrink-0 select-none text-zinc-300 min-h-screen"
+    :class="[
+      'bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between shrink-0 select-none text-zinc-300 h-screen transition-transform duration-200 ease-in-out',
+      'w-64 fixed inset-y-0 left-0 z-50 lg:static lg:translate-x-0',
+      props.isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+    ]"
   >
+    <!-- Mobile Backdrop Overlay -->
+    <Teleport to="body">
+      <div
+        v-if="props.isMobileOpen"
+        class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-xs transition-opacity duration-200"
+        @click="emit('close')"
+      ></div>
+    </Teleport>
+
     <!-- Brand Header (Official SMG Clinical Identity) -->
     <div class="p-4 border-b border-zinc-800/80 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
@@ -156,9 +200,18 @@ function isCurrentRoute(to: string): boolean {
           <div class="text-[10px] text-zinc-400 font-medium">Finance & Accounting</div>
         </div>
       </div>
-      <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-        PROD
-      </span>
+      <div class="flex items-center gap-2">
+        <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+          PROD
+        </span>
+        <button
+          @click="emit('close')"
+          class="lg:hidden p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+          title="Tutup Navigasi"
+        >
+          <X class="w-4 h-4" />
+        </button>
+      </div>
     </div>
 
     <!-- Active Unit Banner Pill (Semantic Dual-Brand Indicators) -->
@@ -198,6 +251,7 @@ function isCurrentRoute(to: string): boolean {
           v-for="item in group.items"
           :key="item.to"
           :to="item.to"
+          @click="emit('close')"
           :class="[
             'flex items-center justify-between px-3 py-2 rounded-xl font-medium transition-all duration-150 group',
             isCurrentRoute(item.to)
@@ -229,21 +283,31 @@ function isCurrentRoute(to: string): boolean {
       </div>
     </div>
 
-    <!-- Bottom User Profile & Switcher -->
+    <!-- Bottom User Profile & Actions -->
     <div class="p-4 border-t border-zinc-800/80 bg-zinc-950 space-y-3">
+      <!-- User Profile Card -->
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs text-zinc-200">
-          {{ (accountingStore.currentUserName || 'F').charAt(0) }}
+        <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs text-zinc-200 shrink-0">
+          {{ (authStore.user?.name || accountingStore.currentUserName || 'F').charAt(0) }}
         </div>
         <div class="min-w-0 flex-1">
           <p class="text-xs font-semibold text-zinc-100 truncate">
-            {{ accountingStore.currentUserName }}
+            {{ authStore.user?.name || accountingStore.currentUserName }}
           </p>
           <p class="text-[10px] text-zinc-400 truncate capitalize">
             Finance & Accounting Manager
           </p>
         </div>
       </div>
+
+      <!-- Logout Button (Mobile Drawer) -->
+      <button
+        @click="handleLogout"
+        class="lg:hidden w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-900/50 text-xs font-bold transition cursor-pointer"
+      >
+        <LogOut class="w-3.5 h-3.5" />
+        <span>Keluar dari Sistem</span>
+      </button>
     </div>
   </aside>
 </template>

@@ -689,7 +689,7 @@ function handlePrint() {
                     <option value="Semua Transaksi">Semua Transaksi</option>
                     <option value="Buku Besar">Buku Besar (General Ledger)</option>
                     <option value="Jurnal Umum">Jurnal Umum (Journal Entry)</option>
-                    <option value="Kasir Closing">Transaksi Kasir Otomatis</option>
+                    <option value="Kasir Closing">Transaksi Kasir</option>
                   </select>
                 </div>
 

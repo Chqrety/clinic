@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { useAccountingStore } from '@/stores/accounting'
+import { useLocaleStore } from '@/stores/locale'
 import { accountingApi, type BackendTrialBalance } from '@/api/accounting'
 import { formatIDR } from '@/utils/currency'
 import { exportToExcel } from '@/utils/export'
@@ -27,6 +28,7 @@ const router = useRouter()
 const ledgerStore = useLedgerStore()
 const journalsStore = useJournalsStore()
 const accountingStore = useAccountingStore()
+const localeStore = useLocaleStore()
 
 // State
 const isLoading = ref<boolean>(false)
@@ -244,13 +246,13 @@ function handlePrint() {
       <div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-            Laporan Keuangan & Kontrol
+            {{ localeStore.t('trialBalance.category') }}
           </span>
           <span class="text-zinc-300">•</span>
-          <span class="text-xs text-zinc-400 font-medium">Format 6-Kolom Standar Brayo</span>
+          <span class="text-xs text-zinc-400 font-medium">{{ localeStore.t('trialBalance.standard') }}</span>
         </div>
         <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
-          Neraca Saldo (Trial Balance)
+          {{ localeStore.t('trialBalance.title') }}
         </h1>
         <p class="text-xs text-zinc-500 mt-0.5">
           Verifikasi keseimbangan pembukuan dari Saldo Awal, Mutasi Periode Berjalan, hingga Saldo Akhir seluruh akun COA.
@@ -265,7 +267,7 @@ function handlePrint() {
           title="Muat Ulang Data dari Database PostgreSQL"
         >
           <RefreshCw :class="['w-3.5 h-3.5 text-zinc-600', isLoading ? 'animate-spin' : '']" />
-          <span>{{ isLoading ? 'Memuat...' : 'Segarkan' }}</span>
+          <span>{{ isLoading ? localeStore.t('common.loading') : localeStore.t('common.refresh') }}</span>
         </button>
 
         <button
@@ -273,7 +275,7 @@ function handlePrint() {
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
         >
           <Download class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Ekspor Excel (.xlsx)</span>
+          <span>{{ localeStore.t('trialBalance.exportExcel') }} (.xlsx)</span>
         </button>
 
         <button
@@ -281,7 +283,7 @@ function handlePrint() {
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition cursor-pointer"
         >
           <Printer class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Cetak</span>
+          <span>{{ localeStore.t('trialBalance.printReport') }}</span>
         </button>
       </div>
     </header>
@@ -336,7 +338,7 @@ function handlePrint() {
           v-model="selectedType"
           class="w-full px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl font-bold text-zinc-900 focus:outline-none cursor-pointer"
         >
-          <option value="ALL">Semua Kategori (1 - 7)</option>
+          <option value="ALL">Semua Kategori</option>
           <option value="ASSET">1 - Aset (Aktiva)</option>
           <option value="LIABILITY">2 - Kewajiban (Hutang)</option>
           <option value="EQUITY">3 - Ekuitas (Modal)</option>
@@ -397,25 +399,25 @@ function handlePrint() {
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-zinc-100/80 border-b border-zinc-300 text-[11px] font-bold text-zinc-700 uppercase tracking-wider">
-              <th rowspan="2" class="px-4 py-2.5 border-r border-zinc-200 w-32">Kode Akun</th>
-              <th rowspan="2" class="px-4 py-2.5 border-r border-zinc-200 min-w-[240px]">Nama Akun (COA)</th>
+              <th rowspan="2" class="px-4 py-2.5 border-r border-zinc-200 w-32">{{ localeStore.t('trialBalance.colCode') }}</th>
+              <th rowspan="2" class="px-4 py-2.5 border-r border-zinc-200 min-w-[240px]">{{ localeStore.t('trialBalance.colName') }}</th>
               <th colspan="2" class="px-3 py-2 text-center border-r border-zinc-200 bg-zinc-50 font-black">
-                1. Saldo Awal
+                1. {{ localeStore.t('trialBalance.colOpening') }}
               </th>
               <th colspan="2" class="px-3 py-2 text-center border-r border-zinc-200 bg-blue-50/60 font-black text-blue-950">
-                2. Mutasi Periode
+                2. {{ localeStore.t('trialBalance.colMutation') }}
               </th>
               <th colspan="2" class="px-3 py-2 text-center bg-emerald-50/60 font-black text-emerald-950">
-                3. Saldo Akhir
+                3. {{ localeStore.t('trialBalance.colEnding') }}
               </th>
             </tr>
             <tr class="bg-zinc-50 border-b border-zinc-300 text-[10px] font-bold text-zinc-600 uppercase">
-              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200">Debet (Rp)</th>
-              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200">Kredit (Rp)</th>
-              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200 text-emerald-800">Debet (Rp)</th>
-              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200 text-rose-800">Kredit (Rp)</th>
-              <th class="px-3 py-1.5 text-right w-36 border-r border-zinc-200 text-zinc-950 font-black">Debet (Rp)</th>
-              <th class="px-3 py-1.5 text-right w-36 text-zinc-950 font-black">Kredit (Rp)</th>
+              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200">{{ localeStore.t('trialBalance.debit') }} (Rp)</th>
+              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200">{{ localeStore.t('trialBalance.credit') }} (Rp)</th>
+              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200 text-emerald-800">{{ localeStore.t('trialBalance.debit') }} (Rp)</th>
+              <th class="px-3 py-1.5 text-right w-32 border-r border-zinc-200 text-rose-800">{{ localeStore.t('trialBalance.credit') }} (Rp)</th>
+              <th class="px-3 py-1.5 text-right w-36 border-r border-zinc-200 text-zinc-950 font-black">{{ localeStore.t('trialBalance.debit') }} (Rp)</th>
+              <th class="px-3 py-1.5 text-right w-36 text-zinc-950 font-black">{{ localeStore.t('trialBalance.credit') }} (Rp)</th>
             </tr>
           </thead>
 
@@ -454,7 +456,7 @@ function handlePrint() {
 
               <!-- Account Name & Type -->
               <td class="px-4 py-2.5 font-medium text-zinc-900 border-r border-zinc-100">
-                <span>{{ row.name }}</span>
+                <span>{{ localeStore.translateAccountName(row.name) }}</span>
                 <span class="text-[10px] text-zinc-400 block font-normal">
                   {{ row.type }} • Normal: {{ row.normalBalance }}
                 </span>

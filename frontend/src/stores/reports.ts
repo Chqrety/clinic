@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useAccountingStore } from './accounting'
+import { useLedgerStore } from './ledger'
+import { useJournalsStore } from './journals'
 
 export interface ProfitLossItem {
   code: string
@@ -28,227 +30,297 @@ export interface AgingBucket {
 
 export const useReportsStore = defineStore('reports', () => {
   const accountingStore = useAccountingStore()
+  const ledgerStore = useLedgerStore()
+  const journalsStore = useJournalsStore()
 
-  // Profit & Loss Data Structure based on Blueprint Kidinest & SSC
-  const revenueItems = ref<ProfitLossItem[]>([
-    {
-      code: '4-1100',
-      name: 'Pendapatan Registrasi & Skrining Anak',
-      kidinestAmount: 5955500,
-      sscAmount: 0,
-      totalAmount: 5955500,
-      percentage: 0.7
-    },
-    {
-      code: '4-1200',
-      name: 'Pendapatan Jasa Konsultasi Spesialis Anak (Sp.A)',
-      kidinestAmount: 209015753,
-      sscAmount: 0,
-      totalAmount: 209015753,
-      percentage: 26.0
-    },
-    {
-      code: '4-1300',
-      name: 'Pendapatan Tindakan Vaksinasi & Imunisasi Anak',
-      kidinestAmount: 163311280,
-      sscAmount: 0,
-      totalAmount: 163311280,
-      percentage: 20.3
-    },
-    {
-      code: '4-1400',
-      name: 'Pendapatan Layanan Terapi & Minimo Baby Spa',
-      kidinestAmount: 38461500,
-      sscAmount: 0,
-      totalAmount: 38461500,
-      percentage: 4.8
-    },
-    {
-      code: '4-1500',
-      name: 'Pendapatan Penjualan Obat Resep Farmasi Kidinest',
-      kidinestAmount: 166294701,
-      sscAmount: 0,
-      totalAmount: 166294701,
-      percentage: 20.7
-    },
-    {
-      code: '4-2100',
-      name: 'Pendapatan Konsultasi Dokter Estetika & Kulit (Sp.DVE)',
-      kidinestAmount: 0,
-      sscAmount: 4128245,
-      totalAmount: 4128245,
-      percentage: 0.5
-    },
-    {
-      code: '4-2200',
-      name: 'Pendapatan Tindakan Facial & Treatment Terapis SSC',
-      kidinestAmount: 0,
-      sscAmount: 118540000,
-      totalAmount: 118540000,
-      percentage: 14.8
-    },
-    {
-      code: '4-2300',
-      name: 'Pendapatan Tindakan Laser, Cauter & Peeling SSC',
-      kidinestAmount: 0,
-      sscAmount: 56377500,
-      totalAmount: 56377500,
-      percentage: 7.0
-    },
-    {
-      code: '4-2400',
-      name: 'Pendapatan Penjualan Produk Skincare & Sunscreen SSC',
-      kidinestAmount: 0,
-      sscAmount: 43573641,
-      totalAmount: 43573641,
-      percentage: 5.4
-    },
-    {
-      code: '4-1900',
-      name: 'Potongan Penjualan & Voucher Promosi Pasien',
-      kidinestAmount: 0,
-      sscAmount: -1806000,
-      totalAmount: -1806000,
-      percentage: -0.2
+  // Dynamically compute Revenue items from Buku Besar (General Ledger & Accounts)
+  const revenueItems = computed<ProfitLossItem[]>(() => {
+    const revAccounts = ledgerStore.accounts.filter(a => !a.isHeader && a.type === 'REVENUE')
+    const postedJournals = journalsStore.journals.filter(j => j.status === 'POSTED')
+
+    const items: ProfitLossItem[] = []
+
+    for (const acc of revAccounts) {
+      let kidinest = 0
+      let ssc = 0
+
+      // Opening balance
+      if (acc.currentBalance) {
+        const ob = acc.normalBalance === 'CREDIT' ? acc.currentBalance : -acc.currentBalance
+        if (acc.businessUnit === 'KIDINEST' || acc.code.startsWith('4-1')) kidinest += ob
+        else if (acc.businessUnit === 'SSC' || acc.code.startsWith('4-2')) ssc += ob
+        else {
+          kidinest += ob / 2
+          ssc += ob / 2
+        }
+      }
+
+      // Posted journal transactions
+      for (const j of postedJournals) {
+        if (accountingStore.fiscalMonth && accountingStore.fiscalMonth !== 0 && j.journalDate) {
+          const str = String(j.journalDate).trim()
+          const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/]/)
+          const dmyMatch = str.match(/^\d{1,2}[-/](\d{1,2})[-/]\d{4}/)
+          const m = isoMatch ? parseInt(isoMatch[2], 10) : (dmyMatch ? parseInt(dmyMatch[1], 10) : null)
+          if (m !== null && m !== accountingStore.fiscalMonth) continue
+        }
+
+        for (const line of j.lines) {
+          if (line.accountCode === acc.code) {
+            const net = line.credit - line.debit
+            const isK = j.businessUnit === 'KIDINEST' || acc.businessUnit === 'KIDINEST' || acc.code.startsWith('4-1')
+            const isS = j.businessUnit === 'SSC' || acc.businessUnit === 'SSC' || acc.code.startsWith('4-2')
+            if (isK) kidinest += net
+            else if (isS) ssc += net
+            else {
+              kidinest += net / 2
+              ssc += net / 2
+            }
+          }
+        }
+      }
+
+      const total = kidinest + ssc
+      if (total > 0 || kidinest > 0 || ssc > 0) {
+        items.push({
+          code: acc.code,
+          name: acc.name,
+          kidinestAmount: Math.max(0, kidinest),
+          sscAmount: Math.max(0, ssc),
+          totalAmount: Math.max(0, total),
+          percentage: 0
+        })
+      }
     }
-  ])
 
-  const cogsItems = ref<ProfitLossItem[]>([
-    {
-      code: '5-1101',
-      name: 'HPP Obat Resep & Paten Farmasi Kidinest',
-      kidinestAmount: 24000000,
-      sscAmount: 0,
-      totalAmount: 24000000,
-      percentage: 4.4
-    },
-    {
-      code: '5-1102',
-      name: 'HPP Vaksin & Serum Imunisasi Kidinest',
-      kidinestAmount: 8000000,
-      sscAmount: 0,
-      totalAmount: 8000000,
-      percentage: 1.5
-    },
-    {
-      code: '5-1103',
-      name: 'HPP Produk Skincare & Kosmetika Terjual SSC',
-      kidinestAmount: 0,
-      sscAmount: 16500000,
-      totalAmount: 16500000,
-      percentage: 3.1
-    },
-    {
-      code: '5-1105',
-      name: 'Beban Pemakaian Bahan Medis Habis Pakai (BMHP)',
-      kidinestAmount: 3800000,
-      sscAmount: 6000000,
-      totalAmount: 9800000,
-      percentage: 1.8
-    },
-    {
-      code: '5-1106',
-      name: 'Beban Bagi Hasil Dokter Spesialis Anak (Kidinest)',
-      kidinestAmount: 58000000,
-      sscAmount: 0,
-      totalAmount: 58000000,
-      percentage: 10.7
-    },
-    {
-      code: '5-1107',
-      name: 'Beban Bagi Hasil Dokter Estetika & Kulit (SSC)',
-      kidinestAmount: 0,
-      sscAmount: 78500000,
-      totalAmount: 78500000,
-      percentage: 14.5
-    },
-    {
-      code: '5-1108',
-      name: 'Beban Komisi Tindakan Beautician / Terapis SSC',
-      kidinestAmount: 0,
-      sscAmount: 8500000,
-      totalAmount: 8500000,
-      percentage: 1.6
+    const totalRev = items.reduce((s, i) => s + i.totalAmount, 0)
+    items.forEach(i => {
+      i.percentage = totalRev > 0 ? Math.round((i.totalAmount / totalRev) * 1000) / 10 : 0
+    })
+
+    return items
+  })
+
+  // Dynamically compute COGS items from Buku Besar (code 5-xxxx)
+  const cogsItems = computed<ProfitLossItem[]>(() => {
+    const cogsAccounts = ledgerStore.accounts.filter(a => !a.isHeader && a.type === 'COGS')
+    const postedJournals = journalsStore.journals.filter(j => j.status === 'POSTED')
+
+    const items: ProfitLossItem[] = []
+
+    for (const acc of cogsAccounts) {
+      let kidinest = 0
+      let ssc = 0
+
+      if (acc.currentBalance) {
+        const ob = acc.normalBalance === 'DEBIT' ? acc.currentBalance : -acc.currentBalance
+        if (acc.businessUnit === 'KIDINEST' || acc.code.startsWith('5-11')) kidinest += ob
+        else if (acc.businessUnit === 'SSC' || acc.code.startsWith('5-12')) ssc += ob
+        else {
+          kidinest += ob / 2
+          ssc += ob / 2
+        }
+      }
+
+      for (const j of postedJournals) {
+        if (accountingStore.fiscalMonth && accountingStore.fiscalMonth !== 0 && j.journalDate) {
+          const str = String(j.journalDate).trim()
+          const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/]/)
+          const dmyMatch = str.match(/^\d{1,2}[-/](\d{1,2})[-/]\d{4}/)
+          const m = isoMatch ? parseInt(isoMatch[2], 10) : (dmyMatch ? parseInt(dmyMatch[1], 10) : null)
+          if (m !== null && m !== accountingStore.fiscalMonth) continue
+        }
+
+        for (const line of j.lines) {
+          if (line.accountCode === acc.code) {
+            const net = line.debit - line.credit
+            const isK = j.businessUnit === 'KIDINEST' || acc.businessUnit === 'KIDINEST' || acc.code.startsWith('5-11')
+            const isS = j.businessUnit === 'SSC' || acc.businessUnit === 'SSC' || acc.code.startsWith('5-12')
+            if (isK) kidinest += net
+            else if (isS) ssc += net
+            else {
+              kidinest += net / 2
+              ssc += net / 2
+            }
+          }
+        }
+      }
+
+      const total = kidinest + ssc
+      if (total > 0 || kidinest > 0 || ssc > 0) {
+        items.push({
+          code: acc.code,
+          name: acc.name,
+          kidinestAmount: Math.max(0, kidinest),
+          sscAmount: Math.max(0, ssc),
+          totalAmount: Math.max(0, total),
+          percentage: 0
+        })
+      }
     }
-  ])
 
-  const operationalExpenseItems = ref<ProfitLossItem[]>([
-    {
-      code: '6-1101',
-      name: 'Beban Gaji Staf, Perawat, Apoteker & Kasir',
-      kidinestAmount: 34500000,
-      sscAmount: 33500000,
-      totalAmount: 68000000,
-      percentage: 12.6
-    },
-    {
-      code: '6-1102',
-      name: 'Beban Listrik PLN, Air PDAM & Internet Klinik',
-      kidinestAmount: 4800000,
-      sscAmount: 5000000,
-      totalAmount: 9800000,
-      percentage: 1.8
-    },
-    {
-      code: '6-1103',
-      name: 'Beban Pengolahan Limbah Medis B3',
-      kidinestAmount: 1800000,
-      sscAmount: 2400000,
-      totalAmount: 4200000,
-      percentage: 0.8
-    },
-    {
-      code: '6-1104',
-      name: 'Beban Kalibrasi & Servis Laser / Alkes Medis',
-      kidinestAmount: 1600000,
-      sscAmount: 4000000,
-      totalAmount: 5600000,
-      percentage: 1.0
-    },
-    {
-      code: '6-1105',
-      name: 'Beban Sewa Gedung & Ruko Klinik',
-      kidinestAmount: 12500000,
-      sscAmount: 12500000,
-      totalAmount: 25000000,
-      percentage: 4.6
-    },
-    {
-      code: '6-1107',
-      name: 'Beban Penyusutan Aktiva Tetap Klinik',
-      kidinestAmount: 4166667,
-      sscAmount: 6250000,
-      totalAmount: 10416667,
-      percentage: 1.9
-    },
-    {
-      code: '6-1201',
-      name: 'Beban Administrasi Bank & MDR Digital Payment',
-      kidinestAmount: 180000,
-      sscAmount: 270000,
-      totalAmount: 450000,
-      percentage: 0.1
+    const totalCogs = items.reduce((s, i) => s + i.totalAmount, 0)
+    items.forEach(i => {
+      i.percentage = totalCogs > 0 ? Math.round((i.totalAmount / totalCogs) * 1000) / 10 : 0
+    })
+
+    return items
+  })
+
+  // Dynamically compute Operational Expense items from Buku Besar (code 6-xxxx)
+  const operationalExpenseItems = computed<ProfitLossItem[]>(() => {
+    const expAccounts = ledgerStore.accounts.filter(a => !a.isHeader && a.type === 'EXPENSE')
+    const postedJournals = journalsStore.journals.filter(j => j.status === 'POSTED')
+
+    const items: ProfitLossItem[] = []
+
+    for (const acc of expAccounts) {
+      let kidinest = 0
+      let ssc = 0
+
+      if (acc.currentBalance) {
+        const ob = acc.normalBalance === 'DEBIT' ? acc.currentBalance : -acc.currentBalance
+        if (acc.businessUnit === 'KIDINEST' || acc.code === '6-1110') kidinest += ob
+        else if (acc.businessUnit === 'SSC' || acc.code === '6-1120') ssc += ob
+        else {
+          kidinest += ob / 2
+          ssc += ob / 2
+        }
+      }
+
+      for (const j of postedJournals) {
+        if (accountingStore.fiscalMonth && accountingStore.fiscalMonth !== 0 && j.journalDate) {
+          const str = String(j.journalDate).trim()
+          const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/]/)
+          const dmyMatch = str.match(/^\d{1,2}[-/](\d{1,2})[-/]\d{4}/)
+          const m = isoMatch ? parseInt(isoMatch[2], 10) : (dmyMatch ? parseInt(dmyMatch[1], 10) : null)
+          if (m !== null && m !== accountingStore.fiscalMonth) continue
+        }
+
+        for (const line of j.lines) {
+          if (line.accountCode === acc.code) {
+            const net = line.debit - line.credit
+            const isK = j.businessUnit === 'KIDINEST' || acc.businessUnit === 'KIDINEST' || acc.code === '6-1110'
+            const isS = j.businessUnit === 'SSC' || acc.businessUnit === 'SSC' || acc.code === '6-1120'
+            if (isK) kidinest += net
+            else if (isS) ssc += net
+            else {
+              kidinest += net / 2
+              ssc += net / 2
+            }
+          }
+        }
+      }
+
+      const total = kidinest + ssc
+      if (total > 0 || kidinest > 0 || ssc > 0) {
+        items.push({
+          code: acc.code,
+          name: acc.name,
+          kidinestAmount: Math.max(0, kidinest),
+          sscAmount: Math.max(0, ssc),
+          totalAmount: Math.max(0, total),
+          percentage: 0
+        })
+      }
     }
-  ])
 
-  // Computed P&L Totals
+    const totalOpex = items.reduce((s, i) => s + i.totalAmount, 0)
+    items.forEach(i => {
+      i.percentage = totalOpex > 0 ? Math.round((i.totalAmount / totalOpex) * 1000) / 10 : 0
+    })
+
+    return items
+  })
+
+  // Computed P&L Totals strictly derived from Buku Besar (General Ledger)
   const profitLossSummary = computed(() => {
-    const totalRev = revenueItems.value.reduce((s, i) => s + i.totalAmount, 0)
-    const kidinestRev = revenueItems.value.reduce((s, i) => s + i.kidinestAmount, 0)
-    const sscRev = revenueItems.value.reduce((s, i) => s + i.sscAmount, 0)
+    const postedJournals = journalsStore.journals.filter(j => j.status === 'POSTED')
 
-    const totalCogs = cogsItems.value.reduce((s, i) => s + i.totalAmount, 0)
-    const kidinestCogs = cogsItems.value.reduce((s, i) => s + i.kidinestAmount, 0)
-    const sscCogs = cogsItems.value.reduce((s, i) => s + i.sscAmount, 0)
+    let kidinestRev = 0
+    let sscRev = 0
+    let kidinestCogs = 0
+    let sscCogs = 0
+    let kidinestOpex = 0
+    let sscOpex = 0
 
+    // 1. Account opening balances
+    for (const acc of ledgerStore.accounts) {
+      if (acc.isHeader) continue
+      const bal = acc.currentBalance || 0
+      if (bal === 0) continue
+
+      const isK = acc.businessUnit === 'KIDINEST' || acc.code.startsWith('4-1') || acc.code.startsWith('5-11') || acc.code === '6-1110'
+      const isS = acc.businessUnit === 'SSC' || acc.code.startsWith('4-2') || acc.code.startsWith('5-12') || acc.code === '6-1120'
+
+      if (acc.type === 'REVENUE') {
+        const net = acc.normalBalance === 'CREDIT' ? bal : -bal
+        if (isK) kidinestRev += net
+        else if (isS) sscRev += net
+        else { kidinestRev += net / 2; sscRev += net / 2 }
+      } else if (acc.type === 'COGS') {
+        const net = acc.normalBalance === 'DEBIT' ? bal : -bal
+        if (isK) kidinestCogs += net
+        else if (isS) sscCogs += net
+        else { kidinestCogs += net / 2; sscCogs += net / 2 }
+      } else if (acc.type === 'EXPENSE') {
+        const net = acc.normalBalance === 'DEBIT' ? bal : -bal
+        if (isK) kidinestOpex += net
+        else if (isS) sscOpex += net
+        else { kidinestOpex += net / 2; sscOpex += net / 2 }
+      }
+    }
+
+    // 2. All posted journal entries from Buku Besar
+    for (const j of postedJournals) {
+      if (accountingStore.fiscalMonth && accountingStore.fiscalMonth !== 0 && j.journalDate) {
+        const str = String(j.journalDate).trim()
+        const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/]/)
+        const dmyMatch = str.match(/^\d{1,2}[-/](\d{1,2})[-/]\d{4}/)
+        const m = isoMatch ? parseInt(isoMatch[2], 10) : (dmyMatch ? parseInt(dmyMatch[1], 10) : null)
+        if (m !== null && m !== accountingStore.fiscalMonth) continue
+      }
+
+      for (const line of j.lines) {
+        const code = line.accountCode || ''
+        const acc = ledgerStore.accounts.find(a => a.code === code)
+        const accType = acc?.type || (
+          code.startsWith('4') ? 'REVENUE' :
+          code.startsWith('5') ? 'COGS' :
+          code.startsWith('6') ? 'EXPENSE' : undefined
+        )
+
+        if (!accType) continue
+
+        const isK = j.businessUnit === 'KIDINEST' || acc?.businessUnit === 'KIDINEST' || code.startsWith('4-1') || code.startsWith('5-11') || code === '6-1110'
+        const isS = j.businessUnit === 'SSC' || acc?.businessUnit === 'SSC' || code.startsWith('4-2') || code.startsWith('5-12') || code === '6-1120'
+
+        if (accType === 'REVENUE') {
+          const net = line.credit - line.debit
+          if (isK) kidinestRev += net
+          else if (isS) sscRev += net
+          else { kidinestRev += net / 2; sscRev += net / 2 }
+        } else if (accType === 'COGS') {
+          const net = line.debit - line.credit
+          if (isK) kidinestCogs += net
+          else if (isS) sscCogs += net
+          else { kidinestCogs += net / 2; sscCogs += net / 2 }
+        } else if (accType === 'EXPENSE') {
+          const net = line.debit - line.credit
+          if (isK) kidinestOpex += net
+          else if (isS) sscOpex += net
+          else { kidinestOpex += net / 2; sscOpex += net / 2 }
+        }
+      }
+    }
+
+    const totalRev = kidinestRev + sscRev
+    const totalCogs = kidinestCogs + sscCogs
     const grossProfit = totalRev - totalCogs
     const kidinestGrossProfit = kidinestRev - kidinestCogs
     const sscGrossProfit = sscRev - sscCogs
 
-    const totalOpex = operationalExpenseItems.value.reduce((s, i) => s + i.totalAmount, 0)
-    const kidinestOpex = operationalExpenseItems.value.reduce((s, i) => s + i.kidinestAmount, 0)
-    const sscOpex = operationalExpenseItems.value.reduce((s, i) => s + i.sscAmount, 0)
-
+    const totalOpex = kidinestOpex + sscOpex
     const netProfit = grossProfit - totalOpex
     const kidinestNetProfit = kidinestGrossProfit - kidinestOpex
     const sscNetProfit = sscGrossProfit - sscOpex
@@ -256,18 +328,18 @@ export const useReportsStore = defineStore('reports', () => {
     const netMarginPercent = totalRev > 0 ? (netProfit / totalRev) * 100 : 0
 
     return {
-      totalRev,
-      kidinestRev,
-      sscRev,
-      totalCogs,
-      kidinestCogs,
-      sscCogs,
+      totalRev: Math.max(0, totalRev),
+      kidinestRev: Math.max(0, kidinestRev),
+      sscRev: Math.max(0, sscRev),
+      totalCogs: Math.max(0, totalCogs),
+      kidinestCogs: Math.max(0, kidinestCogs),
+      sscCogs: Math.max(0, sscCogs),
       grossProfit,
       kidinestGrossProfit,
       sscGrossProfit,
-      totalOpex,
-      kidinestOpex,
-      sscOpex,
+      totalOpex: Math.max(0, totalOpex),
+      kidinestOpex: Math.max(0, kidinestOpex),
+      sscOpex: Math.max(0, sscOpex),
       netProfit,
       kidinestNetProfit,
       sscNetProfit,
@@ -275,55 +347,100 @@ export const useReportsStore = defineStore('reports', () => {
     }
   })
 
-  // Balance Sheet Data per Blueprint
+  // Balance Sheet Data dynamically calculated from Buku Besar (General Ledger balances)
   const balanceSheet = computed(() => {
-    // Current Assets aligned with Daily Report GRO & Clinic Ledgers
-    const kasOperasional = 32794909 // Kas Kasir Kidinest (26.5jt) + Kas Kasir SSC (1.26jt) + Petty Cash (5jt)
-    const bankOperasional = 647588514 // Bank BCA Operasional & Kliring QRIS Gateway
-    const piutangPasien = 103000000 // Piutang Pasien, Asuransi (38jt) & Piutang BPJS (65jt)
-    const persediaan = 168500000 // Persediaan Obat (57jt) + Vaksin (70jt) + Skincare (19.5jt) + BMHP (22jt)
-    const ppnMasukan = 0
-    const totalAsetLancar = kasOperasional + bankOperasional + piutangPasien + persediaan + ppnMasukan
+    const postedJournals = journalsStore.journals.filter(j => j.status === 'POSTED')
 
-    // Fixed Assets
-    const asetTetapGross = 750000000 // USG 4D Pediatri (250jt) + Mesin Laser Nd:YAG SSC (500jt)
-    const akumulasiPenyusutan = 125000000
-    const totalAsetTetapNet = asetTetapGross - akumulasiPenyusutan
+    const balances = new Map<string, number>()
 
+    // 1. Initial balances from accounts
+    for (const acc of ledgerStore.accounts) {
+      if (!acc.isHeader) {
+        balances.set(acc.code, acc.currentBalance || 0)
+      }
+    }
+
+    // 2. Add debit/credit from posted journals
+    for (const j of postedJournals) {
+      if (accountingStore.businessUnit !== 'ALL' && j.businessUnit !== 'ALL' && j.businessUnit !== accountingStore.businessUnit) {
+        continue
+      }
+      for (const line of j.lines) {
+        const acc = ledgerStore.accounts.find(a => a.code === line.accountCode)
+        const current = balances.get(line.accountCode) || 0
+        const isDebitNormal = acc ? acc.normalBalance === 'DEBIT' : !line.accountCode.startsWith('2') && !line.accountCode.startsWith('3') && !line.accountCode.startsWith('4')
+
+        if (isDebitNormal) {
+          balances.set(line.accountCode, current + line.debit - line.credit)
+        } else {
+          balances.set(line.accountCode, current + line.credit - line.debit)
+        }
+      }
+    }
+
+    function sumAccounts(predicate: (code: string, acc?: any) => boolean): number {
+      let sum = 0
+      for (const [code, amount] of balances.entries()) {
+        const acc = ledgerStore.accounts.find(a => a.code === code)
+        if (predicate(code, acc)) {
+          sum += amount
+        }
+      }
+      return sum
+    }
+
+    // Kas Operasional & Bank Likuid
+    const kasOperasional = sumAccounts(code => code === '1-1110' || code === '1-1111' || code === '1-1112' || (code.startsWith('1-111') && !code.startsWith('1-1113') && !code.startsWith('1-1114')))
+    const bankOperasional = sumAccounts(code => code === '1-1113' || code === '1-1114' || code === '1-1120' || code.startsWith('1-112'))
+
+    // Piutang Pasien & Klaim
+    const piutangPasien = sumAccounts(code => code.startsWith('1-12'))
+
+    // Persediaan
+    const persediaan = sumAccounts(code => code.startsWith('1-13'))
+
+    // Aset Tetap
+    const asetTetapGross = sumAccounts(code => code.startsWith('1-2') && !code.includes('2300'))
+    const akumulasiPenyusutan = sumAccounts(code => code.includes('2300'))
+    const totalAsetTetapNet = Math.max(0, asetTetapGross - akumulasiPenyusutan)
+    const totalAsetLancar = kasOperasional + bankOperasional + piutangPasien + persediaan
     const totalAset = totalAsetLancar + totalAsetTetapNet
 
-    // Liabilities
-    const hutangDistributor = 81420000 // Hutang Supplier Obat/Vaksin (57jt) + Skincare/BMHP (24.42jt)
-    const hutangDokter = 45000000 // Hutang Jasa Medis Dokter & Gaji Berjalan
-    const hutangPajak = 14867500 // Hutang Pajak PPh 21 Dokter, PPh 23 & Final 4(2)
+    // Hutang Usaha / Distributor
+    const hutangDistributor = sumAccounts(code => code === '2-1110' || code === '2-1115' || code.startsWith('2-111'))
+
+    // Hutang Jasa Medis & Gaji
+    const hutangDokter = sumAccounts(code => code === '2-1120' || code === '2-1125' || code === '2-1130' || code.startsWith('2-112') || code.startsWith('2-113'))
+
+    // Hutang Pajak
+    const hutangPajak = sumAccounts(code => code.startsWith('2-15'))
     const totalKewajiban = hutangDistributor + hutangDokter + hutangPajak
 
     // Equity
-    const modalDisetor = 1000000000
+    const modalDisetor = sumAccounts(code => code === '3-1100' || code.startsWith('3-11'))
+    const labaDitahan = sumAccounts(code => code === '3-1200' || code.startsWith('3-12'))
     const labaTahunBerjalan = profitLossSummary.value.netProfit
-    const labaDitahan = Math.max(0, totalAset - totalKewajiban - modalDisetor - labaTahunBerjalan)
     const totalEkuitas = modalDisetor + labaDitahan + labaTahunBerjalan
-
     const totalKewajibanDanEkuitas = totalKewajiban + totalEkuitas
     const balanceDifference = totalAset - totalKewajibanDanEkuitas
 
     return {
-      kasOperasional,
-      bankOperasional,
-      piutangPasien,
-      persediaan,
-      ppnMasukan,
-      totalAsetLancar,
-      asetTetapGross,
-      akumulasiPenyusutan,
-      totalAsetTetapNet,
-      totalAset,
-      hutangDistributor,
-      hutangDokter,
-      hutangPajak,
-      totalKewajiban,
-      modalDisetor,
-      labaDitahan,
+      kasOperasional: Math.max(0, kasOperasional),
+      bankOperasional: Math.max(0, bankOperasional),
+      piutangPasien: Math.max(0, piutangPasien),
+      persediaan: Math.max(0, persediaan),
+      ppnMasukan: 0,
+      totalAsetLancar: Math.max(0, totalAsetLancar),
+      asetTetapGross: Math.max(0, asetTetapGross),
+      akumulasiPenyusutan: Math.max(0, akumulasiPenyusutan),
+      totalAsetTetapNet: Math.max(0, totalAsetTetapNet),
+      totalAset: Math.max(0, totalAset),
+      hutangDistributor: Math.max(0, hutangDistributor),
+      hutangDokter: Math.max(0, hutangDokter),
+      hutangPajak: Math.max(0, hutangPajak),
+      totalKewajiban: Math.max(0, totalKewajiban),
+      modalDisetor: Math.max(0, modalDisetor),
+      labaDitahan: Math.max(0, labaDitahan),
       labaTahunBerjalan,
       totalEkuitas,
       totalKewajibanDanEkuitas,

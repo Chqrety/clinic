@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { useJournalsStore } from '@/stores/journals'
 import { useTransactionsStore } from '@/stores/transactions'
+import { useLedgerStore } from '@/stores/ledger'
 import { useReportsStore } from '@/stores/reports'
+import { useLocaleStore } from '@/stores/locale'
 import { formatIDR, compactIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import StatusBadge from '@/components/common/StatusBadge.vue'
@@ -29,7 +31,21 @@ const router = useRouter()
 const accountingStore = useAccountingStore()
 const journalsStore = useJournalsStore()
 const transactionsStore = useTransactionsStore()
+const ledgerStore = useLedgerStore()
 const reportsStore = useReportsStore()
+const localeStore = useLocaleStore()
+
+// Synchronize with database on component mount
+onMounted(async () => {
+  try {
+    await Promise.allSettled([
+      ledgerStore.fetchAccounts(),
+      journalsStore.fetchJournals()
+    ])
+  } catch (err) {
+    console.warn('Dashboard fetch error:', err)
+  }
+})
 
 const selectedJournal = ref<JournalEntry | null>(null)
 const showDetailModal = ref(false)
@@ -40,9 +56,30 @@ function inspectJournal(j: JournalEntry) {
   showDetailModal.value = true
 }
 
-// Financial KPI summaries from reports
+// Financial KPI summaries derived directly from Buku Besar (General Ledger)
 const summary = computed(() => reportsStore.profitLossSummary)
 const balance = computed(() => reportsStore.balanceSheet)
+
+const currentRevenue = computed(() => {
+  if (accountingStore.businessUnit === 'KIDINEST') return summary.value.kidinestRev
+  if (accountingStore.businessUnit === 'SSC') return summary.value.sscRev
+  return summary.value.totalRev
+})
+
+const currentNetProfit = computed(() => {
+  if (accountingStore.businessUnit === 'KIDINEST') return summary.value.kidinestNetProfit
+  if (accountingStore.businessUnit === 'SSC') return summary.value.sscNetProfit
+  return summary.value.netProfit
+})
+
+const activePeriodLabel = computed(() => {
+  const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ]
+  const m = accountingStore.fiscalMonth ? monthNames[accountingStore.fiscalMonth - 1] : ''
+  return `${m} ${accountingStore.fiscalYear}`.trim() || 'Tahun Berjalan'
+})
 
 // Recent posted journals
 const recentJournals = computed(() => {
@@ -62,13 +99,13 @@ const unprocessedTransactions = computed(() => {
       <div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-            Akuntansi & Keuangan
+            {{ localeStore.t('dashboard.category') }}
           </span>
           <span class="text-zinc-300">•</span>
           <span class="text-xs text-zinc-400 font-medium">Semarang Medical Group</span>
         </div>
         <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
-          Ikhtisar Finansial & Jurnal Akuntansi
+          {{ localeStore.t('dashboard.title') }}
         </h1>
       </div>
 
@@ -78,7 +115,7 @@ const unprocessedTransactions = computed(() => {
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
           <Plus class="w-3.5 h-3.5" />
-          <span>Buat Jurnal Manual</span>
+          <span>{{ localeStore.t('dashboard.createManualJournal') }}</span>
         </button>
 
         <button
@@ -86,7 +123,7 @@ const unprocessedTransactions = computed(() => {
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
           <FileSpreadsheet class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Laporan Laba Rugi</span>
+          <span>{{ localeStore.t('dashboard.profitLossReport') }}</span>
         </button>
       </div>
     </header>
@@ -96,43 +133,47 @@ const unprocessedTransactions = computed(() => {
       class="grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/90 border border-zinc-200/90 rounded-2xl bg-white shadow-2xs overflow-hidden"
     >
       <div class="p-3.5">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Pendapatan Bruto</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.grossRevenue') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(accountingStore.businessUnit === 'KIDINEST' ? summary.kidinestRev : accountingStore.businessUnit === 'SSC' ? summary.sscRev : summary.totalRev) }}
+          {{ formatIDR(currentRevenue) }}
         </div>
-        <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">+14.2% vs Feb 2026</div>
+        <div class="text-[10px] font-semibold mt-0.5" :class="currentRevenue > 0 ? 'text-emerald-600' : 'text-zinc-400'">
+          {{ currentRevenue > 0 ? '+14.2% vs Feb 2026' : (localeStore.isEnglish ? 'Verified Ledger' : 'Buku Besar Terverifikasi') }}
+        </div>
       </div>
 
       <div class="p-3.5">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Kas & Bank Likuid</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.cashBankLiquid') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
           {{ formatIDR(balance.kasOperasional + balance.bankOperasional) }}
         </div>
-        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">BCA & Kasir Operasional</div>
+        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">{{ localeStore.t('dashboard.liquidSubtitle') }}</div>
       </div>
 
       <div class="p-3.5">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Piutang Pasien / AR</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.receivables') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
           {{ formatIDR(balance.piutangPasien) }}
         </div>
-        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Asuransi & Pasien Umum</div>
+        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">{{ localeStore.t('dashboard.receivablesSubtitle') }}</div>
       </div>
 
       <div class="p-3.5">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Hutang & Fee Dokter</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.payables') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
           {{ formatIDR(balance.hutangDistributor + balance.hutangDokter) }}
         </div>
-        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Distributor & Jasa Medis</div>
+        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">{{ localeStore.t('dashboard.payablesSubtitle') }}</div>
       </div>
 
       <div class="p-3.5 col-span-2 sm:col-span-1 bg-stone-50/90 border-l border-zinc-200/90 flex flex-col justify-center">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Laba Bersih (Net)</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">{{ localeStore.t('dashboard.netProfit') }}</div>
         <div class="text-lg font-extrabold tabular-nums tracking-tight text-zinc-950 mt-0.5">
-          {{ formatIDR(accountingStore.businessUnit === 'KIDINEST' ? summary.kidinestNetProfit : accountingStore.businessUnit === 'SSC' ? summary.sscNetProfit : summary.netProfit) }}
+          {{ formatIDR(currentNetProfit) }}
         </div>
-        <div class="text-[10px] text-emerald-700 font-bold mt-0.5">28.4% Net Margin</div>
+        <div class="text-[10px] font-bold mt-0.5" :class="currentNetProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'">
+          {{ summary.netMarginPercent }}% {{ localeStore.t('dashboard.netMargin') }}
+        </div>
       </div>
     </div>
 
@@ -143,9 +184,9 @@ const unprocessedTransactions = computed(() => {
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
           <div class="flex items-center gap-2">
             <Building2 class="w-4 h-4 text-zinc-700" />
-            <h3 class="text-sm font-bold text-zinc-950">Perbandingan Unit Bisnis</h3>
+            <h3 class="text-sm font-bold text-zinc-950">{{ localeStore.t('dashboard.unitComparison') }}</h3>
           </div>
-          <span class="text-[11px] font-semibold text-zinc-500">Maret 2026</span>
+          <span class="text-[11px] font-semibold text-zinc-500">{{ activePeriodLabel }}</span>
         </div>
 
         <!-- Kidinest (Warm Mustard / Amber) -->
@@ -153,19 +194,19 @@ const unprocessedTransactions = computed(() => {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-              <span class="font-bold text-xs text-amber-950">Kidinest Pediatric Care</span>
+              <span class="font-bold text-xs text-amber-950">{{ localeStore.t('dashboard.kidinestTitle') }}</span>
             </div>
             <span class="text-xs font-bold tabular-nums text-amber-950">{{ formatIDR(summary.kidinestRev) }}</span>
           </div>
           <div class="w-full bg-amber-200/60 h-1.5 rounded-full overflow-hidden">
             <div
-              class="bg-amber-500 h-full rounded-full"
-              :style="{ width: `${(summary.kidinestRev / summary.totalRev) * 100}%` }"
+              class="bg-amber-500 h-full rounded-full transition-all duration-300"
+              :style="{ width: summary.totalRev > 0 ? `${(summary.kidinestRev / summary.totalRev) * 100}%` : '0%' }"
             ></div>
           </div>
           <div class="flex justify-between text-[11px] text-amber-900 font-medium">
-            <span>Laba Bersih: <strong class="tabular-nums">{{ formatIDR(summary.kidinestNetProfit) }}</strong></span>
-            <span>Kontribusi: <strong>{{ Math.round((summary.kidinestRev / summary.totalRev) * 100) }}%</strong></span>
+            <span>{{ localeStore.t('dashboard.netProfitLabel') }}: <strong class="tabular-nums">{{ formatIDR(summary.kidinestNetProfit) }}</strong></span>
+            <span>{{ localeStore.t('dashboard.contribution') }}: <strong>{{ summary.totalRev > 0 ? Math.round((summary.kidinestRev / summary.totalRev) * 100) : 0 }}%</strong></span>
           </div>
         </div>
 
@@ -174,24 +215,24 @@ const unprocessedTransactions = computed(() => {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-              <span class="font-bold text-xs text-rose-950">Semarang Skin Center (SSC)</span>
+              <span class="font-bold text-xs text-rose-950">{{ localeStore.t('dashboard.sscTitle') }}</span>
             </div>
             <span class="text-xs font-bold tabular-nums text-rose-950">{{ formatIDR(summary.sscRev) }}</span>
           </div>
           <div class="w-full bg-rose-200/60 h-1.5 rounded-full overflow-hidden">
             <div
-              class="bg-rose-500 h-full rounded-full"
-              :style="{ width: `${(summary.sscRev / summary.totalRev) * 100}%` }"
+              class="bg-rose-500 h-full rounded-full transition-all duration-300"
+              :style="{ width: summary.totalRev > 0 ? `${(summary.sscRev / summary.totalRev) * 100}%` : '0%' }"
             ></div>
           </div>
           <div class="flex justify-between text-[11px] text-rose-900 font-medium">
-            <span>Laba Bersih: <strong class="tabular-nums">{{ formatIDR(summary.sscNetProfit) }}</strong></span>
-            <span>Kontribusi: <strong>{{ Math.round((summary.sscRev / summary.totalRev) * 100) }}%</strong></span>
+            <span>{{ localeStore.t('dashboard.netProfitLabel') }}: <strong class="tabular-nums">{{ formatIDR(summary.sscNetProfit) }}</strong></span>
+            <span>{{ localeStore.t('dashboard.contribution') }}: <strong>{{ summary.totalRev > 0 ? Math.round((summary.sscRev / summary.totalRev) * 100) : 0 }}%</strong></span>
           </div>
         </div>
 
         <p class="text-[11px] text-zinc-500 leading-relaxed italic">
-          * Catatan akuntansi: Pendapatan SSC mencakup tindakan medis laser spesialis kulit & penjualan produk skincare estetika.
+          {{ localeStore.t('dashboard.sscNote') }}
         </p>
       </div>
 
@@ -200,10 +241,10 @@ const unprocessedTransactions = computed(() => {
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
           <div class="flex items-center gap-2">
             <FileCheck2 class="w-4 h-4 text-emerald-600" />
-            <h3 class="text-sm font-bold text-zinc-950">Alur Pemrosesan Jurnal Akuntansi</h3>
+            <h3 class="text-sm font-bold text-zinc-950">{{ localeStore.t('dashboard.workflowTitle') }}</h3>
           </div>
           <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            Audit Ready
+            {{ localeStore.t('dashboard.auditReady') }}
           </span>
         </div>
 
@@ -212,23 +253,23 @@ const unprocessedTransactions = computed(() => {
             @click="router.push('/accounting/transactions')"
             class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/70 hover:bg-zinc-100 cursor-pointer transition-colors space-y-1"
           >
-            <span class="text-[10px] font-bold text-zinc-500 uppercase">1. Transaksi Sumber</span>
+            <span class="text-[10px] font-bold text-zinc-500 uppercase">{{ localeStore.t('dashboard.stepSource') }}</span>
             <div class="flex items-baseline justify-between">
               <span class="text-xl font-bold tabular-nums text-zinc-900">
                 {{ transactionsStore.transactions.length }}
               </span>
               <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                {{ transactionsStore.transactions.filter(t => t.journalStatus === 'UNPROCESSED').length }} Belum
+                {{ transactionsStore.transactions.filter(t => t.journalStatus === 'UNPROCESSED').length }} {{ localeStore.t('dashboard.unprocessedBadge') }}
               </span>
             </div>
-            <p class="text-[11px] text-zinc-500">Kasir, PO, Farmasi, Fee</p>
+            <p class="text-[11px] text-zinc-500">{{ localeStore.t('dashboard.sourceSubtitle') }}</p>
           </div>
 
           <div
             @click="router.push('/accounting/journals?status=DRAFT')"
             class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/70 hover:bg-zinc-100 cursor-pointer transition-colors space-y-1"
           >
-            <span class="text-[10px] font-bold text-zinc-500 uppercase">2. Draft Jurnal</span>
+            <span class="text-[10px] font-bold text-zinc-500 uppercase">{{ localeStore.t('dashboard.stepDraft') }}</span>
             <div class="flex items-baseline justify-between">
               <span class="text-xl font-bold tabular-nums text-zinc-900">
                 {{ journalsStore.stats.draftCount + journalsStore.stats.submittedCount }}
@@ -237,46 +278,46 @@ const unprocessedTransactions = computed(() => {
                 Maker
               </span>
             </div>
-            <p class="text-[11px] text-zinc-500">Staf Akuntansi</p>
+            <p class="text-[11px] text-zinc-500">{{ localeStore.t('dashboard.makerSubtitle') }}</p>
           </div>
 
           <div
             @click="router.push('/accounting/journals/approvals')"
             class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/70 hover:bg-zinc-100 cursor-pointer transition-colors space-y-1"
           >
-            <span class="text-[10px] font-bold text-zinc-600 uppercase">3. Review & Approval</span>
+            <span class="text-[10px] font-bold text-zinc-600 uppercase">{{ localeStore.t('dashboard.stepReview') }}</span>
             <div class="flex items-baseline justify-between">
               <span class="text-xl font-bold tabular-nums text-zinc-900">
                 {{ journalsStore.stats.reviewedCount + journalsStore.stats.approvedCount }}
               </span>
               <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
-                Perlu Aksi
+                {{ localeStore.t('dashboard.actionRequiredBadge') }}
               </span>
             </div>
-            <p class="text-[11px] text-zinc-500">Supervisor & Manager</p>
+            <p class="text-[11px] text-zinc-500">{{ localeStore.t('dashboard.checkerSubtitle') }}</p>
           </div>
 
           <div
             @click="router.push('/accounting/journals?status=POSTED')"
             class="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/60 cursor-pointer transition-colors space-y-1"
           >
-            <span class="text-[10px] font-bold text-emerald-800 uppercase">4. Posted ke Ledger</span>
+            <span class="text-[10px] font-bold text-emerald-800 uppercase">{{ localeStore.t('dashboard.stepPosted') }}</span>
             <div class="flex items-baseline justify-between">
               <span class="text-xl font-bold tabular-nums text-emerald-950">
                 {{ journalsStore.stats.postedCount }}
               </span>
               <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
-                Resmi
+                {{ localeStore.t('dashboard.officialBadge') }}
               </span>
             </div>
-            <p class="text-[11px] text-emerald-700">Mempengaruhi Laporan</p>
+            <p class="text-[11px] text-emerald-700">{{ localeStore.t('dashboard.postedSubtitle') }}</p>
           </div>
         </div>
 
         <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-200/90 text-xs flex items-center justify-between">
           <div class="flex items-center gap-2 text-zinc-700 font-medium">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Total Debet Resmi Terposting ke Buku Besar Periode Ini:</span>
+            <span>{{ localeStore.t('dashboard.totalDebetPosted') }}</span>
           </div>
           <span class="font-bold tabular-nums text-sm text-zinc-950">
             {{ formatIDR(journalsStore.stats.totalPostedDebit) }}
@@ -292,13 +333,13 @@ const unprocessedTransactions = computed(() => {
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
           <div class="flex items-center gap-2">
             <Layers class="w-4 h-4 text-zinc-700" />
-            <h3 class="text-sm font-bold text-zinc-950">Transaksi Operasional Masuk</h3>
+            <h3 class="text-sm font-bold text-zinc-950">{{ localeStore.t('dashboard.operationalInflowTitle') }}</h3>
           </div>
           <button
             @click="router.push('/accounting/transactions')"
             class="text-xs font-bold text-zinc-800 hover:text-zinc-950 flex items-center gap-1 cursor-pointer"
           >
-            <span>Lihat Semua</span>
+            <span>{{ localeStore.t('dashboard.viewAll') }}</span>
             <ArrowUpRight class="w-3.5 h-3.5" />
           </button>
         </div>
@@ -326,7 +367,7 @@ const unprocessedTransactions = computed(() => {
                 class="mt-1 px-2.5 py-1 bg-zinc-950 text-white hover:bg-zinc-800 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
               >
                 <Sparkles class="w-3 h-3" />
-                <span>Buat Draft</span>
+                <span>{{ localeStore.t('dashboard.createDraft') }}</span>
               </button>
             </div>
           </div>
@@ -338,13 +379,13 @@ const unprocessedTransactions = computed(() => {
         <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
           <div class="flex items-center gap-2">
             <Receipt class="w-4 h-4 text-zinc-700" />
-            <h3 class="text-sm font-bold text-zinc-950">Jurnal Akuntansi Terkini</h3>
+            <h3 class="text-sm font-bold text-zinc-950">{{ localeStore.t('dashboard.recentJournalsTitle') }}</h3>
           </div>
           <button
             @click="router.push('/accounting/journals')"
             class="text-xs font-bold text-zinc-800 hover:text-zinc-950 flex items-center gap-1 cursor-pointer"
           >
-            <span>Daftar Lengkap</span>
+            <span>{{ localeStore.t('dashboard.viewFullList') }}</span>
             <ArrowUpRight class="w-3.5 h-3.5" />
           </button>
         </div>

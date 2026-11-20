@@ -28,220 +28,242 @@ import {
   Building2,
   ArrowLeft
 } from 'lucide-vue-next'
-import { api, type PharmacyDrug } from '../api/client'
-import { accountingApi } from '../api/accounting'
-import groLedgerRaw from '../data/groOperationalLedger.json'
+import { api, type PharmacyDrug, type Invoice, type QueueItem } from '../api/client'
 
 const router = useRouter()
 
-// ==================== TYPE DEFINITIONS ====================
-interface GroDayRecord {
-  date: string
-  unit: string
-  gro_staff: string
-  patients_count: number
-  patients: string[]
-  dispensed_items: Array<{
-    row: number
-    patient_name: string
-    mr: string
-    item_name: string
-    val: number
-    gro: string
-    nurse: string
-  }>
-  payments: {
-    bri_cc: number
-    bri_deb: number
-    bca_cc: number
-    bca_deb: number
-    tunai: number
-    qris_bca: number
-    qris_bri: number
-    qris: number
-    tf: number
-    cimb_cc?: number
-  }
-  total_val: number
-  appointments_count: number
-  walkin_count: number
+// ==================== REAL DATABASE STATE ====================
+const realInvoices = ref<Invoice[]>([])
+const realQueues = ref<QueueItem[]>([])
+const realDrugs = ref<PharmacyDrug[]>([])
+const loadingData = ref(false)
+
+// Helper date generator (default to today or latest invoice date)
+function getTodayString(): string {
+  const dt = new Date()
+  const y = dt.getFullYear()
+  const m = String(dt.getMonth() + 1).padStart(2, '0')
+  const d = String(dt.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
-const groLedger = groLedgerRaw as Record<string, GroDayRecord>
-
 // ==================== CONTROLS & FILTER ====================
-const selectedDate = ref('2026-11-17')
+const selectedDate = ref(getTodayString())
 const selectedUnit = ref<'KIDINEST' | 'SSC' | 'MINIMO'>('KIDINEST')
 const updateTime = ref('23.59')
-const groReporterName = ref('Lia GRO Kidinest')
+const groReporterName = ref('Staf Kasir GRO')
 const showPatientDetailModal = ref(false)
 const searchDispensed = ref('')
 
-const realDrugs = ref<PharmacyDrug[]>([])
-const loadingDrugs = ref(false)
-const realCashOutflows = ref<any[]>([])
-const loadingCashOut = ref(false)
-
-// Nominal Menggantung (Sesuai Laporan Asli)
-interface PendingSuspenseItem {
-  id: string
-  amount: number
-  description: string
-}
-
-const pendingItems = ref<PendingSuspenseItem[]>([
-  { id: '1', amount: -625000, description: 'kekurangan pembayaran vaksin tanggal 16 November 2026' },
-  { id: '2', amount: -70000, description: 'Elastic band (dari dokter)' }
-])
-
-// Reschedule Items (Sesuai Laporan Asli)
-interface RescheduleItem {
-  id: string
-  targetDate: string
-}
-
-const rescheduleList = ref<RescheduleItem[]>([
-  { id: '1', targetDate: '5 Desember 2026' },
-  { id: '2', targetDate: '23 November 2026' }
-])
-
 const googleReviewNote = ref('')
-const mtdGrandTotal = ref(165656110)
 const shortageAmount = ref(0)
 const packageUsage = ref('-')
 
-// ==================== DATA RESOLVER ====================
-const currentRecord = computed<GroDayRecord | null>(() => {
-  const key = `${selectedUnit.value}_${selectedDate.value}`
-  return groLedger[key] || null
+// ==================== FETCH REAL DATABASE DATA ====================
+async function fetchRealDatabaseData() {
+  loadingData.value = true
+  try {
+    const [invRes, queueRes, drugRes] = await Promise.allSettled([
+      api.getInvoices(),
+      api.getQueues(),
+      api.getPharmacyDrugs(selectedUnit.value === 'SSC' ? 'SSC' : 'KIDINEST')
+    ])
+
+    if (invRes.status === 'fulfilled' && Array.isArray(invRes.value)) {
+      realInvoices.value = invRes.value
+      // Jika pada tanggal terpilih belum ada transaksi, tapi di database ada transaksi,
+      // kita set tanggal otomatis ke tanggal invoice terbaru agar data riil langsung terlihat
+      if (realInvoices.value.length > 0) {
+        const hasCurrentDate = realInvoices.value.some(inv => (inv.created_at || '').substring(0, 10) === selectedDate.value)
+        if (!hasCurrentDate) {
+          const latestInv = realInvoices.value[0]
+          if (latestInv && latestInv.created_at) {
+            selectedDate.value = latestInv.created_at.substring(0, 10)
+          }
+        }
+      }
+    } else {
+      realInvoices.value = []
+    }
+
+    if (queueRes.status === 'fulfilled' && Array.isArray(queueRes.value)) {
+      realQueues.value = queueRes.value
+    } else {
+      realQueues.value = []
+    }
+
+    if (drugRes.status === 'fulfilled' && Array.isArray(drugRes.value)) {
+      realDrugs.value = drugRes.value
+    } else {
+      realDrugs.value = []
+    }
+  } catch (err) {
+    console.warn('Gagal memuat data dari database:', err)
+  } finally {
+    loadingData.value = false
+  }
+}
+
+// Filter Invoices by Date & Unit
+const dailyInvoices = computed(() => {
+  return realInvoices.value.filter(inv => {
+    const invDate = (inv.created_at || '').substring(0, 10)
+    const matchDate = invDate === selectedDate.value
+    const matchUnit = !inv.clinic_unit || inv.clinic_unit.toUpperCase() === selectedUnit.value.toUpperCase()
+    return matchDate && matchUnit
+  })
 })
 
+// Filter Queues by Date & Unit
+const dailyQueues = computed(() => {
+  return realQueues.value.filter(q => {
+    const qDate = (q.created_at || '').substring(0, 10)
+    const matchDate = qDate === selectedDate.value
+    const matchUnit = !q.clinic_unit || q.clinic_unit.toUpperCase() === selectedUnit.value.toUpperCase()
+    return matchDate && matchUnit
+  })
+})
+
+// Reporter GRO
 watch(
-  [selectedDate, selectedUnit],
-  ([newDate, newUnit]) => {
-    const rec = groLedger[`${newUnit}_${newDate}`]
-    if (rec) {
-      if (rec.gro_staff) {
-        groReporterName.value =
-          rec.gro_staff.toLowerCase().includes('lia')
-            ? 'Lia GRO Kidinest'
-            : `${rec.gro_staff} GRO ${newUnit}`
-      }
+  [dailyQueues, selectedUnit],
+  ([queues, unit]) => {
+    if (queues.length > 0 && queues[0].doctor_name) {
+      groReporterName.value = `GRO ${unit}`
+    } else {
+      groReporterName.value = `GRO ${unit}`
     }
   },
   { immediate: true }
 )
 
-// ==================== FINANCIAL CALCULATIONS ====================
+// ==================== FINANCIAL CALCULATIONS (100% REAL) ====================
+// Omzet Sistem: Total invoice yang telah terbayar (PAID) pada tanggal terpilih
 const systemRevenue = computed(() => {
-  if (currentRecord.value && currentRecord.value.total_val > 0) {
-    return currentRecord.value.total_val
-  }
-  return 12163675
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID')
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
-// Rincian Metode Pembayaran
+// Tagihan yang masih pending (Nominal Menggantung)
+const pendingInvoices = computed(() => {
+  return dailyInvoices.value.filter(inv => (inv.payment_status || '').toUpperCase() === 'PENDING')
+})
+
+const totalPendingSuspense = computed(() => {
+  return pendingInvoices.value.reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
+})
+
+const pendingItems = computed(() => {
+  return pendingInvoices.value.map(inv => ({
+    id: String(inv.id),
+    amount: -(Number(inv.total_amount) || 0),
+    description: `Kekurangan ${inv.invoice_number} (${inv.patient_name})`
+  }))
+})
+
+// Omzet Manual = Transaksi riil masuk kasir
+const manualRevenue = computed(() => {
+  return systemRevenue.value
+})
+
+const diffRevenue = computed(() => {
+  return totalPendingSuspense.value
+})
+
+// Rincian Metode Pembayaran (Real Database Breakdown)
 const edcBri = computed(() => {
-  if (currentRecord.value) {
-    const p = currentRecord.value.payments
-    return (p.bri_deb || 0) + (p.qris_bri || 0)
-  }
-  return 4496164
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && (inv.payment_method || '').toUpperCase().includes('BRI'))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
 const edcBca = computed(() => {
-  if (currentRecord.value) {
-    const p = currentRecord.value.payments
-    return (p.bca_deb || 0) + (p.bca_cc || 0) + (p.qris_bca || 0)
-  }
-  return 4241228
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && (inv.payment_method || '').toUpperCase().includes('BCA'))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
 const edcCimb = computed<number | null>(() => {
-  if (currentRecord.value && currentRecord.value.payments.cimb_cc) {
-    return currentRecord.value.payments.cimb_cc
-  }
-  return null
+  const sum = dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && (inv.payment_method || '').toUpperCase().includes('CIMB'))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
+  return sum > 0 ? sum : null
 })
 
 const totalDebit = computed(() => {
-  if (currentRecord.value) {
-    const p = currentRecord.value.payments
-    return (p.bri_deb || 0) + (p.bca_deb || 0)
-  }
-  return 3348975
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && (inv.payment_method || '').toUpperCase().includes('DEBIT'))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
 const totalCc = computed(() => {
-  if (currentRecord.value) {
-    const p = currentRecord.value.payments
-    return (p.bri_cc || 0) + (p.bca_cc || 0) + (p.cimb_cc || 0)
-  }
-  return 1212500
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && (inv.payment_method || '').toUpperCase().includes('CC'))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
 const totalQris = computed(() => {
-  if (currentRecord.value) {
-    const p = currentRecord.value.payments
-    return (p.qris_bri || 0) + (p.qris_bca || 0) + (p.qris || 0)
-  }
-  return 4175935
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && (inv.payment_method || '').toUpperCase().includes('QRIS'))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
 const cashTotal = computed(() => {
-  if (currentRecord.value) {
-    return currentRecord.value.payments.tunai || 0
-  }
-  return 776283
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && ['CASH', 'TUNAI'].includes((inv.payment_method || '').toUpperCase()))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
 const transferTotal = computed(() => {
-  if (currentRecord.value) {
-    return currentRecord.value.payments.tf || 0
-  }
-  return 2650000
+  return dailyInvoices.value
+    .filter(inv => (inv.payment_status || 'PAID').toUpperCase() === 'PAID' && ['TRANSFER', 'TF', 'BANK_TRANSFER'].includes((inv.payment_method || '').toUpperCase()))
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
 })
 
 const kidinestPoint = ref('-')
 
-// Total Nominal Menggantung
-const totalPendingSuspense = computed(() => {
-  return pendingItems.value.reduce((acc, it) => acc + it.amount, 0)
-})
-
-// Omzet Manual = Omzet Sistem + (Nominal Menggantung)
-const manualRevenue = computed(() => {
-  return systemRevenue.value + totalPendingSuspense.value
-})
-
-const diffRevenue = computed(() => {
-  return Math.abs(systemRevenue.value - manualRevenue.value)
-})
-
-// Arus Pasien Nyata
-const totalAppointment = computed(() => {
-  if (selectedDate.value === '2026-11-17') return 14
-  return currentRecord.value ? Math.round(currentRecord.value.patients_count * 0.5) || 1 : 14
-})
-
+// Arus Pasien Riil dari Antrian Database
 const totalRealArrival = computed(() => {
-  if (selectedDate.value === '2026-11-17') return 19
-  return currentRecord.value?.patients_count || 19
+  return dailyQueues.value.filter(q => q.queue_status !== 'CANCELLED').length
+})
+
+const totalAppointment = computed(() => {
+  return dailyQueues.value.filter(q => {
+    const c = (q.complaint || '').toLowerCase()
+    const num = (q.queue_number || '').toUpperCase()
+    return c.includes('booking') || c.includes('reservasi') || num.startsWith('B')
+  }).length
 })
 
 const totalWalkIn = computed(() => {
-  if (selectedDate.value === '2026-11-17') return 7
   return Math.max(0, totalRealArrival.value - totalAppointment.value)
 })
 
-const totalCancelReschedule = computed(() => rescheduleList.value.length)
+const cancelledQueues = computed(() => {
+  return dailyQueues.value.filter(q => q.queue_status === 'CANCELLED')
+})
 
-// Obat yang Keluar (Data Nyata Pasien)
+const totalCancelReschedule = computed(() => cancelledQueues.value.length)
+
+const rescheduleList = computed(() => {
+  return cancelledQueues.value.map(q => ({
+    id: String(q.id),
+    targetDate: `${q.patient_name} (${q.queue_number}) - Dibatalkan`
+  }))
+})
+
+// Obat / Layanan yang Keluar (Riil dari Invoices Database)
 const realDispensedItems = computed(() => {
-  if (currentRecord.value && currentRecord.value.dispensed_items.length > 0) {
-    return currentRecord.value.dispensed_items
-  }
-  return []
+  return dailyInvoices.value.map((inv, idx) => ({
+    row: idx + 1,
+    patient_name: inv.patient_name || 'Pasien',
+    mr: inv.patient_nik || inv.invoice_number,
+    item_name: inv.invoice_type === 'PHARMACY' ? 'Obat & Resep Medis' : 'Registrasi & Pemeriksaan Poliklinik',
+    val: Number(inv.total_amount) || 0,
+    gro: 'GRO ' + selectedUnit.value,
+    nurse: '-'
+  }))
 })
 
 const filteredDispensedItems = computed(() => {
@@ -260,32 +282,13 @@ const totalDispensedAmount = computed(() => {
   return realDispensedItems.value.reduce((acc, it) => acc + (it.val || 0), 0)
 })
 
-// Master Obat yang Dibeli / Stok Masuk dari PostgreSQL
-async function fetchRealDrugs() {
-  loadingDrugs.value = true
-  try {
-    const data = await api.getPharmacyDrugs(selectedUnit.value === 'SSC' ? 'SSC' : 'KIDINEST')
-    realDrugs.value = data || []
-  } catch (err) {
-    console.warn('Gagal memuat master obat:', err)
-  } finally {
-    loadingDrugs.value = false
-  }
-}
-
-// Transaksi Kas Keluar dari PostgreSQL
-async function fetchRealCashOutflows() {
-  loadingCashOut.value = true
-  try {
-    const res = await accountingApi.getCashBankTransactions({ limit: 100 })
-    const allTx = (res as any) || []
-    realCashOutflows.value = allTx.filter((t: any) => t.transaction_type === 'CASH_OUT')
-  } catch (err) {
-    console.warn('Gagal memuat kas keluar:', err)
-  } finally {
-    loadingCashOut.value = false
-  }
-}
+// Grand Total Omzet MTD (Bulan Berjalan Riil dari Database)
+const mtdGrandTotal = computed(() => {
+  const currentMonth = selectedDate.value.substring(0, 7) // 'YYYY-MM'
+  return realInvoices.value
+    .filter(inv => (inv.created_at || '').substring(0, 7) === currentMonth && (inv.payment_status || 'PAID').toUpperCase() === 'PAID')
+    .reduce((acc, inv) => acc + (Number(inv.total_amount) || 0), 0)
+})
 
 // Transaksi Kas Keluar Operasional Kasir (Petty Cash BKK)
 interface OperationalOutflow {
@@ -297,32 +300,7 @@ interface OperationalOutflow {
   amount: number
 }
 
-const operationalOutflows = ref<OperationalOutflow[]>([
-  {
-    voucherNo: 'BKK-20261117-01',
-    time: '10:30',
-    category: 'BMHP Darurat',
-    description: 'Beli Kassa Steril & Povidone Iodine Apotek Kimia Farma',
-    recipient: 'Apotek Kimia Farma (Devi GRO)',
-    amount: 145000
-  },
-  {
-    voucherNo: 'BKK-20261117-02',
-    time: '12:45',
-    category: 'Konsumsi Dokter Jaga & Staf',
-    description: 'Makan siang dokter spesialis anak & staf shift siang',
-    recipient: 'Kantin Medika (Lia GRO)',
-    amount: 125000
-  },
-  {
-    voucherNo: 'BKK-20261117-03',
-    time: '15:15',
-    category: 'Operasional Kasir',
-    description: 'Beli Kertas Thermal Printer Resep 80mm (3 Roll)',
-    recipient: 'Toko Buku Merdeka (Vera GRO)',
-    amount: 75000
-  }
-])
+const operationalOutflows = ref<OperationalOutflow[]>([])
 
 const totalCashOutflow = computed(() => {
   return operationalOutflows.value.reduce((acc, it) => acc + it.amount, 0)
@@ -366,7 +344,7 @@ const formattedDayDate = computed(() => {
     const dateStr = `${dt.getDate()} ${monthNames[dt.getMonth()]} ${dt.getFullYear()}`
     return { dayStr, dateStr, full: `${dayStr}/${dateStr}` }
   } catch {
-    return { dayStr: 'Selasa', dateStr: '17 November 2026', full: 'Selasa/17 November 2026' }
+    return { dayStr: 'Hari Ini', dateStr: selectedDate.value, full: selectedDate.value }
   }
 })
 
@@ -375,13 +353,11 @@ function printReport() {
 }
 
 onMounted(() => {
-  fetchRealDrugs()
-  fetchRealCashOutflows()
+  fetchRealDatabaseData()
 })
 
 watch(selectedUnit, () => {
-  fetchRealDrugs()
-  fetchRealCashOutflows()
+  fetchRealDatabaseData()
 })
 </script>
 
@@ -455,6 +431,17 @@ watch(selectedUnit, () => {
             />
           </div>
 
+          <!-- Refresh Database Button -->
+          <button
+            @click="fetchRealDatabaseData"
+            :disabled="loadingData"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-bold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+            title="Muat Ulang Data Database Riil"
+          >
+            <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loadingData }" />
+            <span>{{ loadingData ? 'Memuat...' : 'Refresh Database' }}</span>
+          </button>
+
           <button
             @click="printReport"
             class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
@@ -470,6 +457,25 @@ watch(selectedUnit, () => {
 
     <!-- Main Container Dashboard -->
     <main class="max-w-[1400px] mx-auto px-4 sm:px-8 pt-6 space-y-6">
+
+      <!-- Status Banner Database (Real-time Feedback) -->
+      <div
+        v-if="dailyInvoices.length === 0 && dailyQueues.length === 0"
+        class="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-3 shadow-2xs"
+      >
+        <div class="flex items-center gap-2.5">
+          <AlertCircle class="w-4 h-4 text-amber-600 shrink-0" />
+          <span>
+            <strong>Database Bersih:</strong> Tidak ada transaksi pada tanggal <strong>{{ formattedDayDate.full }}</strong> untuk unit <strong>{{ selectedUnit }}</strong>. Seluruh angka omzet dan pasien menampilkan nilai riil dari database (0).
+          </span>
+        </div>
+        <button
+          @click="fetchRealDatabaseData"
+          class="text-xs font-bold text-amber-800 underline hover:text-amber-950 shrink-0 cursor-pointer"
+        >
+          Cek Ulang Database
+        </button>
+      </div>
 
       <!-- ========================================================================= -->
       <!-- DOKUMEN LAPORAN RESMI (TAMPILAN SESUAI FORMAT CONTOH LAPORAN GRO) -->
@@ -569,7 +575,10 @@ watch(selectedUnit, () => {
               <span class="font-mono text-red-700">{{ formatRupiah(totalPendingSuspense) }}</span>
             </div>
 
-            <div class="space-y-1.5 pl-6 text-xs text-red-800">
+            <div v-if="pendingItems.length === 0" class="pl-6 text-xs text-zinc-500 italic">
+              - (Nihil - Seluruh tagihan lunas atau belum ada transaksi pending)
+            </div>
+            <div v-else class="space-y-1.5 pl-6 text-xs text-red-800">
               <div v-for="item in pendingItems" :key="item.id" class="flex items-center justify-between">
                 <span>
                   {{ item.amount < 0 ? '-' : '+' }}Rp{{ formatRupiahPlain(Math.abs(item.amount)) }} ({{ item.description }})
@@ -696,8 +705,11 @@ watch(selectedUnit, () => {
           <!-- Reschedule Breakdown Box -->
           <div class="p-4 rounded-xl bg-amber-50/50 border border-amber-200 text-xs space-y-1">
             <div class="font-bold text-amber-950">Rincian Cancel / Reschedule :</div>
-            <div v-for="r in rescheduleList" :key="r.id" class="text-amber-900 pl-4">
-              * Reschedule {{ r.targetDate }}
+            <div v-if="rescheduleList.length === 0" class="text-zinc-500 italic pl-4">
+              * (Nihil - Tidak ada antrian batal / reschedule pada tanggal ini)
+            </div>
+            <div v-else v-for="r in rescheduleList" :key="r.id" class="text-amber-900 pl-4">
+              * {{ r.targetDate }}
             </div>
           </div>
 
@@ -728,6 +740,11 @@ watch(selectedUnit, () => {
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100 text-zinc-700">
+                  <tr v-if="filteredDispensedItems.length === 0">
+                    <td colspan="5" class="py-6 text-center text-zinc-400 italic">
+                      Belum ada transaksi pasien pada tanggal ini (Database bersih).
+                    </td>
+                  </tr>
                   <tr v-for="(it, idx) in filteredDispensedItems" :key="idx" class="hover:bg-zinc-50/60">
                     <td class="py-2 px-3 font-mono text-zinc-400">{{ it.mr || '-' }}</td>
                     <td class="py-2 px-3 font-bold text-zinc-900">{{ it.patient_name }}</td>
@@ -808,6 +825,11 @@ watch(selectedUnit, () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-100 text-zinc-700">
+                <tr v-if="realDispensedItems.length === 0">
+                  <td colspan="3" class="py-6 text-center text-zinc-400 italic">
+                    Belum ada resep / obat keluar pada tanggal ini.
+                  </td>
+                </tr>
                 <tr v-for="(it, idx) in realDispensedItems.slice(0, 50)" :key="idx" class="hover:bg-zinc-50/50">
                   <td class="py-2 px-3 font-bold text-zinc-900">
                     {{ it.item_name }}
@@ -852,6 +874,11 @@ watch(selectedUnit, () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-100 text-zinc-700">
+                <tr v-if="realDrugs.length === 0">
+                  <td colspan="4" class="py-6 text-center text-zinc-400 italic">
+                    Master obat belum tersedia di database.
+                  </td>
+                </tr>
                 <tr v-for="d in realDrugs.slice(0, 50)" :key="d.id" class="hover:bg-zinc-50/50">
                   <td class="py-2 px-3 font-bold text-zinc-900">
                     {{ d.name }}
@@ -864,7 +891,7 @@ watch(selectedUnit, () => {
                     <span v-else class="text-zinc-400">-</span>
                   </td>
                   <td class="py-2 px-3 text-center font-bold font-mono">{{ d.physical_stock }}</td>
-                  <td class="py-2 px-3 text-right font-mono text-zinc-800">{{ formatRupiah(d.buy_price) }}</td>
+                  <td class="py-2 px-3 text-right font-mono text-zinc-800">{{ formatRupiah(d.buy_price || d.sell_price) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -896,7 +923,7 @@ watch(selectedUnit, () => {
               <ArrowUpRight class="w-3.5 h-3.5" /> Total Transaksi Masuk
             </div>
             <div class="text-2xl font-black text-[#0C3B36] font-mono mt-1">{{ formatRupiah(systemRevenue) }}</div>
-            <div class="text-[10px] text-emerald-700 mt-1">28 transaksi pasien & tindakan</div>
+            <div class="text-[10px] text-emerald-700 mt-1">{{ dailyInvoices.length }} transaksi pasien & tindakan</div>
           </div>
 
           <div class="p-4 rounded-2xl bg-red-50/50 border border-red-200">
@@ -929,6 +956,11 @@ watch(selectedUnit, () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 text-zinc-700">
+              <tr v-if="operationalOutflows.length === 0">
+                <td colspan="5" class="py-6 text-center text-zinc-400 italic">
+                  Tidak ada transaksi pengeluaran kas operasional kasir (BKK) pada tanggal ini.
+                </td>
+              </tr>
               <tr v-for="it in operationalOutflows" :key="it.voucherNo">
                 <td class="py-2.5 px-3 font-mono font-bold text-zinc-900">{{ it.voucherNo }}</td>
                 <td class="py-2.5 px-3 text-zinc-400 font-mono">{{ it.time }}</td>

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { useAccountingStore } from '@/stores/accounting'
+import { useLocaleStore } from '@/stores/locale'
 import { accountingApi, type BackendGeneralLedger } from '@/api/accounting'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
@@ -34,6 +35,7 @@ const router = useRouter()
 const ledgerStore = useLedgerStore()
 const journalsStore = useJournalsStore()
 const accountingStore = useAccountingStore()
+const localeStore = useLocaleStore()
 
 // Comprehensive Account alias mapping from reports (e.g. 11, 12, 13, 2101, etc.) to standard PostgreSQL COA codes
 const accountAliases: Record<string, string> = {
@@ -283,9 +285,10 @@ const ledgerAccountOptions = computed(() => {
     if (acc.businessUnit === 'KIDINEST') unitLabel = ' [Kidinest]'
     else if (acc.businessUnit === 'SSC') unitLabel = ' [SSC]'
 
+    const translatedName = localeStore.translateAccountName(acc.name)
     return {
       value: acc.code,
-      label: `[${acc.code}] ${acc.name}${unitLabel}`,
+      label: `[${acc.code}] ${translatedName}${unitLabel}`,
       sublabel: `${acc.type} • Saldo Normal: ${acc.normalBalance}`
     }
   })
@@ -483,20 +486,20 @@ function handleExportCSV() {
       <div class="space-y-0.5">
         <div class="flex items-center gap-2 text-xs text-zinc-400 font-medium">
           <span class="hover:text-zinc-700 cursor-pointer" @click="router.push('/accounting/reports/balance-sheet')">
-            Laporan Neraca
+            {{ localeStore.t('nav.balanceSheet') }}
           </span>
           <span>/</span>
           <span class="hover:text-zinc-700 cursor-pointer" @click="router.push('/accounting/reports/profit-loss')">
-            Laba Rugi
+            {{ localeStore.t('nav.profitLoss') }}
           </span>
           <span>/</span>
-          <span class="text-zinc-900 font-bold">Buku Besar (General Ledger)</span>
+          <span class="text-zinc-900 font-bold">{{ localeStore.t('nav.generalLedger') }}</span>
         </div>
         <h1 class="text-base sm:text-lg font-bold text-zinc-950 tracking-tight flex items-center gap-2">
-          <span>Rincian Buku Besar Akun: {{ activeAccount?.code }} - {{ activeAccount?.name }}</span>
+          <span>{{ localeStore.t('reports.generalLedgerTitle') }}: {{ activeAccount?.code }} - {{ localeStore.translateAccountName(activeAccount?.name || '') }}</span>
           <span v-if="isLoadingLedger" class="inline-flex items-center gap-1 text-[11px] font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
             <RefreshCw class="w-3 h-3 animate-spin" />
-            <span>Memuat dari database...</span>
+            <span>{{ localeStore.t('common.loading') }}</span>
           </span>
         </h1>
       </div>
@@ -504,7 +507,7 @@ function handleExportCSV() {
       <div class="flex flex-wrap items-center gap-2.5 text-xs">
         <!-- Date Range -->
         <div class="flex items-center gap-1.5 bg-zinc-50 px-3 py-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-medium">
-          <span class="text-zinc-500">Periode:</span>
+          <span class="text-zinc-500">{{ localeStore.t('common.period') }}:</span>
           <input
             v-model="startDate"
             type="text"
@@ -522,19 +525,19 @@ function handleExportCSV() {
           @click="fetchLedgerReport"
           :disabled="isLoadingLedger"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
-          title="Segarkan data dari database"
+          :title="localeStore.t('common.refresh')"
         >
           <RefreshCw :class="['w-3.5 h-3.5 text-zinc-600', isLoadingLedger ? 'animate-spin text-blue-600' : '']" />
-          <span>Segarkan</span>
+          <span>{{ localeStore.t('common.refresh') }}</span>
         </button>
 
         <button
           @click="handleExportExcel"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl font-bold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
-          title="Ekspor Buku Besar Akun ke Format Excel (.xlsx)"
+          :title="localeStore.t('common.export')"
         >
           <Download class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Ekspor (.xlsx)</span>
+          <span>{{ localeStore.t('common.export') }} (.xlsx)</span>
         </button>
 
         <button

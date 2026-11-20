@@ -94,6 +94,7 @@ export interface Invoice {
   queue_id: number
   invoice_number: string
   invoice_type: 'REGISTRATION' | 'PHARMACY'
+  clinic_unit?: 'KIDINEST' | 'SSC' | string
   patient_name: string
   patient_nik: string
   registration_fee: number
@@ -386,6 +387,8 @@ export const api = {
   // Billing & Reports
   getInvoices: () => request<Invoice[]>('/invoices'),
   getInvoiceByQueue: (queueId: number) => request<Invoice[]>(`/invoices/queue/${queueId}`),
+  getQueues: (limit = 200) => request<QueueItem[]>(`/queues?limit=${limit}`),
+  getDrugs: (limit = 250) => request<PharmacyDrug[]>(`/drugs?limit=${limit}`),
 
   // Cashier & GRO Bounded Context
   getPendingBills: () => request<PendingBill[]>('/cashier/pending-bills'),
@@ -468,8 +471,20 @@ export const api = {
     request<any>(`/pharmacy/prescriptions/${id}/dispense`, { method: 'POST' }),
   cancelPharmacyPrescription: (id: number) =>
     request<any>(`/pharmacy/prescriptions/${id}/cancel`, { method: 'POST' }),
-  getPharmacyDrugs: (unit = '') =>
-    request<PharmacyDrug[]>(`/pharmacy/drugs?unit=${encodeURIComponent(unit)}`),
+  getPharmacyDrugs: async (unit = ''): Promise<PharmacyDrug[]> => {
+    try {
+      const res = await request<PharmacyDrug[]>(`/pharmacy/drugs?unit=${encodeURIComponent(unit)}`)
+      if (res && Array.isArray(res) && res.length > 0) return res
+    } catch {
+      // Endpoint fallback
+    }
+    try {
+      const res2 = await request<PharmacyDrug[]>(`/drugs?limit=250&unit=${encodeURIComponent(unit)}`)
+      return Array.isArray(res2) ? res2 : []
+    } catch {
+      return []
+    }
+  },
   createPharmacyDrug: (data: {
     clinic_unit: string
     name: string
