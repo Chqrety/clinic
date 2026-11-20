@@ -184,7 +184,7 @@ func setupReceivableService() (*receivableApp.Service, *mockReceivableRepo, *moc
 	uow := &mockUoW{}
 	accRepo := &mockAccountRepo{accounts: make(map[string]*accountingDomain.Account)}
 	accRepo.accounts["1-1200"] = &accountingDomain.Account{
-		ID:            uuid.New(),
+		BaseEntity:    shared.BaseEntity{ID: uuid.New()},
 		Code:          "1-1200",
 		Name:          "Piutang Pasien & Klaim",
 		Type:          accountingDomain.AccountTypeAsset,
@@ -193,7 +193,7 @@ func setupReceivableService() (*receivableApp.Service, *mockReceivableRepo, *moc
 		IsHeader:      false,
 	}
 	accRepo.accounts["1-1111"] = &accountingDomain.Account{
-		ID:            uuid.New(),
+		BaseEntity:    shared.BaseEntity{ID: uuid.New()},
 		Code:          "1-1111",
 		Name:          "Kas Kasir Kidinest",
 		Type:          accountingDomain.AccountTypeAsset,

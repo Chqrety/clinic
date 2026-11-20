@@ -152,6 +152,7 @@ func (s *Service) CreateJournal(ctx context.Context, cmd CreateJournalCommand) (
 	}
 
 	entry := &domain.JournalEntry{
+		BaseEntity:      shared.BaseEntity{CreatedBy: cmd.CreatedBy},
 		BranchScoped:    shared.BranchScoped{BranchID: cmd.BranchID},
 		JournalNumber:   journalNumber,
 		JournalType:     cmd.JournalType,
@@ -164,7 +165,6 @@ func (s *Service) CreateJournal(ctx context.Context, cmd CreateJournalCommand) (
 		TotalDebit:      totalDebit,
 		TotalCredit:     totalCredit,
 		PostedBy:        postedBy,
-		CreatedBy:       cmd.CreatedBy,
 		Lines:           lines,
 	}
 
