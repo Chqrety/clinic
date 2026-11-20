@@ -27,7 +27,16 @@ backend/*.http
 # Environment variables
 .env
 *.env
+.env.production
+.env.prod
 !.env.example
+
+# Production & SSL
+certs/
+*.pem
+*.crt
+*.key
+docker-data/
 
 # Logs & temp
 *.log

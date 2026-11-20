@@ -1,0 +1,52 @@
+# ==========================================
+# CLINIC LOCAL DEV DOCKER COMPOSE
+# ==========================================
+# Gunakan ini untuk menjalankan database & cache lokal saat development:
+# docker compose -f docker-compose.dev.yml up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: clinic_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-clinic_accounting}
+      TZ: Asia/Jakarta
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - clinic_pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-clinic_accounting}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clinic_dev_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: clinic_redis_dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - clinic_redis_dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - clinic_dev_net
+
+volumes:
+  clinic_pgdata_dev:
+  clinic_redis_dev:
+
+networks:
+  clinic_dev_net:
+    driver: bridge
