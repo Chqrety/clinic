@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { useJournalsStore } from '@/stores/journals'
 import { useTransactionsStore } from '@/stores/transactions'
-import { useReportsStore } from '@/stores/reports'
-import { formatIDR, compactIDR } from '@/utils/currency'
+import { accountingApi, type BackendTrialBalance } from '@/api/accounting'
+import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import ManualJournalModal from '@/components/journal/ManualJournalModal.vue'
 import type { JournalEntry } from '@/types/accounting'
 import {
-  TrendingUp,
-  CreditCard,
-  Wallet,
   Receipt,
   FileCheck2,
   ArrowUpRight,
@@ -22,27 +19,192 @@ import {
   Layers,
   Sparkles,
   Building2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  RefreshCw
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const accountingStore = useAccountingStore()
 const journalsStore = useJournalsStore()
 const transactionsStore = useTransactionsStore()
-const reportsStore = useReportsStore()
 
 const selectedJournal = ref<JournalEntry | null>(null)
 const showDetailModal = ref(false)
 const showManualModal = ref(false)
+const isLoading = ref(false)
+
+// Authoritative PostgreSQL Data
+const backendTrialBalance = ref<BackendTrialBalance | null>(null)
+const backendIncomeStatement = ref<any>(null)
+const backendBalanceSheet = ref<any>(null)
 
 function inspectJournal(j: JournalEntry) {
   selectedJournal.value = j
   showDetailModal.value = true
 }
 
-// Financial KPI summaries from reports
-const summary = computed(() => reportsStore.profitLossSummary)
-const balance = computed(() => reportsStore.balanceSheet)
+async function loadAuthoritativeData() {
+  isLoading.value = true
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const currentYear = new Date().getFullYear()
+    const startOfYear = `${currentYear}-01-01`
+
+    const [tb, is, bs] = await Promise.allSettled([
+      accountingApi.getTrialBalance(startOfYear, today),
+      accountingApi.getIncomeStatement(startOfYear, today),
+      accountingApi.getBalanceSheet(today),
+      journalsStore.fetchJournals()
+    ])
+
+    if (tb.status === 'fulfilled') backendTrialBalance.value = tb.value
+    if (is.status === 'fulfilled') backendIncomeStatement.value = is.value
+    if (bs.status === 'fulfilled') backendBalanceSheet.value = bs.value
+  } catch (err) {
+    console.warn('[Dashboard] Gagal memuat data finansial riil:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadAuthoritativeData()
+})
+
+watch(() => accountingStore.businessUnit, () => {
+  loadAuthoritativeData()
+})
+
+// Real Posted Journals
+const postedJournals = computed(() => {
+  return journalsStore.journals.filter(j => j.status === 'POSTED')
+})
+
+// Real Per-Unit Financial Calculations from Posted Journals
+const kidinestStats = computed(() => {
+  const kidJournals = postedJournals.value.filter(j => j.businessUnit === 'KIDINEST')
+  const revenue = kidJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('4-'))
+    .reduce((sum, l) => sum + (l.credit - l.debit), 0)
+  const expenses = kidJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('5-') || l.accountCode.startsWith('6-'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+  return {
+    revenue: Math.max(0, revenue),
+    netProfit: revenue - expenses
+  }
+})
+
+const sscStats = computed(() => {
+  const sscJournals = postedJournals.value.filter(j => j.businessUnit === 'SSC')
+  const revenue = sscJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('4-'))
+    .reduce((sum, l) => sum + (l.credit - l.debit), 0)
+  const expenses = sscJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('5-') || l.accountCode.startsWith('6-'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+  return {
+    revenue: Math.max(0, revenue),
+    netProfit: revenue - expenses
+  }
+})
+
+// KPI Calculations from Authoritative PostgreSQL Data
+const grossRevenue = computed(() => {
+  if (accountingStore.businessUnit === 'KIDINEST') return kidinestStats.value.revenue
+  if (accountingStore.businessUnit === 'SSC') return sscStats.value.revenue
+
+  if (backendIncomeStatement.value?.total_revenue) {
+    return Number(backendIncomeStatement.value.total_revenue) || 0
+  }
+  return postedJournals.value
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('4-'))
+    .reduce((sum, l) => sum + (l.credit - l.debit), 0)
+})
+
+const liquidCash = computed(() => {
+  if (backendTrialBalance.value?.items?.length) {
+    return backendTrialBalance.value.items
+      .filter(item => {
+        const isCashOrBank = item.account_code.startsWith('1-11') || item.account_code.startsWith('1-12')
+        if (!isCashOrBank) return false
+        if (accountingStore.businessUnit === 'KIDINEST') return item.account_name.toLowerCase().includes('kidinest')
+        if (accountingStore.businessUnit === 'SSC') return item.account_name.toLowerCase().includes('ssc')
+        return true
+      })
+      .reduce((sum, item) => sum + (Number(item.ending_debit) - Number(item.ending_credit)), 0)
+  }
+  return 0
+})
+
+const patientReceivables = computed(() => {
+  if (backendTrialBalance.value?.items?.length) {
+    return backendTrialBalance.value.items
+      .filter(item => {
+        const isReceivable = item.account_code === '1-1200' || item.account_code.startsWith('1-13') || item.account_name.toLowerCase().includes('piutang')
+        if (!isReceivable) return false
+        if (accountingStore.businessUnit === 'KIDINEST') return item.account_name.toLowerCase().includes('kidinest')
+        if (accountingStore.businessUnit === 'SSC') return item.account_name.toLowerCase().includes('ssc')
+        return true
+      })
+      .reduce((sum, item) => sum + (Number(item.ending_debit) - Number(item.ending_credit)), 0)
+  }
+  return 0
+})
+
+const totalLiabilities = computed(() => {
+  if (backendTrialBalance.value?.items?.length) {
+    return backendTrialBalance.value.items
+      .filter(item => {
+        const isLiability = item.account_code.startsWith('2-')
+        if (!isLiability) return false
+        if (accountingStore.businessUnit === 'KIDINEST') return item.account_name.toLowerCase().includes('kidinest')
+        if (accountingStore.businessUnit === 'SSC') return item.account_name.toLowerCase().includes('ssc')
+        return true
+      })
+      .reduce((sum, item) => sum + (Number(item.ending_credit) - Number(item.ending_debit)), 0)
+  }
+  return 0
+})
+
+const netIncome = computed(() => {
+  if (accountingStore.businessUnit === 'KIDINEST') return kidinestStats.value.netProfit
+  if (accountingStore.businessUnit === 'SSC') return sscStats.value.netProfit
+
+  if (backendIncomeStatement.value?.net_income) {
+    return Number(backendIncomeStatement.value.net_income) || 0
+  }
+  const rev = grossRevenue.value
+  const exp = postedJournals.value
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('5-') || l.accountCode.startsWith('6-'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+  return rev - exp
+})
+
+const netMargin = computed(() => {
+  if (grossRevenue.value <= 0) return 0
+  return Math.round((netIncome.value / grossRevenue.value) * 1000) / 10
+})
+
+const totalUnitsRevenue = computed(() => {
+  return kidinestStats.value.revenue + sscStats.value.revenue
+})
+
+const kidinestContribution = computed(() => {
+  if (totalUnitsRevenue.value <= 0) return 0
+  return Math.round((kidinestStats.value.revenue / totalUnitsRevenue.value) * 100)
+})
+
+const sscContribution = computed(() => {
+  if (totalUnitsRevenue.value <= 0) return 0
+  return Math.round((sscStats.value.revenue / totalUnitsRevenue.value) * 100)
+})
 
 // Recent posted journals
 const recentJournals = computed(() => {
@@ -64,7 +226,7 @@ const unprocessedTransactions = computed(() => {
           <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
             Akuntansi & Keuangan
           </span>
-          <span class="text-zinc-300">•</span>
+          <span class="text-zinc-300">&bull;</span>
           <span class="text-xs text-zinc-400 font-medium">Semarang Medical Group</span>
         </div>
         <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-0.5">
@@ -73,6 +235,16 @@ const unprocessedTransactions = computed(() => {
       </div>
 
       <div class="flex items-center gap-2.5">
+        <button
+          @click="loadAuthoritativeData"
+          :disabled="isLoading"
+          class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+          title="Sinkronisasi data riil database"
+        >
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isLoading }" />
+          <span>Refresh</span>
+        </button>
+
         <button
           @click="showManualModal = true"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
@@ -91,48 +263,50 @@ const unprocessedTransactions = computed(() => {
       </div>
     </header>
 
-    <!-- 1-Row Compact Hairline KPI Ticker Strip (Anti AI-Slop, Calm & Harmonious) -->
+    <!-- 1-Row Compact Hairline KPI Ticker Strip (Authoritative Database Live Values) -->
     <div
       class="grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/90 border border-zinc-200/90 rounded-2xl bg-white shadow-2xs overflow-hidden"
     >
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Pendapatan Bruto</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(accountingStore.businessUnit === 'KIDINEST' ? summary.kidinestRev : accountingStore.businessUnit === 'SSC' ? summary.sscRev : summary.totalRev) }}
+          {{ formatIDR(grossRevenue) }}
         </div>
-        <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">+14.2% vs Feb 2026</div>
+        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Total Pendapatan Terposting</div>
       </div>
 
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Kas & Bank Likuid</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(balance.kasOperasional + balance.bankOperasional) }}
+          {{ formatIDR(liquidCash) }}
         </div>
-        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">BCA & Kasir Operasional</div>
+        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Kas & Rekening Operasional</div>
       </div>
 
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Piutang Pasien / AR</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(balance.piutangPasien) }}
+          {{ formatIDR(patientReceivables) }}
         </div>
-        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Asuransi & Pasien Umum</div>
+        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Klaim Asuransi & Pasien</div>
       </div>
 
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Hutang & Fee Dokter</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(balance.hutangDistributor + balance.hutangDokter) }}
+          {{ formatIDR(totalLiabilities) }}
         </div>
-        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Distributor & Jasa Medis</div>
+        <div class="text-[10px] text-zinc-400 font-medium mt-0.5">Supplier & Akrual Jasa Medis</div>
       </div>
 
       <div class="p-3.5 col-span-2 sm:col-span-1 bg-stone-50/90 border-l border-zinc-200/90 flex flex-col justify-center">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Laba Bersih (Net)</div>
         <div class="text-lg font-extrabold tabular-nums tracking-tight text-zinc-950 mt-0.5">
-          {{ formatIDR(accountingStore.businessUnit === 'KIDINEST' ? summary.kidinestNetProfit : accountingStore.businessUnit === 'SSC' ? summary.sscNetProfit : summary.netProfit) }}
+          {{ formatIDR(netIncome) }}
         </div>
-        <div class="text-[10px] text-emerald-700 font-bold mt-0.5">28.4% Net Margin</div>
+        <div class="text-[10px] font-bold mt-0.5" :class="netMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'">
+          {{ netMargin }}% Net Margin
+        </div>
       </div>
     </div>
 
@@ -145,7 +319,7 @@ const unprocessedTransactions = computed(() => {
             <Building2 class="w-4 h-4 text-zinc-700" />
             <h3 class="text-sm font-bold text-zinc-950">Perbandingan Unit Bisnis</h3>
           </div>
-          <span class="text-[11px] font-semibold text-zinc-500">Maret 2026</span>
+          <span class="text-[11px] font-semibold text-zinc-500">Tahun Berjalan</span>
         </div>
 
         <!-- Kidinest (Warm Mustard / Amber) -->
@@ -155,17 +329,17 @@ const unprocessedTransactions = computed(() => {
               <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
               <span class="font-bold text-xs text-amber-950">Kidinest Pediatric Care</span>
             </div>
-            <span class="text-xs font-bold tabular-nums text-amber-950">{{ formatIDR(summary.kidinestRev) }}</span>
+            <span class="text-xs font-bold tabular-nums text-amber-950">{{ formatIDR(kidinestStats.revenue) }}</span>
           </div>
           <div class="w-full bg-amber-200/60 h-1.5 rounded-full overflow-hidden">
             <div
-              class="bg-amber-500 h-full rounded-full"
-              :style="{ width: `${(summary.kidinestRev / summary.totalRev) * 100}%` }"
+              class="bg-amber-500 h-full rounded-full transition-all duration-500"
+              :style="{ width: `${kidinestContribution}%` }"
             ></div>
           </div>
           <div class="flex justify-between text-[11px] text-amber-900 font-medium">
-            <span>Laba Bersih: <strong class="tabular-nums">{{ formatIDR(summary.kidinestNetProfit) }}</strong></span>
-            <span>Kontribusi: <strong>{{ Math.round((summary.kidinestRev / summary.totalRev) * 100) }}%</strong></span>
+            <span>Laba Bersih: <strong class="tabular-nums">{{ formatIDR(kidinestStats.netProfit) }}</strong></span>
+            <span>Kontribusi: <strong>{{ kidinestContribution }}%</strong></span>
           </div>
         </div>
 
@@ -176,22 +350,22 @@ const unprocessedTransactions = computed(() => {
               <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
               <span class="font-bold text-xs text-rose-950">Semarang Skin Center (SSC)</span>
             </div>
-            <span class="text-xs font-bold tabular-nums text-rose-950">{{ formatIDR(summary.sscRev) }}</span>
+            <span class="text-xs font-bold tabular-nums text-rose-950">{{ formatIDR(sscStats.revenue) }}</span>
           </div>
           <div class="w-full bg-rose-200/60 h-1.5 rounded-full overflow-hidden">
             <div
-              class="bg-rose-500 h-full rounded-full"
-              :style="{ width: `${(summary.sscRev / summary.totalRev) * 100}%` }"
+              class="bg-rose-500 h-full rounded-full transition-all duration-500"
+              :style="{ width: `${sscContribution}%` }"
             ></div>
           </div>
           <div class="flex justify-between text-[11px] text-rose-900 font-medium">
-            <span>Laba Bersih: <strong class="tabular-nums">{{ formatIDR(summary.sscNetProfit) }}</strong></span>
-            <span>Kontribusi: <strong>{{ Math.round((summary.sscRev / summary.totalRev) * 100) }}%</strong></span>
+            <span>Laba Bersih: <strong class="tabular-nums">{{ formatIDR(sscStats.netProfit) }}</strong></span>
+            <span>Kontribusi: <strong>{{ sscContribution }}%</strong></span>
           </div>
         </div>
 
         <p class="text-[11px] text-zinc-500 leading-relaxed italic">
-          * Catatan akuntansi: Pendapatan SSC mencakup tindakan medis laser spesialis kulit & penjualan produk skincare estetika.
+          * Seluruh angka dikalkulasi otomatis dari jurnal terposting di database PostgreSQL.
         </p>
       </div>
 
@@ -203,7 +377,7 @@ const unprocessedTransactions = computed(() => {
             <h3 class="text-sm font-bold text-zinc-950">Alur Pemrosesan Jurnal Akuntansi</h3>
           </div>
           <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-            Audit Ready
+            Database Live
           </span>
         </div>
 
@@ -221,7 +395,7 @@ const unprocessedTransactions = computed(() => {
                 {{ transactionsStore.transactions.filter(t => t.journalStatus === 'UNPROCESSED').length }} Belum
               </span>
             </div>
-            <p class="text-[11px] text-zinc-500">Kasir, PO, Farmasi, Fee</p>
+            <p class="text-[11px] text-zinc-500">Kasir, PO, Farmasi</p>
           </div>
 
           <div
@@ -234,7 +408,7 @@ const unprocessedTransactions = computed(() => {
                 {{ journalsStore.stats.draftCount + journalsStore.stats.submittedCount }}
               </span>
               <span class="text-[10px] font-bold text-zinc-700 bg-zinc-200/80 px-1.5 py-0.5 rounded">
-                Maker
+                Draft
               </span>
             </div>
             <p class="text-[11px] text-zinc-500">Staf Akuntansi</p>
@@ -250,10 +424,10 @@ const unprocessedTransactions = computed(() => {
                 {{ journalsStore.stats.reviewedCount + journalsStore.stats.approvedCount }}
               </span>
               <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
-                Perlu Aksi
+                Antrean
               </span>
             </div>
-            <p class="text-[11px] text-zinc-500">Supervisor & Manager</p>
+            <p class="text-[11px] text-zinc-500">Supervisor / Manajer</p>
           </div>
 
           <div
@@ -269,14 +443,14 @@ const unprocessedTransactions = computed(() => {
                 Resmi
               </span>
             </div>
-            <p class="text-[11px] text-emerald-700">Mempengaruhi Laporan</p>
+            <p class="text-[11px] text-emerald-700">Mempengaruhi Buku Besar</p>
           </div>
         </div>
 
         <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-200/90 text-xs flex items-center justify-between">
           <div class="flex items-center gap-2 text-zinc-700 font-medium">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Total Debet Resmi Terposting ke Buku Besar Periode Ini:</span>
+            <span>Total Debet Resmi Terposting ke Buku Besar:</span>
           </div>
           <span class="font-bold tabular-nums text-sm text-zinc-950">
             {{ formatIDR(journalsStore.stats.totalPostedDebit) }}
@@ -303,7 +477,15 @@ const unprocessedTransactions = computed(() => {
           </button>
         </div>
 
-        <div class="space-y-2.5">
+        <!-- Empty State -->
+        <div v-if="unprocessedTransactions.length === 0" class="py-10 text-center space-y-1.5 border border-dashed border-zinc-200 rounded-xl">
+          <Layers class="w-6 h-6 text-zinc-300 mx-auto" />
+          <p class="text-xs font-bold text-zinc-700">Semua transaksi operasional telah diproses</p>
+          <p class="text-[11px] text-zinc-400">Tidak ada antrean transaksi kasir atau farmasi yang menunggu penjurnalan.</p>
+        </div>
+
+        <!-- Transaction List -->
+        <div v-else class="space-y-2.5">
           <div
             v-for="tx in unprocessedTransactions"
             :key="tx.id"
@@ -349,7 +531,15 @@ const unprocessedTransactions = computed(() => {
           </button>
         </div>
 
-        <div class="space-y-2.5">
+        <!-- Empty State -->
+        <div v-if="recentJournals.length === 0" class="py-10 text-center space-y-1.5 border border-dashed border-zinc-200 rounded-xl">
+          <Receipt class="w-6 h-6 text-zinc-300 mx-auto" />
+          <p class="text-xs font-bold text-zinc-700">Belum ada jurnal transaksi tercatat di database</p>
+          <p class="text-[11px] text-zinc-400">Database siap menerima pencatatan jurnal baru atau posting kasir.</p>
+        </div>
+
+        <!-- Journal List -->
+        <div v-else class="space-y-2.5">
           <div
             v-for="j in recentJournals"
             :key="j.id"
@@ -394,4 +584,3 @@ const unprocessedTransactions = computed(() => {
     />
   </div>
 </template>
-
