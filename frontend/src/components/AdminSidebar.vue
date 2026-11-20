@@ -18,7 +18,8 @@ import {
   Building2,
   User,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  TrendingUp
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
@@ -65,13 +66,25 @@ const allRoles: MenuRole[] = [
   { key: 'pharmacy', label: 'Farmasi & Apotek', sub: 'Dispensing Resep', icon: Pill, allowedRoles: ['SUPERADMIN_OWNER', 'PHARMACIST'] },
   { key: 'inventory', label: 'Gudang & Logistik', sub: 'Stok Opname & Batch', icon: Package, allowedRoles: ['SUPERADMIN_OWNER', 'PHARMACIST'] },
   { key: 'billing', label: 'Billing & Tutup Shift', sub: 'Rekap Finansial', icon: Receipt, allowedRoles: ['SUPERADMIN_OWNER', 'GRO_CASHIER', 'FINANCE'] },
-  { key: 'owner', label: 'Manajemen Staf', sub: 'Hak Akses Atasan', icon: ShieldCheck, allowedRoles: ['SUPERADMIN_OWNER', 'FINANCE'] },
+  { key: 'owner', label: 'Manajemen Staf', sub: 'Hak Akses Atasan', icon: ShieldCheck, allowedRoles: ['SUPERADMIN_OWNER', 'OWNER'] },
   { key: 'satusehat', label: 'SATUSEHAT Bridge', sub: 'Kemenkes RME', icon: Sparkles, allowedRoles: ['SUPERADMIN_OWNER'] },
 ]
 
 const isSuperAdmin = computed(() => {
   const role = (auth.user?.role || 'SUPERADMIN_OWNER').toUpperCase()
   return role === 'SUPERADMIN_OWNER' || role === 'OWNER' || role === 'FINANCE' || auth.isOwner || !auth.user
+})
+
+// Hak akses khusus Dashboard Eksekutif Manajemen & Omzet
+const canAccessManagement = computed(() => {
+  const role = (auth.user?.role || '').toUpperCase()
+  return isSuperAdmin.value || ['OWNER', 'GRO_CASHIER', 'FINANCE'].includes(role)
+})
+
+// Hak akses khusus ERP Akuntansi
+const canAccessAccounting = computed(() => {
+  const role = (auth.user?.role || '').toUpperCase()
+  return isSuperAdmin.value || ['OWNER', 'FINANCE'].includes(role)
 })
 
 // Superadmin sees all 7 modules; non-owners see only their designated modules
@@ -243,21 +256,28 @@ async function handleLogout() {
           </div>
         </button>
 
-        <!-- Shortcut to Accounting Module (For Superadmin, Owner & Finance) -->
-        <router-link
-          v-if="isSuperAdmin || (auth.user?.role || '').toUpperCase() === 'FINANCE'"
-          to="/accounting"
-          class="w-full px-3 py-2.5 rounded-xl text-left flex items-center gap-3 transition-all text-xs font-bold text-amber-300 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 group mt-3"
-        >
-          <Building2 class="w-4 h-4 shrink-0 text-amber-400 group-hover:scale-105 transition-transform" />
-          <div class="flex-1 truncate">
-            <div class="truncate">Sistem Akuntansi</div>
-            <div class="text-[10px] font-medium text-amber-400/80 truncate">
-              Jurnal, Kas & Buku Besar
-            </div>
+        <!-- Section: Portal Eksekutif & Finansial (Akses Terpisah) -->
+        <div v-if="canAccessManagement || canAccessAccounting" class="pt-3 pb-1">
+          <div class="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+            Portal Khusus
           </div>
-          <ExternalLink class="w-3.5 h-3.5 text-amber-400/80" />
-        </router-link>
+
+          <!-- Standalone Dashboard: Manajemen & Omzet -->
+          <router-link
+            v-if="canAccessManagement"
+            to="/management"
+            class="w-full px-3 py-2.5 rounded-xl text-left flex items-center gap-3 transition-all text-xs font-bold text-emerald-300 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 group mt-1"
+          >
+            <TrendingUp class="w-4 h-4 shrink-0 text-emerald-400 group-hover:scale-105 transition-transform" />
+            <div class="flex-1 truncate">
+              <div class="truncate">Manajemen & Omzet</div>
+              <div class="text-[10px] font-medium text-emerald-400/80 truncate">
+                Laporan Penjualan Harian
+              </div>
+            </div>
+            <ExternalLink class="w-3.5 h-3.5 text-emerald-400/80" />
+          </router-link>
+        </div>
       </nav>
     </div>
 

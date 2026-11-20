@@ -71,6 +71,16 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'Workstation Staf Medis' }
   },
   {
+    path: '/management',
+    name: 'ManagementReport',
+    component: () => import('@/views/ManagementReportView.vue'),
+    meta: { title: 'Dashboard Laporan Manajemen & Omzet' }
+  },
+  {
+    path: '/management-report',
+    redirect: '/management'
+  },
+  {
     path: '/monitor',
     name: 'QueueMonitor',
     component: () => import('@/views/QueueMonitor.vue'),
@@ -280,6 +290,26 @@ router.beforeEach(async (to: any, _from: any, next: any) => {
     const allowedRoles = ['FINANCE', 'SUPERADMIN_OWNER', 'OWNER']
     const currentRole = (authStore.user?.role || '').toUpperCase()
     if (authStore.user && !allowedRoles.includes(currentRole)) {
+      return next({ path: '/admin' })
+    }
+  }
+
+  // Route Guard: Lindungi rute /management wajib login role owner, cashier/gro, atau finance
+  if (to.path === '/management' || to.path.startsWith('/management')) {
+    if (!authStore.isAuthenticated) {
+      const ok = await authStore.fetchMe()
+      if (!ok) {
+        return next({
+          path: '/login-kidinest',
+          query: { redirect: to.fullPath }
+        })
+      }
+    }
+
+    // Role yang memiliki akses ke dashboard manajemen & omzet
+    const allowedManagementRoles = ['SUPERADMIN_OWNER', 'OWNER', 'GRO_CASHIER', 'FINANCE']
+    const currentRole = (authStore.user?.role || '').toUpperCase()
+    if (authStore.user && !allowedManagementRoles.includes(currentRole) && !authStore.isOwner) {
       return next({ path: '/admin' })
     }
   }

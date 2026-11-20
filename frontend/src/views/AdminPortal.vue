@@ -24,6 +24,10 @@ const validRoles = ['owner', 'doctor', 'pharmacy', 'cashier', 'inventory', 'bill
 
 function getRoleFromHash(): string | null {
   const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase()
+  if (hash === 'management' || hash === 'management-report') {
+    router.push('/management')
+    return null
+  }
   return validRoles.includes(hash) ? hash : null
 }
 
