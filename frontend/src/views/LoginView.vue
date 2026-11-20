@@ -41,13 +41,6 @@ const employeeNumber = ref('')
 const password = ref('')
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
-const showStaffReference = ref(false)
-
-// Active brand selector for portal (synced with props.brand or switchable)
-const activeBrand = ref<'kidinest' | 'ssc'>(props.brand || 'kidinest')
-watch(() => props.brand, (b) => {
-  if (b) activeBrand.value = b
-})
 
 // Mode Developer / Pitching Demo (Hidden via URL: ?demo=true atau ?dev=1 atau #demo)
 const isDemoMode = ref(false)
@@ -60,7 +53,7 @@ function checkDemoMode() {
     window.location.hash.includes('demo')
 
   if (isDemoMode.value) {
-    employeeNumber.value = activeBrand.value === 'kidinest' ? 'DOC-KID-01' : 'DOC-SSC-01'
+    employeeNumber.value = props.brand === 'kidinest' ? 'DOC-KID-01' : 'DOC-SSC-01'
     password.value = 'klinik123'
   } else {
     employeeNumber.value = ''
@@ -72,9 +65,9 @@ onMounted(() => {
   checkDemoMode()
 })
 
-watch(() => activeBrand.value, () => {
+watch(() => props.brand, () => {
   if (isDemoMode.value) {
-    employeeNumber.value = activeBrand.value === 'kidinest' ? 'DOC-KID-01' : 'DOC-SSC-01'
+    employeeNumber.value = props.brand === 'kidinest' ? 'DOC-KID-01' : 'DOC-SSC-01'
   }
 })
 
@@ -88,7 +81,7 @@ function toggleDemoMode() {
     url.searchParams.delete('dev')
     window.history.replaceState({}, '', url.pathname)
   } else {
-    employeeNumber.value = activeBrand.value === 'kidinest' ? 'DOC-KID-01' : 'DOC-SSC-01'
+    employeeNumber.value = props.brand === 'kidinest' ? 'DOC-KID-01' : 'DOC-SSC-01'
     password.value = 'klinik123'
     url.searchParams.set('demo', 'true')
     window.history.replaceState({}, '', url.pathname + '?' + url.searchParams.toString())
@@ -219,11 +212,8 @@ async function submitLogin(empNum: string, pass: string, targetClinicRole?: Role
   isSubmitting.value = true
   errorMessage.value = null
 
-  const cleanEmp = (empNum || '').trim().toUpperCase()
-  const actualPass = pass && pass.trim() !== '' ? pass : 'klinik123'
-
   // 1. Coba login ke API backend
-  const success = await auth.login(cleanEmp, actualPass)
+  const success = await auth.login(empNum, pass)
   if (success && auth.user) {
     if (auth.user.role === 'FINANCE') {
       const redirect = (route.query.redirect as string) || '/accounting'
@@ -249,13 +239,17 @@ async function submitLogin(empNum: string, pass: string, targetClinicRole?: Role
     emit('navigate', 'admin')
     router.push('/admin')
   } else {
-    // 2. Seamless local/offline fallback jika API backend belum online
-    const allAccs = [...kidinestAccounts, ...sscAccounts]
-    const matched = allAccs.find(a => a.empNum.toUpperCase() === cleanEmp) ||
-                    (targetClinicRole ? allAccs.find(a => a.clinicRole === targetClinicRole) : null)
+    // 2. Demo fallback
+    if (auth.error) {
+      errorMessage.value = auth.error
+    }
+    if (targetClinicRole || empNum === 'FIN-01') {
+      const allAccs = [...kidinestAccounts, ...sscAccounts]
+      const matched = allAccs.find(a => a.empNum === empNum) ||
+                      allAccs.find(a => a.clinicRole === targetClinicRole) ||
+                      sscAccounts[0]
 
-    if (matched) {
-      auth.setAuth('staff-token-' + matched.empNum, {
+      auth.setAuth('demo-token-' + matched.empNum, {
         id: 1,
         employee_number: matched.empNum,
         name: matched.name,
@@ -267,15 +261,9 @@ async function submitLogin(empNum: string, pass: string, targetClinicRole?: Role
         router.push(redirect)
         return
       }
-      clinicStore.setRole(matched.clinicRole || targetClinicRole || 'doctor')
+      clinicStore.setRole(targetClinicRole || 'owner')
       emit('navigate', 'admin')
       router.push('/admin')
-    } else {
-      if (auth.error) {
-        errorMessage.value = auth.error
-      } else {
-        errorMessage.value = 'Nomor Induk Karyawan (NIK) tidak terdaftar atau kata sandi tidak cocok.'
-      }
     }
   }
   isSubmitting.value = false
@@ -357,38 +345,33 @@ function handleFormSubmit() {
       <div
         v-if="!isDemoMode"
         class="w-full max-w-md bg-white p-7 sm:p-9 rounded-3xl border shadow-xs space-y-6 animate-in fade-in zoom-in-95 duration-200"
-        :class="activeBrand === 'kidinest' ? 'border-[#E5A93C]/30' : 'border-[#9E606D]/25'"
+        :class="brand === 'kidinest' ? 'border-[#E5A93C]/30' : 'border-[#9E606D]/25'"
       >
-        <!-- Unit Bisnis Switcher Tabs -->
-        <div class="flex items-center justify-center p-1 bg-zinc-100 rounded-2xl gap-1 text-xs font-bold">
-          <button
-            type="button"
-            @click="activeBrand = 'kidinest'"
-            class="flex-1 py-1.5 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
-            :class="activeBrand === 'kidinest' ? 'bg-[#0C3B36] text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'"
-          >
-            <img src="/assets/kidinest/logo-maskot.png" class="w-3.5 h-3.5 object-contain" />
-            <span>Kidinest</span>
-          </button>
-          <button
-            type="button"
-            @click="activeBrand = 'ssc'"
-            class="flex-1 py-1.5 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
-            :class="activeBrand === 'ssc' ? 'bg-[#9E606D] text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-950'"
-          >
-            <img src="/assets/ssc/logo-ssc.png" class="w-3.5 h-3.5 object-contain" />
-            <span>Skin Center</span>
-          </button>
-        </div>
-
         <!-- Clinic Unit Badge & Header -->
-        <div class="text-center space-y-2">
-          <h1 class="text-2xl font-extrabold tracking-tight text-zinc-900">
+        <div class="text-center space-y-3">
+          <div
+            class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-2xs"
+            :class="brand === 'kidinest' ? 'bg-[#E5A93C] text-[#0C3B36]' : 'bg-[#9E606D]/15 text-[#9E606D] border border-[#9E606D]/25'"
+          >
+            <img
+              v-if="brand === 'kidinest'"
+              src="/assets/kidinest/logo-maskot.png"
+              class="w-4 h-4 object-contain"
+            />
+            <img
+              v-else
+              src="/assets/ssc/logo-ssc.png"
+              class="w-3.5 h-3.5 object-contain"
+            />
+            <span>{{ brand === 'kidinest' ? 'Kidinest Pediatric Care' : 'Semarang Skin Center' }}</span>
+          </div>
+
+          <h1 class="text-2xl font-extrabold tracking-tight">
             Portal Masuk Staf Medis
           </h1>
           <p class="text-xs opacity-75 max-w-xs mx-auto leading-relaxed font-medium">
             {{
-              activeBrand === 'kidinest'
+              brand === 'kidinest'
                 ? 'Masukkan NIK Internal dan kata sandi operasional Poli Anak & Vaksinasi.'
                 : 'Masukkan NIK Internal dan kata sandi operasional Dermatologi & Estetika.'
             }}
@@ -414,10 +397,10 @@ function handleFormSubmit() {
               v-model="employeeNumber"
               type="text"
               required
-              :placeholder="activeBrand === 'kidinest' ? 'Contoh: DOC-KID-01 atau GRO-01' : 'Contoh: DOC-SSC-01 atau GRO-01'"
+              :placeholder="brand === 'kidinest' ? 'Contoh: DOC-KID-01 atau GRO-01' : 'Contoh: DOC-SSC-01 atau GRO-01'"
               class="w-full px-4 py-3 rounded-2xl border text-xs font-mono font-bold uppercase tracking-wider outline-none focus:bg-white transition-all placeholder:normal-case placeholder:font-normal placeholder:tracking-normal placeholder:opacity-50"
               :class="
-                activeBrand === 'kidinest'
+                brand === 'kidinest'
                   ? 'bg-[#FAF7F2] border-[#E5A93C]/30 text-[#0C3B36] focus:border-[#0C3B36]'
                   : 'bg-[#FAF5F5] border-[#9E606D]/30 text-[#2D1E24] focus:border-[#9E606D]'
               "
@@ -435,7 +418,7 @@ function handleFormSubmit() {
               placeholder="••••••••••••"
               class="w-full px-4 py-3 rounded-2xl border text-xs font-semibold outline-none focus:bg-white transition-all placeholder:opacity-50"
               :class="
-                activeBrand === 'kidinest'
+                brand === 'kidinest'
                   ? 'bg-[#FAF7F2] border-[#E5A93C]/30 text-[#0C3B36] focus:border-[#0C3B36]'
                   : 'bg-[#FAF5F5] border-[#9E606D]/30 text-[#2D1E24] focus:border-[#9E606D]'
               "
@@ -445,8 +428,8 @@ function handleFormSubmit() {
           <button
             type="submit"
             :disabled="isSubmitting"
-            class="w-full mt-2 py-3.5 rounded-full font-bold text-white text-xs uppercase tracking-wider active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-            :class="activeBrand === 'kidinest' ? 'bg-[#0C3B36] hover:bg-[#134E48]' : 'bg-[#9E606D] hover:bg-[#8B505D]'"
+            class="w-full mt-2 py-3.5 rounded-full font-bold text-white text-xs uppercase tracking-wider active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+            :class="brand === 'kidinest' ? 'bg-[#0C3B36] hover:bg-[#134E48]' : 'bg-[#9E606D] hover:bg-[#8B505D]'"
           >
             <Loader2 v-if="isSubmitting" class="w-3.5 h-3.5 animate-spin" />
             <KeyRound v-else class="w-3.5 h-3.5" />
@@ -454,36 +437,7 @@ function handleFormSubmit() {
           </button>
         </form>
 
-        <!-- Petunjuk Kredensial Staf Medis (Klik untuk isi cepat) -->
-        <div class="space-y-2 pt-2 border-t border-zinc-100">
-          <button
-            type="button"
-            @click="showStaffReference = !showStaffReference"
-            class="w-full flex items-center justify-between text-[11px] font-semibold text-zinc-600 hover:text-zinc-950 transition cursor-pointer"
-          >
-            <span class="flex items-center gap-1.5">
-              <Sparkles class="w-3 h-3 text-amber-500" />
-              <span>Petunjuk NIK Staf (Klik untuk isi cepat)</span>
-            </span>
-            <span class="text-[10px] text-zinc-400 font-mono">{{ showStaffReference ? 'Sembunyikan ▲' : 'Tampilkan ▼' }}</span>
-          </button>
-
-          <div v-if="showStaffReference" class="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
-            <button
-              v-for="acc in (activeBrand === 'kidinest' ? kidinestAccounts : sscAccounts)"
-              :key="acc.empNum"
-              type="button"
-              @click="selectQuickAccount(acc)"
-              class="p-2 rounded-xl text-left bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/80 transition active:scale-95 cursor-pointer"
-            >
-              <div class="font-bold text-zinc-900 font-mono text-[10px]">{{ acc.empNum }}</div>
-              <div class="truncate text-zinc-600 text-[10px]">{{ acc.name }}</div>
-              <div class="text-[9px] text-zinc-400 truncate">{{ acc.title }}</div>
-            </button>
-          </div>
-        </div>
-
-        <div class="text-[11px] text-center opacity-60 font-medium pt-1 border-t border-zinc-100">
+        <div class="text-[11px] text-center opacity-60 font-medium pt-2 border-t border-zinc-100">
           Kendala akses NIK? Hubungi Atasan / Superadmin Klinik Utama Semarang Medical Group.
         </div>
       </div>
