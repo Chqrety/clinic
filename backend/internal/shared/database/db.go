@@ -98,14 +98,6 @@ func InitPostgres(cfg Config) (*sql.DB, error) {
 		log.Printf("[DB] Peringatan: Seeding data staf gagal: %v", err)
 	}
 
-	if err := SeedInitialDoctorSchedules(db); err != nil {
-		log.Printf("[DB] Peringatan: Seeding data jadwal dokter gagal: %v", err)
-	}
-
-	if err := SeedInitialDrugs(db); err != nil {
-		log.Printf("[DB] Peringatan: Seeding data obat gagal: %v", err)
-	}
-
 	return db, nil
 }
 
