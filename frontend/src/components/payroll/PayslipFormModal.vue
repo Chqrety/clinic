@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { usePayrollStore } from '@/stores/payroll'
 import { useLocaleStore } from '@/stores/locale'
 import { formatIDR } from '@/utils/currency'
@@ -14,7 +14,9 @@ import {
   Building2,
   Calendar,
   AlertCircle,
-  Search
+  Search,
+  ChevronDown,
+  Check
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -30,9 +32,10 @@ const emit = defineEmits<{
 const payrollStore = usePayrollStore()
 const localeStore = useLocaleStore()
 
+const dropdownContainerRef = ref<HTMLElement | null>(null)
+const isDropdownOpen = ref<boolean>(false)
 const selectedEmployeeId = ref<string>('')
-const employeeSearchQuery = ref<string>('')
-const showSuggestions = ref<boolean>(false)
+const searchInputText = ref<string>('')
 const employeeName = ref<string>('')
 const employeeNik = ref<string>('')
 const position = ref<string>('')
@@ -43,15 +46,24 @@ const periodYear = ref<number>(new Date().getFullYear())
 const bankName = ref<string>('Bank Mandiri')
 const bankAccountNumber = ref<string>('')
 
-const matchedEmployees = computed(() => {
-  const q = employeeSearchQuery.value.trim().toLowerCase()
-  if (!q) return payrollStore.employees.slice(0, 8)
+const selectedEmployee = computed(() => {
+  if (!selectedEmployeeId.value) return null
+  return payrollStore.employees.find(e => e.id === selectedEmployeeId.value) || null
+})
+
+// Display all employees when dropdown is open, or filter in real time when typing
+const filteredEmployees = computed(() => {
+  const q = searchInputText.value.trim().toLowerCase()
+  if (!q || (selectedEmployee.value && searchInputText.value === `${selectedEmployee.value.name} (${selectedEmployee.value.nik})`)) {
+    return payrollStore.employees
+  }
   return payrollStore.employees.filter(emp =>
     emp.name.toLowerCase().includes(q) ||
     emp.nik.toLowerCase().includes(q) ||
     emp.position.toLowerCase().includes(q) ||
+    emp.department.toLowerCase().includes(q) ||
     emp.businessUnit.toLowerCase().includes(q)
-  ).slice(0, 8)
+  )
 })
 
 function selectEmployee(emp: Employee) {
@@ -81,18 +93,51 @@ function selectEmployee(emp: Employee) {
   bpjsKesehatan.value = Math.round(emp.baseSalary * 0.01)
   bpjsKetenagakerjaan.value = Math.round(emp.baseSalary * 0.03)
 
-  employeeSearchQuery.value = `${emp.name} (${emp.nik})`
-  showSuggestions.value = false
+  searchInputText.value = `${emp.name} (${emp.nik})`
+  isDropdownOpen.value = false
 }
 
-function handleSearchInput(e: Event) {
+function selectManualMode() {
+  selectedEmployeeId.value = ''
+  searchInputText.value = ''
+  isDropdownOpen.value = false
+}
+
+function handleInput(e: Event) {
   const val = (e.target as HTMLInputElement).value
-  employeeSearchQuery.value = val
-  showSuggestions.value = true
+  searchInputText.value = val
+  isDropdownOpen.value = true
   if (!selectedEmployeeId.value) {
     employeeName.value = val
   }
 }
+
+function toggleDropdown() {
+  isDropdownOpen.value = !isDropdownOpen.value
+}
+
+function clearEmployeeSelection() {
+  selectedEmployeeId.value = ''
+  searchInputText.value = ''
+  isDropdownOpen.value = false
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (dropdownContainerRef.value && !dropdownContainerRef.value.contains(event.target as Node)) {
+    isDropdownOpen.value = false
+    if (selectedEmployee.value) {
+      searchInputText.value = `${selectedEmployee.value.name} (${selectedEmployee.value.nik})`
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 // Attendance & Working Days (Hari Masuk / Kehadiran)
 const workingDays = ref<number>(22)
@@ -219,7 +264,7 @@ const takeHomePay = computed(() => {
 watch(() => props.editSlip, (item) => {
   if (item) {
     selectedEmployeeId.value = item.employeeId
-    employeeSearchQuery.value = `${item.employeeName} (${item.employeeNik})`
+    searchInputText.value = `${item.employeeName} (${item.employeeNik})`
     employeeName.value = item.employeeName
     employeeNik.value = item.employeeNik
     position.value = item.position
@@ -253,7 +298,7 @@ watch(() => props.editSlip, (item) => {
     notes.value = item.notes || ''
   } else {
     selectedEmployeeId.value = ''
-    employeeSearchQuery.value = ''
+    searchInputText.value = ''
     employeeName.value = ''
     employeeNik.value = ''
     position.value = ''
@@ -372,57 +417,109 @@ function handleSave() {
 
       <!-- Form Body -->
       <form @submit.prevent="handleSave" class="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs font-['Plus_Jakarta_Sans',sans-serif]">
-        <!-- Employee Quick Search & Auto-Fill (Input Ketik Bukan Dropdown) -->
-        <div class="relative">
+        <!-- Employee Searchable Dropdown (Bisa Ketik & Tetap Muncul Dropdown) -->
+        <div ref="dropdownContainerRef" class="relative">
           <div class="flex items-center justify-between mb-1">
             <label class="block font-bold text-zinc-700">
-              Ketik & Cari Karyawan (Input Ketik)
+              Pilih / Ketik Karyawan *
             </label>
-            <span class="text-[10px] text-zinc-400 font-medium">Ketik untuk mencari otomatis, atau isi formulir manual di bawah</span>
-          </div>
-          <div class="relative">
-            <Search class="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              :value="employeeSearchQuery"
-              @input="handleSearchInput"
-              @focus="showSuggestions = true"
-              class="w-full pl-9 pr-8 py-2.5 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:outline-hidden text-xs font-medium bg-zinc-50/50 hover:bg-white transition-colors"
-              placeholder="Ketik nama karyawan atau NIK (cth: Fitri, Nadia, SMG-KID...)"
-            />
-            <button
-              v-if="employeeSearchQuery"
-              type="button"
-              @click="employeeSearchQuery = ''; selectedEmployeeId = ''; showSuggestions = false"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 rounded-lg cursor-pointer"
-            >
-              <X class="w-3.5 h-3.5" />
-            </button>
+            <span class="text-[10px] text-zinc-500 font-medium">Bisa klik dropdown atau ketik nama/NIK untuk mencari</span>
           </div>
 
-          <!-- Suggestions Dropdown -->
+          <!-- Combobox Input Bar -->
+          <div class="relative flex items-center">
+            <Search class="w-4 h-4 text-zinc-400 absolute left-3 pointer-events-none" />
+            <input
+              type="text"
+              :value="searchInputText"
+              @input="handleInput"
+              @focus="isDropdownOpen = true"
+              class="w-full pl-9 pr-16 py-2.5 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:outline-hidden text-xs font-medium bg-white hover:border-zinc-400 transition-colors cursor-text"
+              placeholder="-- Pilih karyawan dari dropdown atau ketik nama/NIK --"
+            />
+            
+            <div class="absolute right-2 flex items-center gap-1">
+              <!-- Clear Button -->
+              <button
+                v-if="searchInputText"
+                type="button"
+                @click.stop="clearEmployeeSelection"
+                class="p-1 text-zinc-400 hover:text-zinc-600 rounded-md transition-colors cursor-pointer"
+                title="Hapus / Reset Pilihan"
+              >
+                <X class="w-3.5 h-3.5" />
+              </button>
+
+              <!-- Dropdown Trigger Chevron -->
+              <button
+                type="button"
+                @click.stop="toggleDropdown"
+                class="p-1 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-md transition-colors cursor-pointer"
+                title="Buka / Tutup Daftar Karyawan"
+              >
+                <ChevronDown
+                  class="w-4 h-4 transition-transform duration-150"
+                  :class="isDropdownOpen ? 'rotate-180' : ''"
+                />
+              </button>
+            </div>
+          </div>
+
+          <!-- Dropdown Menu List -->
           <div
-            v-if="showSuggestions && matchedEmployees.length > 0"
-            class="absolute left-0 right-0 top-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-xl z-30 max-h-52 overflow-y-auto divide-y divide-zinc-100"
+            v-if="isDropdownOpen"
+            class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-zinc-200 rounded-xl shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-zinc-100 animate-in fade-in zoom-in-95 duration-100"
           >
-            <button
-              v-for="emp in matchedEmployees"
+            <!-- Option 0: Manual Input -->
+            <div
+              @click="selectManualMode"
+              class="px-3.5 py-2.5 hover:bg-zinc-50 cursor-pointer transition-colors flex items-center justify-between text-xs"
+              :class="!selectedEmployeeId ? 'bg-zinc-50/80 font-bold text-zinc-900' : 'text-zinc-600'"
+            >
+              <div class="flex items-center gap-2">
+                <User class="w-4 h-4 text-zinc-400" />
+                <div>
+                  <div class="font-bold text-zinc-800">-- Input Karyawan Baru / Ketik Manual --</div>
+                  <div class="text-[10px] text-zinc-400">Isi nama, NIK, dan jabatan secara manual di formulir bawah</div>
+                </div>
+              </div>
+              <span v-if="!selectedEmployeeId" class="text-zinc-500 text-[10px] font-bold">Manual</span>
+            </div>
+
+            <!-- Options: Filtered Employees -->
+            <div
+              v-for="emp in filteredEmployees"
               :key="emp.id"
-              type="button"
-              @mousedown.prevent="selectEmployee(emp)"
-              class="w-full text-left px-3.5 py-2.5 hover:bg-zinc-50 transition-colors flex items-center justify-between group cursor-pointer"
+              @click="selectEmployee(emp)"
+              class="px-3.5 py-2.5 hover:bg-zinc-50 cursor-pointer transition-colors flex items-center justify-between text-xs group"
+              :class="selectedEmployeeId === emp.id ? 'bg-emerald-50/60 font-bold' : ''"
             >
               <div>
-                <div class="font-bold text-zinc-900 group-hover:text-zinc-950">{{ emp.name }}</div>
-                <div class="text-[10px] text-zinc-500 font-mono">{{ emp.nik }} • {{ emp.position }}</div>
+                <div class="font-bold text-zinc-900 group-hover:text-zinc-950 flex items-center gap-1.5">
+                  <span>{{ emp.name }}</span>
+                  <Check v-if="selectedEmployeeId === emp.id" class="w-3.5 h-3.5 text-emerald-600 inline" />
+                </div>
+                <div class="text-[10px] text-zinc-500 font-mono mt-0.5">
+                  {{ emp.nik }} • {{ emp.position }} ({{ emp.department }})
+                </div>
               </div>
-              <span
-                class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border shrink-0"
-                :class="emp.businessUnit === 'APOTEK' ? 'bg-blue-50 text-blue-800 border-blue-200' : emp.businessUnit === 'SSC' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'"
-              >
-                {{ emp.businessUnit }}
-              </span>
-            </button>
+
+              <!-- Entity & Unit Badge in dropdown -->
+              <div class="text-right shrink-0 ml-3">
+                <span
+                  class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border block"
+                  :class="emp.businessUnit === 'APOTEK' ? 'bg-blue-50 text-blue-800 border-blue-200' : emp.businessUnit === 'SSC' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'"
+                >
+                  {{ emp.businessUnit === 'APOTEK' ? 'CV SMC • Apotek' : emp.businessUnit === 'SSC' ? 'CV SMG • SSC' : emp.businessUnit === 'KIDINEST' ? 'CV SMG • Kidinest' : 'CV SMG • Pusat' }}
+                </span>
+                <span class="text-[9px] font-mono text-zinc-400 block mt-0.5">{{ formatIDR(emp.baseSalary) }}</span>
+              </div>
+            </div>
+
+            <!-- Empty result -->
+            <div v-if="filteredEmployees.length === 0" class="p-4 text-center text-zinc-400 text-xs italic">
+              Tidak ada karyawan yang cocok dengan pencarian "{{ searchInputText }}". Anda dapat mengisi manual formulir di bawah.
+            </div>
           </div>
         </div>
 
