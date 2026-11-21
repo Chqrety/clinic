@@ -17,6 +17,7 @@ import (
 	prepaidApp "clinic-api/internal/application/prepaid"
 	budgetApp "clinic-api/internal/application/budget"
 	auditApp "clinic-api/internal/application/audit"
+	payrollApp "clinic-api/internal/application/payroll"
 
 	"clinic-api/internal/adapters/payment"
 	"clinic-api/internal/adapters/persistence/postgres"
@@ -43,6 +44,7 @@ type Container struct {
 	BudgetSvc      *budgetApp.Service
 	ClosingSvc     *accountingApp.ClosingService
 	AuditSvc       *auditApp.Service
+	PayrollSvc     *payrollApp.Service
 }
 
 // BuildContainer performs pure idiomatic dependency injection without magic reflection.
@@ -66,6 +68,7 @@ func BuildContainer(db *sql.DB) *Container {
 	prepaidRepo := postgres.NewPostgresPrepaidRepo(db)
 	budgetRepo := postgres.NewPostgresBudgetRepo(db)
 	auditRepo := postgres.NewPostgresAuditRepo(db)
+	payrollRepo := postgres.NewPostgresPayrollRepo(db)
 
 	// 3. Application Services
 	journalSvc := journalApp.NewService(uow, accountRepo, journalRepo, periodRepo)
@@ -89,6 +92,7 @@ func BuildContainer(db *sql.DB) *Container {
 	budgetSvc := budgetApp.NewService(budgetRepo)
 	auditSvc := auditApp.NewService(auditRepo)
 	closingSvc := accountingApp.NewClosingService(db, uow, accountingSvc, periodRepo, accountRepo)
+	payrollSvc := payrollApp.NewService(uow, payrollRepo, accountingSvc)
 
 	// 4. HTTP Handlers
 	accountingHandler := handler.NewAccountingHandler(accountingSvc)
@@ -105,6 +109,7 @@ func BuildContainer(db *sql.DB) *Container {
 	budgetHandler := handler.NewBudgetHandler(budgetSvc)
 	closingHandler := handler.NewClosingHandler(closingSvc)
 	auditHandler := handler.NewAuditHandler(auditSvc)
+	payrollHandler := handler.NewPayrollHandler(payrollSvc)
 
 	handlerContainer := &routes.HandlerContainer{
 		Accounting:  accountingHandler,
@@ -121,6 +126,7 @@ func BuildContainer(db *sql.DB) *Container {
 		Budget:      budgetHandler,
 		Closing:     closingHandler,
 		Audit:       auditHandler,
+		Payroll:     payrollHandler,
 	}
 
 	return &Container{
@@ -142,5 +148,6 @@ func BuildContainer(db *sql.DB) *Container {
 		BudgetSvc:      budgetSvc,
 		ClosingSvc:     closingSvc,
 		AuditSvc:       auditSvc,
+		PayrollSvc:     payrollSvc,
 	}
 }

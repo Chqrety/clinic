@@ -20,6 +20,7 @@ import {
   Receipt,
   FileSpreadsheet,
   Coins,
+  Wallet,
   History,
   Scale,
   CalendarCheck,
@@ -107,6 +108,11 @@ const navGroups = computed<NavGroup[]>(() => [
         icon: Layers,
         badge: unprocessedTxCount.value,
         badgeColor: 'bg-emerald-500'
+      },
+      {
+        name: localeStore.t('nav.payroll'),
+        to: '/accounting/payroll',
+        icon: Wallet
       }
     ]
   },

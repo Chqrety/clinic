@@ -14,7 +14,7 @@ export function formatIDR(amount: number | null | undefined, includeSymbol = tru
   const formatted = absAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
   if (includeSymbol) {
-    return isNegative ? `(Rp ${formatted})` : `Rp ${formatted}`
+    return isNegative ? `(Rp\u00A0${formatted})` : `Rp\u00A0${formatted}`
   }
   return isNegative ? `(${formatted})` : formatted
 }

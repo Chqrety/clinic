@@ -373,13 +373,16 @@ export const useLedgerStore = defineStore('ledger', () => {
           if (b.name.includes('Kidinest') || b.code.endsWith('.001')) bu = 'KIDINEST'
           else if (b.name.includes('SSC') || b.name.includes('Skin Center') || b.code.endsWith('.002')) bu = 'SSC'
 
+          // Normalize level: leaf accounts (!is_header) are Level 4 detail accounts in the clinical COA
+          const effectiveLevel = (!b.is_header && b.level === 3) ? 4 : b.level
+
           return {
             id: b.id,
             code: b.code,
             name: b.name,
             type: b.type,
             normalBalance: b.normal_balance,
-            level: b.level,
+            level: effectiveLevel,
             isHeader: b.is_header,
             isActive: b.is_active,
             businessUnit: bu,

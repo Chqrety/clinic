@@ -7,6 +7,7 @@ import type {
   CashBankTransaction,
   BusinessUnit
 } from '@/types/accounting'
+import type { Employee, PayslipItem } from '@/types/payroll'
 
 const API_BASE = '/api/accounting'
 
@@ -499,6 +500,108 @@ export const accountingApi = {
     if (startDate) q.set('start_date', startDate)
     if (endDate) q.set('end_date', endDate)
     const res = await request<any>(`/reports/cash-flow?${q.toString()}`)
+    return res.data
+  },
+
+  // =========================================================================
+  // 6. Staff Payroll & Payslips
+  // =========================================================================
+  async getPayrollEmployees(businessUnit?: string, activeOnly = true): Promise<Employee[]> {
+    const q = new URLSearchParams()
+    if (businessUnit && businessUnit !== 'ALL') q.set('business_unit', businessUnit)
+    if (activeOnly) q.set('active_only', 'true')
+    const res = await request<Employee[]>(`/payroll/employees?${q.toString()}`)
+    return res.data || []
+  },
+
+  async createPayrollEmployee(emp: Partial<Employee>): Promise<Employee> {
+    const res = await request<Employee>('/payroll/employees', {
+      method: 'POST',
+      body: JSON.stringify(emp),
+    })
+    return res.data
+  },
+
+  async updatePayrollEmployee(id: string, emp: Partial<Employee>): Promise<Employee> {
+    const res = await request<Employee>(`/payroll/employees/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(emp),
+    })
+    return res.data
+  },
+
+  async getPayrollSlips(month?: number, year?: number, businessUnit?: string, status?: string): Promise<PayslipItem[]> {
+    const q = new URLSearchParams()
+    if (month) q.set('month', String(month))
+    if (year) q.set('year', String(year))
+    if (businessUnit && businessUnit !== 'ALL') q.set('business_unit', businessUnit)
+    if (status && status !== 'ALL') q.set('status', status)
+    const res = await request<PayslipItem[]>(`/payroll/slips?${q.toString()}`)
+    return res.data || []
+  },
+
+  async generateMonthlyPayroll(month: number, year: number, businessUnit?: string): Promise<PayslipItem[]> {
+    const res = await request<PayslipItem[]>('/payroll/slips/generate', {
+      method: 'POST',
+      body: JSON.stringify({ month, year, businessUnit }),
+    })
+    return res.data || []
+  },
+
+  async createPayrollSlip(slip: Partial<PayslipItem>): Promise<PayslipItem> {
+    const res = await request<PayslipItem>('/payroll/slips', {
+      method: 'POST',
+      body: JSON.stringify(slip),
+    })
+    return res.data
+  },
+
+  async updatePayrollSlip(id: string, slip: Partial<PayslipItem>): Promise<PayslipItem> {
+    const res = await request<PayslipItem>(`/payroll/slips/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(slip),
+    })
+    return res.data
+  },
+
+  async deletePayrollSlip(id: string): Promise<void> {
+    await request<void>(`/payroll/slips/${id}`, {
+      method: 'DELETE',
+    })
+  },
+
+  async approvePayrollSlip(id: string, approvedBy = 'Finance Manager'): Promise<void> {
+    await request<void>(`/payroll/slips/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ approvedBy }),
+    })
+  },
+
+  async approveAllPayrollSlips(month: number, year: number, approvedBy = 'Finance Manager'): Promise<void> {
+    await request<void>('/payroll/slips/approve-all', {
+      method: 'POST',
+      body: JSON.stringify({ month, year, approvedBy }),
+    })
+  },
+
+  async markPayrollSlipAsPaid(id: string): Promise<void> {
+    await request<void>(`/payroll/slips/${id}/pay`, {
+      method: 'POST',
+    })
+  },
+
+  async markAllPayrollSlipsAsPaid(month: number, year: number): Promise<void> {
+    await request<void>('/payroll/slips/pay-all', {
+      method: 'POST',
+      body: JSON.stringify({ month, year }),
+    })
+  },
+
+  async postPayrollToLedger(month: number, year: number): Promise<any> {
+    const res = await request<any>('/payroll/post-ledger', {
+      method: 'POST',
+      body: JSON.stringify({ month, year }),
+    })
     return res.data
   }
 }

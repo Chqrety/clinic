@@ -27,6 +27,7 @@ type HandlerContainer struct {
 	Budget      *handler.BudgetHandler
 	Closing     *handler.ClosingHandler
 	Audit       *handler.AuditHandler
+	Payroll     *handler.PayrollHandler
 }
 
 // SetupRouter initializes the root Chi Mux with global middlewares and domain route modules.
@@ -128,6 +129,9 @@ func MountAccountingRoutes(r chi.Router, h *HandlerContainer, authMiddlewares ..
 
 			// P. Financial Audit Logs
 			RegisterAuditRoutes(acc, h.Audit)
+
+			// Q. Staff Payroll & Payslips
+			RegisterPayrollRoutes(acc, h.Payroll)
 		}
 	})
 }

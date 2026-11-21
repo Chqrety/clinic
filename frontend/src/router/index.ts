@@ -145,6 +145,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Voucher Kas & Bank (BKM / BKK / TRF)' }
       },
       {
+        path: 'payroll',
+        name: 'PayrollManagement',
+        component: () => import('@/views/accounting/PayrollView.vue'),
+        meta: { title: 'Slip Gaji Karyawan & Payroll' }
+      },
+      {
         path: 'trial-balance',
         name: 'TrialBalance',
         component: () => import('@/views/accounting/TrialBalanceView.vue'),

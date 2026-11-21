@@ -1,6 +1,6 @@
 // Core Accounting Type Definitions for Clinic ERP (Kidinest & SSC)
 
-export type BusinessUnit = 'ALL' | 'KIDINEST' | 'SSC' | 'MINIMO'
+export type BusinessUnit = 'ALL' | 'KIDINEST' | 'SSC' | 'MINIMO' | 'APOTEK' | 'SMC' | 'SMG'
 
 export type BranchCode = 'ALL' | 'BRANCH-MAIN' | 'BRANCH-JAKSEL' | 'BRANCH-SBY'
 

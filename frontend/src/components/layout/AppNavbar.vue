@@ -164,16 +164,6 @@ async function handleLogout() {
 
     <!-- Right: Authenticated User Profile & Actions -->
     <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-      <!-- Workstation Medis Shortcut (Balik ke operasional klinik) -->
-      <router-link
-        to="/admin"
-        class="hidden md:flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 hover:text-zinc-950 text-xs font-bold transition-colors shadow-2xs cursor-pointer shrink-0"
-        :title="localeStore.t('nav.medicalWorkstation')"
-      >
-        <Stethoscope class="w-3.5 h-3.5 text-blue-600 shrink-0" />
-        <span>{{ localeStore.t('nav.medicalWorkstation') }}</span>
-      </router-link>
-
       <!-- Settings Shortcut (Pengaturan Bahasa & Regional di Halaman Setting Saja) -->
       <router-link
         to="/accounting/settings"

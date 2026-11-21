@@ -98,6 +98,14 @@ func InitPostgres(cfg Config) (*sql.DB, error) {
 		log.Printf("[DB] Peringatan: Seeding data staf gagal: %v", err)
 	}
 
+	if err := MigratePayrollSchema(db); err != nil {
+		log.Printf("[DB] Peringatan: Gagal migrasi skema payroll: %v", err)
+	}
+
+	if err := SeedInitialPayrollEmployees(db); err != nil {
+		log.Printf("[DB] Peringatan: Seeding data payroll karyawan gagal: %v", err)
+	}
+
 	return db, nil
 }
 
@@ -549,5 +557,193 @@ func SeedInitialDoctorSchedules(db *sql.DB) error {
 	_, _ = db.Exec("UPDATE doctor_schedules SET quota_per_slot = 1 WHERE quota_per_slot > 1")
 
 	log.Printf("[DB] Berhasil melakukan seed jadwal rutin praktek 4 dokter spesialis.")
+	return nil
+}
+
+func MigratePayrollSchema(db *sql.DB) error {
+	schema := `
+	CREATE TABLE IF NOT EXISTS payroll_employees (
+		id VARCHAR(50) PRIMARY KEY,
+		nik VARCHAR(50) UNIQUE NOT NULL,
+		name VARCHAR(150) NOT NULL,
+		position VARCHAR(100) NOT NULL,
+		department VARCHAR(100) NOT NULL,
+		business_unit VARCHAR(20) NOT NULL CHECK (business_unit IN ('KIDINEST', 'SSC', 'ALL', 'MINIMO')),
+		employment_type VARCHAR(20) NOT NULL CHECK (employment_type IN ('TETAP', 'KONTRAK', 'HONORER', 'MAGANG')),
+		join_date DATE NOT NULL DEFAULT CURRENT_DATE,
+		base_salary NUMERIC(15,2) NOT NULL DEFAULT 0,
+		position_allowance NUMERIC(15,2) NOT NULL DEFAULT 0,
+		transport_meal_allowance NUMERIC(15,2) NOT NULL DEFAULT 0,
+		bank_name VARCHAR(50) NOT NULL DEFAULT 'Bank Mandiri',
+		bank_account_number VARCHAR(50) NOT NULL DEFAULT '',
+		npwp VARCHAR(50) NOT NULL DEFAULT '',
+		ptkp_status VARCHAR(10) NOT NULL DEFAULT 'TK/0',
+		bpjs_kesehatan_no VARCHAR(50) NOT NULL DEFAULT '',
+		bpjs_ketenagakerjaan_no VARCHAR(50) NOT NULL DEFAULT '',
+		is_active BOOLEAN NOT NULL DEFAULT TRUE,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_payroll_emp_unit ON payroll_employees(business_unit);
+	CREATE INDEX IF NOT EXISTS idx_payroll_emp_active ON payroll_employees(is_active);
+
+	CREATE TABLE IF NOT EXISTS payroll_slips (
+		id VARCHAR(50) PRIMARY KEY,
+		slip_number VARCHAR(50) UNIQUE NOT NULL,
+		employee_id VARCHAR(50) NOT NULL REFERENCES payroll_employees(id) ON DELETE RESTRICT,
+		employee_nik VARCHAR(50) NOT NULL,
+		employee_name VARCHAR(150) NOT NULL,
+		position VARCHAR(100) NOT NULL,
+		department VARCHAR(100) NOT NULL,
+		business_unit VARCHAR(20) NOT NULL,
+		period_month INT NOT NULL CHECK (period_month BETWEEN 1 AND 12),
+		period_year INT NOT NULL CHECK (period_year >= 2020),
+		period_name VARCHAR(50) NOT NULL,
+		payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+		working_days INT NOT NULL DEFAULT 22,
+		present_days INT NOT NULL DEFAULT 22,
+		sick_leave_days INT NOT NULL DEFAULT 0,
+		paid_leave_days INT NOT NULL DEFAULT 0,
+		absent_days INT NOT NULL DEFAULT 0,
+		overtime_hours NUMERIC(5,2) NOT NULL DEFAULT 0,
+		daily_meal_transport_rate NUMERIC(15,2) NOT NULL DEFAULT 30000,
+		base_salary NUMERIC(15,2) NOT NULL DEFAULT 0,
+		position_allowance NUMERIC(15,2) NOT NULL DEFAULT 0,
+		transport_meal_allowance NUMERIC(15,2) NOT NULL DEFAULT 0,
+		shift_attendance_allowance NUMERIC(15,2) NOT NULL DEFAULT 0,
+		incentive_bonus NUMERIC(15,2) NOT NULL DEFAULT 0,
+		overtime_pay NUMERIC(15,2) NOT NULL DEFAULT 0,
+		other_allowance NUMERIC(15,2) NOT NULL DEFAULT 0,
+		total_gross_salary NUMERIC(15,2) NOT NULL DEFAULT 0,
+		bpjs_kesehatan NUMERIC(15,2) NOT NULL DEFAULT 0,
+		bpjs_ketenagakerjaan NUMERIC(15,2) NOT NULL DEFAULT 0,
+		pph21 NUMERIC(15,2) NOT NULL DEFAULT 0,
+		attendance_deduction NUMERIC(15,2) NOT NULL DEFAULT 0,
+		loan_deduction NUMERIC(15,2) NOT NULL DEFAULT 0,
+		other_deduction NUMERIC(15,2) NOT NULL DEFAULT 0,
+		total_deduction NUMERIC(15,2) NOT NULL DEFAULT 0,
+		take_home_pay NUMERIC(15,2) NOT NULL DEFAULT 0,
+		bank_name VARCHAR(50) NOT NULL DEFAULT 'Bank Mandiri',
+		bank_account_number VARCHAR(50) NOT NULL DEFAULT '',
+		status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'APPROVED', 'PAID')),
+		approved_by VARCHAR(100),
+		approved_at TIMESTAMP WITH TIME ZONE,
+		paid_at TIMESTAMP WITH TIME ZONE,
+		journal_id VARCHAR(50),
+		notes TEXT,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_payroll_slips_period ON payroll_slips(period_year, period_month);
+	CREATE INDEX IF NOT EXISTS idx_payroll_slips_emp ON payroll_slips(employee_id);
+	CREATE INDEX IF NOT EXISTS idx_payroll_slips_unit ON payroll_slips(business_unit);
+	CREATE INDEX IF NOT EXISTS idx_payroll_slips_status ON payroll_slips(status);
+
+	ALTER TABLE payroll_slips ADD COLUMN IF NOT EXISTS working_days INT NOT NULL DEFAULT 22;
+	ALTER TABLE payroll_slips ADD COLUMN IF NOT EXISTS present_days INT NOT NULL DEFAULT 22;
+	ALTER TABLE payroll_slips ADD COLUMN IF NOT EXISTS sick_leave_days INT NOT NULL DEFAULT 0;
+	ALTER TABLE payroll_slips ADD COLUMN IF NOT EXISTS paid_leave_days INT NOT NULL DEFAULT 0;
+	ALTER TABLE payroll_slips ADD COLUMN IF NOT EXISTS absent_days INT NOT NULL DEFAULT 0;
+	ALTER TABLE payroll_slips ADD COLUMN IF NOT EXISTS overtime_hours NUMERIC(5,2) NOT NULL DEFAULT 0;
+	ALTER TABLE payroll_slips ADD COLUMN IF NOT EXISTS daily_meal_transport_rate NUMERIC(15,2) NOT NULL DEFAULT 30000;
+
+	-- Relax & Expand business_unit check to allow dual company entities (Master Prompt 2 & 9 F)
+	ALTER TABLE payroll_employees DROP CONSTRAINT IF EXISTS payroll_employees_business_unit_check;
+	ALTER TABLE payroll_employees ADD CONSTRAINT payroll_employees_business_unit_check CHECK (business_unit IN ('KIDINEST', 'SSC', 'ALL', 'MINIMO', 'APOTEK', 'SMC', 'SMG'));
+	`
+	_, err := db.Exec(schema)
+	return err
+}
+
+func SeedInitialPayrollEmployees(db *sql.DB) error {
+	var count int
+	_ = db.QueryRow("SELECT COUNT(*) FROM payroll_employees").Scan(&count)
+	if count > 0 {
+		return nil
+	}
+
+	seeds := []struct {
+		id, nik, name, pos, dept, unit, empType, joinDate string
+		base, posAllow, transAllow                         float64
+		bank, acc, npwp, ptkp, bpjsKes, bpjsTk             string
+	}{
+		{
+			"emp-001", "SMG-KID-2024-001", "Fitri Handayani", "Head Cashier & Kasir Shift GRO", "Front Office & Kasir", "KIDINEST", "TETAP", "2024-01-15",
+			4800000, 750000, 650000, "Bank Mandiri", "136-00-9821345", "89.123.456.7-501.000", "TK/0", "0001239845671", "24098123456",
+		},
+		{
+			"emp-002", "SMG-SSC-2024-002", "Nadia Safitri", "Kasir & Front Desk Resepsionis SSC", "Front Office & Kasir", "SSC", "TETAP", "2024-02-01",
+			4500000, 500000, 650000, "Bank Mandiri", "136-00-5541290", "78.234.567.8-502.000", "TK/0", "0001892345612", "24098123899",
+		},
+		{
+			"emp-003", "SMG-KID-2023-014", "Ns. Siti Rahmawati, S.Kep", "Perawat Senior Poli Spesialis Anak", "Keperawatan Medis", "KIDINEST", "TETAP", "2023-06-10",
+			5200000, 900000, 700000, "Bank Mandiri", "136-00-7761823", "67.345.678.9-503.000", "K/1", "0002134567890", "23011234567",
+		},
+		{
+			"emp-004", "SMG-SSC-2023-018", "Ns. Dwi Astuti, S.Kep", "Perawat Estetika & Asisten Laser Dermatologi", "Keperawatan Medis", "SSC", "TETAP", "2023-08-15",
+			5100000, 850000, 700000, "Bank Mandiri", "136-00-4412987", "56.456.789.0-504.000", "TK/0", "0003245678901", "23018912345",
+		},
+		{
+			"emp-005", "SMG-KID-2023-009", "apt. Rina Kusuma, S.Farm", "Kepala Instalasi Farmasi Kidinest", "Farmasi & Apotek", "KIDINEST", "TETAP", "2023-03-01",
+			6200000, 1500000, 800000, "Bank BCA", "009-8812345", "45.567.890.1-505.000", "K/0", "0004356789012", "22091234567",
+		},
+		{
+			"emp-006", "SMG-KID-2024-022", "Maya Indriyani, A.Md.Farm", "Asisten Apoteker & Staf Dispensing", "Farmasi & Apotek", "KIDINEST", "KONTRAK", "2024-04-01",
+			4200000, 400000, 600000, "Bank Mandiri", "136-00-3321876", "34.678.901.2-506.000", "TK/0", "0005467890123", "24056789012",
+		},
+		{
+			"emp-007", "SMG-SSC-2023-025", "Jessica Tan", "Senior Aesthetician & Beautician Facial", "Treatment & Estetika", "SSC", "TETAP", "2023-11-01",
+			4400000, 600000, 650000, "Bank BCA", "009-5541299", "23.789.012.3-507.000", "TK/0", "0006578901234", "23112345678",
+		},
+		{
+			"emp-008", "SMG-ALL-2022-005", "Bambang Sutrisno", "Teknisi Alkes & Pengelolaan Sarana Klinik", "Umum & Maintenance", "ALL", "TETAP", "2022-09-01",
+			4300000, 500000, 650000, "Bank Mandiri", "136-00-1122339", "12.890.123.4-508.000", "K/2", "0007689012345", "22093456789",
+		},
+		{
+			"emp-009", "SMG-ALL-2023-030", "Wahyu Setiawan, S.Kom", "Staf IT, Sistem POS & Integrasi SATUSEHAT", "Teknologi Informasi", "ALL", "TETAP", "2023-05-15",
+			5500000, 900000, 700000, "Bank Mandiri", "136-00-9988112", "90.901.234.5-509.000", "TK/0", "0008790123456", "23056789012",
+		},
+		{
+			"emp-010", "SMG-ALL-2022-002", "Ratna Paramita, S.E.", "Senior Accounting & Tax Specialist", "Keuangan & Akuntansi", "ALL", "TETAP", "2022-04-01",
+			5800000, 1200000, 750000, "Bank Mandiri", "136-00-8877665", "81.012.345.6-510.000", "K/0", "0009801234567", "22045678901",
+		},
+		{
+			"emp-011", "SMC-APT-2023-001", "apt. Nurul Hidayah, S.Farm", "Apoteker Penanggung Jawab Apotek (APA)", "Instalasi Farmasi & Apotek", "APOTEK", "TETAP", "2023-01-10",
+			6500000, 1500000, 750000, "Bank BCA", "009-4412981", "44.123.789.0-511.000", "K/1", "0001928374651", "23019827364",
+		},
+		{
+			"emp-012", "SMC-APT-2024-002", "Riko Saputra, A.Md.Farm", "Tenaga Teknis Kefarmasian & Logistik Medis", "Instalasi Farmasi & Apotek", "APOTEK", "TETAP", "2024-02-15",
+			4500000, 500000, 650000, "Bank Mandiri", "136-00-2211990", "33.987.654.1-512.000", "TK/0", "0002819384756", "24029817263",
+		},
+	}
+
+	insertEmp := `
+	INSERT INTO payroll_employees (
+		id, nik, name, position, department, business_unit, employment_type,
+		join_date, base_salary, position_allowance, transport_meal_allowance,
+		bank_name, bank_account_number, npwp, ptkp_status, bpjs_kesehatan_no,
+		bpjs_ketenagakerjaan_no, is_active, created_at, updated_at
+	) VALUES (
+		$1, $2, $3, $4, $5, $6, $7,
+		$8::date, $9, $10, $11,
+		$12, $13, $14, $15, $16,
+		$17, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+	) ON CONFLICT (id) DO NOTHING;
+	`
+
+	for _, s := range seeds {
+		_, err := db.Exec(insertEmp,
+			s.id, s.nik, s.name, s.pos, s.dept, s.unit, s.empType,
+			s.joinDate, s.base, s.posAllow, s.transAllow,
+			s.bank, s.acc, s.npwp, s.ptkp, s.bpjsKes, s.bpjsTk,
+		)
+		if err != nil {
+			log.Printf("[DB] Peringatan: gagal seed karyawan %s: %v", s.name, err)
+		}
+	}
+
+	log.Printf("[DB] Berhasil melakukan seed 10 profil karyawan klinik Semarang Medical Group.")
 	return nil
 }

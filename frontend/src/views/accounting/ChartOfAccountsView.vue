@@ -336,7 +336,11 @@ const filteredAccounts = computed(() => {
       if (selectedLevel.value === 4) {
         // Level 4 (Detail): tampilkan semua akun detail / non-header
         if (a.isHeader) return false
-        if (a.level !== 4 && a.level < 3) return false
+        if (a.level < 3) return false
+      } else if (selectedLevel.value === 3) {
+        // Level 3 (Sub-Kelompok Header): tampilkan header level 3
+        if (a.level !== 3) return false
+        if (!a.isHeader && ledgerStore.accounts.some(x => x.level === 4)) return false
       } else if (a.level !== selectedLevel.value) {
         return false
       }
@@ -568,7 +572,7 @@ function openTaxModule(taxCategory?: string) {
     <!-- Tree-like Table with Clear Visual Hierarchy -->
     <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
+        <table class="w-full min-w-[850px] text-left border-collapse text-xs">
           <thead>
             <tr class="bg-zinc-50 border-b border-zinc-200/90 text-[11px] font-bold text-zinc-600 uppercase tracking-wider">
               <th class="px-4 py-3 w-36">{{ localeStore.t('coa.colCode') }}</th>
