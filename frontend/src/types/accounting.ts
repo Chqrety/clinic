@@ -36,6 +36,7 @@ export interface Account {
   parentCode?: string
   description?: string
   currentBalance?: number
+  openingBalance?: number
   taxCategory?: 'PPH_21' | 'PPH_23' | 'PPH_4_2' | 'PPN_OUT' | 'PPN_IN' | 'PPH_25' | 'PPH_29' | 'NON_TAX'
 }
 

@@ -9,6 +9,7 @@ import { formatDate } from '@/utils/date'
 import { exportJournalListToExcel, exportJournalListToCSV } from '@/utils/export'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import type { JournalEntry, JournalStatus, BusinessUnit } from '@/types/accounting'
 import {
@@ -426,23 +427,17 @@ function handleExportCSV() {
                 />
               </td>
               <td class="py-2 px-3">
-                <input
-                  v-model.number="row.debit"
-                  type="number"
-                  min="0"
-                  step="1000"
+                <CurrencyInput
+                  v-model="row.debit"
                   placeholder="0"
-                  class="w-full px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs tabular-nums font-bold text-right text-zinc-950 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                  input-class="w-full px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs tabular-nums font-bold text-right text-zinc-950 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
                 />
               </td>
               <td class="py-2 px-3">
-                <input
-                  v-model.number="row.credit"
-                  type="number"
-                  min="0"
-                  step="1000"
+                <CurrencyInput
+                  v-model="row.credit"
                   placeholder="0"
-                  class="w-full px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs tabular-nums font-bold text-right text-zinc-950 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                  input-class="w-full px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs tabular-nums font-bold text-right text-zinc-950 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
                 />
               </td>
               <td class="py-2 px-3 text-center">

@@ -5,6 +5,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useAccountingStore } from '@/stores/accounting'
 import type { BusinessUnit } from '@/types/accounting'
 import { formatIDR } from '@/utils/currency'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import { Plus, Trash2, X, AlertCircle, CheckCircle2 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -255,21 +256,15 @@ function handleSubmit() {
                   />
                 </td>
                 <td class="px-3 py-2 text-right">
-                  <input
-                    v-model.number="line.debit"
-                    type="number"
-                    min="0"
-                    step="1000"
-                    class="w-full px-2 py-1.5 text-right bg-white border border-zinc-200 rounded-lg tabular-nums font-bold text-xs text-zinc-950 focus:ring-1 focus:ring-zinc-950"
+                  <CurrencyInput
+                    v-model="line.debit"
+                    input-class="w-full px-2 py-1.5 text-right bg-white border border-zinc-200 rounded-lg tabular-nums font-bold text-xs text-zinc-950 focus:ring-1 focus:ring-zinc-950"
                   />
                 </td>
                 <td class="px-3 py-2 text-right">
-                  <input
-                    v-model.number="line.credit"
-                    type="number"
-                    min="0"
-                    step="1000"
-                    class="w-full px-2 py-1.5 text-right bg-white border border-zinc-200 rounded-lg tabular-nums font-bold text-xs text-zinc-950 focus:ring-1 focus:ring-zinc-950"
+                  <CurrencyInput
+                    v-model="line.credit"
+                    input-class="w-full px-2 py-1.5 text-right bg-white border border-zinc-200 rounded-lg tabular-nums font-bold text-xs text-zinc-950 focus:ring-1 focus:ring-zinc-950"
                   />
                 </td>
                 <td class="px-3 py-2 text-center">

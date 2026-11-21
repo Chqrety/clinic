@@ -8,6 +8,7 @@ import { useCashBankStore } from '@/stores/cashbank'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { CashBankTransaction, BusinessUnit } from '@/types/accounting'
 import {
   Wallet,
@@ -695,12 +696,11 @@ function terbilang(n: number): string {
 
           <div>
             <label class="block font-bold text-zinc-700 mb-1">Saldo Awal Pembukaan (Rp)</label>
-            <input
-              v-model.number="newAccountForm.openingBalance"
-              type="number"
-              min="0"
+            <CurrencyInput
+              v-model="newAccountForm.openingBalance"
+              prefix="Rp"
+              input-class="w-full pr-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl focus:ring-1 focus:ring-zinc-950 tabular-nums font-bold"
               placeholder="0"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl focus:ring-1 focus:ring-zinc-950 tabular-nums font-bold"
             />
             <p class="text-[10px] text-zinc-400 mt-1">Saldo awal akan otomatis dijurnal penyeimbang ke Temporary Opening.</p>
           </div>

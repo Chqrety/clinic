@@ -9,6 +9,7 @@ import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import { exportSptTahunan1771ToExcel, exportSptTahunan1771ToCSV, getEntityProfile } from '@/utils/export'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import {
   ArrowLeft,
   Save,
@@ -578,10 +579,10 @@ function handlePrint() {
             <label class="block font-bold text-zinc-700 mb-1">
               Peredaran Usaha & Pendapatan Bruto (Rp)
             </label>
-            <input
-              v-model.number="form.commercialRevenue"
-              type="number"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-1 focus:ring-zinc-950 text-xs"
+            <CurrencyInput
+              v-model="form.commercialRevenue"
+              prefix="Rp"
+              input-class="w-full pr-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-1 focus:ring-zinc-950 text-xs"
             />
           </div>
 
@@ -589,10 +590,10 @@ function handlePrint() {
             <label class="block font-bold text-zinc-700 mb-1">
               Beban Operasional & HPP (Rp)
             </label>
-            <input
-              v-model.number="form.commercialExpense"
-              type="number"
-              class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-1 focus:ring-zinc-950 text-xs"
+            <CurrencyInput
+              v-model="form.commercialExpense"
+              prefix="Rp"
+              input-class="w-full pr-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:outline-none focus:ring-1 focus:ring-zinc-950 text-xs"
             />
           </div>
 
@@ -620,10 +621,10 @@ function handlePrint() {
             <label class="block font-bold text-emerald-800 mb-1">
               Koreksi Positif (+) Non-Deductible (Rp)
             </label>
-            <input
-              v-model.number="form.positiveFiscalCorrection"
-              type="number"
-              class="w-full px-3 py-2 bg-emerald-50/40 border border-emerald-300 rounded-xl font-mono text-emerald-950 font-bold focus:outline-none text-xs"
+            <CurrencyInput
+              v-model="form.positiveFiscalCorrection"
+              prefix="Rp"
+              input-class="w-full pr-3 py-2 bg-emerald-50/40 border border-emerald-300 rounded-xl font-mono text-emerald-950 font-bold focus:outline-none text-xs"
             />
             <input
               v-model="form.positiveCorrectionNotes"
@@ -637,10 +638,10 @@ function handlePrint() {
             <label class="block font-bold text-rose-800 mb-1">
               Koreksi Negatif (-) Penghasilan Final (Rp)
             </label>
-            <input
-              v-model.number="form.negativeFiscalCorrection"
-              type="number"
-              class="w-full px-3 py-2 bg-rose-50/40 border border-rose-300 rounded-xl font-mono text-rose-950 font-bold focus:outline-none text-xs"
+            <CurrencyInput
+              v-model="form.negativeFiscalCorrection"
+              prefix="Rp"
+              input-class="w-full pr-3 py-2 bg-rose-50/40 border border-rose-300 rounded-xl font-mono text-rose-950 font-bold focus:outline-none text-xs"
             />
             <input
               v-model="form.negativeCorrectionNotes"
@@ -855,17 +856,13 @@ function handlePrint() {
 
               <!-- Claimed Amount Input -->
               <td class="px-4 py-2.5 text-right">
-                <div class="relative">
-                  <span class="absolute left-2.5 top-1.5 text-zinc-400 font-mono text-xs">Rp</span>
-                  <input
-                    v-model.number="row.claimedAmount"
-                    @input="() => onClaimAmountChange(row)"
-                    type="number"
-                    min="0"
-                    step="any"
-                    class="w-full pl-8 pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-                  />
-                </div>
+                <CurrencyInput
+                  v-model="row.claimedAmount"
+                  @input="() => onClaimAmountChange(row)"
+                  prefix="Rp"
+                  input-class="w-full pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
+                  placeholder="0"
+                />
               </td>
 
               <!-- Delete Action -->

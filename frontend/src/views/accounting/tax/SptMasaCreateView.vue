@@ -7,6 +7,7 @@ import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { BusinessUnit } from '@/types/accounting'
 import {
   Folder,
@@ -633,393 +634,432 @@ function handlePrint() {
         </nav>
       </div>
 
-      <!-- 3. TAB 1: DETAILS (2-Column Split: Left Content + Right Sidebar) -->
-      <div v-if="activeTab === 'DETAILS'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- 3. TAB 1: DETAILS -->
+      <div v-if="activeTab === 'DETAILS'" class="space-y-7">
         
-        <!-- LEFT MAIN CONTENT (9 Cols) -->
-        <div class="lg:col-span-9 space-y-7">
-          
-          <!-- Section A: Periode Pelaporan -->
-          <div>
-            <h3 class="text-sm font-bold text-zinc-900 mb-3.5">
-              Periode Pelaporan
-            </h3>
+        <!-- Section A: Periode Pelaporan & Entitas -->
+        <div>
+          <h3 class="text-sm font-bold text-zinc-900 mb-3.5">
+            Periode Pelaporan & Entitas
+          </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5 text-xs">
-              <!-- Left Form Col -->
-              <div class="space-y-3">
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Nama Laporan / Transaksi *</label>
-                  <input
-                    v-model="reportName"
-                    type="text"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white transition"
-                  />
-                </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div class="md:col-span-2">
+              <label class="block text-zinc-600 mb-1 font-medium">Nama Laporan / Transaksi *</label>
+              <input
+                v-model="reportName"
+                type="text"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
 
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Company *</label>
-                  <input
-                    v-model="companyName"
-                    type="text"
-                    readonly
-                    class="w-full px-3 py-2 bg-zinc-100/80 border border-zinc-200 rounded-xl text-zinc-600 font-semibold cursor-not-allowed"
-                  />
-                  <p class="text-[10px] text-zinc-400 mt-1 font-mono">NPWP: {{ currentEntity.npwp }} • {{ currentEntity.subtitle }}</p>
-                </div>
+            <div class="md:col-span-2">
+              <label class="block text-zinc-600 mb-1 font-medium">Company / Wajib Pajak *</label>
+              <input
+                v-model="companyName"
+                type="text"
+                readonly
+                class="w-full px-3 py-2 bg-zinc-100/80 border border-zinc-200 rounded-xl text-zinc-600 font-semibold cursor-not-allowed"
+              />
+              <p class="text-[10px] text-zinc-400 mt-1 font-mono">NPWP: {{ currentEntity.npwp }} • {{ currentEntity.subtitle }}</p>
+            </div>
 
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Project</label>
-                  <select
-                    v-model="unit"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
-                  >
-                    <option value="ALL">Semua Unit (Konsolidasi)</option>
-                    <option value="KIDINEST">Unit Kidinest (Klinik Anak)</option>
-                    <option value="SSC">Unit SSC (Semarang Skin Center)</option>
-                  </select>
-                </div>
+            <div class="md:col-span-2">
+              <label class="block text-zinc-600 mb-1 font-medium">Jenis Akun Pajak *</label>
+              <select
+                v-model="selectedTaxAccountCode"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
+              >
+                <option
+                  v-for="c in taxAccountCatalog"
+                  :key="c.code"
+                  :value="c.code"
+                >
+                  {{ c.label }}
+                </option>
+              </select>
+            </div>
 
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Sumber Transaksi *</label>
-                  <select
-                    v-model="sourceTransactionFilter"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
-                  >
-                    <option value="Semua Transaksi">Semua Transaksi</option>
-                    <option value="Buku Besar">Buku Besar (General Ledger)</option>
-                    <option value="Jurnal Umum">Jurnal Umum (Journal Entry)</option>
-                    <option value="Kasir Closing">Transaksi Kasir</option>
-                  </select>
-                </div>
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Masa Bulan Pajak *</label>
+              <select
+                v-model.number="masaMonth"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
+              >
+                <option :value="1">01 - Januari</option>
+                <option :value="2">02 - Februari</option>
+                <option :value="3">03 - Maret</option>
+                <option :value="4">04 - April</option>
+                <option :value="5">05 - Mei</option>
+                <option :value="6">06 - Juni</option>
+                <option :value="7">07 - Juli</option>
+                <option :value="8">08 - Agustus</option>
+                <option :value="9">09 - September</option>
+                <option :value="10">10 - Oktober</option>
+                <option :value="11">11 - November</option>
+                <option :value="12">12 - Desember</option>
+              </select>
+            </div>
 
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Jenis Pajak</label>
-                  <select
-                    v-model="selectedTaxAccountCode"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
-                  >
-                    <option
-                      v-for="c in taxAccountCatalog"
-                      :key="c.code"
-                      :value="c.code"
-                    >
-                      {{ c.label }}
-                    </option>
-                  </select>
-                </div>
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Tahun Pajak *</label>
+              <input
+                v-model.number="masaYear"
+                type="number"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-zinc-600 mb-1 font-medium">Bulan *</label>
-                    <select
-                      v-model.number="masaMonth"
-                      class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer"
-                    >
-                      <option :value="1">01 - Januari</option>
-                      <option :value="2">02 - Februari</option>
-                      <option :value="3">03 - Maret</option>
-                      <option :value="4">04 - April</option>
-                      <option :value="5">05 - Mei</option>
-                      <option :value="6">06 - Juni</option>
-                      <option :value="7">07 - Juli</option>
-                      <option :value="8">08 - Agustus</option>
-                      <option :value="9">09 - September</option>
-                      <option :value="10">10 - Oktober</option>
-                      <option :value="11">11 - November</option>
-                      <option :value="12">12 - Desember</option>
-                    </select>
-                  </div>
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Project / Unit Bisnis</label>
+              <select
+                v-model="unit"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
+              >
+                <option value="ALL">Semua Unit (Konsolidasi)</option>
+                <option value="KIDINEST">Unit Kidinest (Klinik Anak)</option>
+                <option value="SSC">Unit SSC (Semarang Skin Center)</option>
+              </select>
+            </div>
 
-                  <div>
-                    <label class="block text-zinc-600 mb-1 font-medium">Tahun *</label>
-                    <input
-                      v-model.number="masaYear"
-                      type="number"
-                      class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white"
-                    />
-                  </div>
-                </div>
-              </div>
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Sumber Transaksi *</label>
+              <select
+                v-model="sourceTransactionFilter"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
+              >
+                <option value="Semua Transaksi">Semua Transaksi</option>
+                <option value="Buku Besar">Buku Besar (General Ledger)</option>
+                <option value="Jurnal Umum">Jurnal Umum (Journal Entry)</option>
+                <option value="Kasir Closing">Transaksi Kasir</option>
+              </select>
+            </div>
 
-              <!-- Right Form Col -->
-              <div class="space-y-3">
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Status</label>
-                  <input
-                    type="text"
-                    readonly
-                    :value="status === 'DATA_DIAMBIL' ? 'Data Diambil' : (status === 'DILAPORKAN' ? 'Dilaporkan' : 'Draft')"
-                    class="w-full px-3 py-2 bg-teal-50 border border-teal-200 rounded-xl text-teal-700 font-bold cursor-not-allowed"
-                  />
-                </div>
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Tanggal Dibuat</label>
+              <input
+                v-model="createdDate"
+                type="date"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
 
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Tanggal Dibuat</label>
-                  <input
-                    v-model="createdDate"
-                    type="date"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                  />
-                </div>
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Nomor NTPN / Kode Billing DJP</label>
+              <input
+                v-model="ntpnNumber"
+                type="text"
+                placeholder="Contoh: NTPN-BCA-20261120-9901"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
 
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Rekening Bank Penyetor</label>
-                  <select
-                    v-model="bankAccountCode"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer"
-                  >
-                    <option
-                      v-for="b in taxStore.availableBankAccounts"
-                      :key="b.code"
-                      :value="b.code"
-                    >
-                      [{{ b.code }}] {{ b.name }}
-                    </option>
-                  </select>
-                </div>
+            <div class="md:col-span-2">
+              <label class="block text-zinc-600 mb-1 font-medium">Rekening Bank Penyetor</label>
+              <select
+                v-model="bankAccountCode"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
+              >
+                <option
+                  v-for="b in taxStore.availableBankAccounts"
+                  :key="b.code"
+                  :value="b.code"
+                >
+                  [{{ b.code }}] {{ b.name }}
+                </option>
+              </select>
+            </div>
 
-                <div>
-                  <label class="block text-zinc-600 mb-1 font-medium">Nomor NTPN / Kode Billing DJP</label>
-                  <input
-                    v-model="ntpnNumber"
-                    type="text"
-                    placeholder="Contoh: NTPN-BCA-20261120-9901"
-                    class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                  />
-                </div>
-              </div>
+            <div class="md:col-span-2">
+              <label class="block text-zinc-600 mb-1 font-medium">Catatan / Keterangan Pelaporan</label>
+              <input
+                v-model="notes"
+                type="text"
+                placeholder="Keterangan tambahan pelaporan SPT..."
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-medium focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section B: Detail Transaksi Pajak -->
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-zinc-900">
+                Detail Transaksi Pajak ({{ rows.length }} Baris)
+              </h3>
+              <span class="text-xs text-zinc-400">Rincian pemotongan pajak terhubung dengan Jurnal Umum & Buku Besar klinik</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                @click="toggleSelectAll"
+                class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition px-2.5 py-1 rounded cursor-pointer"
+              >
+                {{ isAllSelected ? 'Batal Pilih Semua' : 'Pilih Semua' }}
+              </button>
+              <button
+                type="button"
+                @click="addRow"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-semibold border border-zinc-200 shadow-2xs transition active:scale-95 cursor-pointer"
+              >
+                <Plus class="w-3.5 h-3.5 text-zinc-500" />
+                <span>Tambah Baris</span>
+              </button>
             </div>
           </div>
 
-          <!-- Section B: Detail Transaksi Pajak -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
+          <!-- Clean Light Table -->
+          <div class="border border-zinc-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-zinc-50/90 text-zinc-500 font-bold border-b border-zinc-200 text-[11px] uppercase tracking-wider">
+                  <tr>
+                    <th class="px-3 py-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        :checked="isAllSelected"
+                        @change="toggleSelectAll"
+                        class="w-3.5 h-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-0 cursor-pointer"
+                      />
+                    </th>
+                    <th class="px-2 py-3 w-10 text-center text-zinc-400">No.</th>
+                    <th class="px-3 py-3 w-28 whitespace-nowrap">Tanggal</th>
+                    <th class="px-3 py-3 w-32 whitespace-nowrap">Voucher Type</th>
+                    <th class="px-3 py-3 w-36 whitespace-nowrap">No Bukti</th>
+                    <th class="px-3 py-3 w-24 whitespace-nowrap text-center">Project</th>
+                    <th class="px-3 py-3 w-32 whitespace-nowrap">Sumber Transaksi</th>
+                    <th class="px-3 py-3 min-w-[200px] whitespace-nowrap">Akun Pajak</th>
+                    <th class="px-3 py-3 w-24 whitespace-nowrap text-center">Status</th>
+                    <th class="px-3 py-3 w-36 whitespace-nowrap text-right">DPP Final (Rp)</th>
+                    <th class="px-3 py-3 w-36 whitespace-nowrap text-right">Pajak Final (Rp)</th>
+                    <th class="px-2 py-3 w-10 text-center"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 text-zinc-800">
+                  <tr
+                    v-for="(row, idx) in rows"
+                    :key="row.id"
+                    :class="[
+                      'hover:bg-zinc-50/80 transition',
+                      row.selected ? 'bg-transparent' : 'opacity-40'
+                    ]"
+                  >
+                    <!-- Checkbox -->
+                    <td class="px-3 py-2.5 text-center">
+                      <input
+                        v-model="row.selected"
+                        type="checkbox"
+                        class="w-3.5 h-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-0 cursor-pointer"
+                      />
+                    </td>
+
+                    <!-- No -->
+                    <td class="px-2 py-2.5 text-center text-zinc-400 font-mono">
+                      {{ idx + 1 }}
+                    </td>
+
+                    <!-- Tanggal -->
+                    <td class="px-3 py-2.5 font-mono text-zinc-700 whitespace-nowrap">
+                      <input
+                        v-model="row.date"
+                        type="date"
+                        class="bg-transparent border-b border-transparent hover:border-zinc-300 text-xs text-zinc-800 focus:outline-none font-mono"
+                      />
+                    </td>
+
+                    <!-- Voucher Type -->
+                    <td class="px-3 py-2.5 text-zinc-600 font-medium whitespace-nowrap">
+                      {{ row.voucherType }}
+                    </td>
+
+                    <!-- No Bukti -->
+                    <td class="px-3 py-2.5 font-mono whitespace-nowrap">
+                      <button
+                        v-if="row.journalNumber"
+                        type="button"
+                        @click="openJournalPreview(row)"
+                        class="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                        title="Klik pratinjau voucher jurnal"
+                      >
+                        <span>{{ row.journalNumber }}</span>
+                        <ExternalLink class="w-3 h-3 text-zinc-400" />
+                      </button>
+                      <span v-else class="text-zinc-400 italic">[Manual]</span>
+                    </td>
+
+                    <!-- Project -->
+                    <td class="px-3 py-2.5 text-center whitespace-nowrap">
+                      <span class="px-2 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-700 font-semibold border border-zinc-200/80">
+                        {{ row.project }}
+                      </span>
+                    </td>
+
+                    <!-- Sumber Transaksi -->
+                    <td class="px-3 py-2.5 text-zinc-600 whitespace-nowrap">
+                      {{ row.sourceTransaction }}
+                    </td>
+
+                    <!-- Akun Pajak -->
+                    <td class="px-3 py-2.5 font-mono">
+                      <span class="text-zinc-900 font-semibold">{{ row.taxAccountCode }}</span>
+                      <span class="text-zinc-500 text-[11px] block truncate max-w-[220px] font-sans">{{ row.taxAccountName }}</span>
+                    </td>
+
+                    <!-- Source Status -->
+                    <td class="px-3 py-2.5 text-center whitespace-nowrap">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {{ row.sourceStatus }}
+                      </span>
+                    </td>
+
+                    <!-- DPP Final -->
+                    <td class="px-3 py-2.5 text-right font-mono">
+                      <CurrencyInput
+                        v-model="row.dppFinal"
+                        @input="() => onDppFinalChange(row)"
+                        input-class="w-32 px-2.5 py-1 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono text-zinc-900 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                      />
+                    </td>
+
+                    <!-- Pajak Final with Pen Icon -->
+                    <td class="px-3 py-2.5 text-right font-mono">
+                      <div class="flex items-center justify-end gap-1">
+                        <CurrencyInput
+                          v-model="row.pajakFinal"
+                          @input="() => onPajakFinalChange(row)"
+                          input-class="w-32 px-2.5 py-1 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-teal-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                        />
+                        <Pencil class="w-3 h-3 text-zinc-400 shrink-0" />
+                      </div>
+                    </td>
+
+                    <!-- Delete -->
+                    <td class="px-2 py-2.5 text-center">
+                      <button
+                        type="button"
+                        @click="removeRow(idx)"
+                        class="p-1 text-zinc-400 hover:text-rose-600 transition cursor-pointer rounded"
+                        title="Hapus baris"
+                      >
+                        <Trash2 class="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- Empty state -->
+                  <tr v-if="rows.length === 0">
+                    <td colspan="12" class="px-4 py-12 text-center text-zinc-400">
+                      <FileText class="w-8 h-8 mx-auto mb-2 opacity-40" />
+                      <p class="font-medium text-xs">Belum ada rincian transaksi pajak untuk periode ini</p>
+                      <p class="text-[11px] text-zinc-400 mt-0.5">Klik "Ambil Data Otomatis" untuk menarik pemotongan dari Jurnal Umum atau "Tambah Baris" untuk entri manual.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section C: Ringkasan Nilai Pajak -->
+        <div>
+          <h3 class="text-sm font-bold text-zinc-900 mb-3">
+            Ringkasan & Rekapitulasi Nilai Pajak
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+            <!-- Card 1: Original -->
+            <div class="p-4 bg-zinc-50/70 border border-zinc-200/90 rounded-2xl space-y-3">
+              <div class="flex items-center justify-between border-b border-zinc-200/80 pb-2">
+                <span class="font-sans font-bold text-zinc-700 text-xs">Nilai Awal (Buku Besar)</span>
+                <span class="text-[10px] font-sans px-1.5 py-0.5 bg-zinc-200/60 rounded text-zinc-600 font-medium">Original</span>
+              </div>
               <div>
-                <h3 class="text-sm font-bold text-zinc-900">
-                  Detail Transaksi Pajak
-                </h3>
-                <span class="text-xs text-zinc-400">Detail Transaksi Jurnal Umum & Pajak</span>
+                <span class="text-zinc-500 block text-[11px] mb-0.5 font-sans font-medium">Total DPP Original</span>
+                <span class="font-mono text-sm text-zinc-900 font-bold">
+                  Rp {{ formatIDR(totalDppOriginal) }}
+                </span>
               </div>
-
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  @click="toggleSelectAll"
-                  class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition px-2 py-1 rounded cursor-pointer"
-                >
-                  {{ isAllSelected ? 'Batal Pilih Semua' : 'Pilih Semua' }}
-                </button>
-                <button
-                  type="button"
-                  @click="addRow"
-                  class="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-zinc-50 text-zinc-700 rounded-lg text-xs font-semibold border border-zinc-200 shadow-2xs transition cursor-pointer"
-                >
-                  <Plus class="w-3 h-3 text-zinc-500" />
-                  <span>Tambah Baris</span>
-                </button>
+              <div class="pt-2 border-t border-zinc-200/80">
+                <span class="text-zinc-500 block text-[11px] mb-0.5 font-sans font-medium">Total Pajak Terpotong</span>
+                <span class="font-mono text-sm text-zinc-900 font-bold">
+                  Rp {{ formatIDR(totalPajakOriginal) }}
+                </span>
               </div>
             </div>
 
-            <!-- Clean Light Table -->
-            <div class="border border-zinc-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
-              <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left">
-                  <thead class="bg-zinc-50/90 text-zinc-500 font-bold border-b border-zinc-200 text-[11px] uppercase">
-                    <tr>
-                      <th class="px-3 py-2.5 w-10 text-center">
-                        <input
-                          type="checkbox"
-                          :checked="isAllSelected"
-                          @change="toggleSelectAll"
-                          class="w-3.5 h-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-0 cursor-pointer"
-                        />
-                      </th>
-                      <th class="px-2 py-2.5 w-8 text-center text-zinc-400">No.</th>
-                      <th class="px-3 py-2.5 w-24">Tanggal</th>
-                      <th class="px-3 py-2.5 w-28">Voucher Type</th>
-                      <th class="px-3 py-2.5 w-36">No Bukti</th>
-                      <th class="px-3 py-2.5 w-28">Project</th>
-                      <th class="px-3 py-2.5 w-28">Sumber Transaksi</th>
-                      <th class="px-3 py-2.5 min-w-[180px]">Akun Pajak</th>
-                      <th class="px-3 py-2.5 w-20 text-center">Source Status</th>
-                      <th class="px-3 py-2.5 w-32 text-right">DPP Final</th>
-                      <th class="px-3 py-2.5 w-32 text-right">Pajak Final</th>
-                      <th class="px-2 py-2.5 w-8 text-center"></th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-zinc-100 text-zinc-800">
-                    <tr
-                      v-for="(row, idx) in rows"
-                      :key="row.id"
-                      :class="[
-                        'hover:bg-zinc-50/80 transition',
-                        row.selected ? 'bg-transparent' : 'opacity-40'
-                      ]"
-                    >
-                      <!-- Checkbox -->
-                      <td class="px-3 py-2 text-center">
-                        <input
-                          v-model="row.selected"
-                          type="checkbox"
-                          class="w-3.5 h-3.5 rounded border-zinc-300 text-zinc-900 focus:ring-0 cursor-pointer"
-                        />
-                      </td>
+            <!-- Card 2: Adjustment -->
+            <div class="p-4 bg-zinc-50/70 border border-zinc-200/90 rounded-2xl space-y-3">
+              <div class="flex items-center justify-between border-b border-zinc-200/80 pb-2">
+                <span class="font-sans font-bold text-zinc-700 text-xs">Penyesuaian Manual</span>
+                <span class="text-[10px] font-sans px-1.5 py-0.5 bg-amber-100 rounded text-amber-800 font-medium">Adjustment</span>
+              </div>
+              <div>
+                <span class="text-zinc-500 block text-[11px] mb-0.5 font-sans font-medium">Total DPP Koreksi</span>
+                <span class="font-mono text-sm text-zinc-900 font-bold">
+                  Rp {{ formatIDR(totalDppAdjustment) }}
+                </span>
+              </div>
+              <div class="pt-2 border-t border-zinc-200/80">
+                <span class="text-zinc-500 block text-[11px] mb-0.5 font-sans font-medium">Total Pajak Koreksi</span>
+                <span class="font-mono text-sm text-zinc-900 font-bold">
+                  Rp {{ formatIDR(totalPajakAdjustment) }}
+                </span>
+              </div>
+            </div>
 
-                      <!-- No -->
-                      <td class="px-2 py-2 text-center text-zinc-400 font-mono">
-                        {{ idx + 1 }}
-                      </td>
-
-                      <!-- Tanggal -->
-                      <td class="px-3 py-2 font-mono text-zinc-700">
-                        <input
-                          v-model="row.date"
-                          type="date"
-                          class="bg-transparent border-b border-transparent hover:border-zinc-300 text-xs text-zinc-800 focus:outline-none"
-                        />
-                      </td>
-
-                      <!-- Voucher Type -->
-                      <td class="px-3 py-2 text-zinc-500 font-medium">
-                        {{ row.voucherType }}
-                      </td>
-
-                      <!-- No Bukti -->
-                      <td class="px-3 py-2 font-mono">
-                        <button
-                          v-if="row.journalNumber"
-                          type="button"
-                          @click="openJournalPreview(row)"
-                          class="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer font-bold"
-                          title="Klik pratinjau voucher jurnal"
-                        >
-                          <span>{{ row.journalNumber }}</span>
-                          <ExternalLink class="w-2.5 h-2.5 text-zinc-400" />
-                        </button>
-                        <span v-else class="text-zinc-400 italic">[Manual]</span>
-                      </td>
-
-                      <!-- Project -->
-                      <td class="px-3 py-2">
-                        <span class="px-2 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-700 font-semibold border border-zinc-200/80">
-                          {{ row.project }}
-                        </span>
-                      </td>
-
-                      <!-- Sumber Transaksi -->
-                      <td class="px-3 py-2 text-zinc-600">
-                        {{ row.sourceTransaction }}
-                      </td>
-
-                      <!-- Akun Pajak -->
-                      <td class="px-3 py-2 font-mono">
-                        <span class="text-zinc-900 font-semibold">{{ row.taxAccountCode }}</span>
-                        <span class="text-zinc-500 text-[11px] block truncate max-w-[180px] font-sans">{{ row.taxAccountName }}</span>
-                      </td>
-
-                      <!-- Source Status -->
-                      <td class="px-3 py-2 text-center">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          {{ row.sourceStatus }}
-                        </span>
-                      </td>
-
-                      <!-- DPP Final -->
-                      <td class="px-3 py-2 text-right font-mono">
-                        <input
-                          v-model.number="row.dppFinal"
-                          @input="() => onDppFinalChange(row)"
-                          type="number"
-                          class="w-28 px-2 py-1 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono text-zinc-900 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                        />
-                      </td>
-
-                      <!-- Pajak Final with Pen Icon -->
-                      <td class="px-3 py-2 text-right font-mono">
-                        <div class="flex items-center justify-end gap-1">
-                          <input
-                            v-model.number="row.pajakFinal"
-                            @input="() => onPajakFinalChange(row)"
-                            type="number"
-                            class="w-28 px-2 py-1 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-teal-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                          />
-                          <Pencil class="w-3 h-3 text-zinc-400 shrink-0" />
-                        </div>
-                      </td>
-
-                      <!-- Delete -->
-                      <td class="px-2 py-2 text-center">
-                        <button
-                          type="button"
-                          @click="removeRow(idx)"
-                          class="text-zinc-400 hover:text-rose-600 transition cursor-pointer"
-                        >
-                          <Trash2 class="w-3 h-3" />
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            <!-- Card 3: Final -->
+            <div class="p-4 bg-teal-50/60 border border-teal-200 rounded-2xl space-y-3">
+              <div class="flex items-center justify-between border-b border-teal-200/80 pb-2">
+                <span class="font-sans font-bold text-teal-900 text-xs">Kewajiban Setor Akhir (SPT)</span>
+                <span class="text-[10px] font-sans px-1.5 py-0.5 bg-teal-100 rounded text-teal-800 font-bold">Final Setor</span>
+              </div>
+              <div>
+                <span class="text-teal-700 block text-[11px] mb-0.5 font-sans font-medium">Total DPP Final</span>
+                <span class="font-mono text-sm text-teal-800 font-bold">
+                  Rp {{ formatIDR(totalDppFinal) }}
+                </span>
+              </div>
+              <div class="pt-2 border-t border-teal-200/80">
+                <span class="text-teal-700 block text-[11px] mb-0.5 font-sans font-medium">Total Setor Pajak Final</span>
+                <span class="font-mono text-base text-teal-800 font-black">
+                  Rp {{ formatIDR(totalPajakFinal) }}
+                </span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Section C: Ringkasan Nilai Pajak -->
-          <div>
-            <h3 class="text-sm font-bold text-zinc-900 mb-3">
-              Ringkasan Nilai Pajak
-            </h3>
+        <!-- Bottom Action Footer -->
+        <div class="pt-4 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <router-link
+            to="/accounting/tax/spt-masa"
+            class="text-zinc-500 hover:text-zinc-800 font-semibold transition flex items-center gap-1.5"
+          >
+            <ArrowLeft class="w-3.5 h-3.5" />
+            <span>Kembali ke Pelaporan Pajak</span>
+          </router-link>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs bg-zinc-50/70 border border-zinc-200/90 rounded-2xl p-4">
-              <!-- Col 1: Original -->
-              <div class="space-y-3">
-                <div>
-                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Original</span>
-                  <span class="font-mono text-sm text-zinc-900 font-bold">
-                    {{ formatIDR(totalDppOriginal) }}
-                  </span>
-                </div>
-                <div class="pt-2 border-t border-zinc-200">
-                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Original</span>
-                  <span class="font-mono text-sm text-zinc-900 font-bold">
-                    {{ formatIDR(totalPajakOriginal) }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Col 2: Adjustment -->
-              <div class="space-y-3">
-                <div>
-                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Adjustment</span>
-                  <span class="font-mono text-sm text-zinc-900 font-bold">
-                    {{ formatIDR(totalDppAdjustment) }}
-                  </span>
-                </div>
-                <div class="pt-2 border-t border-zinc-200">
-                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Adjustment</span>
-                  <span class="font-mono text-sm text-zinc-900 font-bold">
-                    {{ formatIDR(totalPajakAdjustment) }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Col 3: Final -->
-              <div class="space-y-3">
-                <div>
-                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total DPP Final</span>
-                  <span class="font-mono text-sm text-teal-700 font-bold">
-                    {{ formatIDR(totalDppFinal) }}
-                  </span>
-                </div>
-                <div class="pt-2 border-t border-zinc-200">
-                  <span class="text-zinc-500 block text-[11px] mb-0.5 font-medium">Total Pajak Final</span>
-                  <span class="font-mono text-sm text-teal-700 font-extrabold">
-                    {{ formatIDR(totalPajakFinal) }}
-                  </span>
-                </div>
-              </div>
-            </div>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="() => pullDataFromGeneralJournal(true)"
+              class="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl border border-amber-200 transition active:scale-95 cursor-pointer"
+              title="Tarik ulang data jurnal terbaru"
+            >
+              <Sparkles class="w-3.5 h-3.5 text-amber-600" />
+              <span>Ambil Data Otomatis</span>
+            </button>
+            <button
+              type="button"
+              @click="handleSave"
+              class="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white font-bold rounded-xl shadow-2xs transition active:scale-95 cursor-pointer"
+            >
+              <Save class="w-3.5 h-3.5" />
+              <span>Simpan Pelaporan Pajak</span>
+            </button>
           </div>
         </div>
       </div>

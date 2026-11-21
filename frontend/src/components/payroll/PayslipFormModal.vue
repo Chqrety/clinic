@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { usePayrollStore } from '@/stores/payroll'
 import { useLocaleStore } from '@/stores/locale'
 import { formatIDR } from '@/utils/currency'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { PayslipItem, Employee } from '@/types/payroll'
 import type { BusinessUnit } from '@/types/accounting'
 import {
@@ -843,11 +844,9 @@ function handleSave() {
               <label class="block font-semibold text-zinc-700 mb-0.5">
                 {{ localeStore.isEnglish ? 'Meal & Transp. Rate/Day' : 'Tarif Makan & Trp / Hari' }}
               </label>
-              <input
-                v-model.number="dailyMealTransportRate"
-                type="number"
-                step="5000"
-                class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-mono font-medium bg-white"
+              <CurrencyInput
+                v-model="dailyMealTransportRate"
+                input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-mono font-medium bg-white"
               />
               <span class="text-[10px] text-zinc-500 mt-0.5 block">Standar: Rp 30.000/hr</span>
             </div>
@@ -915,32 +914,32 @@ function handleSave() {
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Basic Salary' : 'Gaji Pokok' }}</label>
-              <input v-model.number="baseSalary" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="baseSalary" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Position Allowance' : 'Tunjangan Jabatan' }}</label>
-              <input v-model.number="positionAllowance" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="positionAllowance" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Meal & Transport' : 'Uang Makan & Transport' }}</label>
-              <input v-model.number="transportMealAllowance" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="transportMealAllowance" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Shift & Attendance' : 'Tunjangan Shift Malam/Hadir' }}</label>
-              <input v-model.number="shiftAttendanceAllowance" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="shiftAttendanceAllowance" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Incentive / Bonus' : 'Insentif / Bonus Kinerja' }}</label>
-              <input v-model.number="incentiveBonus" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="incentiveBonus" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Overtime Pay' : 'Uang Lembur (Overtime)' }}</label>
-              <input v-model.number="overtimePay" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="overtimePay" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
           </div>
         </div>
@@ -955,27 +954,27 @@ function handleSave() {
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">BPJS Kesehatan (1%)</label>
-              <input v-model.number="bpjsKesehatan" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="bpjsKesehatan" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">BPJS TK (JHT & JP 3%)</label>
-              <input v-model.number="bpjsKetenagakerjaan" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="bpjsKetenagakerjaan" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">PPh Pasal 21 (TER)</label>
-              <input v-model.number="pph21" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="pph21" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Attendance Penalty' : 'Potongan Terlambat / Absen' }}</label>
-              <input v-model.number="attendanceDeduction" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="attendanceDeduction" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>
               <label class="block font-semibold text-zinc-700 mb-0.5">{{ localeStore.isEnglish ? 'Loan / Kasbon' : 'Cicilan Kasbon / Pinjaman' }}</label>
-              <input v-model.number="loanDeduction" type="number" class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
+              <CurrencyInput v-model="loanDeduction" input-class="w-full px-3 py-1.5 border border-zinc-300 rounded-lg text-xs font-medium" />
             </div>
 
             <div>

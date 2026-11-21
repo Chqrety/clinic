@@ -11,6 +11,7 @@ import {
 } from '../api/client'
 import { useAuthStore } from '../stores/auth'
 import { useClinicStore } from '../stores/clinic'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import {
   Banknote,
   Receipt,
@@ -1262,37 +1263,25 @@ onUnmounted(() => {
           <div class="space-y-2 border border-zinc-200 rounded-xl p-3.5 bg-zinc-50/40">
             <div class="flex items-center justify-between text-xs">
               <span class="text-zinc-600 font-medium">Pendaftaran Loket:</span>
-              <input
-                v-model.number="customRegFee"
-                type="number"
-                min="0"
-                @wheel.prevent
-                @focus="($event.target as HTMLInputElement).select()"
-                class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              <CurrencyInput
+                v-model="customRegFee"
+                input-class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
               />
             </div>
 
             <div class="flex items-center justify-between text-xs">
               <span class="text-zinc-600 font-medium">Jasa Tindakan / Konsultasi:</span>
-              <input
-                v-model.number="customActionFee"
-                type="number"
-                min="0"
-                @wheel.prevent
-                @focus="($event.target as HTMLInputElement).select()"
-                class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              <CurrencyInput
+                v-model="customActionFee"
+                input-class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
               />
             </div>
 
             <div class="flex items-center justify-between text-xs">
               <span class="text-zinc-600 font-medium">Obat & Resep Farmasi:</span>
-              <input
-                v-model.number="customMedFee"
-                type="number"
-                min="0"
-                @wheel.prevent
-                @focus="($event.target as HTMLInputElement).select()"
-                class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              <CurrencyInput
+                v-model="customMedFee"
+                input-class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
               />
             </div>
 
@@ -1306,15 +1295,10 @@ onUnmounted(() => {
           <div class="flex items-center gap-2 p-2.5 rounded-xl border border-zinc-200 bg-zinc-50/70 text-xs">
             <Ticket class="w-4 h-4 text-zinc-600 shrink-0" />
             <span class="font-bold text-zinc-900 shrink-0">Voucher:</span>
-            <input
-              v-model.number="voucherDiscount"
-              type="number"
-              min="0"
-              :max="grossTotal"
+            <CurrencyInput
+              v-model="voucherDiscount"
               placeholder="0"
-              @wheel.prevent
-              @focus="($event.target as HTMLInputElement).select()"
-              class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              input-class="w-28 px-2 py-1 text-right font-sans tabular-nums text-xs font-bold rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
             />
             <div class="flex items-center gap-1 ml-auto">
               <button
@@ -1410,13 +1394,10 @@ onUnmounted(() => {
               <div class="flex items-center justify-between">
                 <span class="font-bold text-zinc-900">Uang Diterima:</span>
                 <div class="flex items-center gap-1.5">
-                  <input
-                    v-model.number="cashReceived"
-                    type="number"
+                  <CurrencyInput
+                    v-model="cashReceived"
                     placeholder="0"
-                    @wheel.prevent
-                    @focus="($event.target as HTMLInputElement).select()"
-                    class="w-36 px-2.5 py-1 text-right font-sans tabular-nums text-sm font-bold rounded-lg border border-zinc-300 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+                    input-class="w-36 px-2.5 py-1 text-right font-sans tabular-nums text-sm font-bold rounded-lg border border-zinc-300 bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
                   />
                   <button
                     type="button"

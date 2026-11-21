@@ -9,6 +9,7 @@ import {
 } from '../api/client'
 import { useAuthStore } from '../stores/auth'
 import { useClinicStore } from '../stores/clinic'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import {
   Package,
   AlertTriangle,
@@ -1230,19 +1231,17 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-2">
             <div class="space-y-1">
               <label class="font-bold text-zinc-700">Harga Beli / Modal (Rp):</label>
-              <input
-                v-model.number="newDrugForm.buy_price"
-                type="number"
-                class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 font-mono text-right text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              <CurrencyInput
+                v-model="newDrugForm.buy_price"
+                input-class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 font-mono text-right text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950"
               />
             </div>
 
             <div class="space-y-1">
               <label class="font-bold text-zinc-700">Harga Jual Pasien (Rp):</label>
-              <input
-                v-model.number="newDrugForm.sell_price"
-                type="number"
-                class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 font-mono text-right font-bold text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              <CurrencyInput
+                v-model="newDrugForm.sell_price"
+                input-class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 font-mono text-right font-bold text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950"
               />
             </div>
           </div>
@@ -1317,11 +1316,9 @@ onMounted(() => {
 
             <div class="space-y-1">
               <label class="font-bold text-zinc-700">Harga Beli Per Unit (Rp):</label>
-              <input
-                v-model.number="restockForm.buy_price"
-                type="number"
-                min="0"
-                class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 font-mono text-right text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              <CurrencyInput
+                v-model="restockForm.buy_price"
+                input-class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 font-mono text-right text-xs focus:outline-none focus:ring-1 focus:ring-zinc-950"
               />
             </div>
           </div>

@@ -171,7 +171,13 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'opening-balance',
         name: 'OpeningBalance',
-        component: () => import('@/views/accounting/OpeningBalanceView.vue'),
+        component: () => import('@/views/accounting/OpeningBalanceListView.vue'),
+        meta: { title: 'Daftar Saldo Awal Akuntansi' }
+      },
+      {
+        path: 'opening-balance/create',
+        name: 'OpeningBalanceCreate',
+        component: () => import('@/views/accounting/OpeningBalanceCreateView.vue'),
         meta: { title: 'Pembuatan Saldo Awal Akuntansi' }
       },
       {

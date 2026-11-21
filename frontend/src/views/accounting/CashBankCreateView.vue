@@ -6,6 +6,7 @@ import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
 import { formatIDR } from '@/utils/currency'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { BusinessUnit, CashBankTransactionType } from '@/types/accounting'
 import {
   Folder,
@@ -602,31 +603,21 @@ function handleSaveVoucher() {
                     </td>
 
                     <td class="px-4 py-2 text-right">
-                      <div class="relative">
-                        <span class="absolute left-2.5 top-1.5 text-zinc-400 font-mono text-xs">Rp</span>
-                        <input
-                          v-model.number="row.debit"
-                          type="number"
-                          min="0"
-                          step="any"
-                          class="w-full pl-8 pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                          placeholder="0"
-                        />
-                      </div>
+                      <CurrencyInput
+                        v-model="row.debit"
+                        prefix="Rp"
+                        input-class="w-full pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                        placeholder="0"
+                      />
                     </td>
 
                     <td class="px-4 py-2 text-right">
-                      <div class="relative">
-                        <span class="absolute left-2.5 top-1.5 text-zinc-400 font-mono text-xs">Rp</span>
-                        <input
-                          v-model.number="row.credit"
-                          type="number"
-                          min="0"
-                          step="any"
-                          class="w-full pl-8 pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-rose-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                          placeholder="0"
-                        />
-                      </div>
+                      <CurrencyInput
+                        v-model="row.credit"
+                        prefix="Rp"
+                        input-class="w-full pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-rose-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                        placeholder="0"
+                      />
                     </td>
 
                     <td class="px-3 py-2 text-center">

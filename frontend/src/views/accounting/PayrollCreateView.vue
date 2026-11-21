@@ -9,6 +9,7 @@ import { useLocaleStore } from '@/stores/locale'
 import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { BusinessUnit, AccountType, NormalBalance } from '@/types/accounting'
 import type { Employee, PayslipItem } from '@/types/payroll'
 import {
@@ -990,10 +991,9 @@ async function handleSave(postToLedger = false) {
 
             <div>
               <label class="block text-zinc-500 font-medium mb-1">Tarif Makan/Hari</label>
-              <input
-                v-model.number="dailyMealTransportRate"
-                type="number"
-                class="w-full px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl font-mono font-semibold text-right text-zinc-900 focus:bg-white focus:outline-none"
+              <CurrencyInput
+                v-model="dailyMealTransportRate"
+                input-class="w-full px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl font-mono font-semibold text-right text-zinc-900 focus:bg-white focus:outline-none"
               />
             </div>
           </div>
@@ -1009,27 +1009,27 @@ async function handleSave(postToLedger = false) {
               <div class="space-y-1.5 text-zinc-600 text-[11px]">
                 <div class="flex items-center justify-between">
                   <span>Gaji Pokok:</span>
-                  <input v-model.number="baseSalary" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right font-bold text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="baseSalary" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right font-bold text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>Tunjangan Jabatan:</span>
-                  <input v-model.number="positionAllowance" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="positionAllowance" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>Uang Makan & Transport:</span>
-                  <input v-model.number="transportMealAllowance" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="transportMealAllowance" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>Tunjangan Shift / Hadir:</span>
-                  <input v-model.number="shiftAttendanceAllowance" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="shiftAttendanceAllowance" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>Insentif / Bonus Kinerja:</span>
-                  <input v-model.number="incentiveBonus" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="incentiveBonus" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>Upah Lembur:</span>
-                  <input v-model.number="overtimePay" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="overtimePay" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
               </div>
             </div>
@@ -1043,23 +1043,23 @@ async function handleSave(postToLedger = false) {
               <div class="space-y-1.5 text-zinc-600 text-[11px]">
                 <div class="flex items-center justify-between">
                   <span>BPJS Kesehatan (1%):</span>
-                  <input v-model.number="bpjsKesehatan" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="bpjsKesehatan" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>BPJS TK (3%):</span>
-                  <input v-model.number="bpjsKetenagakerjaan" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="bpjsKetenagakerjaan" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>PPh 21 (TER PP 58):</span>
-                  <input v-model.number="pph21" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="pph21" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>Potongan Mangkir/Alpa:</span>
-                  <input v-model.number="attendanceDeduction" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="attendanceDeduction" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
                 <div class="flex items-center justify-between">
                   <span>Potongan Kasbon:</span>
-                  <input v-model.number="loanDeduction" type="number" class="w-28 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
+                  <CurrencyInput v-model="loanDeduction" input-class="w-32 px-2 py-1 bg-white border border-zinc-200 rounded-lg font-mono text-right text-zinc-900 focus:outline-none" />
                 </div>
               </div>
             </div>
@@ -1167,31 +1167,21 @@ async function handleSave(postToLedger = false) {
                     </td>
 
                     <td class="px-4 py-2 text-right">
-                      <div class="relative">
-                        <span class="absolute left-2.5 top-1.5 text-zinc-400 font-mono text-xs">Rp</span>
-                        <input
-                          v-model.number="row.debit"
-                          type="number"
-                          min="0"
-                          step="1000"
-                          class="w-full pl-8 pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                          placeholder="0"
-                        />
-                      </div>
+                      <CurrencyInput
+                        v-model="row.debit"
+                        prefix="Rp"
+                        input-class="w-full pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                        placeholder="0"
+                      />
                     </td>
 
                     <td class="px-4 py-2 text-right">
-                      <div class="relative">
-                        <span class="absolute left-2.5 top-1.5 text-zinc-400 font-mono text-xs">Rp</span>
-                        <input
-                          v-model.number="row.credit"
-                          type="number"
-                          min="0"
-                          step="1000"
-                          class="w-full pl-8 pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-rose-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
-                          placeholder="0"
-                        />
-                      </div>
+                      <CurrencyInput
+                        v-model="row.credit"
+                        prefix="Rp"
+                        input-class="w-full pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-rose-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                        placeholder="0"
+                      />
                     </td>
 
                     <td class="px-3 py-2 text-center">
