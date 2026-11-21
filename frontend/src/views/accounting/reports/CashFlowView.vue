@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
+import { accountingApi } from '@/api/accounting'
 import { formatIDR } from '@/utils/currency'
-import { exportCashFlowToExcel, exportToExcel, printReport } from '@/utils/export'
+import { exportCashFlowToExcel, printReport } from '@/utils/export'
 import {
   Download,
   Printer,
   BookOpen,
-  Layers,
-  Calculator
+  Loader2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -19,6 +19,8 @@ const accountingStore = useAccountingStore()
 const activeTab = ref<'depreciation' | 'cashflow'>('cashflow')
 const startDate = ref('01-11-2026')
 const endDate = ref('30-11-2026')
+const isLoading = ref(false)
+const netCashChange = ref<number>(0)
 
 interface CashFlowRow {
   lineNo: number
@@ -31,30 +33,222 @@ interface CashFlowRow {
   accountCode?: string
 }
 
-// Cash Flow Statement matching Image 3 and Clinic ERP Context
-const cashFlowRows = ref<CashFlowRow[]>([
-  { lineNo: 1, name: 'ARUS KAS DARI AKTIVITAS OPERASIONAL:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 2, name: 'Penerimaan Kasir Harian dari Pasien (Tunai, QRIS & EDC Bank)', amountCurrent: 660108120.00, amountPrevious: 175000000.00, isLink: true, accountCode: '1-1111' },
-  { lineNo: 3, name: 'Pembayaran Pengadaan Obat, Vaksin & Skincare Distributor', amountCurrent: -81420000.00, amountPrevious: -45000000.00, isLink: true, accountCode: '2-1110' },
-  { lineNo: 4, name: 'Pembayaran Honor Jasa Medis Dokter Spesialis & Terapis', amountCurrent: -163000000.00, amountPrevious: -65000000.00, isLink: true, accountCode: '6-1100' },
-  { lineNo: 5, name: 'Pembayaran Gaji Karyawan, Perawat & Apoteker', amountCurrent: -89000000.00, amountPrevious: -44000000.00, isLink: true, accountCode: '6-1200' },
-  { lineNo: 6, name: 'Pembayaran Operasional (Listrik, Sewa Ruko & Limbah Medis B3)', amountCurrent: -156500000.00, amountPrevious: -42000000.00, isLink: true, accountCode: '6-1300' },
-  { lineNo: 7, name: 'Pembayaran Setoran Pajak Masa (PPh 21 Dokter, PPh 23, PPh 4(2))', amountCurrent: -9147500.00, amountPrevious: -2420000.00, isLink: true, accountCode: '2-1500' },
-  { lineNo: 8, name: 'Beban Administrasi Bank & Sewa Mesin EDC (BCA/BRI)', amountCurrent: -1600000.00, amountPrevious: -750000.00, isLink: true, accountCode: '6-1400' },
-  { lineNo: 9, name: 'Arus Kas Bersih yang Diperoleh dari Aktivitas Operasional', amountCurrent: 159440620.00, amountPrevious: -24170000.00, isBold: true },
+const cashFlowRows = ref<CashFlowRow[]>([])
 
-  { lineNo: 11, name: 'ARUS KAS DARI AKTIVITAS INVESTASI:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 12, name: 'Pengadaan Alat Medis USG Pediatri & Mesin Facial Estetika', amountCurrent: -35000000.00, amountPrevious: 0.00, isLink: true, accountCode: '1-2100' },
-  { lineNo: 13, name: 'Kas Bersih Digunakan untuk Aktivitas Investasi', amountCurrent: -35000000.00, amountPrevious: 0.00, isBold: true },
+function parseToISODate(dateStr: string): string {
+  if (!dateStr) return new Date().toISOString().slice(0, 10)
+  const trimmed = dateStr.trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+  const parts = trimmed.split(/[-/]/)
+  if (parts.length === 3) {
+    if (parts[0].length === 2 && parts[2].length === 4) {
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
+    }
+  }
+  return trimmed
+}
 
-  { lineNo: 15, name: 'ARUS KAS DARI AKTIVITAS PENDANAAN:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
-  { lineNo: 16, name: 'Penyetoran Tambahan Modal Kerja Pemilik Klinik', amountCurrent: 50000000.00, amountPrevious: 100000000.00, isLink: true, accountCode: '3-1100' },
-  { lineNo: 17, name: 'Kas Bersih Diperoleh dari Aktivitas Pendanaan', amountCurrent: 50000000.00, amountPrevious: 100000000.00, isBold: true },
+function buildEmptyRows(): CashFlowRow[] {
+  return [
+    { lineNo: 1, name: 'ARUS KAS DARI AKTIVITAS OPERASIONAL:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
+    { lineNo: 2, name: 'Penerimaan Kas Layanan & Piutang Pasien', amountCurrent: 0, amountPrevious: 0 },
+    { lineNo: 3, name: 'Pengeluaran Kas Operasional, Obat & Dokter', amountCurrent: 0, amountPrevious: 0 },
+    { lineNo: 4, name: 'Arus Kas Bersih yang Diperoleh dari Aktivitas Operasional', amountCurrent: 0, amountPrevious: 0, isBold: true },
+    { lineNo: 6, name: 'ARUS KAS DARI AKTIVITAS INVESTASI:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
+    { lineNo: 7, name: 'Perolehan Mesin Medis & Aset Tetap', amountCurrent: 0, amountPrevious: 0 },
+    { lineNo: 8, name: 'Kas Bersih Digunakan untuk Aktivitas Investasi', amountCurrent: 0, amountPrevious: 0, isBold: true },
+    { lineNo: 10, name: 'ARUS KAS DARI AKTIVITAS PENDANAAN:', amountCurrent: 0, amountPrevious: 0, isSectionHeader: true, isBold: true },
+    { lineNo: 11, name: 'Setoran Modal & Pembiayaan', amountCurrent: 0, amountPrevious: 0 },
+    { lineNo: 12, name: 'Kas Bersih Diperoleh dari Aktivitas Pendanaan', amountCurrent: 0, amountPrevious: 0, isBold: true },
+    { lineNo: 14, name: 'KENAIKAN (PENURUNAN) BERSIH KAS DAN SETARA KAS', amountCurrent: 0, amountPrevious: 0, isBold: true },
+    { lineNo: 15, name: 'KAS DAN SETARA KAS PADA AWAL PERIODE', amountCurrent: 0, amountPrevious: 0, isBold: true },
+    { lineNo: 16, name: 'KAS DAN SETARA KAS PADA AKHIR PERIODE (KAS & BANK)', amountCurrent: 0, amountPrevious: 0, isBold: true }
+  ]
+}
 
-  { lineNo: 19, name: 'KENAIKAN (PENURUNAN) BERSIH KAS DAN SETARA KAS', amountCurrent: 174440620.00, amountPrevious: 75830000.00, isBold: true },
-  { lineNo: 20, name: 'KAS DAN SETARA KAS PADA AWAL PERIODE', amountCurrent: 105000000.00, amountPrevious: 29170000.00, isBold: true },
-  { lineNo: 21, name: 'KAS DAN SETARA KAS PADA AKHIR PERIODE (KAS, BCA, BRI, KLIRING)', amountCurrent: 279440620.00, amountPrevious: 105000000.00, isBold: true }
-])
+async function fetchCashFlow() {
+  isLoading.value = true
+  try {
+    const sDate = parseToISODate(startDate.value)
+    const eDate = parseToISODate(endDate.value)
+    const data = await accountingApi.getCashFlowStatement(sDate, eDate)
+
+    if (!data) {
+      cashFlowRows.value = buildEmptyRows()
+      netCashChange.value = 0
+      return
+    }
+
+    const rows: CashFlowRow[] = []
+    let line = 1
+
+    // 1. Operating Activities
+    rows.push({
+      lineNo: line++,
+      name: 'ARUS KAS DARI AKTIVITAS OPERASIONAL:',
+      amountCurrent: 0,
+      amountPrevious: 0,
+      isSectionHeader: true,
+      isBold: true
+    })
+
+    const opItems = data.operating_activities?.items || []
+    if (opItems.length > 0) {
+      for (const item of opItems) {
+        rows.push({
+          lineNo: line++,
+          name: item.account_name,
+          amountCurrent: Number(item.amount) || 0,
+          amountPrevious: 0,
+          isLink: true,
+          accountCode: item.account_code
+        })
+      }
+    } else {
+      rows.push({
+        lineNo: line++,
+        name: 'Penerimaan Kas Layanan & Piutang Pasien',
+        amountCurrent: 0,
+        amountPrevious: 0
+      })
+      rows.push({
+        lineNo: line++,
+        name: 'Pengeluaran Kas Operasional, Obat & Dokter',
+        amountCurrent: 0,
+        amountPrevious: 0
+      })
+    }
+
+    rows.push({
+      lineNo: line++,
+      name: 'Arus Kas Bersih yang Diperoleh dari Aktivitas Operasional',
+      amountCurrent: Number(data.net_operating_cash) || 0,
+      amountPrevious: 0,
+      isBold: true
+    })
+
+    // 2. Investing Activities
+    line++
+    rows.push({
+      lineNo: line++,
+      name: 'ARUS KAS DARI AKTIVITAS INVESTASI:',
+      amountCurrent: 0,
+      amountPrevious: 0,
+      isSectionHeader: true,
+      isBold: true
+    })
+
+    const invItems = data.investing_activities?.items || []
+    if (invItems.length > 0) {
+      for (const item of invItems) {
+        rows.push({
+          lineNo: line++,
+          name: item.account_name,
+          amountCurrent: Number(item.amount) || 0,
+          amountPrevious: 0,
+          isLink: true,
+          accountCode: item.account_code
+        })
+      }
+    } else {
+      rows.push({
+        lineNo: line++,
+        name: 'Perolehan Mesin Medis & Aset Tetap',
+        amountCurrent: 0,
+        amountPrevious: 0
+      })
+    }
+
+    rows.push({
+      lineNo: line++,
+      name: 'Kas Bersih Digunakan untuk Aktivitas Investasi',
+      amountCurrent: Number(data.net_investing_cash) || 0,
+      amountPrevious: 0,
+      isBold: true
+    })
+
+    // 3. Financing Activities
+    line++
+    rows.push({
+      lineNo: line++,
+      name: 'ARUS KAS DARI AKTIVITAS PENDANAAN:',
+      amountCurrent: 0,
+      amountPrevious: 0,
+      isSectionHeader: true,
+      isBold: true
+    })
+
+    const finItems = data.financing_activities?.items || []
+    if (finItems.length > 0) {
+      for (const item of finItems) {
+        rows.push({
+          lineNo: line++,
+          name: item.account_name,
+          amountCurrent: Number(item.amount) || 0,
+          amountPrevious: 0,
+          isLink: true,
+          accountCode: item.account_code
+        })
+      }
+    } else {
+      rows.push({
+        lineNo: line++,
+        name: 'Setoran Modal & Pembiayaan',
+        amountCurrent: 0,
+        amountPrevious: 0
+      })
+    }
+
+    rows.push({
+      lineNo: line++,
+      name: 'Kas Bersih Diperoleh dari Aktivitas Pendanaan',
+      amountCurrent: Number(data.net_financing_cash) || 0,
+      amountPrevious: 0,
+      isBold: true
+    })
+
+    // 4. Summaries
+    line++
+    rows.push({
+      lineNo: line++,
+      name: 'KENAIKAN (PENURUNAN) BERSIH KAS DAN SETARA KAS',
+      amountCurrent: Number(data.net_cash_change) || 0,
+      amountPrevious: 0,
+      isBold: true
+    })
+    rows.push({
+      lineNo: line++,
+      name: 'KAS DAN SETARA KAS PADA AWAL PERIODE',
+      amountCurrent: Number(data.beginning_cash) || 0,
+      amountPrevious: 0,
+      isBold: true
+    })
+    rows.push({
+      lineNo: line++,
+      name: 'KAS DAN SETARA KAS PADA AKHIR PERIODE (KAS & BANK)',
+      amountCurrent: Number(data.ending_cash) || 0,
+      amountPrevious: 0,
+      isBold: true
+    })
+
+    cashFlowRows.value = rows
+    netCashChange.value = Number(data.net_cash_change) || 0
+  } catch (err) {
+    console.warn('[CashFlowView] Gagal mengambil arus kas dari backend:', err)
+    cashFlowRows.value = buildEmptyRows()
+    netCashChange.value = 0
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchCashFlow()
+})
+
+watch([startDate, endDate, () => accountingStore.businessUnit], () => {
+  fetchCashFlow()
+})
 
 function openLedgerForAccount(accountCode?: string) {
   if (accountCode) {
@@ -70,7 +264,7 @@ function handleExportExcel() {
     asOfDate: endDate.value,
     startDate: startDate.value
   })
-  accountingStore.showToast('Laporan Arus Kas Audited (Format LHP SPHC) berhasil diekspor ke Excel', 'success')
+  accountingStore.showToast('Laporan Arus Kas berhasil diekspor ke Excel', 'success')
 }
 </script>
 
@@ -235,7 +429,7 @@ function handleExportExcel() {
           Perbandingan arus kas tahun berjalan vs periode sebelumnya.
         </span>
         <span class="text-emerald-700 font-bold font-mono bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-          Kenaikan Kas Bersih: {{ formatIDR(106261500) }}
+          Kenaikan Kas Bersih: {{ formatIDR(netCashChange) }}
         </span>
       </div>
     </div>

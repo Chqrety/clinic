@@ -503,6 +503,20 @@ export const accountingApi = {
     return res.data
   },
 
+  async getReceivableAging(asOfDate?: string): Promise<any> {
+    const q = new URLSearchParams()
+    if (asOfDate) q.set('as_of_date', asOfDate)
+    const res = await request<any>(`/receivables/aging?${q.toString()}`)
+    return res.data
+  },
+
+  async getPayableAging(asOfDate?: string): Promise<any> {
+    const q = new URLSearchParams()
+    if (asOfDate) q.set('as_of_date', asOfDate)
+    const res = await request<any>(`/payables/aging?${q.toString()}`)
+    return res.data
+  },
+
   // =========================================================================
   // 6. Staff Payroll & Payslips
   // =========================================================================
@@ -510,8 +524,15 @@ export const accountingApi = {
     const q = new URLSearchParams()
     if (businessUnit && businessUnit !== 'ALL') q.set('business_unit', businessUnit)
     if (activeOnly) q.set('active_only', 'true')
-    const res = await request<Employee[]>(`/payroll/employees?${q.toString()}`)
-    return res.data || []
+    const res = await request<any[]>(`/payroll/employees?${q.toString()}`)
+    const list = res.data || []
+    return list.map(emp => ({
+      ...emp,
+      baseSalary: Number(emp.baseSalary) || 0,
+      positionAllowance: Number(emp.positionAllowance) || 0,
+      transportMealAllowance: Number(emp.transportMealAllowance) || 0,
+      dailyMealTransportRate: Number(emp.dailyMealTransportRate) || (emp.transportMealAllowance ? Math.round(Number(emp.transportMealAllowance) / 22) : 0),
+    }))
   },
 
   async createPayrollEmployee(emp: Partial<Employee>): Promise<Employee> {
@@ -536,16 +557,28 @@ export const accountingApi = {
     if (year) q.set('year', String(year))
     if (businessUnit && businessUnit !== 'ALL') q.set('business_unit', businessUnit)
     if (status && status !== 'ALL') q.set('status', status)
-    const res = await request<PayslipItem[]>(`/payroll/slips?${q.toString()}`)
-    return res.data || []
-  },
-
-  async generateMonthlyPayroll(month: number, year: number, businessUnit?: string): Promise<PayslipItem[]> {
-    const res = await request<PayslipItem[]>('/payroll/slips/generate', {
-      method: 'POST',
-      body: JSON.stringify({ month, year, businessUnit }),
-    })
-    return res.data || []
+    const res = await request<any[]>(`/payroll/slips?${q.toString()}`)
+    const list = res.data || []
+    return list.map(slip => ({
+      ...slip,
+      baseSalary: Number(slip.baseSalary) || 0,
+      positionAllowance: Number(slip.positionAllowance) || 0,
+      transportMealAllowance: Number(slip.transportMealAllowance) || 0,
+      shiftAttendanceAllowance: Number(slip.shiftAttendanceAllowance) || 0,
+      incentiveBonus: Number(slip.incentiveBonus) || 0,
+      overtimePay: Number(slip.overtimePay) || 0,
+      otherAllowance: Number(slip.otherAllowance) || 0,
+      totalGrossSalary: Number(slip.totalGrossSalary) || 0,
+      bpjsKesehatan: Number(slip.bpjsKesehatan) || 0,
+      bpjsKetenagakerjaan: Number(slip.bpjsKetenagakerjaan) || 0,
+      pph21: Number(slip.pph21) || 0,
+      attendanceDeduction: Number(slip.attendanceDeduction) || 0,
+      loanDeduction: Number(slip.loanDeduction) || 0,
+      otherDeduction: Number(slip.otherDeduction) || 0,
+      totalDeduction: Number(slip.totalDeduction) || 0,
+      takeHomePay: Number(slip.takeHomePay) || 0,
+      dailyMealTransportRate: Number(slip.dailyMealTransportRate) || 0,
+    }))
   },
 
   async createPayrollSlip(slip: Partial<PayslipItem>): Promise<PayslipItem> {

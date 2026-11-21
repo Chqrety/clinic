@@ -151,6 +151,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Slip Gaji Karyawan & Payroll' }
       },
       {
+        path: 'payroll/create',
+        name: 'PayrollCreate',
+        component: () => import('@/views/accounting/PayrollCreateView.vue'),
+        meta: { title: 'Buat Slip Gaji & Voucher Jurnal Penggajian' }
+      },
+      {
         path: 'trial-balance',
         name: 'TrialBalance',
         component: () => import('@/views/accounting/TrialBalanceView.vue'),

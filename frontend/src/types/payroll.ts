@@ -55,6 +55,7 @@ export interface PayslipItem {
   shiftAttendanceAllowance: number
   incentiveBonus: number
   overtimePay: number
+  otherAllowance?: number
   totalGrossSalary: number
   
   // Deductions (Potongan)
@@ -63,6 +64,7 @@ export interface PayslipItem {
   pph21: number
   attendanceDeduction: number
   loanDeduction: number
+  otherDeduction?: number
   totalDeduction: number
   
   // Net

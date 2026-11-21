@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watchEffect } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { useLedgerStore } from '@/stores/ledger'
 import { useJournalsStore } from '@/stores/journals'
+import { accountingApi } from '@/api/accounting'
 import { formatIDR } from '@/utils/currency'
-import { exportProfitLossToExcel, exportToExcel, printReport } from '@/utils/export'
+import { exportProfitLossToExcel, printReport } from '@/utils/export'
 import {
   Download,
   Printer,
   ChevronRight,
   ChevronDown,
-  BookOpen
+  BookOpen,
+  Loader2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -19,17 +21,13 @@ const accountingStore = useAccountingStore()
 const ledgerStore = useLedgerStore()
 const journalsStore = useJournalsStore()
 
-onMounted(() => {
-  ledgerStore.fetchAccounts()
-  journalsStore.fetchJournals()
-})
-
 // State
-const startDate = ref('01-09-2026')
-const endDate = ref('30-11-2026')
+const startDate = ref('01-01-2026')
+const endDate = ref('31-12-2026')
 const currentLevel = ref<number>(1)
 const jumpLineNumber = ref<number>(1)
 const hideStockReceipt = ref(true)
+const isLoading = ref<boolean>(false)
 
 export interface PLTreeNode {
   id: string
@@ -44,197 +42,247 @@ export interface PLTreeNode {
   children?: PLTreeNode[]
 }
 
-// Tree Data for Profit & Loss matching Image 4 and Blueprint
-const plTree = ref<PLTreeNode[]>([
-  {
+function parseToISODate(dateStr: string): string {
+  if (!dateStr) return new Date().toISOString().slice(0, 10)
+  const trimmed = dateStr.trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+  const parts = trimmed.split(/[-/]/)
+  if (parts.length === 3) {
+    if (parts[0].length === 2 && parts[2].length === 4) {
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
+    }
+  }
+  return trimmed
+}
+
+function buildEmptyPLTree(): PLTreeNode[] {
+  return [
+    {
+      id: 'sec_pendapatan',
+      lineNo: 1,
+      name: 'PENDAPATAN',
+      level: 1,
+      amount: 0,
+      isHeader: true,
+      isBold: true,
+      children: [
+        {
+          id: 'grp_pendapatan',
+          lineNo: 2,
+          name: 'PENDAPATAN OPERASIONAL KLINIK',
+          level: 2,
+          amount: 0,
+          isHeader: true,
+          children: []
+        }
+      ]
+    },
+    {
+      id: 'sec_biaya',
+      lineNo: 3,
+      name: 'BIAYA & BEBAN OPERASIONAL',
+      level: 1,
+      amount: 0,
+      isHeader: true,
+      isBold: true,
+      children: [
+        {
+          id: 'grp_cogs',
+          lineNo: 4,
+          code: '51',
+          name: 'HARGA POKOK PENJUALAN (HPP)',
+          level: 2,
+          amount: 0,
+          isHeader: true,
+          children: []
+        },
+        {
+          id: 'grp_beban',
+          lineNo: 5,
+          code: '52',
+          name: 'BEBAN OPERASIONAL KLINIK',
+          level: 2,
+          amount: 0,
+          isHeader: true,
+          children: []
+        }
+      ]
+    },
+    {
+      id: 'laba_sebelum_pajak',
+      lineNo: 6,
+      name: 'LABA (RUGI) BERSIH OPERASIONAL',
+      level: 1,
+      amount: 0,
+      isHeader: false,
+      isBold: true
+    }
+  ]
+}
+
+function buildPLTree(data: any): PLTreeNode[] {
+  if (!data) return buildEmptyPLTree()
+
+  let lineCounter = 1
+
+  // 1. Revenue
+  const revChildren: PLTreeNode[] = []
+  const revCats = data.revenue_categories || []
+  for (const cat of revCats) {
+    const catItems: PLTreeNode[] = (cat.items || []).map((it: any) => ({
+      id: `rev-${it.account_code}`,
+      lineNo: ++lineCounter,
+      code: it.account_code,
+      name: it.account_name,
+      level: 4,
+      amount: Number(it.amount) || 0,
+      isHeader: false,
+      accountCode: it.account_code
+    }))
+
+    revChildren.push({
+      id: `grp_rev_${cat.category_name}`,
+      lineNo: ++lineCounter,
+      name: cat.category_name,
+      level: 3,
+      amount: Number(cat.total) || 0,
+      isHeader: true,
+      children: catItems
+    })
+  }
+
+  const totalRev = Number(data.total_revenue) || 0
+  const secPendapatan: PLTreeNode = {
     id: 'sec_pendapatan',
-    lineNo: 6,
+    lineNo: 1,
     name: 'PENDAPATAN',
     level: 1,
-    amount: 1544300000.00,
+    amount: totalRev,
     isHeader: true,
     isBold: true,
     children: [
       {
         id: 'grp_pendapatan',
-        lineNo: 7,
-        name: 'PENDAPATAN',
+        lineNo: 2,
+        name: 'PENDAPATAN OPERASIONAL KLINIK',
         level: 2,
-        amount: 1544300000.00,
+        amount: totalRev,
         isHeader: true,
-        children: [
-          {
-            id: '4100',
-            lineNo: 8,
-            code: '41',
-            name: 'PENDAPATAN OPERASIONAL KLINIK',
-            level: 3,
-            amount: 1544300000.00,
-            isHeader: true,
-            accountCode: '4-1000',
-            children: [
-              { id: '4101', lineNo: 9, code: '4101', name: 'Pendapatan Registrasi & Skrining Anak', level: 4, amount: 24500000.00, isHeader: false, accountCode: '4-1100' },
-              { id: '4102', lineNo: 10, code: '4102', name: 'Pendapatan Jasa Konsultasi Spesialis Anak (Sp.A)', level: 4, amount: 345000000.00, isHeader: false, accountCode: '4-1200' },
-              { id: '4103', lineNo: 11, code: '4103', name: 'Pendapatan Tindakan Vaksinasi & Imunisasi Anak', level: 4, amount: 96000000.00, isHeader: false, accountCode: '4-1300' },
-              { id: '4104', lineNo: 12, code: '4104', name: 'Pendapatan Layanan Terapi & Tumbuh Kembang Anak', level: 4, amount: 54000000.00, isHeader: false, accountCode: '4-1400' },
-              { id: '4105', lineNo: 13, code: '4105', name: 'Pendapatan Penjualan Obat Resep Farmasi Kidinest', level: 4, amount: 186000000.00, isHeader: false, accountCode: '4-1500' },
-              { id: '4106', lineNo: 14, code: '4106', name: 'Pendapatan Konsultasi Dokter Estetika & Kulit (Sp.DVE)', level: 4, amount: 195000000.00, isHeader: false, accountCode: '4-2100' },
-              { id: '4107', lineNo: 15, code: '4107', name: 'Pendapatan Tindakan Medis Laser & Cauter SSC', level: 4, amount: 435000000.00, isHeader: false, accountCode: '4-2300' },
-              { id: '4108', lineNo: 16, code: '4108', name: 'Pendapatan Tindakan Facial & Treatment Terapis', level: 4, amount: 104800000.00, isHeader: false, accountCode: '4-2200' },
-              { id: '4109', lineNo: 17, code: '4109', name: 'Pendapatan Penjualan Produk Skincare & Kosmetika SSC', level: 4, amount: 104000000.00, isHeader: false, accountCode: '4-2400' }
-            ]
-          }
-        ]
+        children: revChildren
       }
     ]
-  },
-  {
+  }
+
+  // 2. Expenses (COGS + Opex)
+  const cogsChildren: PLTreeNode[] = []
+  const cogsCats = data.cogs_categories || []
+  for (const cat of cogsCats) {
+    for (const it of (cat.items || [])) {
+      cogsChildren.push({
+        id: `cogs-${it.account_code}`,
+        lineNo: ++lineCounter,
+        code: it.account_code,
+        name: it.account_name,
+        level: 4,
+        amount: Number(it.amount) || 0,
+        isHeader: false,
+        accountCode: it.account_code
+      })
+    }
+  }
+
+  const opexChildren: PLTreeNode[] = []
+  const opexCats = data.expense_categories || []
+  for (const cat of opexCats) {
+    for (const it of (cat.items || [])) {
+      opexChildren.push({
+        id: `opex-${it.account_code}`,
+        lineNo: ++lineCounter,
+        code: it.account_code,
+        name: it.account_name,
+        level: 4,
+        amount: Number(it.amount) || 0,
+        isHeader: false,
+        accountCode: it.account_code
+      })
+    }
+  }
+
+  const totalCogs = Number(data.total_cogs) || 0
+  const totalExp = Number(data.total_expenses) || 0
+
+  const secBiaya: PLTreeNode = {
     id: 'sec_biaya',
-    lineNo: 19,
-    name: 'BIAYA',
+    lineNo: ++lineCounter,
+    name: 'BIAYA & BEBAN OPERASIONAL',
     level: 1,
-    amount: 1381457250.05,
+    amount: totalCogs + totalExp,
     isHeader: true,
     isBold: true,
     children: [
+      {
+        id: 'grp_cogs',
+        lineNo: ++lineCounter,
+        code: '51',
+        name: 'HARGA POKOK PENJUALAN (HPP)',
+        level: 2,
+        amount: totalCogs,
+        isHeader: true,
+        children: cogsChildren
+      },
       {
         id: 'grp_beban',
-        lineNo: 20,
-        name: 'BEBAN',
+        lineNo: ++lineCounter,
+        code: '52',
+        name: 'BEBAN OPERASIONAL KLINIK',
         level: 2,
-        amount: 1381457250.05,
+        amount: totalExp,
         isHeader: true,
-        children: [
-          {
-            id: '51',
-            lineNo: 21,
-            code: '51',
-            name: 'HARGA POKOK PENJUALAN',
-            level: 3,
-            amount: 1139845239.18,
-            isHeader: true,
-            accountCode: '5-0000',
-            children: [
-              { id: '5101', lineNo: 22, code: '5101', name: 'HPP Obat Resep & Paten Farmasi Kidinest', level: 4, amount: 72000000.00, isHeader: false, accountCode: '5-1100' },
-              { id: '5102', lineNo: 23, code: '5102', name: 'HPP Vaksin & Serum Imunisasi Kidinest', level: 4, amount: 24000000.00, isHeader: false, accountCode: '5-1200' },
-              { id: '5103', lineNo: 24, code: '5103', name: 'HPP Produk Skincare & Kosmetika Terjual SSC', level: 4, amount: 49500000.00, isHeader: false, accountCode: '5-1300' },
-              { id: '5104', lineNo: 25, code: '5104', name: 'HPP Bahan Tindakan Facial & Peeling SSC', level: 4, amount: 21250000.00, isHeader: false, accountCode: '5-1400' },
-              { id: '5105', lineNo: 26, code: '5105', name: 'Beban Pemakaian Bahan Medis Habis Pakai (BMHP)', level: 4, amount: 29400000.00, isHeader: false, accountCode: '5-1400' },
-              { id: '5106', lineNo: 27, code: '5106', name: 'Beban Honor Dokter Spesialis Anak (Sp.A)', level: 4, amount: 435000000.00, isHeader: false, accountCode: '6-1100' },
-              { id: '5107', lineNo: 28, code: '5107', name: 'Beban Honor Dokter Kulit & Terapis Estetika', level: 4, amount: 483195239.18, isHeader: false, accountCode: '6-1110' },
-              { id: '5108', lineNo: 29, code: '5108', name: 'Beban Komisi Tindakan Beautician / Terapis SSC', level: 4, amount: 25500000.00, isHeader: false, accountCode: '6-1110' }
-            ]
-          },
-          {
-            id: '52',
-            lineNo: 51,
-            code: '52',
-            name: 'BEBAN OPERASIONAL',
-            level: 3,
-            amount: 241612010.87,
-            isHeader: true,
-            accountCode: '6-0000',
-            children: [
-              { id: '5201', lineNo: 52, code: '5201', name: 'Beban Gaji Karyawan, Perawat & Staf', level: 4, amount: 43637768.00, isHeader: false, accountCode: '6-1200' },
-              { id: '5202', lineNo: 99, code: '5202', name: 'Beban Operasional (Listrik, Air, Sewa Gedung & Limbah B3)', level: 4, amount: 197974242.87, isHeader: false, accountCode: '6-1300' }
-            ]
-          }
-        ]
+        children: opexChildren
       }
     ]
-  },
-  {
-    id: 'sec_pend_lain',
-    lineNo: 308,
-    name: 'PENDAPATAN LAIN-LAIN',
-    level: 1,
-    amount: 7519886.94,
-    isHeader: true,
-    isBold: true,
-    children: [
-      {
-        id: 'grp_pend_non_usaha',
-        lineNo: 309,
-        name: 'PENDAPATAN NON USAHA',
-        level: 2,
-        amount: 7519886.94,
-        isHeader: true,
-        children: [
-          { id: '6101', lineNo: 310, code: '6101', name: 'Pendapatan Bunga Bank & Jasa Giro', level: 3, amount: 794106.94, isHeader: false },
-          { id: '6106', lineNo: 324, code: '6106', name: 'Pendapatan Lain-Lain Non Usaha & Selisih Lebih Kasir', level: 3, amount: 6725780.00, isHeader: false }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'sec_biaya_lain',
-    lineNo: 328,
-    name: 'BIAYA LAIN-LAIN',
-    level: 1,
-    amount: 63575480.42,
-    isHeader: true,
-    isBold: true,
-    children: [
-      {
-        id: 'grp_beban_non_usaha',
-        lineNo: 329,
-        name: 'BEBAN NON USAHA',
-        level: 2,
-        amount: 63575480.42,
-        isHeader: true,
-        children: [
-          { id: '7103', lineNo: 330, code: '7103', name: 'Beban Biaya Administrasi Bank', level: 3, amount: 1056900.00, isHeader: false },
-          { id: '7106', lineNo: 443, code: '7106', name: 'Selisih Pembulatan & Penyesuaian Kasir', level: 3, amount: 16.00, isHeader: false },
-          { id: '7107', lineNo: 447, code: '7107', name: 'Beban Bunga Pinjaman & Sewa Guna Usaha', level: 3, amount: 62359740.67, isHeader: false },
-          { id: '7104', lineNo: 453, code: '7104', name: 'Pajak Jasa Giro Perbankan', level: 3, amount: 158823.75, isHeader: false }
-        ]
-      }
-    ]
-  },
-  {
+  }
+
+  // 3. Net Profit / Laba Bersih
+  const netIncome = Number(data.net_income) || 0
+  const secLaba: PLTreeNode = {
     id: 'laba_sebelum_pajak',
-    lineNo: 468,
-    name: 'LABA(RUGI) SEBELUM PAJAK',
+    lineNo: ++lineCounter,
+    name: 'LABA (RUGI) BERSIH OPERASIONAL',
     level: 1,
-    amount: 106787156.47,
+    amount: netIncome,
     isHeader: false,
     isBold: true
   }
-])
 
-// Dynamically sync P&L amounts with ledger trial balance
-watchEffect(() => {
-  if (!ledgerStore.trialBalanceRows || ledgerStore.trialBalanceRows.length === 0) return
+  return [secPendapatan, secBiaya, secLaba]
+}
 
-  const tbMap = new Map<string, number>()
-  for (const row of ledgerStore.trialBalanceRows) {
-    const bal = row.accountType === 'REVENUE' ? (row.endingCredit - row.endingDebit) : (row.endingDebit - row.endingCredit)
-    tbMap.set(row.accountCode, Math.max(bal, 0))
+const plTree = ref<PLTreeNode[]>(buildEmptyPLTree())
+
+async function fetchProfitLoss() {
+  isLoading.value = true
+  try {
+    const sDate = parseToISODate(startDate.value)
+    const eDate = parseToISODate(endDate.value)
+    const data = await accountingApi.getIncomeStatement(sDate, eDate)
+    plTree.value = buildPLTree(data)
+  } catch (err) {
+    console.warn('[ProfitLossView] Gagal mengambil data Laba Rugi dari backend:', err)
+    plTree.value = buildEmptyPLTree()
+  } finally {
+    isLoading.value = false
   }
+}
 
-  function updatePLNode(node: PLTreeNode): number {
-    if (node.children && node.children.length > 0) {
-      let sum = 0
-      for (const child of node.children) {
-        sum += updatePLNode(child)
-      }
-      node.amount = sum
-      return sum
-    }
-    const code = node.accountCode || node.code || ''
-    if (tbMap.has(code)) {
-      node.amount = tbMap.get(code)!
-    } else {
-      node.amount = 0
-    }
-    return node.amount
-  }
+onMounted(() => {
+  ledgerStore.fetchAccounts()
+  journalsStore.fetchJournals()
+  fetchProfitLoss()
+})
 
-  for (const root of plTree.value) {
-    if (root.children) {
-      updatePLNode(root)
-    }
-  }
+watch([startDate, endDate, () => accountingStore.businessUnit], () => {
+  fetchProfitLoss()
 })
 
 const expandedIds = ref<Set<string>>(new Set([

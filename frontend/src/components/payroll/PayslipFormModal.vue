@@ -16,12 +16,18 @@ import {
   AlertCircle,
   Search,
   ChevronDown,
-  Check
+  Check,
+  BookOpen,
+  FileSpreadsheet,
+  CheckCircle2,
+  ArrowRight,
+  Sparkles
 } from 'lucide-vue-next'
 
 const props = defineProps<{
   show: boolean
   editSlip?: PayslipItem | null
+  employees?: Employee[]
 }>()
 
 const emit = defineEmits<{
@@ -46,25 +52,43 @@ const periodYear = ref<number>(new Date().getFullYear())
 const bankName = ref<string>('Bank Mandiri')
 const bankAccountNumber = ref<string>('')
 
+const employeePool = computed<Employee[]>(() => {
+  if (props.employees && props.employees.length > 0) return props.employees
+  if (payrollStore.allAvailableEmployees && payrollStore.allAvailableEmployees.length > 0) return payrollStore.allAvailableEmployees
+  return payrollStore.employees || []
+})
+
 const selectedEmployee = computed(() => {
   if (!selectedEmployeeId.value) return null
-  return payrollStore.employees.find(e => e.id === selectedEmployeeId.value) || null
+  return employeePool.value.find(e => e.id === selectedEmployeeId.value || e.nik === selectedEmployeeId.value) || null
 })
 
 // Display all employees when dropdown is open, or filter in real time when typing
 const filteredEmployees = computed(() => {
+  const pool = employeePool.value
   const q = searchInputText.value.trim().toLowerCase()
   if (!q || (selectedEmployee.value && searchInputText.value === `${selectedEmployee.value.name} (${selectedEmployee.value.nik})`)) {
-    return payrollStore.employees
+    return pool
   }
-  return payrollStore.employees.filter(emp =>
-    emp.name.toLowerCase().includes(q) ||
-    emp.nik.toLowerCase().includes(q) ||
-    emp.position.toLowerCase().includes(q) ||
-    emp.department.toLowerCase().includes(q) ||
-    emp.businessUnit.toLowerCase().includes(q)
+  return pool.filter(emp =>
+    (emp.name || '').toLowerCase().includes(q) ||
+    (emp.nik || '').toLowerCase().includes(q) ||
+    (emp.position || '').toLowerCase().includes(q) ||
+    (emp.department || '').toLowerCase().includes(q) ||
+    (emp.businessUnit || '').toLowerCase().includes(q)
   )
 })
+
+watch(() => props.show, (isOpen) => {
+  if (isOpen) {
+    payrollStore.fetchEmployees()
+    if (!props.editSlip) {
+      selectedEmployeeId.value = ''
+      searchInputText.value = ''
+      isDropdownOpen.value = false
+    }
+  }
+}, { immediate: true })
 
 function selectEmployee(emp: Employee) {
   selectedEmployeeId.value = emp.id
@@ -85,13 +109,13 @@ function selectEmployee(emp: Employee) {
   paidLeaveDays.value = 0
   absentDays.value = 0
   overtimeHours.value = 0
-  dailyMealTransportRate.value = emp.dailyMealTransportRate || (emp.transportMealAllowance ? Math.round(emp.transportMealAllowance / 22) : 30000)
-  transportMealAllowance.value = Math.round(presentDays.value * dailyMealTransportRate.value)
+  dailyMealTransportRate.value = emp.dailyMealTransportRate || (emp.transportMealAllowance ? Math.round(emp.transportMealAllowance / 22) : 0)
+  transportMealAllowance.value = emp.transportMealAllowance || Math.round(presentDays.value * dailyMealTransportRate.value)
   attendanceDeduction.value = 0
   overtimePay.value = 0
 
-  bpjsKesehatan.value = Math.round(emp.baseSalary * 0.01)
-  bpjsKetenagakerjaan.value = Math.round(emp.baseSalary * 0.03)
+  bpjsKesehatan.value = Math.round((emp.baseSalary || 0) * 0.01)
+  bpjsKetenagakerjaan.value = Math.round((emp.baseSalary || 0) * 0.03)
 
   searchInputText.value = `${emp.name} (${emp.nik})`
   isDropdownOpen.value = false
@@ -100,6 +124,22 @@ function selectEmployee(emp: Employee) {
 function selectManualMode() {
   selectedEmployeeId.value = ''
   searchInputText.value = ''
+  employeeName.value = ''
+  employeeNik.value = ''
+  position.value = ''
+  department.value = ''
+  baseSalary.value = 0
+  positionAllowance.value = 0
+  transportMealAllowance.value = 0
+  dailyMealTransportRate.value = 0
+  shiftAttendanceAllowance.value = 0
+  incentiveBonus.value = 0
+  overtimePay.value = 0
+  bpjsKesehatan.value = 0
+  bpjsKetenagakerjaan.value = 0
+  pph21.value = 0
+  attendanceDeduction.value = 0
+  loanDeduction.value = 0
   isDropdownOpen.value = false
 }
 
@@ -119,7 +159,23 @@ function toggleDropdown() {
 function clearEmployeeSelection() {
   selectedEmployeeId.value = ''
   searchInputText.value = ''
-  isDropdownOpen.value = false
+  employeeName.value = ''
+  employeeNik.value = ''
+  position.value = ''
+  department.value = ''
+  baseSalary.value = 0
+  positionAllowance.value = 0
+  transportMealAllowance.value = 0
+  dailyMealTransportRate.value = 0
+  shiftAttendanceAllowance.value = 0
+  incentiveBonus.value = 0
+  overtimePay.value = 0
+  bpjsKesehatan.value = 0
+  bpjsKetenagakerjaan.value = 0
+  pph21.value = 0
+  attendanceDeduction.value = 0
+  loanDeduction.value = 0
+  isDropdownOpen.value = true
 }
 
 function handleClickOutside(event: MouseEvent) {
@@ -133,6 +189,7 @@ function handleClickOutside(event: MouseEvent) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  payrollStore.fetchEmployees()
 })
 
 onBeforeUnmount(() => {
@@ -141,33 +198,33 @@ onBeforeUnmount(() => {
 
 // Attendance & Working Days (Hari Masuk / Kehadiran)
 const workingDays = ref<number>(22)
-const presentDays = ref<number>(22)
+const presentDays = ref<number>(0)
 const sickLeaveDays = ref<number>(0)
 const paidLeaveDays = ref<number>(0)
 const absentDays = ref<number>(0)
 const overtimeHours = ref<number>(0)
-const dailyMealTransportRate = ref<number>(30000)
+const dailyMealTransportRate = ref<number>(0)
 
 // Earnings
-const baseSalary = ref<number>(4500000)
-const positionAllowance = ref<number>(500000)
-const transportMealAllowance = ref<number>(660000)
+const baseSalary = ref<number>(0)
+const positionAllowance = ref<number>(0)
+const transportMealAllowance = ref<number>(0)
 const shiftAttendanceAllowance = ref<number>(0)
 const incentiveBonus = ref<number>(0)
 const overtimePay = ref<number>(0)
 
 // Deductions
-const bpjsKesehatan = ref<number>(45000)
-const bpjsKetenagakerjaan = ref<number>(135000)
+const bpjsKesehatan = ref<number>(0)
+const bpjsKetenagakerjaan = ref<number>(0)
 const pph21 = ref<number>(0)
 const attendanceDeduction = ref<number>(0)
 const loanDeduction = ref<number>(0)
 const notes = ref<string>('')
 
-// When employee selected, populate defaults
+// When employee selected, populate values from actual database record
 watch(selectedEmployeeId, (newId) => {
   if (!newId) return
-  const emp = payrollStore.employees.find(e => e.id === newId)
+  const emp = employeePool.value.find(e => e.id === newId || e.nik === newId)
   if (emp) {
     employeeName.value = emp.name
     employeeNik.value = emp.nik
@@ -176,23 +233,23 @@ watch(selectedEmployeeId, (newId) => {
     businessUnit.value = emp.businessUnit
     bankName.value = emp.bankName
     bankAccountNumber.value = emp.bankAccountNumber
-    baseSalary.value = emp.baseSalary
-    positionAllowance.value = emp.positionAllowance
+    baseSalary.value = emp.baseSalary || 0
+    positionAllowance.value = emp.positionAllowance || 0
     
-    // Kehadiran defaults
+    // Kehadiran defaults dari data database
     workingDays.value = 22
     presentDays.value = 22
     sickLeaveDays.value = 0
     paidLeaveDays.value = 0
     absentDays.value = 0
     overtimeHours.value = 0
-    dailyMealTransportRate.value = emp.dailyMealTransportRate || (emp.transportMealAllowance ? Math.round(emp.transportMealAllowance / 22) : 30000)
-    transportMealAllowance.value = Math.round(presentDays.value * dailyMealTransportRate.value)
+    dailyMealTransportRate.value = emp.dailyMealTransportRate || (emp.transportMealAllowance ? Math.round(emp.transportMealAllowance / 22) : 0)
+    transportMealAllowance.value = emp.transportMealAllowance || (dailyMealTransportRate.value * presentDays.value)
     attendanceDeduction.value = 0
     overtimePay.value = 0
 
-    bpjsKesehatan.value = Math.round(emp.baseSalary * 0.01)
-    bpjsKetenagakerjaan.value = Math.round(emp.baseSalary * 0.03)
+    bpjsKesehatan.value = Math.round((emp.baseSalary || 0) * 0.01)
+    bpjsKetenagakerjaan.value = Math.round((emp.baseSalary || 0) * 0.03)
   }
 })
 
@@ -260,6 +317,91 @@ const takeHomePay = computed(() => {
   return Math.max(0, totalGrossSalary.value - totalDeduction.value)
 })
 
+// Tab View Mode: 'form' (Formulir Rincian) or 'journal' (Struktur Jurnal Umum)
+const activeViewMode = ref<'form' | 'journal'>('form')
+
+// Double-Entry General Journal computed representation
+const journalLines = computed(() => {
+  const lines = []
+  const pMonth = String(periodMonth.value).padStart(2, '0')
+  const refDesc = `${employeeName.value || 'Karyawan'} (NIK: ${employeeNik.value || '-'}) - Periode ${pMonth}/${periodYear.value}`
+
+  // 1. [DEBIT] Beban Gaji Bruto (Gaji Pokok + Tunjangan + Lembur + Insentif)
+  lines.push({
+    accountCode: '6-1200',
+    accountName: 'Beban Gaji Karyawan, Perawat & Staf',
+    position: 'DEBIT',
+    description: `Beban Gaji Bruto & Tunjangan: ${refDesc}`,
+    debit: totalGrossSalary.value,
+    credit: 0
+  })
+
+  // 2. [KREDIT] Lawan Akun Potongan Pajak PPh 21
+  if (pph21.value > 0) {
+    lines.push({
+      accountCode: '2-1510',
+      accountName: 'Hutang Pajak PPh 21 Karyawan',
+      position: 'CREDIT',
+      description: `Lawan Akun: Potongan PPh 21 TER Masa ${pMonth}/${periodYear.value}`,
+      debit: 0,
+      credit: pph21.value
+    })
+  }
+
+  // 3. [KREDIT] Lawan Akun Potongan BPJS Kesehatan & Ketenagakerjaan
+  const totalBpjs = Number(bpjsKesehatan.value || 0) + Number(bpjsKetenagakerjaan.value || 0)
+  if (totalBpjs > 0) {
+    lines.push({
+      accountCode: '2-1130',
+      accountName: 'Hutang Iuran BPJS Karyawan (Kes 1% & TK 3%)',
+      position: 'CREDIT',
+      description: `Lawan Akun: Potongan Iuran BPJS Kes (${formatIDR(bpjsKesehatan.value)}) + BPJS TK (${formatIDR(bpjsKetenagakerjaan.value)})`,
+      debit: 0,
+      credit: totalBpjs
+    })
+  }
+
+  // 4. [KREDIT] Lawan Akun Potongan Kasbon / Absensi (Piutang Karyawan Berkurang)
+  const otherDeductions = Number(attendanceDeduction.value || 0) + Number(loanDeduction.value || 0)
+  if (otherDeductions > 0) {
+    lines.push({
+      accountCode: '1-1402',
+      accountName: 'Piutang Karyawan / Potongan Kasbon & Absensi',
+      position: 'CREDIT',
+      description: `Lawan Akun: Potongan Ketidakhadiran & Cicilan Kasbon Karyawan`,
+      debit: 0,
+      credit: otherDeductions
+    })
+  }
+
+  // 5. [KREDIT] Lawan Akun Utama Pembayaran / Pengeluaran Kas & Bank (Gaji Bersih / Take Home Pay)
+  const isBca = (bankName.value || '').toLowerCase().includes('bca')
+  const bankAccCode = isBca ? '1-1113' : '1-1114'
+  const bankAccName = isBca ? 'Bank BCA Operasional' : 'Bank Mandiri Operasional & Payroll'
+  lines.push({
+    accountCode: bankAccCode,
+    accountName: bankAccName,
+    position: 'CREDIT',
+    description: `Lawan Akun: Pembayaran Gaji Bersih (THP) via ${bankName.value || 'Bank Mandiri'} No. Rek ${bankAccountNumber.value || '-'}`,
+    debit: 0,
+    credit: takeHomePay.value
+  })
+
+  return lines
+})
+
+const totalDebitJournal = computed(() => {
+  return journalLines.value.reduce((acc, row) => acc + row.debit, 0)
+})
+
+const totalCreditJournal = computed(() => {
+  return journalLines.value.reduce((acc, row) => acc + row.credit, 0)
+})
+
+const isJournalBalanced = computed(() => {
+  return totalDebitJournal.value === totalCreditJournal.value
+})
+
 // Watch editSlip props
 watch(() => props.editSlip, (item) => {
   if (item) {
@@ -305,20 +447,21 @@ watch(() => props.editSlip, (item) => {
     department.value = ''
     businessUnit.value = 'KIDINEST'
     workingDays.value = 22
-    presentDays.value = 22
+    presentDays.value = 0
     sickLeaveDays.value = 0
     paidLeaveDays.value = 0
     absentDays.value = 0
     overtimeHours.value = 0
-    dailyMealTransportRate.value = 30000
-    baseSalary.value = 4500000
-    positionAllowance.value = 500000
-    transportMealAllowance.value = 660000
+    dailyMealTransportRate.value = 0
+    baseSalary.value = 0
+    positionAllowance.value = 0
+    transportMealAllowance.value = 0
     shiftAttendanceAllowance.value = 0
     incentiveBonus.value = 0
     overtimePay.value = 0
-    bpjsKesehatan.value = 45000
-    bpjsKetenagakerjaan.value = 135000
+    bpjsKesehatan.value = 0
+    bpjsKetenagakerjaan.value = 0
+    pph21.value = 0
     attendanceDeduction.value = 0
     loanDeduction.value = 0
     notes.value = ''
@@ -392,7 +535,7 @@ function handleSave() {
     v-if="show"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto"
   >
-    <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl w-full max-w-2xl my-auto overflow-hidden">
+    <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl w-full max-w-3xl my-auto overflow-hidden">
       <!-- Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 bg-zinc-50/80">
         <div class="flex items-center gap-2.5">
@@ -523,18 +666,55 @@ function handleSave() {
           </div>
         </div>
 
-        <!-- Personal & Period Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-zinc-700 mb-1">{{ localeStore.isEnglish ? 'Employee Name' : 'Nama Lengkap Karyawan' }} *</label>
-            <input
-              v-model="employeeName"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:outline-hidden text-xs font-medium"
-              placeholder="cth: Fitri Handayani"
-            />
+        <!-- Mode Switcher: Form View vs Journal Entry View -->
+        <div class="flex items-center justify-between pb-1 border-b border-zinc-200">
+          <div class="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-xl">
+            <button
+              type="button"
+              @click="activeViewMode = 'form'"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              :class="activeViewMode === 'form' ? 'bg-white text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'"
+            >
+              <FileSpreadsheet class="w-3.5 h-3.5" />
+              <span>Formulir Rincian Gaji</span>
+            </button>
+            <button
+              type="button"
+              @click="activeViewMode = 'journal'"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              :class="activeViewMode === 'journal' ? 'bg-emerald-600 text-white shadow-xs' : 'text-zinc-500 hover:text-emerald-700'"
+            >
+              <BookOpen class="w-3.5 h-3.5" />
+              <span>Format Jurnal Umum (Debit / Kredit)</span>
+              <span class="w-2 h-2 rounded-full" :class="isJournalBalanced ? 'bg-emerald-400' : 'bg-rose-400'"></span>
+            </button>
           </div>
+
+          <div class="hidden sm:flex items-center gap-2 text-[11px] font-mono">
+            <span class="text-zinc-400">Status Jurnal:</span>
+            <span v-if="isJournalBalanced" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center gap-1">
+              <CheckCircle2 class="w-3 h-3" /> Balance (Rp 0 Selisih)
+            </span>
+            <span v-else class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">
+              Tidak Seimbang
+            </span>
+          </div>
+        </div>
+
+        <!-- VIEW A: FORMULIR RINCIAN SLIP GAJI -->
+        <div v-show="activeViewMode === 'form'" class="space-y-5">
+          <!-- Personal & Period Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-zinc-700 mb-1">{{ localeStore.isEnglish ? 'Employee Name' : 'Nama Lengkap Karyawan' }} *</label>
+              <input
+                v-model="employeeName"
+                type="text"
+                required
+                class="w-full px-3 py-2 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:outline-hidden text-xs font-medium"
+                placeholder="cth: Fitri Handayani"
+              />
+            </div>
 
           <div>
             <label class="block font-bold text-zinc-700 mb-1">NIK / ID Karyawan *</label>
@@ -804,6 +984,102 @@ function handleSave() {
             </div>
           </div>
         </div>
+        </div> <!-- End of VIEW A: FORMULIR RINCIAN SLIP GAJI -->
+
+        <!-- VIEW B: FORMAT JURNAL UMUM (DEBIT & KREDIT BERPASANGAN) -->
+        <div v-show="activeViewMode === 'journal'" class="space-y-4">
+          <!-- Info Header Jurnal -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 text-xs">
+            <div>
+              <span class="text-zinc-400 text-[10px] uppercase font-bold block">No. Bukti / Referensi</span>
+              <span class="font-mono font-bold text-zinc-900">PAYROLL-{{ periodYear }}{{ String(periodMonth).padStart(2, '0') }}-{{ employeeNik || 'STAF' }}</span>
+            </div>
+            <div>
+              <span class="text-zinc-400 text-[10px] uppercase font-bold block">Tanggal Jurnal Pembukuan</span>
+              <span class="font-mono font-bold text-zinc-900">28-{{ String(periodMonth).padStart(2, '0') }}-{{ periodYear }} (Akhir Bulan)</span>
+            </div>
+            <div>
+              <span class="text-zinc-400 text-[10px] uppercase font-bold block">Entitas & Unit Bisnis</span>
+              <span class="font-bold text-emerald-800">{{ businessUnit === 'APOTEK' ? 'CV Semarang Medical Clinic (Apotek)' : 'CV Semarang Medical Group (' + businessUnit + ')' }}</span>
+            </div>
+          </div>
+
+          <!-- Tabel Double-Entry Jurnal Umum Penggajian -->
+          <div class="border border-zinc-200 rounded-xl overflow-hidden shadow-xs">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-zinc-100 border-b border-zinc-200 text-zinc-600 font-bold text-[11px] uppercase tracking-wider">
+                <tr>
+                  <th class="py-2.5 px-3 w-10 text-center">No</th>
+                  <th class="py-2.5 px-3 w-28">Kode Akun</th>
+                  <th class="py-2.5 px-3">Nama Akun & Keterangan</th>
+                  <th class="py-2.5 px-3 w-20 text-center">Posisi</th>
+                  <th class="py-2.5 px-3 w-36 text-right">Debit (Rp)</th>
+                  <th class="py-2.5 px-3 w-36 text-right">Kredit (Rp)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-100 bg-white">
+                <tr
+                  v-for="(row, idx) in journalLines"
+                  :key="idx"
+                  class="hover:bg-zinc-50/80 transition-colors"
+                  :class="row.position === 'DEBIT' ? 'bg-emerald-50/20' : ''"
+                >
+                  <td class="py-2.5 px-3 text-center text-zinc-400 font-mono text-[11px]">{{ idx + 1 }}</td>
+                  <td class="py-2.5 px-3 font-mono font-bold" :class="row.position === 'DEBIT' ? 'text-emerald-700' : 'text-zinc-700'">
+                    {{ row.accountCode }}
+                  </td>
+                  <td class="py-2.5 px-3">
+                    <div :class="row.position === 'CREDIT' ? 'pl-5' : ''">
+                      <span class="font-bold text-zinc-900 block">{{ row.accountName }}</span>
+                      <span class="text-[10px] text-zinc-500 block mt-0.5">{{ row.description }}</span>
+                    </div>
+                  </td>
+                  <td class="py-2.5 px-3 text-center">
+                    <span
+                      class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
+                      :class="row.position === 'DEBIT' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'"
+                    >
+                      {{ row.position }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold" :class="row.debit > 0 ? 'text-emerald-700' : 'text-zinc-300'">
+                    {{ row.debit > 0 ? formatIDR(row.debit) : '-' }}
+                  </td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold" :class="row.credit > 0 ? 'text-blue-700' : 'text-zinc-300'">
+                    {{ row.credit > 0 ? formatIDR(row.credit) : '-' }}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot class="bg-zinc-900 text-white font-bold text-xs border-t-2 border-zinc-300">
+                <tr>
+                  <td colspan="4" class="py-3 px-4 uppercase tracking-wider text-[11px]">
+                    TOTAL JURNAL PENGGAJIAN (DEBIT vs KREDIT)
+                  </td>
+                  <td class="py-3 px-3 text-right font-mono text-emerald-400 text-xs">
+                    {{ formatIDR(totalDebitJournal) }}
+                  </td>
+                  <td class="py-3 px-3 text-right font-mono text-emerald-400 text-xs">
+                    {{ formatIDR(totalCreditJournal) }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Penjelasan Akuntansi Lawan Akun -->
+          <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5 text-xs">
+            <div class="font-bold flex items-center gap-1.5 text-amber-950">
+              <Sparkles class="w-4 h-4 text-amber-600" />
+              <span>Penjelasan Lawan Akun Penggajian (Double-Entry Bookkeeping)</span>
+            </div>
+            <ul class="list-disc list-inside space-y-1 text-[11px] text-amber-800 pl-1 leading-relaxed">
+              <li><strong>Debit [6-1200 Beban Gaji Karyawan, Perawat & Staf]:</strong> Mencatat seluruh beban bruto operasional klinik (Gaji Pokok, Tunjangan, Lembur, dan Insentif).</li>
+              <li><strong>Kredit [2-1510 Hutang Pajak PPh 21]:</strong> Lawan akun potongan pajak penghasilan karyawan yang ditahan klinik untuk disetor ke kas negara.</li>
+              <li><strong>Kredit [2-1130 Hutang Iuran BPJS]:</strong> Lawan akun potongan iuran BPJS Kesehatan (1%) dan BPJS Ketenagakerjaan (3%) untuk disetor ke BPJS.</li>
+              <li><strong>Kredit [1-1114 Bank Mandiri / Kas]:</strong> Lawan akun pengeluaran kas/bank sebesar Take Home Pay bersih yang ditransfer ke rekening karyawan.</li>
+            </ul>
+          </div>
+        </div> <!-- End of VIEW B: FORMAT JURNAL UMUM -->
 
         <!-- Take Home Pay Preview Strip -->
         <div class="p-3.5 rounded-xl bg-zinc-950 text-white flex items-center justify-between">

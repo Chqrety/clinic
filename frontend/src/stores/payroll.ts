@@ -10,7 +10,7 @@ export const usePayrollStore = defineStore('payroll', () => {
   const accountingStore = useAccountingStore()
   const journalsStore = useJournalsStore()
 
-  // Real PostgreSQL Database State
+  // Real PostgreSQL Database State (Production - No dummy data)
   const employees = ref<Employee[]>([])
   const payslips = ref<PayslipItem[]>([])
   const isLoading = ref(false)
@@ -21,38 +21,67 @@ export const usePayrollStore = defineStore('payroll', () => {
   const statusFilter = ref<'ALL' | PayrollStatus>('ALL')
   const searchQuery = ref<string>('')
 
-  // Fallback storage key for offline resiliency
-  const LOCAL_STORAGE_KEY = 'clinic_payroll_slips_v1'
-
   function persistSlips() {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payslips.value))
-    } catch { }
+    // Production state is stored directly in PostgreSQL
   }
 
-  function loadCachedSlips(): PayslipItem[] {
-    try {
-      const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
-      if (raw) return JSON.parse(raw)
-    } catch { }
-    return []
-  }
+  // Clean any old dummy localStorage
+  try {
+    localStorage.removeItem('clinic_payroll_slips_v1')
+  } catch { }
 
   // --------------------------------------------------------------------------
-  // Live Backend Database API Synchronization
+  // Live Backend Database API Synchronization (PostgreSQL - No Dummy Fallbacks)
   // --------------------------------------------------------------------------
 
   async function fetchEmployees(bu?: string) {
     try {
       const backendEmployees = await accountingApi.getPayrollEmployees(bu || accountingStore.businessUnit, true)
-      if (backendEmployees && backendEmployees.length > 0) {
-        employees.value = backendEmployees
-        return
-      }
+      employees.value = backendEmployees || []
     } catch (err) {
-      console.warn('[PayrollStore] Gagal mengambil data karyawan dari PostgreSQL backend, menggunakan fallback:', err)
+      console.warn('[PayrollStore] Gagal mengambil data karyawan dari PostgreSQL backend:', err)
+      employees.value = []
     }
   }
+
+  // Combines employees fetched from PostgreSQL and any employees discovered in loaded payslips
+  const allAvailableEmployees = computed<Employee[]>(() => {
+    const map = new Map<string, Employee>()
+
+    // 1. Add from employees.value (live database from PostgreSQL)
+    for (const emp of employees.value) {
+      map.set(emp.nik, emp)
+    }
+
+    // 2. Add any employee found in loaded payslips
+    for (const slip of payslips.value) {
+      if (!map.has(slip.employeeNik)) {
+        map.set(slip.employeeNik, {
+          id: slip.employeeId,
+          nik: slip.employeeNik,
+          name: slip.employeeName,
+          position: slip.position,
+          department: slip.department,
+          businessUnit: slip.businessUnit,
+          employmentType: 'TETAP',
+          joinDate: '2024-01-01',
+          baseSalary: slip.baseSalary,
+          positionAllowance: slip.positionAllowance,
+          transportMealAllowance: slip.transportMealAllowance,
+          dailyMealTransportRate: slip.dailyMealTransportRate || 0,
+          bankName: slip.bankName,
+          bankAccountNumber: slip.bankAccountNumber,
+          npwp: '',
+          ptkpStatus: 'TK/0',
+          bpjsKesehatanNo: '',
+          bpjsKetenagakerjaanNo: '',
+          isActive: true
+        })
+      }
+    }
+
+    return Array.from(map.values())
+  })
 
   async function fetchPayslips() {
     try {
@@ -63,21 +92,12 @@ export const usePayrollStore = defineStore('payroll', () => {
         accountingStore.businessUnit,
         statusFilter.value
       )
-      if (backendSlips && backendSlips.length > 0) {
-        payslips.value = backendSlips
-        persistSlips()
-        return
-      }
+      payslips.value = backendSlips || []
     } catch (err) {
-      console.warn('[PayrollStore] Gagal mengambil slip dari PostgreSQL backend, menggunakan cached slips:', err)
+      console.warn('[PayrollStore] Gagal mengambil slip dari PostgreSQL backend:', err)
+      payslips.value = []
     } finally {
       isLoading.value = false
-    }
-
-    // If backend returns empty or unreachable, check cached slips
-    const cached = loadCachedSlips()
-    if (cached.length > 0) {
-      payslips.value = cached
     }
   }
 
@@ -136,88 +156,6 @@ export const usePayrollStore = defineStore('payroll', () => {
   // --------------------------------------------------------------------------
   // Actions with Authoritative Backend PostgreSQL API Calls
   // --------------------------------------------------------------------------
-
-  async function generateMonthlyPayroll(month: number, year: number) {
-    try {
-      isLoading.value = true
-      const backendGenerated = await accountingApi.generateMonthlyPayroll(month, year, accountingStore.businessUnit)
-      if (backendGenerated && backendGenerated.length > 0) {
-        payslips.value = backendGenerated
-        persistSlips()
-        accountingStore.showToast(`Berhasil generate ${backendGenerated.length} slip gaji dari database untuk periode ${month}/${year}`, 'success')
-        return
-      }
-    } catch (err: any) {
-      console.warn('[PayrollStore] Generate via backend API gagal, fallback ke kalkulasi lokal:', err)
-      accountingStore.showToast(err.message || 'Gagal generate payroll dari database', 'error')
-    } finally {
-      isLoading.value = false
-    }
-
-    // Local fallback generation
-    await fetchEmployees()
-    const pName = `Bulan ${month} ${year}`
-    const generated: PayslipItem[] = employees.value
-      .filter(e => e.isActive && (accountingStore.businessUnit === 'ALL' || e.businessUnit === 'ALL' || e.businessUnit === accountingStore.businessUnit))
-      .map(emp => {
-        const workingDays = 22
-        const presentDays = 22
-        const dailyMealRate = emp.dailyMealTransportRate || (emp.transportMealAllowance ? Math.round(emp.transportMealAllowance / workingDays) : 30000)
-        const transportAllowance = dailyMealRate * presentDays
-
-        const gross = emp.baseSalary + emp.positionAllowance + transportAllowance
-        const bpjsKes = Math.round(Math.min(gross, 12000000) * 0.01)
-        const bpjsTk = Math.round(gross * 0.03)
-        const pph21 = gross > 5400000 ? Math.round(gross * 0.015) : 0
-        const totalDed = bpjsKes + bpjsTk + pph21
-        const thp = gross - totalDed
-
-        return {
-          id: `slip-${year}${month}-${emp.id}`,
-          slipNumber: `SLIP/${year}/${String(month).padStart(2, '0')}/${emp.nik}`,
-          employeeId: emp.id,
-          employeeNik: emp.nik,
-          employeeName: emp.name,
-          position: emp.position,
-          department: emp.department,
-          businessUnit: emp.businessUnit,
-          periodMonth: month,
-          periodYear: year,
-          periodName: pName,
-          paymentDate: `${year}-${String(month).padStart(2, '0')}-28`,
-          workingDays,
-          presentDays,
-          sickLeaveDays: 0,
-          paidLeaveDays: 0,
-          absentDays: 0,
-          overtimeHours: 0,
-          dailyMealTransportRate: dailyMealRate,
-          baseSalary: emp.baseSalary,
-          positionAllowance: emp.positionAllowance,
-          transportMealAllowance: transportAllowance,
-          shiftAttendanceAllowance: 0,
-          incentiveBonus: 0,
-          overtimePay: 0,
-          otherAllowance: 0,
-          totalGrossSalary: gross,
-          bpjsKesehatan: bpjsKes,
-          bpjsKetenagakerjaan: bpjsTk,
-          pph21,
-          attendanceDeduction: 0,
-          loanDeduction: 0,
-          otherDeduction: 0,
-          totalDeduction: totalDed,
-          takeHomePay: thp,
-          bankName: emp.bankName,
-          bankAccountNumber: emp.bankAccountNumber,
-          status: 'DRAFT' as PayrollStatus
-        }
-      })
-
-    payslips.value.unshift(...generated)
-    persistSlips()
-    accountingStore.showToast(`Berhasil generate ${generated.length} slip gaji karyawan untuk periode ${month}/${year}`, 'success')
-  }
 
   async function addCustomPayslip(slip: Omit<PayslipItem, 'id' | 'slipNumber'>): Promise<PayslipItem> {
     try {
@@ -454,6 +392,7 @@ export const usePayrollStore = defineStore('payroll', () => {
 
   return {
     employees,
+    allAvailableEmployees,
     payslips,
     isLoading,
     selectedMonth,
@@ -464,7 +403,6 @@ export const usePayrollStore = defineStore('payroll', () => {
     stats,
     fetchEmployees,
     fetchPayslips,
-    generateMonthlyPayroll,
     addCustomPayslip,
     updatePayslip,
     deletePayslip,

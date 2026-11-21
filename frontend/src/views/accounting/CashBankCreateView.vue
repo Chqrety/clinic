@@ -8,6 +8,7 @@ import { formatIDR } from '@/utils/currency'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import type { BusinessUnit, CashBankTransactionType } from '@/types/accounting'
 import {
+  Folder,
   ArrowLeft,
   ArrowDownLeft,
   ArrowUpRight,
@@ -21,7 +22,11 @@ import {
   Wallet,
   Landmark,
   Building2,
-  FileText
+  FileText,
+  BookOpen,
+  Calculator,
+  Clock,
+  Send
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -29,6 +34,9 @@ const route = useRoute()
 const cashBankStore = useCashBankStore()
 const accountingStore = useAccountingStore()
 const ledgerStore = useLedgerStore()
+
+// Active tab matching Brayo SPT Masa layout
+const activeTab = ref<'DETAILS' | 'RECONCILIATION' | 'AUDIT'>('DETAILS')
 
 onMounted(async () => {
   await cashBankStore.fetchCashBankData()
@@ -110,63 +118,62 @@ function setupDefaultRows() {
   }
 
   if (voucherType.value === 'CASH_OUT') {
-    // Default BKK: Counterpart (Expense) on Debit, Cash/Bank on Credit
+    // Standard BKK: Counterpart (Expense/Payable) on Debit, Cash/Bank on Credit
     voucherRows.value = [
       {
-        accountCode: '5202',
-        accountName: 'BEBAN UMUM DAN ADMINISTRASI',
-        description: 'Pembelian konsumsi rapat & BHP operasional',
-        debit: 500000,
+        accountCode: '',
+        accountName: '',
+        description: '',
+        debit: 0,
         credit: 0,
         unit: businessUnit.value
       },
       {
         accountCode: primaryAccountCode.value,
-        accountName: primaryAcc?.name || 'Kas Kecil',
-        description: 'Pengeluaran kas kecil operasional',
+        accountName: primaryAcc?.name || '',
+        description: '',
         debit: 0,
-        credit: 500000,
+        credit: 0,
         unit: businessUnit.value
       }
     ]
   } else if (voucherType.value === 'CASH_IN') {
-    // Default BKM: Cash/Bank on Debit, Counterpart (Revenue/Receivable) on Credit
+    // Standard BKM: Cash/Bank on Debit, Counterpart (Revenue/Receivable) on Credit
     voucherRows.value = [
       {
         accountCode: primaryAccountCode.value,
-        accountName: primaryAcc?.name || 'Kas Kasir',
-        description: 'Penerimaan kas/bank masuk',
-        debit: 1500000,
+        accountName: primaryAcc?.name || '',
+        description: '',
+        debit: 0,
         credit: 0,
         unit: businessUnit.value
       },
       {
-        accountCode: '4101',
-        accountName: 'Pendapatan Jasa Medis Kidinest',
-        description: 'Penerimaan konsultasi medis spesialis',
+        accountCode: '',
+        accountName: '',
+        description: '',
         debit: 0,
-        credit: 1500000,
+        credit: 0,
         unit: businessUnit.value
       }
     ]
   } else {
-    // Default Transfer: Destination Bank on Debit, Source Bank/Cash on Credit
-    const destBank = availableCashBankAccounts.value.find(b => b.code !== primaryAccountCode.value) || availableCashBankAccounts.value[1]
+    // Standard Transfer: Destination Bank on Debit, Source Bank/Cash on Credit
     voucherRows.value = [
       {
-        accountCode: destBank?.code || '1102.001',
-        accountName: destBank?.name || 'Bank BCA Operasional',
-        description: 'Penerimaan setoran dana transfer',
-        debit: 2000000,
+        accountCode: '',
+        accountName: '',
+        description: '',
+        debit: 0,
         credit: 0,
         unit: businessUnit.value
       },
       {
         accountCode: primaryAccountCode.value,
-        accountName: primaryAcc?.name || 'Kas Kasir',
-        description: 'Penyetoran mutasi kas/bank',
+        accountName: primaryAcc?.name || '',
+        description: '',
         debit: 0,
-        credit: 2000000,
+        credit: 0,
         unit: businessUnit.value
       }
     ]
@@ -336,362 +343,422 @@ function handleSaveVoucher() {
 </script>
 
 <template>
-  <div class="space-y-6 font-['Plus_Jakarta_Sans',sans-serif] pb-16 max-w-6xl mx-auto">
-    <!-- Header with Back Button -->
-    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
-      <div>
-        <div class="flex items-center gap-2">
-          <router-link
-            to="/accounting/cash-bank"
-            class="text-xs font-semibold text-zinc-500 hover:text-zinc-900 transition flex items-center gap-1"
-          >
-            <ArrowLeft class="w-3.5 h-3.5" />
-            <span>Kembali ke Buku Kas & Bank</span>
+  <div class="font-['Plus_Jakarta_Sans',sans-serif] max-w-7xl mx-auto pb-16">
+    <div class="bg-white text-zinc-800 rounded-2xl border border-zinc-200/90 p-5 sm:p-7 shadow-2xs space-y-6">
+      
+      <!-- 1. Header: Breadcrumb & Action Bar -->
+      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-zinc-200">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-xs text-zinc-500 flex-wrap">
+          <router-link to="/accounting/cash-bank" class="hover:text-zinc-900 transition flex items-center gap-1.5 text-zinc-500">
+            <Folder class="w-4 h-4 text-zinc-400" />
+            <span>Buku & Transaksi</span>
           </router-link>
-          <span class="text-zinc-300">•</span>
-          <span class="text-xs text-zinc-400 font-medium">Multi-Line Voucher Entry</span>
-        </div>
-        <h1 class="text-2xl font-bold text-zinc-950 tracking-tight mt-1">
-          Pencatatan Voucher Kas & Bank (BKM / BKK / Transfer)
-        </h1>
-        <p class="text-xs text-zinc-500">
-          Formulir jurnal multi-baris berimbang (gaya General Ledger). Satu voucher kas keluar dapat membiayai multi-pos beban sekaligus, dan penerimaan kasir dapat memuat potongan fee perbankan.
-        </p>
-      </div>
-
-      <div class="flex items-center gap-2.5">
-        <router-link
-          to="/accounting/cash-bank"
-          class="px-4 py-2 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-semibold border border-zinc-200 transition"
-        >
-          Batal
-        </router-link>
-
-        <button
-          type="button"
-          @click="handleSaveVoucher"
-          class="inline-flex items-center gap-1.5 px-5 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
-        >
-          <Save class="w-3.5 h-3.5" />
-          <span>Simpan & Posting Voucher</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Top Card: Voucher Type Selector & Primary Account Header -->
-    <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs p-6 space-y-5">
-      <!-- Voucher Type Tabs -->
-      <div>
-        <label class="block font-bold text-zinc-700 text-xs mb-1.5 uppercase tracking-wider">
-          Jenis Voucher Kas & Bank:
-        </label>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <button
-            type="button"
-            @click="onVoucherTypeChange('CASH_OUT')"
-            class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-xs font-bold transition cursor-pointer"
-            :class="voucherType === 'CASH_OUT' ? 'bg-rose-50 text-rose-950 border-rose-300 ring-2 ring-rose-500/20' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200'"
+          <span>/</span>
+          <span class="text-zinc-500">Buku Kas & Bank</span>
+          <span>/</span>
+          <span class="font-mono font-bold text-zinc-900">
+            {{ referenceNo || (voucherType === 'CASH_OUT' ? 'BKK-BARU' : voucherType === 'CASH_IN' ? 'BKM-BARU' : 'TRF-BARU') }}
+          </span>
+          <span
+            :class="[
+              'ml-1.5 px-2 py-0.5 rounded text-[11px] font-bold border',
+              isBalanced ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+            ]"
           >
-            <div class="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center">
-              <ArrowUpRight class="w-4 h-4" />
-            </div>
-            <div class="text-left">
-              <span class="block">BKK / BBK (Kas Keluar)</span>
-              <span class="block text-[10px] font-normal text-zinc-500">Biaya operasional multi-pos, vendor, dll</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            @click="onVoucherTypeChange('CASH_IN')"
-            class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-xs font-bold transition cursor-pointer"
-            :class="voucherType === 'CASH_IN' ? 'bg-emerald-50 text-emerald-950 border-emerald-300 ring-2 ring-emerald-500/20' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200'"
-          >
-            <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-              <ArrowDownLeft class="w-4 h-4" />
-            </div>
-            <div class="text-left">
-              <span class="block">BKM / BBM (Kas Masuk)</span>
-              <span class="block text-[10px] font-normal text-zinc-500">Pendapatan kasir, klaim asuransi, dll</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            @click="onVoucherTypeChange('TRANSFER')"
-            class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-xs font-bold transition cursor-pointer"
-            :class="voucherType === 'TRANSFER' ? 'bg-zinc-950 text-white border-zinc-950 ring-2 ring-zinc-500/20' : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200'"
-          >
-            <div class="w-6 h-6 rounded-lg bg-zinc-800 text-white flex items-center justify-center">
-              <ArrowLeftRight class="w-4 h-4" />
-            </div>
-            <div class="text-left">
-              <span class="block">TRF (Mutasi Transfer)</span>
-              <span class="block text-[10px] font-normal" :class="voucherType === 'TRANSFER' ? 'text-zinc-400' : 'text-zinc-500'">Pemindahbukuan antar rekening bank/kas</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <!-- Voucher Metadata Fields -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-        <div>
-          <label class="block font-bold text-zinc-700 mb-1">
-            Buku Kas / Rekening Bank Utama:
-          </label>
-          <SearchableSelect
-            :model-value="primaryAccountCode"
-            :options="primaryAccountOptions"
-            placeholder="Cari atau pilih rekening kas/bank..."
-            @update:model-value="(val: any) => onPrimaryAccountChange(String(val))"
-          />
-          <span v-if="selectedPrimaryAccount" class="text-[10px] text-zinc-500 mt-1 block">
-            Saldo Buku: <strong class="text-zinc-950">{{ formatIDR(selectedPrimaryAccount.currentBalance || 0) }}</strong>
+            {{ isBalanced ? 'Seimbang' : 'Belum Seimbang' }}
           </span>
         </div>
 
-        <div>
-          <label class="block font-bold text-zinc-700 mb-1">Tanggal Transaksi:</label>
-          <input
-            v-model="transactionDate"
-            type="date"
-            class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 text-xs"
-          />
-        </div>
-
-        <div>
-          <label class="block font-bold text-zinc-700 mb-1">
-            {{ voucherType === 'CASH_IN' ? 'Diterima Dari:' : 'Dibayarkan Kepada / Penerima:' }}
-          </label>
-          <input
-            v-model="recipientOrPayer"
-            type="text"
-            placeholder="Contoh: Toko Berkah / Pasien Umum"
-            class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl text-zinc-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 text-xs"
-          />
-        </div>
-
-        <div>
-          <label class="block font-bold text-zinc-700 mb-1">No. Referensi / Bukti:</label>
-          <input
-            v-model="referenceNo"
-            type="text"
-            placeholder="Contoh: NOTA-1102 atau TRF-BCA-992"
-            class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono text-zinc-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 text-xs"
-          />
-        </div>
-      </div>
-
-      <!-- Keterangan Umum & Unit Bisnis -->
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs pt-1">
-        <div class="sm:col-span-1">
-          <label class="block font-bold text-zinc-700 mb-1">Unit Bisnis Klinik:</label>
-          <select
-            v-model="businessUnit"
-            class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-bold text-zinc-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 cursor-pointer text-xs"
-          >
-            <option value="KIDINEST">Kidinest</option>
-            <option value="SSC">Semarang Skin Center</option>
-            <option value="ALL">SMG (Seluruh Unit)</option>
-          </select>
-        </div>
-
-        <div class="sm:col-span-3">
-          <label class="block font-bold text-zinc-700 mb-1">Keterangan Memo Umum Voucher:</label>
-          <input
-            v-model="description"
-            type="text"
-            placeholder="Contoh: Pengeluaran operasional pembelian konsumsi dokter poli dan ATK medis"
-            class="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl text-zinc-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-950 text-xs font-medium"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- SPREADSHEET-STYLE MULTI-LINE VOUCHER ENTRY (Gaya Jurnal Umum Brayo) -->
-    <div class="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden p-6 space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3">
-        <div>
-          <div class="flex items-center gap-2">
-            <FileText class="w-4 h-4 text-zinc-800" />
-            <h3 class="text-sm font-bold text-zinc-900">
-              Rincian Alokasi Akun Rekening (Multi-Line Double Entry)
-            </h3>
-          </div>
-          <p class="text-xs text-zinc-500 mt-0.5">
-            Tambahkan baris sebanyak yang diperlukan. Pastikan total debit seimbang dengan total kredit.
-          </p>
-        </div>
-
-        <div class="flex items-center gap-2">
+        <!-- Top Right Actions -->
+        <div class="flex items-center gap-2 flex-wrap">
           <button
+            v-if="!isBalanced && balanceDiff !== 0"
             type="button"
             @click="autoBalanceRows"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer"
-            title="Otomatis seimbangkan baris kredit/debit dengan akun kas/bank"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl text-xs border border-amber-200 transition active:scale-95 cursor-pointer"
+            title="Seimbangkan otomatis selisih baris kas/bank"
           >
             <Sparkles class="w-3.5 h-3.5 text-amber-600" />
-            <span>Otomatis Seimbangkan</span>
+            <span>Seimbangkan Selisih</span>
           </button>
 
           <button
             type="button"
-            @click="addRow"
-            class="inline-flex items-center gap-1 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+            :disabled="!isBalanced"
+            @click="handleSaveVoucher"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white font-bold rounded-xl text-xs shadow-2xs transition active:scale-95 cursor-pointer"
           >
-            <Plus class="w-3.5 h-3.5" />
-            <span>+ Tambah Baris</span>
+            <Send class="w-3.5 h-3.5 text-emerald-400" />
+            <span>Simpan & Posting Voucher</span>
           </button>
+
+          <router-link
+            to="/accounting/cash-bank"
+            class="inline-flex items-center px-3 py-1.5 text-zinc-500 hover:text-zinc-800 text-xs font-semibold transition"
+          >
+            Cancel
+          </router-link>
         </div>
+      </header>
+
+      <!-- 2. Tabs Navigation -->
+      <div class="border-b border-zinc-200">
+        <nav class="flex space-x-6 text-xs font-medium">
+          <button
+            type="button"
+            @click="activeTab = 'DETAILS'"
+            class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
+            :class="activeTab === 'DETAILS' ? 'border-b-2 border-zinc-950 text-zinc-950 font-bold' : 'border-b-2 border-transparent text-zinc-500 hover:text-zinc-800'"
+          >
+            <BookOpen class="w-3.5 h-3.5" />
+            <span>Details</span>
+          </button>
+
+          <button
+            type="button"
+            @click="activeTab = 'RECONCILIATION'"
+            class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
+            :class="activeTab === 'RECONCILIATION' ? 'border-b-2 border-zinc-950 text-zinc-950 font-bold' : 'border-b-2 border-transparent text-zinc-500 hover:text-zinc-800'"
+          >
+            <Calculator class="w-3.5 h-3.5" />
+            <span>Rekonsiliasi & Status</span>
+          </button>
+
+          <button
+            type="button"
+            @click="activeTab = 'AUDIT'"
+            class="pb-2.5 transition flex items-center gap-1.5 cursor-pointer"
+            :class="activeTab === 'AUDIT' ? 'border-b-2 border-zinc-950 text-zinc-950 font-bold' : 'border-b-2 border-transparent text-zinc-500 hover:text-zinc-800'"
+          >
+            <Clock class="w-3.5 h-3.5" />
+            <span>Audit Trail & Log</span>
+          </button>
+        </nav>
       </div>
 
-      <!-- Spreadsheet Table -->
-      <div class="overflow-x-auto border border-zinc-200 rounded-xl">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-zinc-50 border-b border-zinc-200 text-[11px] font-bold text-zinc-600 uppercase tracking-wider">
-              <th class="py-2.5 px-3 w-10 text-center">#</th>
-              <th class="py-2.5 px-3 w-32">Unit</th>
-              <th class="py-2.5 px-3 w-72">Akun Rekening (COA)</th>
-              <th class="py-2.5 px-3">Uraian Transaksi Baris</th>
-              <th class="py-2.5 px-3 w-40 text-right">Debit (Rp)</th>
-              <th class="py-2.5 px-3 w-40 text-right">Kredit (Rp)</th>
-              <th class="py-2.5 px-3 w-12 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-100">
-            <tr
-              v-for="(row, idx) in voucherRows"
-              :key="idx"
-              class="hover:bg-zinc-50/70"
-            >
-              <td class="py-2 px-3 text-center text-zinc-400 font-mono font-bold">{{ idx + 1 }}</td>
-              <td class="py-2 px-3">
-                <select
-                  v-model="row.unit"
-                  class="w-full px-2 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:ring-1 focus:ring-zinc-950 focus:outline-none cursor-pointer"
-                >
-                  <option value="KIDINEST">Kidinest</option>
-                  <option value="SSC">SSC</option>
-                  <option value="ALL">ALL</option>
-                </select>
-              </td>
-              <td class="py-2 px-3 min-w-[260px]">
-                <SearchableSelect
-                  :model-value="row.accountCode"
-                  :options="accountSelectOptions"
-                  placeholder="Pilih atau cari akun COA..."
-                  @update:model-value="(val: any) => onAccountSelect(idx, String(val))"
-                />
-              </td>
-              <td class="py-2 px-3">
-                <input
-                  v-model="row.description"
-                  type="text"
-                  placeholder="Keterangan alokasi baris"
-                  class="w-full px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs text-zinc-800 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-                />
-              </td>
-              <td class="py-2 px-3">
-                <input
-                  v-model.number="row.debit"
-                  type="number"
-                  min="0"
-                  step="1000"
-                  placeholder="0"
-                  class="w-full px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs tabular-nums font-bold text-right text-zinc-950 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-                />
-              </td>
-              <td class="py-2 px-3">
-                <input
-                  v-model.number="row.credit"
-                  type="number"
-                  min="0"
-                  step="1000"
-                  placeholder="0"
-                  class="w-full px-2.5 py-1.5 bg-white border border-zinc-200 rounded-xl text-xs tabular-nums font-bold text-right text-zinc-950 focus:ring-1 focus:ring-zinc-950 focus:outline-none"
-                />
-              </td>
-              <td class="py-2 px-3 text-center">
-                <button
-                  type="button"
-                  @click="removeRow(idx)"
-                  class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                  title="Hapus baris ini"
-                >
-                  <Trash2 class="w-3.5 h-3.5" />
-                </button>
-              </td>
-            </tr>
-          </tbody>
-          <!-- Totals Footer -->
-          <tfoot>
-            <tr class="bg-zinc-50 border-t border-zinc-200 font-bold text-zinc-900">
-              <td colspan="4" class="py-3 px-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs uppercase tracking-wider text-zinc-500 font-bold">Total Nilai Voucher:</span>
-                  <span v-if="isBalanced" class="text-xs text-emerald-700 font-bold flex items-center gap-1">
-                    <CheckCircle2 class="w-4 h-4 text-emerald-600" />
-                    <span>Seimbang (Balanced)</span>
-                  </span>
-                  <span v-else class="text-xs text-rose-600 font-bold flex items-center gap-1">
-                    <AlertCircle class="w-4 h-4 text-rose-600" />
-                    <span>Selisih: {{ formatIDR(balanceDiff) }}</span>
-                  </span>
-                </div>
-              </td>
-              <td class="py-3 px-3 text-right tabular-nums font-extrabold text-zinc-950 bg-zinc-100/60 text-sm">
-                {{ formatIDR(totalDebit) }}
-              </td>
-              <td class="py-3 px-3 text-right tabular-nums font-extrabold text-zinc-950 bg-zinc-100/60 text-sm">
-                {{ formatIDR(totalCredit) }}
-              </td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <!-- Terbilang Display -->
-      <div v-if="totalDebit > 0" class="p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-700 flex items-center justify-between">
+      <!-- 3. TAB 1: DETAILS -->
+      <div v-if="activeTab === 'DETAILS'" class="space-y-7">
+        
+        <!-- Section A: Informasi Voucher Kas & Bank -->
         <div>
-          <span class="text-zinc-400 block text-[10px] uppercase font-bold">Terbilang:</span>
-          <span class="font-bold text-zinc-900 italic"># {{ terbilang(totalDebit) }} Rupiah #</span>
+          <h3 class="text-sm font-bold text-zinc-900 mb-3.5">
+            Informasi Voucher Kas & Bank
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Jenis Voucher *</label>
+              <select
+                :value="voucherType"
+                @change="onVoucherTypeChange(($event.target as HTMLSelectElement).value as any)"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
+              >
+                <option value="CASH_OUT">BKK / BBK - Kas Keluar (Pengeluaran Operasional)</option>
+                <option value="CASH_IN">BKM / BBM - Kas Masuk (Penerimaan Kasir/Lainnya)</option>
+                <option value="TRANSFER">TRF - Mutasi Transfer Antar Kas/Bank</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Buku Kas / Rekening Utama *</label>
+              <SearchableSelect
+                :model-value="primaryAccountCode"
+                :options="primaryAccountOptions"
+                placeholder="Pilih rekening kas/bank..."
+                @update:model-value="(val: any) => onPrimaryAccountChange(String(val))"
+              />
+              <span v-if="selectedPrimaryAccount" class="text-[10px] text-zinc-500 mt-1 block">
+                Saldo: <strong class="text-zinc-950 font-mono">Rp {{ formatIDR(selectedPrimaryAccount.currentBalance || 0) }}</strong>
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Tanggal Transaksi *</label>
+              <input
+                v-model="transactionDate"
+                type="date"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Penerima / Pembayar *</label>
+              <input
+                v-model="recipientOrPayer"
+                type="text"
+                placeholder="e.g. Toko Buku, Petugas Kasir, Vendor"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">No. Referensi / Bukti</label>
+              <input
+                v-model="referenceNo"
+                type="text"
+                placeholder="e.g. BKK-2026-001, NOTA-12"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-zinc-600 mb-1 font-medium">Unit Bisnis / Cabang *</label>
+              <select
+                v-model="businessUnit"
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 focus:bg-white cursor-pointer transition"
+              >
+                <option value="ALL">Semua Unit (Konsolidasi)</option>
+                <option value="KIDINEST">Unit Kidinest (Klinik Spesialis Anak)</option>
+                <option value="SSC">Unit SSC (Semarang Skin Center)</option>
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-zinc-600 mb-1 font-medium">Catatan / Keterangan Memo Transaksi *</label>
+              <input
+                v-model="description"
+                type="text"
+                placeholder="Tuliskan maksud pengeluaran / penerimaan kas/bank ini..."
+                class="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 font-medium focus:outline-none focus:border-zinc-400 focus:bg-white transition"
+              />
+            </div>
+          </div>
         </div>
-        <div class="text-right">
-          <span class="text-zinc-400 block text-[10px] uppercase font-bold">Akun Kas/Bank Utama:</span>
-          <span class="font-mono font-bold text-zinc-900">{{ primaryAccountCode }} - {{ selectedPrimaryAccount?.name }}</span>
+
+        <!-- Section B: Detail Baris Transaksi Kas & Bank -->
+        <div>
+          <div class="flex items-center justify-between mb-3.5">
+            <div>
+              <h3 class="text-sm font-bold text-zinc-900">
+                Detail Transaksi Baris Akun (Multi-Line Voucher)
+              </h3>
+              <p class="text-xs text-zinc-500">
+                Alokasi baris debet dan kredit kas/bank berpasangan seimbang.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              @click="addRow"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+            >
+              <Plus class="w-3.5 h-3.5" />
+              <span>Tambah Baris</span>
+            </button>
+          </div>
+
+          <div class="border border-zinc-200 rounded-xl overflow-hidden shadow-2xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-zinc-50 text-zinc-500 font-bold border-b border-zinc-200 uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th class="px-3 py-2.5 w-10 text-center">#</th>
+                    <th class="px-4 py-2.5 min-w-[280px]">Akun Buku Besar (COA BCS)</th>
+                    <th class="px-3 py-2.5 w-28 text-center">Unit</th>
+                    <th class="px-4 py-2.5 min-w-[200px]">Uraian Baris (Line Remark)</th>
+                    <th class="px-4 py-2.5 w-44 text-right">Debet (Rp)</th>
+                    <th class="px-4 py-2.5 w-44 text-right">Kredit (Rp)</th>
+                    <th class="px-3 py-2.5 w-12 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 text-zinc-700 bg-white">
+                  <tr
+                    v-for="(row, idx) in voucherRows"
+                    :key="idx"
+                    class="hover:bg-zinc-50/70 transition"
+                  >
+                    <td class="px-3 py-2.5 text-center font-bold text-zinc-400">
+                      {{ idx + 1 }}
+                    </td>
+
+                    <td class="px-4 py-2">
+                      <SearchableSelect
+                        :model-value="row.accountCode"
+                        :options="accountSelectOptions"
+                        placeholder="-- Pilih Akun COA --"
+                        @update:model-value="(code: any) => onAccountSelect(idx, String(code))"
+                      />
+                    </td>
+
+                    <td class="px-3 py-2 text-center">
+                      <select
+                        v-model="row.unit"
+                        class="w-full px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-[11px] font-semibold text-zinc-800 focus:outline-none"
+                      >
+                        <option value="ALL">ALL</option>
+                        <option value="KIDINEST">Kidinest</option>
+                        <option value="SSC">SSC</option>
+                      </select>
+                    </td>
+
+                    <td class="px-4 py-2">
+                      <input
+                        v-model="row.description"
+                        type="text"
+                        placeholder="Keterangan baris transaksi..."
+                        class="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                      />
+                    </td>
+
+                    <td class="px-4 py-2 text-right">
+                      <div class="relative">
+                        <span class="absolute left-2.5 top-1.5 text-zinc-400 font-mono text-xs">Rp</span>
+                        <input
+                          v-model.number="row.debit"
+                          type="number"
+                          min="0"
+                          step="any"
+                          class="w-full pl-8 pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-emerald-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                          placeholder="0"
+                        />
+                      </div>
+                    </td>
+
+                    <td class="px-4 py-2 text-right">
+                      <div class="relative">
+                        <span class="absolute left-2.5 top-1.5 text-zinc-400 font-mono text-xs">Rp</span>
+                        <input
+                          v-model.number="row.credit"
+                          type="number"
+                          min="0"
+                          step="any"
+                          class="w-full pl-8 pr-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-right font-mono font-bold text-rose-700 focus:outline-none focus:border-zinc-400 focus:bg-white"
+                          placeholder="0"
+                        />
+                      </div>
+                    </td>
+
+                    <td class="px-3 py-2 text-center">
+                      <button
+                        type="button"
+                        @click="removeRow(idx)"
+                        class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        title="Hapus baris"
+                      >
+                        <Trash2 class="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="bg-zinc-50/90 border-t border-zinc-200 font-bold text-xs">
+                  <tr>
+                    <td colspan="4" class="px-4 py-3 text-right uppercase text-zinc-500 tracking-wider">
+                      Total Nilai Transaksi:
+                    </td>
+                    <td class="px-4 py-3 text-right font-mono text-emerald-800 text-sm">
+                      Rp {{ formatIDR(totalDebit) }}
+                    </td>
+                    <td class="px-4 py-3 text-right font-mono text-rose-800 text-sm">
+                      Rp {{ formatIDR(totalCredit) }}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Terbilang Banner -->
+          <div v-if="totalDebit > 0" class="mt-3 p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-zinc-400 block text-[10px] uppercase font-bold">Terbilang:</span>
+              <span class="font-bold text-zinc-900 italic"># {{ terbilang(totalDebit) }} Rupiah #</span>
+            </div>
+            <div class="sm:text-right">
+              <span class="text-zinc-400 block text-[10px] uppercase font-bold">Rekening Utama:</span>
+              <span class="font-mono font-bold text-zinc-900">{{ primaryAccountCode }} - {{ selectedPrimaryAccount?.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section C: Ringkasan Nilai Voucher -->
+        <div>
+          <h3 class="text-sm font-bold text-zinc-900 mb-3.5">
+            Ringkasan & Keseimbangan Voucher
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+            <div class="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+              <span class="text-[11px] font-sans font-medium text-zinc-500 block mb-1">TOTAL DEBET</span>
+              <span class="text-base font-extrabold text-emerald-700">Rp {{ formatIDR(totalDebit) }}</span>
+            </div>
+
+            <div class="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+              <span class="text-[11px] font-sans font-medium text-zinc-500 block mb-1">TOTAL KREDIT</span>
+              <span class="text-base font-extrabold text-rose-700">Rp {{ formatIDR(totalCredit) }}</span>
+            </div>
+
+            <div class="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+              <span class="text-[11px] font-sans font-medium text-zinc-500 block mb-1">STATUS SELISIH</span>
+              <span :class="['text-base font-extrabold', isBalanced ? 'text-emerald-700' : 'text-amber-700']">
+                {{ isBalanced ? 'SEIMBANG (Rp 0)' : `Selisih Rp ${formatIDR(balanceDiff)}` }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Bottom Actions Bar -->
-    <div class="flex items-center justify-between pt-4 border-t border-zinc-200">
-      <router-link
-        to="/accounting/cash-bank"
-        class="px-4 py-2 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-semibold border border-zinc-200 transition"
-      >
-        Batal & Kembali
-      </router-link>
+      <!-- 4. TAB 2: RECONCILIATION & STATUS -->
+      <div v-else-if="activeTab === 'RECONCILIATION'" class="space-y-6">
+        <div>
+          <h3 class="text-sm font-bold text-zinc-900 mb-1">Status Rekonsiliasi Kas & Bank</h3>
+          <p class="text-xs text-zinc-500">Kesesuaian saldo buku kas dan proyeksi mutasi rekening setelah transaksi diposting.</p>
+        </div>
 
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          @click="autoBalanceRows"
-          class="px-4 py-2 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-semibold border border-zinc-200 transition cursor-pointer"
-        >
-          Otomatis Seimbangkan
-        </button>
+        <div class="space-y-3 text-xs">
+          <div class="flex items-center justify-between p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+              <span class="font-semibold text-zinc-900">Rekening Kas/Bank Terpilih</span>
+            </div>
+            <span class="font-bold text-zinc-900 font-mono">[{{ primaryAccountCode }}] {{ selectedPrimaryAccount?.name }}</span>
+          </div>
 
-        <button
-          type="button"
-          @click="handleSaveVoucher"
-          class="inline-flex items-center gap-1.5 px-6 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
-        >
-          <Save class="w-3.5 h-3.5" />
-          <span>Simpan & Posting Voucher Kas/Bank</span>
-        </button>
+          <div class="flex items-center justify-between p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+              <span class="font-semibold text-zinc-900">Saldo Buku Saat Ini</span>
+            </div>
+            <span class="font-bold text-zinc-900 font-mono">Rp {{ formatIDR(selectedPrimaryAccount?.currentBalance || 0) }}</span>
+          </div>
+
+          <div class="flex items-center justify-between p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+            <div class="flex items-center gap-2.5">
+              <CheckCircle2 v-if="isBalanced" class="w-4 h-4 text-emerald-600" />
+              <AlertCircle v-else class="w-4 h-4 text-amber-600" />
+              <span class="font-semibold text-zinc-900">Status Keseimbangan Transaksi</span>
+            </div>
+            <span :class="['font-bold font-mono', isBalanced ? 'text-emerald-700' : 'text-amber-700']">
+              {{ isBalanced ? 'Seimbang (Rp 0)' : `Selisih Rp ${formatIDR(balanceDiff)}` }}
+            </span>
+          </div>
+        </div>
       </div>
+
+      <!-- 5. TAB 3: AUDIT TRAIL & LOG -->
+      <div v-else-if="activeTab === 'AUDIT'" class="space-y-6">
+        <div>
+          <h3 class="text-sm font-bold text-zinc-900 mb-1">Audit Trail & Log Otorisasi</h3>
+          <p class="text-xs text-zinc-500">Informasi riwayat pembuatan voucher kas dan otorisasi posting.</p>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl flex items-center justify-between">
+            <span class="text-zinc-600 font-medium">Petugas Input Kasir / Finance:</span>
+            <span class="font-bold text-zinc-900">Budi Santoso, SE, Ak., CA</span>
+          </div>
+          <div class="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl flex items-center justify-between">
+            <span class="text-zinc-600 font-medium">Waktu Transaksi:</span>
+            <span class="font-bold text-zinc-900 font-mono">{{ new Date().toLocaleString('id-ID') }}</span>
+          </div>
+          <div class="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl flex items-center justify-between">
+            <span class="text-zinc-600 font-medium">Tipe Otorisasi:</span>
+            <span class="font-bold text-zinc-900">Otomatis Terposting ke Buku Besar (GL)</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>

@@ -1062,7 +1062,7 @@ export const useTaxStore = defineStore('tax', () => {
       .flatMap(j => j.lines || [])
       .filter(l => l.accountCode?.startsWith('4-'))
       .reduce((sum, l) => sum + ((l.credit || 0) - (l.debit || 0)), 0)
-    const defaultCommercialRevenue = actualRevenue > 0 ? actualRevenue : (journalRev > 0 ? journalRev : 805658120)
+    const defaultCommercialRevenue = actualRevenue > 0 ? actualRevenue : (journalRev > 0 ? journalRev : 0)
 
     // 2. Real Commercial Expenses (Akun 5-xxxx HPP + Akun 6-xxxx Beban Operasional)
     const cogsAccounts = ledgerStore.accounts.filter(a => a.type === 'COGS' && !a.isHeader)
@@ -1074,13 +1074,13 @@ export const useTaxStore = defineStore('tax', () => {
       .flatMap(j => j.lines || [])
       .filter(l => l.accountCode?.startsWith('5-') || l.accountCode?.startsWith('6-'))
       .reduce((sum, l) => sum + ((l.debit || 0) - (l.credit || 0)), 0)
-    const defaultCommercialExpense = (actualCogs + actualExp) > 0 ? (actualCogs + actualExp) : (journalExp > 0 ? journalExp : 458600000)
+    const defaultCommercialExpense = (actualCogs + actualExp) > 0 ? (actualCogs + actualExp) : (journalExp > 0 ? journalExp : 0)
 
-    // 3. Default Fiscal Corrections per UU PPh
-    const defaultPosCorrection = 58500000.00
-    const defaultPosNotes = 'Koreksi Positif: Biaya entertainment/jamuan tanpa daftar nominatif PMK-02/2010 (Rp 38.5M) + Sanksi denda bunga (Rp 20M)'
-    const defaultNegCorrection = 9545162.73
-    const defaultNegNotes = 'Koreksi Negatif: Pendapatan Bunga Bank telah dipotong PPh Final Pasal 4(2) oleh Bank'
+    // 3. Fiscal Corrections per UU PPh (Default 0 if no adjustments made)
+    const defaultPosCorrection = 0
+    const defaultPosNotes = ''
+    const defaultNegCorrection = 0
+    const defaultNegNotes = ''
     const defaultRate = 0.11 // Fasilitas Ps 31E UU HPP (50% x 22% = 11%)
 
     // 4. Default Kredit Pajak dari SPT Masa (Bank Only)

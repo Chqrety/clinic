@@ -23,7 +23,6 @@ import {
   Filter,
   CheckCircle2,
   Clock,
-  Sparkles,
   Building2,
   Users,
   Eye,
@@ -154,17 +153,11 @@ function viewPayslip(slip: PayslipItem) {
 }
 
 function openEditModal(slip: PayslipItem) {
-  editingSlip.value = slip
-  showFormModal.value = true
+  router.push({ path: '/accounting/payroll/create', query: { id: slip.id } })
 }
 
 function openCreateModal() {
-  editingSlip.value = null
-  showFormModal.value = true
-}
-
-function handleGeneratePayroll() {
-  payrollStore.generateMonthlyPayroll(payrollStore.selectedMonth, payrollStore.selectedYear)
+  router.push('/accounting/payroll/create')
 }
 
 function handlePostToLedger() {
@@ -319,7 +312,7 @@ function handleExportExcel() {
           Slip Gaji & Penggajian Karyawan
         </h1>
         <p class="text-xs text-zinc-500 mt-0.5">
-          Import data absensi Excel, generate formulir data grid Jurnal Umum, posting buku besar, dan cetak slip individual / rekap.
+          Import data absensi Excel, input voucher Jurnal Umum Penggajian, posting buku besar, dan cetak slip individual / rekap.
         </p>
       </div>
 
@@ -334,22 +327,13 @@ function handleExportExcel() {
           <span>Import Absensi Excel</span>
         </button>
 
-        <!-- Button: Auto-Generate Monthly Fallback -->
-        <button
-          @click="handleGeneratePayroll"
-          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
-        >
-          <Sparkles class="w-3.5 h-3.5 text-amber-300" />
-          <span>Generate Otomatis</span>
-        </button>
-
-        <!-- Button: Tambah Slip Manual -->
+        <!-- Button: Buat Slip Gaji Baru (Voucher Jurnal) -->
         <button
           @click="openCreateModal"
-          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-50 text-zinc-800 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
-          <Plus class="w-3.5 h-3.5 text-zinc-600" />
-          <span>Input Manual</span>
+          <Plus class="w-3.5 h-3.5" />
+          <span>Buat Slip Gaji Baru</span>
         </button>
 
         <!-- Button: Post to Ledger -->
@@ -582,7 +566,7 @@ function handleExportExcel() {
           Belum ada data slip gaji untuk periode {{ payrollStore.selectedMonth }}/{{ payrollStore.selectedYear }}
         </h3>
         <p class="text-xs text-zinc-500 max-w-sm mx-auto">
-          Unggah file Excel absensi untuk membaca otomatis hari hadir dan alpa, atau klik tombol di bawah untuk membuat draft otomatis.
+          Unggah file Excel absensi untuk membaca rekapitulasi kehadiran karyawan, atau buat slip gaji baru secara manual.
         </p>
         <div class="flex items-center justify-center gap-2 pt-1">
           <button
@@ -593,11 +577,11 @@ function handleExportExcel() {
             <span>Import Absensi Excel</span>
           </button>
           <button
-            @click="handleGeneratePayroll"
-            class="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+            @click="openCreateModal"
+            class="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
           >
-            <Sparkles class="w-3.5 h-3.5 text-amber-300" />
-            <span>Generate Otomatis</span>
+            <Plus class="w-3.5 h-3.5" />
+            <span>+ Buat Slip Gaji Baru</span>
           </button>
         </div>
       </div>
@@ -864,12 +848,13 @@ function handleExportExcel() {
     <PayslipFormModal
       :show="showFormModal"
       :edit-slip="editingSlip"
+      :employees="payrollStore.allAvailableEmployees"
       @close="showFormModal = false; editingSlip = null"
     />
 
     <AttendanceImportModal
       :show="showImportModal"
-      :employees="payrollStore.employees"
+      :employees="payrollStore.allAvailableEmployees"
       :selected-month="payrollStore.selectedMonth"
       :selected-year="payrollStore.selectedYear"
       @close="showImportModal = false"

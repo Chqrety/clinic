@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useAccountingStore } from './accounting'
 import { useLedgerStore } from './ledger'
 import { useJournalsStore } from './journals'
+import { accountingApi } from '@/api/accounting'
 
 export interface ProfitLossItem {
   code: string
@@ -449,97 +450,80 @@ export const useReportsStore = defineStore('reports', () => {
     }
   })
 
-  // AR Aging
-  const arAgingList = ref<AgingBucket[]>([
-    {
-      id: 'ar-1',
-      entityName: 'Asuransi Sinarmas (Klaim Rawat Jalan Anak)',
-      invoiceNumber: 'INV-CLM-2026-088',
-      invoiceDate: '2026-02-15',
-      dueDate: '2026-03-15',
-      current: 18500000,
-      days1to30: 0,
-      days31to60: 0,
-      days61to90: 0,
-      over90: 0,
-      total: 18500000,
-      status: 'CURRENT'
-    },
-    {
-      id: 'ar-2',
-      entityName: 'Asuransi Prudential (Klaim Observasi Pediatrik)',
-      invoiceNumber: 'INV-CLM-2026-074',
-      invoiceDate: '2026-01-20',
-      dueDate: '2026-02-20',
-      current: 0,
-      days1to30: 24300000,
-      days31to60: 0,
-      days61to90: 0,
-      over90: 0,
-      total: 24300000,
-      status: 'OVERDUE'
-    },
-    {
-      id: 'ar-3',
-      entityName: 'Corporate PT Astra Sedaya (MCU Eksekutif Kulit SSC)',
-      invoiceNumber: 'INV-CRP-2026-012',
-      invoiceDate: '2026-02-28',
-      dueDate: '2026-03-30',
-      current: 21400000,
-      days1to30: 0,
-      days31to60: 0,
-      days61to90: 0,
-      over90: 0,
-      total: 21400000,
-      status: 'CURRENT'
-    }
-  ])
+  // AR Aging (Live Database from PostgreSQL)
+  const arAgingList = ref<AgingBucket[]>([])
+  const apAgingList = ref<AgingBucket[]>([])
+  const isLoadingAging = ref(false)
 
-  // AP Aging
-  const apAgingList = ref<AgingBucket[]>([
-    {
-      id: 'ap-1',
-      entityName: 'PT Kimia Farma Trading & Distribution (PBF Farmasi)',
-      invoiceNumber: 'INV-KF-99881',
-      invoiceDate: '2026-02-10',
-      dueDate: '2026-03-12',
-      current: 15540000,
-      days1to30: 0,
-      days31to60: 0,
-      days61to90: 0,
-      over90: 0,
-      total: 15540000,
-      status: 'CURRENT'
-    },
-    {
-      id: 'ap-2',
-      entityName: 'PT Kalbe Farma Tbk (Nutrisi & Vaksin Anak)',
-      invoiceNumber: 'INV-KLB-7712',
-      invoiceDate: '2026-01-25',
-      dueDate: '2026-02-25',
-      current: 0,
-      days1to30: 22200000,
-      days31to60: 0,
-      days61to90: 0,
-      over90: 0,
-      total: 22200000,
-      status: 'OVERDUE'
-    },
-    {
-      id: 'ap-3',
-      entityName: 'PT Parazelsus Indonesia (Serum & Kosmetika SSC)',
-      invoiceNumber: 'INV-PZ-3401',
-      invoiceDate: '2026-02-22',
-      dueDate: '2026-03-24',
-      current: 20460000,
-      days1to30: 0,
-      days31to60: 0,
-      days61to90: 0,
-      over90: 0,
-      total: 20460000,
-      status: 'CURRENT'
+  async function fetchAgingReports(asOfDate?: string) {
+    isLoadingAging.value = true
+    try {
+      const [arRes, apRes] = await Promise.all([
+        accountingApi.getReceivableAging(asOfDate),
+        accountingApi.getPayableAging(asOfDate)
+      ])
+
+      if (arRes && arRes.buckets && Array.isArray(arRes.buckets) && arRes.buckets.length > 0) {
+        arAgingList.value = arRes.buckets.map((b: any, idx: number) => {
+          const cur = Number(b.current) || 0
+          const d30 = Number(b.days_1_30) || 0
+          const d60 = Number(b.days_31_60) || 0
+          const d90 = Number(b.days_61_90) || 0
+          const dOver = Number(b.days_over_90) || 0
+          const tot = Number(b.total_outstanding) || (cur + d30 + d60 + d90 + dOver)
+          return {
+            id: `ar-${idx + 1}`,
+            entityName: b.customer_name || 'Pasien / Rekanan',
+            invoiceNumber: '-',
+            invoiceDate: asOfDate || new Date().toISOString().slice(0, 10),
+            dueDate: asOfDate || new Date().toISOString().slice(0, 10),
+            current: cur,
+            days1to30: d30,
+            days31to60: d60,
+            days61to90: d90,
+            over90: dOver,
+            total: tot,
+            status: (d30 + d60 + d90 + dOver) > 0 ? 'OVERDUE' : 'CURRENT'
+          } as AgingBucket
+        })
+      } else {
+        arAgingList.value = []
+      }
+
+      if (apRes && apRes.buckets && Array.isArray(apRes.buckets) && apRes.buckets.length > 0) {
+        apAgingList.value = apRes.buckets.map((b: any, idx: number) => {
+          const cur = Number(b.current) || 0
+          const d30 = Number(b.days_1_30) || 0
+          const d60 = Number(b.days_31_60) || 0
+          const d90 = Number(b.days_61_90) || 0
+          const dOver = Number(b.days_over_90) || 0
+          const tot = Number(b.total_outstanding) || (cur + d30 + d60 + d90 + dOver)
+          return {
+            id: `ap-${idx + 1}`,
+            entityName: b.vendor_name || 'Distributor / Supplier',
+            invoiceNumber: '-',
+            invoiceDate: asOfDate || new Date().toISOString().slice(0, 10),
+            dueDate: asOfDate || new Date().toISOString().slice(0, 10),
+            current: cur,
+            days1to30: d30,
+            days31to60: d60,
+            days61to90: d90,
+            over90: dOver,
+            total: tot,
+            status: (d30 + d60 + d90 + dOver) > 0 ? 'OVERDUE' : 'CURRENT'
+          } as AgingBucket
+        })
+      } else {
+        apAgingList.value = []
+      }
+    } catch (err) {
+      console.warn('[ReportsStore] Gagal mengambil laporan aging dari backend:', err)
+      arAgingList.value = []
+      apAgingList.value = []
+    } finally {
+      isLoadingAging.value = false
     }
-  ])
+  }
 
   return {
     revenueItems,
@@ -548,6 +532,8 @@ export const useReportsStore = defineStore('reports', () => {
     profitLossSummary,
     balanceSheet,
     arAgingList,
-    apAgingList
+    apAgingList,
+    isLoadingAging,
+    fetchAgingReports
   }
 })

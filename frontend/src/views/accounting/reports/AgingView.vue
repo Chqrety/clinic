@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useReportsStore } from '@/stores/reports'
 import { useAccountingStore } from '@/stores/accounting'
 import { formatIDR } from '@/utils/currency'
@@ -11,13 +11,22 @@ import {
   CreditCard,
   Receipt,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-vue-next'
 
 const reportsStore = useReportsStore()
 const accountingStore = useAccountingStore()
 
 const activeTab = ref<'AR' | 'AP'>('AR')
+
+onMounted(() => {
+  reportsStore.fetchAgingReports()
+})
+
+watch(() => accountingStore.businessUnit, () => {
+  reportsStore.fetchAgingReports()
+})
 
 const currentList = computed(() => {
   return activeTab.value === 'AR' ? reportsStore.arAgingList : reportsStore.apAgingList
@@ -174,6 +183,22 @@ function handleExportExcel() {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
+            <tr v-if="currentList.length === 0">
+              <td colspan="10" class="px-4 py-12 text-center text-slate-400">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <CheckCircle2 class="w-8 h-8 text-slate-300" />
+                  <span class="text-xs font-medium">Tidak ada data {{ activeTab === 'AR' ? 'piutang' : 'hutang' }} transaksi (Saldo: Rp 0)</span>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="currentList.length === 0">
+              <td colspan="10" class="px-4 py-12 text-center text-slate-400">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <CheckCircle2 class="w-8 h-8 text-slate-300" />
+                  <span class="text-xs font-medium">Tidak ada data {{ activeTab === 'AR' ? 'piutang' : 'hutang' }} di database (Saldo: Rp 0)</span>
+                </div>
+              </td>
+            </tr>
             <tr
               v-for="item in currentList"
               :key="item.id"
