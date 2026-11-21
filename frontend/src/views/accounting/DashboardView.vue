@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountingStore } from '@/stores/accounting'
 import { useJournalsStore } from '@/stores/journals'
@@ -7,16 +7,14 @@ import { useTransactionsStore } from '@/stores/transactions'
 import { useLedgerStore } from '@/stores/ledger'
 import { useReportsStore } from '@/stores/reports'
 import { useLocaleStore } from '@/stores/locale'
-import { formatIDR, compactIDR } from '@/utils/currency'
+import { accountingApi, type BackendTrialBalance } from '@/api/accounting'
+import { formatIDR } from '@/utils/currency'
 import { formatDate } from '@/utils/date'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import JournalDetailModal from '@/components/journal/JournalDetailModal.vue'
 import ManualJournalModal from '@/components/journal/ManualJournalModal.vue'
 import type { JournalEntry } from '@/types/accounting'
 import {
-  TrendingUp,
-  CreditCard,
-  Wallet,
   Receipt,
   FileCheck2,
   ArrowUpRight,
@@ -24,7 +22,8 @@ import {
   Layers,
   Sparkles,
   Building2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  RefreshCw
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -35,41 +34,184 @@ const ledgerStore = useLedgerStore()
 const reportsStore = useReportsStore()
 const localeStore = useLocaleStore()
 
-// Synchronize with database on component mount
-onMounted(async () => {
-  try {
-    await Promise.allSettled([
-      ledgerStore.fetchAccounts(),
-      journalsStore.fetchJournals()
-    ])
-  } catch (err) {
-    console.warn('Dashboard fetch error:', err)
-  }
-})
-
 const selectedJournal = ref<JournalEntry | null>(null)
 const showDetailModal = ref(false)
 const showManualModal = ref(false)
+const isLoading = ref(false)
+
+// Authoritative PostgreSQL Data
+const backendTrialBalance = ref<BackendTrialBalance | null>(null)
+const backendIncomeStatement = ref<any>(null)
+const backendBalanceSheet = ref<any>(null)
 
 function inspectJournal(j: JournalEntry) {
   selectedJournal.value = j
   showDetailModal.value = true
 }
 
-// Financial KPI summaries derived directly from Buku Besar (General Ledger)
-const summary = computed(() => reportsStore.profitLossSummary)
-const balance = computed(() => reportsStore.balanceSheet)
+async function loadAuthoritativeData() {
+  isLoading.value = true
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const currentYear = new Date().getFullYear()
+    const startOfYear = `${currentYear}-01-01`
 
-const currentRevenue = computed(() => {
-  if (accountingStore.businessUnit === 'KIDINEST') return summary.value.kidinestRev
-  if (accountingStore.businessUnit === 'SSC') return summary.value.sscRev
-  return summary.value.totalRev
+    const [tb, is, bs] = await Promise.allSettled([
+      accountingApi.getTrialBalance(startOfYear, today),
+      accountingApi.getIncomeStatement(startOfYear, today),
+      accountingApi.getBalanceSheet(today),
+      journalsStore.fetchJournals(),
+      ledgerStore.fetchAccounts()
+    ])
+
+    if (tb.status === 'fulfilled') backendTrialBalance.value = tb.value
+    if (is.status === 'fulfilled') backendIncomeStatement.value = is.value
+    if (bs.status === 'fulfilled') backendBalanceSheet.value = bs.value
+  } catch (err) {
+    console.warn('[Dashboard] Gagal memuat data finansial riil:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadAuthoritativeData()
 })
 
-const currentNetProfit = computed(() => {
-  if (accountingStore.businessUnit === 'KIDINEST') return summary.value.kidinestNetProfit
-  if (accountingStore.businessUnit === 'SSC') return summary.value.sscNetProfit
-  return summary.value.netProfit
+watch(() => accountingStore.businessUnit, () => {
+  loadAuthoritativeData()
+})
+
+// Real Posted Journals
+const postedJournals = computed(() => {
+  return journalsStore.journals.filter(j => j.status === 'POSTED')
+})
+
+// Real Per-Unit Financial Calculations from Posted Journals
+const kidinestStats = computed(() => {
+  const kidJournals = postedJournals.value.filter(j => j.businessUnit === 'KIDINEST')
+  const revenue = kidJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('4-') || l.accountCode.startsWith('4'))
+    .reduce((sum, l) => sum + (l.credit - l.debit), 0)
+  const expenses = kidJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('5-') || l.accountCode.startsWith('6-') || l.accountCode.startsWith('5') || l.accountCode.startsWith('6'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+  return {
+    revenue: Math.max(0, revenue),
+    netProfit: revenue - expenses
+  }
+})
+
+const sscStats = computed(() => {
+  const sscJournals = postedJournals.value.filter(j => j.businessUnit === 'SSC')
+  const revenue = sscJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('4-') || l.accountCode.startsWith('4'))
+    .reduce((sum, l) => sum + (l.credit - l.debit), 0)
+  const expenses = sscJournals
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('5-') || l.accountCode.startsWith('6-') || l.accountCode.startsWith('5') || l.accountCode.startsWith('6'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+  return {
+    revenue: Math.max(0, revenue),
+    netProfit: revenue - expenses
+  }
+})
+
+// KPI Calculations from Authoritative PostgreSQL Data
+const grossRevenue = computed(() => {
+  if (accountingStore.businessUnit === 'KIDINEST') return kidinestStats.value.revenue
+  if (accountingStore.businessUnit === 'SSC') return sscStats.value.revenue
+
+  if (backendIncomeStatement.value?.total_revenue) {
+    return Number(backendIncomeStatement.value.total_revenue) || 0
+  }
+  return postedJournals.value
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('4-') || l.accountCode.startsWith('4'))
+    .reduce((sum, l) => sum + (l.credit - l.debit), 0)
+})
+
+const liquidCash = computed(() => {
+  if (backendTrialBalance.value?.items?.length) {
+    return backendTrialBalance.value.items
+      .filter(item => {
+        const isCashOrBank = item.account_code.startsWith('1-11') || item.account_code.startsWith('1-12')
+        if (!isCashOrBank) return false
+        if (accountingStore.businessUnit === 'KIDINEST') return item.account_code.includes('.001') || item.account_name.includes('Kidinest')
+        if (accountingStore.businessUnit === 'SSC') return item.account_code.includes('.002') || item.account_name.includes('SSC')
+        return true
+      })
+      .reduce((sum, item) => sum + (Number(item.ending_debit) - Number(item.ending_credit)), 0)
+  }
+  // Fallback to posted journals
+  return postedJournals.value
+    .filter(j => accountingStore.businessUnit === 'ALL' || j.businessUnit === accountingStore.businessUnit)
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('1-11') || l.accountCode.startsWith('1-12'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+})
+
+const patientAR = computed(() => {
+  if (backendTrialBalance.value?.items?.length) {
+    return backendTrialBalance.value.items
+      .filter(item => item.account_code.startsWith('1-12') || item.account_name.toLowerCase().includes('piutang'))
+      .reduce((sum, item) => sum + (Number(item.ending_debit) - Number(item.ending_credit)), 0)
+  }
+  return postedJournals.value
+    .filter(j => accountingStore.businessUnit === 'ALL' || j.businessUnit === accountingStore.businessUnit)
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('1-12') || l.accountName.toLowerCase().includes('piutang'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+})
+
+const medicalAP = computed(() => {
+  if (backendTrialBalance.value?.items?.length) {
+    return backendTrialBalance.value.items
+      .filter(item => item.account_code.startsWith('2-') || item.account_name.toLowerCase().includes('hutang'))
+      .reduce((sum, item) => sum + (Number(item.ending_credit) - Number(item.ending_debit)), 0)
+  }
+  return postedJournals.value
+    .filter(j => accountingStore.businessUnit === 'ALL' || j.businessUnit === accountingStore.businessUnit)
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('2-') || l.accountName.toLowerCase().includes('hutang'))
+    .reduce((sum, l) => sum + (l.credit - l.debit), 0)
+})
+
+const netProfit = computed(() => {
+  if (accountingStore.businessUnit === 'KIDINEST') return kidinestStats.value.netProfit
+  if (accountingStore.businessUnit === 'SSC') return sscStats.value.netProfit
+
+  if (backendIncomeStatement.value?.net_income) {
+    return Number(backendIncomeStatement.value.net_income) || 0
+  }
+  const rev = grossRevenue.value
+  const exp = postedJournals.value
+    .flatMap(j => j.lines)
+    .filter(l => l.accountCode.startsWith('5-') || l.accountCode.startsWith('6-') || l.accountCode.startsWith('5') || l.accountCode.startsWith('6'))
+    .reduce((sum, l) => sum + (l.debit - l.credit), 0)
+  return rev - exp
+})
+
+const netMargin = computed(() => {
+  if (grossRevenue.value <= 0) return 0
+  return Math.round((netProfit.value / grossRevenue.value) * 1000) / 10
+})
+
+const totalKidinestSscRevenue = computed(() => {
+  return kidinestStats.value.revenue + sscStats.value.revenue
+})
+
+const kidinestContribution = computed(() => {
+  if (totalKidinestSscRevenue.value <= 0) return 0
+  return Math.round((kidinestStats.value.revenue / totalKidinestSscRevenue.value) * 100)
+})
+
+const sscContribution = computed(() => {
+  if (totalKidinestSscRevenue.value <= 0) return 0
+  return Math.round((sscStats.value.revenue / totalKidinestSscRevenue.value) * 100)
 })
 
 const activePeriodLabel = computed(() => {
@@ -111,6 +253,16 @@ const unprocessedTransactions = computed(() => {
 
       <div class="flex items-center gap-2.5">
         <button
+          @click="loadAuthoritativeData"
+          :disabled="isLoading"
+          class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-zinc-50 text-zinc-700 rounded-xl text-xs font-bold border border-zinc-200 shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+          :title="localeStore.isEnglish ? 'Reload Database Data' : 'Muat Ulang Data Database'"
+        >
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isLoading }" />
+          <span class="hidden sm:inline">{{ isLoading ? (localeStore.isEnglish ? 'Loading...' : 'Memuat...') : (localeStore.isEnglish ? 'Refresh' : 'Sinkron Data') }}</span>
+        </button>
+
+        <button
           @click="showManualModal = true"
           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
         >
@@ -135,17 +287,17 @@ const unprocessedTransactions = computed(() => {
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.grossRevenue') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(currentRevenue) }}
+          {{ formatIDR(grossRevenue) }}
         </div>
-        <div class="text-[10px] font-semibold mt-0.5" :class="currentRevenue > 0 ? 'text-emerald-600' : 'text-zinc-400'">
-          {{ currentRevenue > 0 ? '+14.2% vs Feb 2026' : (localeStore.isEnglish ? 'Verified Ledger' : 'Buku Besar Terverifikasi') }}
+        <div class="text-[10px] font-semibold mt-0.5" :class="grossRevenue > 0 ? 'text-emerald-600' : 'text-zinc-400'">
+          {{ grossRevenue > 0 ? '+14.2% vs Feb 2026' : (localeStore.isEnglish ? 'Verified Ledger' : 'Buku Besar Terverifikasi') }}
         </div>
       </div>
 
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.cashBankLiquid') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(balance.kasOperasional + balance.bankOperasional) }}
+          {{ formatIDR(liquidCash) }}
         </div>
         <div class="text-[10px] text-zinc-400 font-medium mt-0.5">{{ localeStore.t('dashboard.liquidSubtitle') }}</div>
       </div>
@@ -153,7 +305,7 @@ const unprocessedTransactions = computed(() => {
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.receivables') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(balance.piutangPasien) }}
+          {{ formatIDR(patientAR) }}
         </div>
         <div class="text-[10px] text-zinc-400 font-medium mt-0.5">{{ localeStore.t('dashboard.receivablesSubtitle') }}</div>
       </div>
@@ -161,7 +313,7 @@ const unprocessedTransactions = computed(() => {
       <div class="p-3.5">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{{ localeStore.t('dashboard.payables') }}</div>
         <div class="text-base font-bold tabular-nums tracking-tight text-zinc-900 mt-0.5">
-          {{ formatIDR(balance.hutangDistributor + balance.hutangDokter) }}
+          {{ formatIDR(medicalAP) }}
         </div>
         <div class="text-[10px] text-zinc-400 font-medium mt-0.5">{{ localeStore.t('dashboard.payablesSubtitle') }}</div>
       </div>
@@ -169,10 +321,10 @@ const unprocessedTransactions = computed(() => {
       <div class="p-3.5 col-span-2 sm:col-span-1 bg-stone-50/90 border-l border-zinc-200/90 flex flex-col justify-center">
         <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">{{ localeStore.t('dashboard.netProfit') }}</div>
         <div class="text-lg font-extrabold tabular-nums tracking-tight text-zinc-950 mt-0.5">
-          {{ formatIDR(currentNetProfit) }}
+          {{ formatIDR(netProfit) }}
         </div>
-        <div class="text-[10px] font-bold mt-0.5" :class="currentNetProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'">
-          {{ summary.netMarginPercent }}% {{ localeStore.t('dashboard.netMargin') }}
+        <div class="text-[10px] font-bold mt-0.5" :class="netProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'">
+          {{ netMargin }}% {{ localeStore.t('dashboard.netMargin') }}
         </div>
       </div>
     </div>
@@ -196,17 +348,17 @@ const unprocessedTransactions = computed(() => {
               <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
               <span class="font-bold text-xs text-amber-950">{{ localeStore.t('dashboard.kidinestTitle') }}</span>
             </div>
-            <span class="text-xs font-bold tabular-nums text-amber-950">{{ formatIDR(summary.kidinestRev) }}</span>
+            <span class="text-xs font-bold tabular-nums text-amber-950">{{ formatIDR(kidinestStats.revenue) }}</span>
           </div>
           <div class="w-full bg-amber-200/60 h-1.5 rounded-full overflow-hidden">
             <div
               class="bg-amber-500 h-full rounded-full transition-all duration-300"
-              :style="{ width: summary.totalRev > 0 ? `${(summary.kidinestRev / summary.totalRev) * 100}%` : '0%' }"
+              :style="{ width: `${kidinestContribution}%` }"
             ></div>
           </div>
           <div class="flex justify-between text-[11px] text-amber-900 font-medium">
-            <span>{{ localeStore.t('dashboard.netProfitLabel') }}: <strong class="tabular-nums">{{ formatIDR(summary.kidinestNetProfit) }}</strong></span>
-            <span>{{ localeStore.t('dashboard.contribution') }}: <strong>{{ summary.totalRev > 0 ? Math.round((summary.kidinestRev / summary.totalRev) * 100) : 0 }}%</strong></span>
+            <span>{{ localeStore.t('dashboard.netProfitLabel') }}: <strong class="tabular-nums">{{ formatIDR(kidinestStats.netProfit) }}</strong></span>
+            <span>{{ localeStore.t('dashboard.contribution') }}: <strong>{{ kidinestContribution }}%</strong></span>
           </div>
         </div>
 
@@ -217,17 +369,17 @@ const unprocessedTransactions = computed(() => {
               <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
               <span class="font-bold text-xs text-rose-950">{{ localeStore.t('dashboard.sscTitle') }}</span>
             </div>
-            <span class="text-xs font-bold tabular-nums text-rose-950">{{ formatIDR(summary.sscRev) }}</span>
+            <span class="text-xs font-bold tabular-nums text-rose-950">{{ formatIDR(sscStats.revenue) }}</span>
           </div>
           <div class="w-full bg-rose-200/60 h-1.5 rounded-full overflow-hidden">
             <div
               class="bg-rose-500 h-full rounded-full transition-all duration-300"
-              :style="{ width: summary.totalRev > 0 ? `${(summary.sscRev / summary.totalRev) * 100}%` : '0%' }"
+              :style="{ width: `${sscContribution}%` }"
             ></div>
           </div>
           <div class="flex justify-between text-[11px] text-rose-900 font-medium">
-            <span>{{ localeStore.t('dashboard.netProfitLabel') }}: <strong class="tabular-nums">{{ formatIDR(summary.sscNetProfit) }}</strong></span>
-            <span>{{ localeStore.t('dashboard.contribution') }}: <strong>{{ summary.totalRev > 0 ? Math.round((summary.sscRev / summary.totalRev) * 100) : 0 }}%</strong></span>
+            <span>{{ localeStore.t('dashboard.netProfitLabel') }}: <strong class="tabular-nums">{{ formatIDR(sscStats.netProfit) }}</strong></span>
+            <span>{{ localeStore.t('dashboard.contribution') }}: <strong>{{ sscContribution }}%</strong></span>
           </div>
         </div>
 
@@ -275,7 +427,7 @@ const unprocessedTransactions = computed(() => {
                 {{ journalsStore.stats.draftCount + journalsStore.stats.submittedCount }}
               </span>
               <span class="text-[10px] font-bold text-zinc-700 bg-zinc-200/80 px-1.5 py-0.5 rounded">
-                Maker
+                Draft
               </span>
             </div>
             <p class="text-[11px] text-zinc-500">{{ localeStore.t('dashboard.makerSubtitle') }}</p>
@@ -344,7 +496,15 @@ const unprocessedTransactions = computed(() => {
           </button>
         </div>
 
-        <div class="space-y-2.5">
+        <!-- Empty State -->
+        <div v-if="unprocessedTransactions.length === 0" class="py-10 text-center space-y-1.5 border border-dashed border-zinc-200 rounded-xl">
+          <Layers class="w-6 h-6 text-zinc-300 mx-auto" />
+          <p class="text-xs font-bold text-zinc-700">Semua transaksi operasional telah diproses</p>
+          <p class="text-[11px] text-zinc-400">Tidak ada antrean transaksi kasir atau farmasi yang menunggu penjurnalan.</p>
+        </div>
+
+        <!-- Transaction List -->
+        <div v-else class="space-y-2.5">
           <div
             v-for="tx in unprocessedTransactions"
             :key="tx.id"
@@ -390,7 +550,15 @@ const unprocessedTransactions = computed(() => {
           </button>
         </div>
 
-        <div class="space-y-2.5">
+        <!-- Empty State -->
+        <div v-if="recentJournals.length === 0" class="py-10 text-center space-y-1.5 border border-dashed border-zinc-200 rounded-xl">
+          <Receipt class="w-6 h-6 text-zinc-300 mx-auto" />
+          <p class="text-xs font-bold text-zinc-700">Belum ada jurnal transaksi tercatat di database</p>
+          <p class="text-[11px] text-zinc-400">Database siap menerima pencatatan jurnal baru atau posting kasir.</p>
+        </div>
+
+        <!-- Journal List -->
+        <div v-else class="space-y-2.5">
           <div
             v-for="j in recentJournals"
             :key="j.id"
@@ -435,4 +603,3 @@ const unprocessedTransactions = computed(() => {
     />
   </div>
 </template>
-

@@ -1,21 +1,128 @@
+# ==========================================
+# CLINIC ALL-IN-DOCKER PRODUCTION COMPOSE
+# ==========================================
+# Menjalankan seluruh stack klinik & akuntansi:
+# Frontend (Nginx), Backend (Go API), Worker, PostgreSQL, dan Redis.
+#
+# Cara Menjalankan:
+#   docker compose up -d --build
+#
+# Migrasi Database:
+#   docker compose exec backend-api /usr/local/bin/migrate -action=up
+#   docker compose exec backend-api /usr/local/bin/migrate -action=seed-coa
+
 services:
   postgres:
     image: postgres:16-alpine
     container_name: clinic_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-clinic}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-clinic_secret}
-      POSTGRES_DB: ${DB_NAME:-clinic_db}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
+      POSTGRES_DB: ${DB_NAME:-clinic_accounting}
+      TZ: Asia/Jakarta
     volumes:
-      - clinic_pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-clinic} -d ${DB_NAME:-clinic_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-clinic_accounting}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - clinic_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: clinic_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - clinic_network
+
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: deployments/docker/Dockerfile
+    image: clinic_backend:latest
+    container_name: clinic_backend_api
+    restart: unless-stopped
+    environment:
+      APP_NAME: clinic-accounting
+      APP_ENV: production
+      PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
+      DB_NAME: ${DB_NAME:-clinic_accounting}
+      DB_SSLMODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_encryption_key_change_me}
+      BASE_CURRENCY: IDR
+      FISCAL_YEAR_START_MONTH: 1
+      AUTO_POSTING: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - clinic_network
+
+  backend-worker:
+    build:
+      context: ./backend
+      dockerfile: deployments/docker/Dockerfile
+    image: clinic_backend:latest
+    container_name: clinic_backend_worker
+    restart: unless-stopped
+    entrypoint: ["/usr/local/bin/worker"]
+    environment:
+      APP_NAME: clinic-worker
+      APP_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
+      DB_NAME: ${DB_NAME:-clinic_accounting}
+      DB_SSLMODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_encryption_key_change_me}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - clinic_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: clinic_frontend:latest
+    container_name: clinic_frontend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-80}:80"
+    depends_on:
+      - backend-api
+    networks:
+      - clinic_network
 
 volumes:
-  clinic_pgdata:
+  postgres_data:
+  redis_data:
+
+networks:
+  clinic_network:
+    driver: bridge

@@ -184,7 +184,7 @@ func setupPayableService() (*payableApp.Service, *mockPayableRepo, *mockJournalR
 	uow := &mockUoW{}
 	accRepo := &mockAccountRepo{accounts: make(map[string]*accountingDomain.Account)}
 	accRepo.accounts["2-1110"] = &accountingDomain.Account{
-		ID:            uuid.New(),
+		BaseEntity:    shared.BaseEntity{ID: uuid.New()},
 		Code:          "2-1110",
 		Name:          "Hutang Supplier Farmasi & PBF",
 		Type:          accountingDomain.AccountTypeLiability,
@@ -193,7 +193,7 @@ func setupPayableService() (*payableApp.Service, *mockPayableRepo, *mockJournalR
 		IsHeader:      false,
 	}
 	accRepo.accounts["1-1121"] = &accountingDomain.Account{
-		ID:            uuid.New(),
+		BaseEntity:    shared.BaseEntity{ID: uuid.New()},
 		Code:          "1-1121",
 		Name:          "Bank BCA Operasional",
 		Type:          accountingDomain.AccountTypeAsset,

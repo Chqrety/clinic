@@ -7,6 +7,7 @@ import (
 
 	app "clinic-api/internal/application/accounting"
 	domain "clinic-api/internal/domain/accounting"
+	"clinic-api/internal/domain/shared"
 	"clinic-api/pkg/decimal"
 
 	"github.com/google/uuid"
@@ -169,10 +170,10 @@ type mockFiscalPeriodRepo struct {
 
 func (m *mockFiscalPeriodRepo) GetPeriod(ctx context.Context, branchID uuid.UUID, year, month int) (*domain.FiscalPeriod, error) {
 	return &domain.FiscalPeriod{
-		BranchID: branchID,
-		Year:     year,
-		Month:    month,
-		Status:   "OPEN",
+		BranchScoped: shared.BranchScoped{BranchID: branchID},
+		Year:         year,
+		Month:        month,
+		Status:       "OPEN",
 	}, nil
 }
 

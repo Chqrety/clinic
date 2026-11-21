@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"clinic-api/internal/domain/accounting"
+	"clinic-api/internal/domain/shared"
 
 	"github.com/google/uuid"
 )
@@ -42,10 +43,10 @@ func (r *PostgresFiscalPeriodRepo) GetPeriod(ctx context.Context, branchID uuid.
 		if errors.Is(err, sql.ErrNoRows) {
 			// Period not yet registered -> default to OPEN
 			return &accounting.FiscalPeriod{
-				BranchID: branchID,
-				Year:     year,
-				Month:    month,
-				Status:   "OPEN",
+				BranchScoped: shared.BranchScoped{BranchID: branchID},
+				Year:         year,
+				Month:        month,
+				Status:       "OPEN",
 			}, nil
 		}
 		return nil, fmt.Errorf("get fiscal period: %w", err)
